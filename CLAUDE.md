@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Life OS is a single-user, local-data desktop life-planning app. The project is at the end of **Phase 0 (design)**: `backend/` and `frontend/` are empty, it is not a git repository yet, and only `docs/` has content.
+Life OS is a single-user, local-data desktop life-planning app. The project is at the end of **Phase 0 (design)**: `backend/` and `frontend/` are empty, and only `docs/` has content.
 
 **No build, lint, test or run commands exist yet.** Don't assume any. When the tooling is created (uv, pnpm, `just`), replace this section with the real commands, including how to run a single test.
 
@@ -12,7 +12,8 @@ Life OS is a single-user, local-data desktop life-planning app. The project is a
 
 - `docs/project_details.md` is the spec: stack, phase roadmap, status rules, service-layer rules and a decision log. Read the relevant section before implementing a feature, and add new decisions to the log.
 - `docs/schema.sql` is the settled schema. It is the reference for writing the models in Phase 1. After that, **SQLAlchemy models are the source of truth**, and every model change needs an Alembic migration.
-- Planned but not written yet: `docs/DOMAIN.md`, `docs/LOG.md` (what was done / what's next), `docs/FEEDBACK.md`.
+- `docs/DOMAIN.md` holds the business rules and a list of open questions. Check those before implementing the behavior they cover.
+- Planned but not written yet: `docs/LOG.md` (what was done / what's next), `docs/FEEDBACK.md`.
 
 ## Stack constraints that are easy to get wrong
 
@@ -26,6 +27,13 @@ Life OS is a single-user, local-data desktop life-planning app. The project is a
 ## How work is built
 
 Build in vertical slices following the phases in `docs/project_details.md`: backend → tests → regenerate client → UI. The app should be usable after every phase. Every AI prompt change gets an eval run.
+
+## Git workflow
+
+- Never commit directly to `main`. Each change gets its own short-lived branch named `<type>/<short-description>`, where type is `feat`, `fix`, `docs`, `chore` or `refactor`.
+- Open a PR with `gh pr create` and squash-merge it once CI passes, then delete the branch.
+- CI runs on GitHub Actions and is added at the start of Phase 1. When it exists, make its job a required status check on `main`.
+- The repo is public and `main` is protected: changes must arrive through a PR, even from admins, and force pushes are blocked. Never commit secrets; put them in an ignored `.env`.
 
 ## Data model essentials
 
