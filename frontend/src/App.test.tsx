@@ -1,46 +1,27 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { expect, test, vi } from "vitest";
-import { App } from "./App";
+import { screen } from "@testing-library/react";
+import { beforeEach, expect, test, vi } from "vitest";
+import { renderApp } from "./test-utils";
 
-function renderApp() {
-  render(
-    <QueryClientProvider client={new QueryClient()}>
-      <App />
-    </QueryClientProvider>,
+beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () =>
+        new Response("[]", { status: 200, headers: { "Content-Type": "application/json" } }),
+    ),
   );
-}
-
-function healthyResponse() {
-  return new Response(JSON.stringify({ status: "ok" }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-test("shows that the API is connected", async () => {
-  const fetchMock = vi.fn(async (_request: Request) => healthyResponse());
-  vi.stubGlobal("fetch", fetchMock);
-
-  renderApp();
-
-  expect(await screen.findByText("API connected")).toBeInTheDocument();
-  expect(new URL(fetchMock.mock.calls[0][0].url).pathname).toBe("/api/health");
 });
 
-test("shows an error, then recovers when checked again", async () => {
-  const fetchMock = vi
-    .fn<() => Promise<Response>>()
-    .mockRejectedValueOnce(new TypeError("Network error"))
-    .mockImplementation(async () => healthyResponse());
-  vi.stubGlobal("fetch", fetchMock);
+test.each(["/", "/not-a-page"])("%s opens the life areas page", async (path) => {
+  renderApp(path);
 
+  expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
+});
+
+test("the sidebar marks the current page", async () => {
   renderApp();
 
-  expect(await screen.findByText("API unreachable")).toBeInTheDocument();
+  const link = await screen.findByRole("link", { name: "Life areas" });
 
-  await userEvent.click(screen.getByRole("button", { name: "Check again" }));
-
-  expect(await screen.findByText("API connected")).toBeInTheDocument();
+  expect(link).toHaveAttribute("aria-current", "page");
 });

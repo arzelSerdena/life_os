@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Life OS is a single-user, local-data desktop life-planning app. The project is in **Phase 1 (Foundations + Life Areas)**: the backend foundation and Life Area API exist, and the frontend is set up with a generated API client. The app layout and Life Area screens are next.
+Life OS is a single-user, local-data desktop life-planning app. **Phase 1 (Foundations + Life Areas)** is complete: life areas can be created, edited, archived, restored and deleted in the app. **Phase 2 (Execution slice)** is next. Frontend features live in `frontend/src/features/<name>/`.
 
 ## Commands
 

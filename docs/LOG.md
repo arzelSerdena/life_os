@@ -9,7 +9,8 @@
 - Started Phase 1 with the backend foundation: uv project, config, database engine, Alembic, base mixin, health endpoint, tests, pre-commit and CI.
 - Added the Life Area backend: model, migration, schemas, service, API and tests.
 - Set up the frontend: Vite, React, Tailwind v4, HeroUI v3, TanStack Query, Biome, Vitest, the generated Hey API client and a CI job.
+- Built the app layout with sidebar and the Life Area screens, which finishes Phase 1.
 
 **Next**
 
-- App layout with sidebar and the Life Area screens, which finishes Phase 1.
+- Phase 2: tasks, subtasks, recurring tasks, events, the status engine and the week board.
