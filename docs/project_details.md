@@ -218,5 +218,6 @@ Design decisions: subtasks are a separate table (one level deep, not scheduled);
 - **2026-11-10** — `httpx2` replaces `httpx` for tests, as Starlette's `TestClient` now requires. Test libraries are added when first needed.
 - **2026-11-10** — Deleting a life area is permanent and refused with a 409 while items still belong to it; archiving is the normal way to retire one. Archiving can be reversed with unarchive, and a new life area goes to the end of the sort order.
 - **2026-11-10** — Life areas have a color but no icon.
+- **2026-11-10** — TypeScript is pinned to 6.x because Hey API needs the compiler API that TypeScript 7 removed. The generated client is committed, and CI fails if it is stale. In development Vite proxies `/api` to the backend, so no CORS setup is needed. The repo uses LF line endings on every OS.
 
 ---

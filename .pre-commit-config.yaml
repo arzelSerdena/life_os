@@ -1,4 +1,4 @@
-# Local hooks use the versions pinned in backend/uv.lock, so they match CI.
+# Local hooks use the versions pinned in each project's lockfile, so they match CI.
 repos:
   - repo: local
     hooks:
@@ -19,4 +19,16 @@ repos:
         entry: uv run --directory backend pyright
         language: system
         files: ^backend/
+        pass_filenames: false
+      - id: biome
+        name: biome
+        entry: pnpm --dir frontend exec biome check --write .
+        language: system
+        files: ^frontend/
+        pass_filenames: false
+      - id: typecheck
+        name: typecheck
+        entry: pnpm --dir frontend exec tsc -b
+        language: system
+        files: ^frontend/
         pass_filenames: false

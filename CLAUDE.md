@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Life OS is a single-user, local-data desktop life-planning app. The project is in **Phase 1 (Foundations + Life Areas)**: the backend foundation exists, and `frontend/` is still empty.
+Life OS is a single-user, local-data desktop life-planning app. The project is in **Phase 1 (Foundations + Life Areas)**: the backend foundation and Life Area API exist, and the frontend is set up with a generated API client. The app layout and Life Area screens are next.
 
 ## Commands
 
@@ -19,7 +19,20 @@ Run these from `backend/`:
 - Create a migration: `uv run alembic revision --autogenerate -m "describe the change"`
 - Apply migrations: `uv run alembic upgrade head`
 
-New models must be imported in `app/models/__init__.py`, or Alembic won't see them. Frontend and `just` commands don't exist yet; add them here when they do.
+New models must be imported in `app/models/__init__.py`, or Alembic won't see them.
+
+Run these from `frontend/`:
+
+- Install dependencies: `pnpm install`
+- Run the dev server (the API must also be running): `pnpm dev`
+- Run all tests: `pnpm test`
+- Run a single test: `pnpm test src/App.test.tsx -t "shows that the API is connected"`
+- Lint and format: `pnpm format`
+- Type-check: `pnpm typecheck`
+- Regenerate the API client after any backend API change: `pnpm api:generate` (CI fails if `src/client` is stale)
+- Build: `pnpm build`
+
+`just` commands don't exist yet; add them here when they do. TypeScript stays on 6.x until Hey API supports TypeScript 7, which it crashes on.
 
 ## Source documents
 
