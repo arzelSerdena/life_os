@@ -29,6 +29,9 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+"migrations/versions/*" = ["E501", "W291"]  # auto-generated, then cleaned by ruff format
+
 [tool.pyright]
 include = ["app", "tests", "migrations"]
 venvPath = "."

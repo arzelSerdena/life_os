@@ -1,8 +1,9 @@
 from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
+from fastapi import Depends
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
@@ -46,3 +47,6 @@ def get_session_factory() -> sessionmaker[Session]:
 def get_session() -> Iterator[Session]:
     with get_session_factory()() as session:
         yield session
+
+
+SessionDep = Annotated[Session, Depends(get_session)]

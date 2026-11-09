@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db import create_db_engine, get_session
 from app.main import app
+from app.models import Base
 
 
 @pytest.fixture
@@ -18,6 +19,7 @@ def database_url(tmp_path: Path) -> str:
 @pytest.fixture
 def engine(database_url: str) -> Iterator[Engine]:
     engine = create_db_engine(database_url)
+    Base.metadata.create_all(engine)
     yield engine
     engine.dispose()
 
