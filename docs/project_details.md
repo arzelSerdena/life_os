@@ -142,7 +142,7 @@ Priorities do **not** own projects/tasks/events. A priority page shows projects 
 
 | Table           | Key fields (besides id, owners, timestamps)                                                                                                                          |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| life_areas      | title, vision, notes, color, icon, sort_order, archived_at                                                                                                           |
+| life_areas      | title, vision, notes, color, sort_order, archived_at                                                                                                                 |
 | priorities      | title, notes, status (active/cancelled), cancelled_at, archived_at, sort_order                                                                                       |
 | goals           | title, notes, target_date, status (active/achieved/cancelled), achieved_at, cancelled_at, archived_at, sort_order                                                    |
 | group_projects  | title, sort_order, archived_at                                                                                                                                       |
@@ -217,5 +217,6 @@ Design decisions: subtasks are a separate table (one level deep, not scheduled);
 - **2026-11-10** — Migrations run with `PRAGMA foreign_keys` off and a `foreign_key_check` afterwards, because batch mode's `DROP TABLE` would otherwise cascade-delete child rows. Every application connection still turns it on.
 - **2026-11-10** — `httpx2` replaces `httpx` for tests, as Starlette's `TestClient` now requires. Test libraries are added when first needed.
 - **2026-11-10** — Deleting a life area is permanent and refused with a 409 while items still belong to it; archiving is the normal way to retire one. Archiving can be reversed with unarchive, and a new life area goes to the end of the sort order.
+- **2026-11-10** — Life areas have a color but no icon.
 
 ---

@@ -19,13 +19,12 @@ def _create(client: TestClient, title: str = "Health", **fields: Any) -> dict[st
 
 
 def test_create_returns_the_new_life_area(client: TestClient) -> None:
-    body = _create(client, "Health", vision="Feel strong", color="#22c55e", icon="heart")
+    body = _create(client, "Health", vision="Feel strong", color="#22c55e")
 
     assert body["title"] == "Health"
     assert body["vision"] == "Feel strong"
     assert body["notes"] is None
     assert body["color"] == "#22c55e"
-    assert body["icon"] == "heart"
     assert body["archived_at"] is None
     assert body["created_at"].endswith("Z")
     assert body["updated_at"].endswith("Z")
@@ -104,13 +103,13 @@ def test_get_returns_one_life_area(client: TestClient) -> None:
 
 
 def test_update_changes_only_the_fields_sent(client: TestClient) -> None:
-    created = _create(client, "Health", vision="Feel strong", icon="heart")
+    created = _create(client, "Health", vision="Feel strong", color="#22c55e")
 
     body = client.patch(f"{URL}/{created['id']}", json={"title": "Fitness"}).json()
 
     assert body["title"] == "Fitness"
     assert body["vision"] == "Feel strong"
-    assert body["icon"] == "heart"
+    assert body["color"] == "#22c55e"
 
 
 def test_update_can_clear_an_optional_field(client: TestClient) -> None:

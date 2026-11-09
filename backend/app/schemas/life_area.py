@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 from app.schemas.common import Notes, Title, UtcDatetime
 
 Vision = Annotated[str, StringConstraints(max_length=2000)]
-ShortLabel = Annotated[str, StringConstraints(max_length=50)]
+Color = Annotated[str, StringConstraints(max_length=50)]
 
 
 class LifeAreaCreate(BaseModel):
@@ -14,8 +14,7 @@ class LifeAreaCreate(BaseModel):
     title: Title
     vision: Vision | None = None
     notes: Notes | None = None
-    color: ShortLabel | None = None
-    icon: ShortLabel | None = None
+    color: Color | None = None
 
 
 class LifeAreaUpdate(BaseModel):
@@ -26,8 +25,7 @@ class LifeAreaUpdate(BaseModel):
     title: Title | None = None
     vision: Vision | None = None
     notes: Notes | None = None
-    color: ShortLabel | None = None
-    icon: ShortLabel | None = None
+    color: Color | None = None
     sort_order: Annotated[int, Field(ge=0)] | None = None
 
     @field_validator("title", "sort_order", mode="before")
@@ -46,7 +44,6 @@ class LifeAreaRead(BaseModel):
     vision: str | None
     notes: str | None
     color: str | None
-    icon: str | None
     sort_order: int
     archived_at: UtcDatetime | None
     created_at: UtcDatetime

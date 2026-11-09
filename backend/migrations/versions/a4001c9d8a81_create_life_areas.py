@@ -27,7 +27,6 @@ def upgrade() -> None:
         sa.Column("vision", sa.Text(), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("color", sa.Text(), nullable=True),
-        sa.Column("icon", sa.Text(), nullable=True),
         sa.Column("sort_order", sa.Integer(), server_default="0", nullable=False),
         sa.Column("archived_at", sa.DateTime(), nullable=True),
         sa.Column("id", sa.Integer(), nullable=False),

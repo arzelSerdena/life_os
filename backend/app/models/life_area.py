@@ -18,6 +18,5 @@ class LifeArea(BaseMixin, Base):
     vision: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     color: Mapped[str | None] = mapped_column(Text)
-    icon: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(default=0, server_default="0")
     archived_at: Mapped[datetime | None] = mapped_column(DateTime)

@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS "life_areas" (
 	"vision" TEXT CHECK(vision IS NULL OR length(vision) <= 2000),
 	"notes" TEXT CHECK(notes IS NULL OR length(notes) <= 50000),
 	"color" TEXT,
-	"icon" TEXT,
 	"sort_order" INTEGER NOT NULL DEFAULT 0,
 	"archived_at" DATETIME,
 	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
