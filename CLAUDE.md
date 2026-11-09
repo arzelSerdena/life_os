@@ -4,16 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Life OS is a single-user, local-data desktop life-planning app. The project is at the end of **Phase 0 (design)**: `backend/` and `frontend/` are empty, and only `docs/` has content.
+Life OS is a single-user, local-data desktop life-planning app. The project is in **Phase 1 (Foundations + Life Areas)**: the backend foundation exists, and `frontend/` is still empty.
 
-**No build, lint, test or run commands exist yet.** Don't assume any. When the tooling is created (uv, pnpm, `just`), replace this section with the real commands, including how to run a single test.
+## Commands
+
+Run these from `backend/`:
+
+- Install dependencies: `uv sync`
+- Run the API: `uv run uvicorn app.main:app --reload`
+- Run all tests: `uv run pytest`
+- Run a single test: `uv run pytest tests/test_db.py::test_foreign_key_violation_is_rejected`
+- Lint and format: `uv run ruff check --fix .` and `uv run ruff format .`
+- Type-check: `uv run pyright`
+- Create a migration: `uv run alembic revision --autogenerate -m "describe the change"`
+- Apply migrations: `uv run alembic upgrade head`
+
+New models must be imported in `app/models/__init__.py`, or Alembic won't see them. Frontend and `just` commands don't exist yet; add them here when they do.
 
 ## Source documents
 
 - `docs/project_details.md` is the spec: stack, phase roadmap, status rules, service-layer rules and a decision log. Read the relevant section before implementing a feature, and add new decisions to the log.
 - `docs/schema.sql` is the settled schema. It is the reference for writing the models in Phase 1. After that, **SQLAlchemy models are the source of truth**, and every model change needs an Alembic migration.
 - `docs/DOMAIN.md` holds the business rules and a list of open questions. Check those before implementing the behavior they cover.
-- Planned but not written yet: `docs/LOG.md` (what was done / what's next), `docs/FEEDBACK.md`.
+- `docs/LOG.md` records what was done and what's next. Planned but not written yet: `docs/FEEDBACK.md`.
 
 ## Stack constraints that are easy to get wrong
 
@@ -32,14 +45,14 @@ Build in vertical slices following the phases in `docs/project_details.md`: back
 
 - Never commit directly to `main`. Each change gets its own short-lived branch named `<type>/<short-description>`, where type is `feat`, `fix`, `docs`, `chore` or `refactor`.
 - Open a PR with `gh pr create` and squash-merge it once CI passes, then delete the branch.
-- CI runs on GitHub Actions and is added at the start of Phase 1. When it exists, make its job a required status check on `main`.
+- CI runs on GitHub Actions (`.github/workflows/ci.yml`), and its jobs are required status checks on `main`.
 - The repo is public and `main` is protected: changes must arrive through a PR, even from admins, and force pushes are blocked. Never commit secrets; put them in an ignored `.env`.
 
 ## Data model essentials
 
 ### SQLite setup
 
-- `PRAGMA foreign_keys=ON` must run on **every connection**.
+- `PRAGMA foreign_keys=ON` must run on **every application connection**; use `create_db_engine` in `app/db.py`. Migrations are the one exception: they run with it off, because batch mode's `DROP TABLE` would otherwise cascade-delete child rows, and `migrations/env.py` runs `PRAGMA foreign_key_check` afterwards.
 - Alembic needs `render_as_batch=True`, because SQLite can only alter tables and constraints in batch mode.
 - The base mixin sets `updated_at` with `onupdate=func.now()`; the DB default only covers inserts.
 - Deliberate exceptions to the timestamp convention: `routine_logs` has only `created_at`, and `status_changes` has only `changed_at`.
