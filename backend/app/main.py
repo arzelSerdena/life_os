@@ -1,13 +1,33 @@
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from pydantic import BaseModel
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
-from app.db import get_session
+from app.db import SessionDep
+from app.errors import ConflictError, NotFoundError
+from app.routers import life_areas
 
-app = FastAPI(title="Life OS API")
+
+def _operation_id(route: APIRoute) -> str:
+    """Use the function name, so the generated client gets names like `listLifeAreas`."""
+    return route.name
+
+
+app = FastAPI(title="Life OS API", generate_unique_id_function=_operation_id)
+app.include_router(life_areas.router)
+
+
+@app.exception_handler(NotFoundError)
+def handle_not_found(_request: Request, error: NotFoundError) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": str(error)})
+
+
+@app.exception_handler(ConflictError)
+def handle_conflict(_request: Request, error: ConflictError) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": str(error)})
 
 
 class HealthResponse(BaseModel):
@@ -15,6 +35,6 @@ class HealthResponse(BaseModel):
 
 
 @app.get("/api/health")
-def health(session: Annotated[Session, Depends(get_session)]) -> HealthResponse:
+def health(session: SessionDep) -> HealthResponse:
     session.execute(text("SELECT 1"))
     return HealthResponse(status="ok")

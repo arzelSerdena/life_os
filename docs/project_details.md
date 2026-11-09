@@ -216,5 +216,6 @@ Design decisions: subtasks are a separate table (one level deep, not scheduled);
 - **2026-11-10** — Backend uses synchronous SQLAlchemy with `def` endpoints: a single user on SQLite gains nothing from async, and it keeps tests and the PyInstaller build simple. Python is pinned to 3.14 with uv.
 - **2026-11-10** — Migrations run with `PRAGMA foreign_keys` off and a `foreign_key_check` afterwards, because batch mode's `DROP TABLE` would otherwise cascade-delete child rows. Every application connection still turns it on.
 - **2026-11-10** — `httpx2` replaces `httpx` for tests, as Starlette's `TestClient` now requires. Test libraries are added when first needed.
+- **2026-11-10** — Deleting a life area is permanent and refused with a 409 while items still belong to it; archiving is the normal way to retire one. Archiving can be reversed with unarchive, and a new life area goes to the end of the sort order.
 
 ---
