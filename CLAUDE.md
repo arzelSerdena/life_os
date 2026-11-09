@@ -32,7 +32,8 @@ Build in vertical slices following the phases in `docs/project_details.md`: back
 
 - Never commit directly to `main`. Each change gets its own short-lived branch named `<type>/<short-description>`, where type is `feat`, `fix`, `docs`, `chore` or `refactor`.
 - Open a PR with `gh pr create` and squash-merge it once CI passes, then delete the branch.
-- CI runs on GitHub Actions and is added at the start of Phase 1. The repo is private on a free plan, so GitHub doesn't enforce any of this; following it is a habit.
+- CI runs on GitHub Actions and is added at the start of Phase 1. When it exists, make its job a required status check on `main`.
+- The repo is public and `main` is protected: changes must arrive through a PR, even from admins, and force pushes are blocked. Never commit secrets; put them in an ignored `.env`.
 
 ## Data model essentials
 
