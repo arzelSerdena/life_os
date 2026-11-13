@@ -13,6 +13,11 @@ NAMING_CONVENTION = {
 }
 
 
+# Add to every model's __table_args__, so SQLite never reuses a deleted row's id.
+# status_changes refers to rows by id. A test checks every table has it.
+AUTOINCREMENT = {"sqlite_autoincrement": True}
+
+
 def utc_now() -> datetime:
     """The current UTC time, naive to match how SQLite stores `_at` columns."""
     return datetime.now(UTC).replace(tzinfo=None)

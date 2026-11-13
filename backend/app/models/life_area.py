@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, BaseMixin
+from app.models.base import AUTOINCREMENT, Base, BaseMixin
 
 
 class LifeArea(BaseMixin, Base):
@@ -12,6 +12,7 @@ class LifeArea(BaseMixin, Base):
         CheckConstraint("length(title) BETWEEN 1 AND 200", name="title_length"),
         CheckConstraint("vision IS NULL OR length(vision) <= 2000", name="vision_length"),
         CheckConstraint("notes IS NULL OR length(notes) <= 50000", name="notes_length"),
+        AUTOINCREMENT,
     )
 
     title: Mapped[str] = mapped_column(Text)

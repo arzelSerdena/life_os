@@ -66,10 +66,10 @@ Principles:
 | ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
 | **0** | Plan & domain design     | ✅ Relationships, statuses and schema settled (`schema.sql`). `docs/DOMAIN.md` written, tools installed, repo created                                                                                                                                                                                                                                                        | Domain doc written, tools installed                         |
 | **1** | Foundations + Life Areas | uv project, GitHub Actions CI, config, DB engine (`PRAGMA foreign_keys=ON`), Alembic with `render_as_batch=True` (SQLite needs batch mode to alter tables/constraints), base mixin (`id`, `created_at`, `updated_at` with `onupdate=func.now()`), Life Area model/migration/schemas/service/router/tests; frontend setup (Vite, Tailwind v4, HeroUI v3, Hey API); app layout with sidebar; Life Area CRUD + archive | A life area created in the UI is saved                      |
-| **2** | Execution slice          | Tasks, subtasks, **recurring tasks** (template + generated occurrences), events; status engine v1 (task done/cancel → cancel subtasks); week agenda endpoint; **week board** (Unscheduled + 7 day columns, drag between days); task drawer (subtasks checklist, Markdown notes); Inbox; repeat picker                                                                                            | I plan real weeks with it                                   |
-| **3** | Routines slice           | Routines, routine steps, routine logs; "steps due on date X" from RRULE; check off steps on the board; pause/archive; streaks                                                                                                                                                                                                                                                                    | Daily routines work                                         |
-| **4** | Planning hierarchy       | Priorities, goals, project groups, projects, milestones; ownership validation; **cascade engine v2** (preview → confirm → one transaction → `status_changes` batch → undo); sidebar tree; project page with milestone sections; priority page shows projects through goals                                                                                                                       | Every status rule works, is tested, and can be undone       |
-| **5** | Progress & reviews       | Progress rollups (derived, not stored); Life Area dashboard; rollover of unfinished one-off tasks; stats                                                                                                                                                                                                                                                                                         | Completing a task moves its project/goal/life-area progress |
+| **2** | Execution slice          | Tasks (with priority), subtasks, **recurring tasks** (template + generated occurrences, repeat from schedule or completion), events (repeating, with exceptions); this / this and following / all edits; status engine v1 (task done/cancel → cancel subtasks); week agenda endpoint; **week board** (Unscheduled + 7 day columns, drag between days); task drawer (subtasks checklist, Markdown notes); Inbox; repeat picker                                                                                            | I plan real weeks with it                                   |
+| **3** | Routines slice           | Routines, schedules, routine steps, pauses, routine logs; "steps due on date X" from the schedule; check off steps on the board; pause/archive; streaks                                                                                                                                                                                                                                                                    | Daily routines work                                         |
+| **4** | Projects & metrics       | Projects, sections, metrics, entries, targets; ownership rules (composite keys keep each item in its project's life area); **cascade engine v2** (preview → confirm → one transaction → `status_changes` batch → undo); sidebar tree; project page with sections | Every status rule works, is tested, and can be undone       |
+| **5** | Progress & reviews       | Project progress and target state (derived, not stored); life area overview (a container, no progress); rollover of unfinished one-off tasks; stats                                                                                                                                                                                                                                                                                         | Completing a task moves its project's progress |
 | **6** | Integration & daily use  | FastAPI serves built frontend; `just` commands; automatic DB backups; 1–2 weeks of daily use + `docs/FEEDBACK.md`                                                                                                                                                                                                                                                                            | One command runs the app                                    |
 | **7** | AI features              | LLM client + logging; natural-language task entry (structured output) + evals; "plan my week"; weekly review per life area; semantic search (sqlite-vec); hand-built agent with service-layer tools (cascades require my confirmation); cost/reliability                                                                                                                                         | AI features pass evals; app works with AI off               |
 | **8** | Desktop                  | PyInstaller sidecar, Tauri shell, notifications, tray, global shortcut, installer                                                                                                                                                                                                                                                                                                                | Installed as my daily planner                               |
@@ -82,120 +82,21 @@ Principles:
 ### Conventions
 
 - `snake_case`, plural tables; primary key `id`; foreign keys `<parent>_id`
-- Every table: `created_at`, `updated_at` (DATETIME, UTC). The DB default only fills them on insert; the SQLAlchemy base mixin sets `updated_at` on every update (`onupdate=func.now()`)
+- Every table: `id INTEGER PRIMARY KEY AUTOINCREMENT`, `created_at`, `updated_at` (DATETIME, UTC). The DB default only fills them on insert; the SQLAlchemy base mixin sets `updated_at` on every update (`onupdate=func.now()`)
   - Exceptions (on purpose, revisit if needed): `routine_logs` has only `created_at`; `status_changes` has only `changed_at`
 - Types: `TEXT`, `INTEGER`, `DATE`, `TIME`, `DATETIME` (SQLite stores dates as ISO text)
 - **Archiving is separate from status:** `archived_at` (NULL = visible)
-- Status changes record a timestamp (`completed_at`, `achieved_at`, `cancelled_at`)
+- Status changes record a timestamp (`completed_at`, `cancelled_at`)
 - Notes are **Markdown** in a `notes TEXT` column (max 50,000 chars)
 - Dates (`scheduled_date`, `due_date`…) are local calendar values; `_at` datetimes are UTC
 
-### Relationship definitions (from my graph)
+### Where the model lives
 
-- **organizes** = shows items it owns directly or through its children
-- **can own** = can directly own the item, but only one owner at a time
-- Every item stores `life_area_id` (the umbrella), which must equal its owner's life area. Only tasks and recurring tasks may have none (**Inbox**).
-- Direct owner = most specific filled link: project → goal → priority → life area → Inbox
+- **`docs/DOMAIN.md`**: what each item is, who owns it, status and cascade rules, repeating items, routines, metrics, and which rule the database or the service enforces.
+- **`docs/schema.sql`**: every table, column and constraint, for tables not built yet.
+- **SQLAlchemy models**: the source of truth for tables already built.
 
-### Relationship map
-
-```
-life_areas
- ├──< priorities
- │     └──< goals (optional priority)
- ├──< goals
- │     ├──< projects (optional goal)
- │     └──< routine_steps (optional goal)
- ├──< group_projects ──< projects (optional group)
- ├──< projects
- │     ├──< milestones ──< tasks / recurring_tasks (sections)
- │     ├──< tasks
- │     ├──< recurring_tasks ──< tasks (generated occurrences)
- │     ├──< events
- │     └──< routine_steps (optional project)
- ├──< tasks ──< subtasks
- ├──< events
- └──< routine_steps
-
-routines ──< routine_steps ──< routine_logs
-status_changes (history for undo; no foreign keys)
-```
-
-| Child           | Owners (FK)                                                                        | Required? |
-| --------------- | ---------------------------------------------------------------------------------- | --------- |
-| priorities      | life_area                                                                          | ✅        |
-| goals           | life_area ✅, priority (optional)                                                  |           |
-| group_projects  | life_area                                                                          | ✅        |
-| projects        | life_area ✅, goal, group_project (optional)                                       |           |
-| milestones      | project                                                                            | ✅        |
-| recurring_tasks | life_area, project, milestone (all optional)                                       |           |
-| tasks           | life_area, project, milestone, recurring_task (all optional)                       |           |
-| subtasks        | task (ON DELETE CASCADE)                                                           | ✅        |
-| events          | life_area ✅, project (optional)                                                   |           |
-| routines        | —                                                                                  |           |
-| routine_steps   | routine ✅ (ON DELETE CASCADE), life_area ✅, goal or project (optional, not both) |           |
-| routine_logs    | routine_step (ON DELETE CASCADE)                                                   | ✅        |
-
-Priorities do **not** own projects/tasks/events. A priority page shows projects **through its goals** (derived by join, not stored).
-
-### Tables and key fields
-
-| Table           | Key fields (besides id, owners, timestamps)                                                                                                                          |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| life_areas      | title, vision, notes, color, sort_order, archived_at                                                                                                                 |
-| priorities      | title, notes, status (active/cancelled), cancelled_at, archived_at, sort_order                                                                                       |
-| goals           | title, notes, target_date, status (active/achieved/cancelled), achieved_at, cancelled_at, archived_at, sort_order                                                    |
-| group_projects  | title, sort_order, archived_at                                                                                                                                       |
-| projects        | title, notes, due_date, status (active/done/cancelled), completed_at, cancelled_at, archived_at, sort_order                                                          |
-| milestones      | title, notes, due_date, status (active/achieved/cancelled), achieved_at, cancelled_at, archived_at, sort_order                                                       |
-| recurring_tasks | title, notes, **rrule**, starts_on, ends_on, due_time, paused_at, archived_at                                                                                        |
-| tasks           | title, notes, status (todo/done/cancelled), occurrence_date, scheduled_date, due_date, due_time, completed_at, cancelled_at, archived_at, sort_order, rollover_count |
-| subtasks        | title, status (todo/done/cancelled), completed_at, cancelled_at, sort_order                                                                                          |
-| events          | title, notes, start_date, end_date, start_time, end_time (no start_time = all-day), location, cancelled_at, archived_at                                              |
-| routines        | title, notes, rrule (default `FREQ=DAILY`), sort_order, paused_at                                                                                                    |
-| routine_steps   | title, notes, sort_order, paused_at, archived_at                                                                                                                     |
-| routine_logs    | date, status (done/skipped); unique (routine_step_id, date); no row = to-do                                                                                          |
-| status_changes  | batch_id, entity_type, entity_id, field, old_value, new_value, changed_at                                                                                            |
-
-Design decisions: subtasks are a separate table (one level deep, not scheduled); the week view is untimed (no start time/duration on tasks); due dates use date + optional time; events' upcoming/past is calculated from dates.
-
-### Constraints in the database
-
-- Status values via CHECK; text length limits (title 1–200, notes ≤ 50,000)
-- `milestone_id` requires `project_id` (tasks, recurring_tasks)
-- **A task's / recurring task's milestone belongs to its project:** composite FK `(milestone_id, project_id)` → `milestones(id, project_id)` (milestones has `UNIQUE(id, project_id)`). `ON UPDATE CASCADE`: moving a milestone to another project moves its tasks and recurring tasks with it
-- **Status timestamps match the status:** e.g. `(status = 'done') = (completed_at IS NOT NULL)` and `(status = 'cancelled') = (cancelled_at IS NOT NULL)` on priorities, goals, projects, milestones, tasks, subtasks
-- Routine steps: not both `goal_id` and `project_id`
-- `due_time` requires `due_date`; event `end_date ≥ start_date`; `end_time` requires `start_time`; `ends_on ≥ starts_on`
-- `(recurring_task_id IS NULL) = (occurrence_date IS NULL)`; unique `(recurring_task_id, occurrence_date)`
-- Indexes on all foreign keys plus `scheduled_date`, `due_date`, `start_date`
-
-### Status rules (from my status table)
-
-| Entity          | Statuses                                                | Achieve/done → active children | Cancel/pause/archive → active children                |
-| --------------- | ------------------------------------------------------- | ------------------------------ | ----------------------------------------------------- |
-| Life Area       | active, archived                                        | —                              | **archive children** (life_area_id can't be unlinked) |
-| Priorities      | active, cancelled, archived                             | —                              | unlink children                                       |
-| Goals           | active, achieved, cancelled, archived                   | cancel or unlink (I choose)    | unlink children                                       |
-| Projects        | active, done, cancelled, archived                       | cancel (with confirmation)     | cancel/archive children (with confirmation)           |
-| Milestones      | active, achieved, cancelled, archived                   | cancel (with confirmation)     | cancel/archive children (with confirmation)           |
-| Tasks           | todo, done, cancelled                                   | cancel subtasks                | cancel subtasks                                       |
-| Events          | upcoming, past (calculated), cancelled                  | —                              | —                                                     |
-| Routine steps   | active, paused, archived (+ daily done/skipped in logs) | —                              | —                                                     |
-| Routines        | active, paused                                          | —                              | pause steps                                           |
-| Group projects  | active, archived                                        | —                              | unlink projects                                       |
-| Recurring tasks | active, paused, archived                                | —                              | —                                                     |
-
-### Rules enforced in the service layer
-
-1. Child `life_area_id` = owner's life area; moving an item updates it; a grouped project shares the group's life area. Moving a milestone to another project: the DB moves its tasks' `project_id` (cascade); the service updates their `life_area_id`.
-2. A task's milestone belongs to its project. _(Also enforced by the DB: composite FK. The service still validates first so the API returns a clear 4xx error instead of a DB error.)_
-3. Status timestamps match the status. _(Also enforced by DB CHECKs. Set status and its timestamp in the same UPDATE.)_
-4. **Unlink** = clear the owner link; the item falls back to its life area.
-5. Cascades: preview all affected items → confirm → apply in one transaction → record in `status_changes` with a `batch_id` → undo restores the batch. Undo groups the batch's rows by entity and restores all fields of one entity in a single UPDATE (status + timestamp together, or the CHECK fails).
-6. Recurring tasks: generate missing occurrences for the viewed week (from today forward); never recreate an existing occurrence (moved/cancelled); paused/archived templates generate nothing; "edit all future" updates only future unfinished occurrences; recurring occurrences don't roll over.
-7. Archived items are hidden with `WHERE archived_at IS NULL`; cancelled tasks are hidden by default (toggle to show).
-8. SQLite foreign keys are enabled on every connection.
+Summary: a life area contains projects; projects contain sections; tasks, recurring tasks, events, metrics and routine steps belong to a project or a life area, never both, and inherit the project's life area. Tasks and recurring tasks with no life area are the Inbox. Routines have no owner. Metrics have entries and targets.
 
 ---
 
@@ -205,12 +106,12 @@ Design decisions: subtasks are a separate table (one level deep, not scheduled);
 - **2026-11-09** — `updated_at` is set by the SQLAlchemy base mixin (`onupdate`); Alembic uses batch mode for SQLite.
 - **2026-11-09** — Moved two service rules into the DB as well: status↔timestamp CHECKs, and the composite FK keeping a task's milestone inside its project (`ON UPDATE CASCADE`).
 - **2026-11-09** — Kept as-is: `routine_logs` / `status_changes` timestamp exceptions; FK index coverage via composite unique indexes.
-- **2026-11-10** — Project groups only organize projects and are never an owner; a project can have both a goal and a group.
-- **2026-11-10** — A cascade cancels children that have a cancelled state and archives those that don't (recurring tasks, routine steps).
+- **2026-11-10** — ~~Project groups only organize projects and are never an owner; a project can have both a goal and a group.~~ _Superseded 2026-11-13: priorities, goals and project groups were removed._
+- **2026-11-10** — A cascade cancels children that have a cancelled state and archives those that don't (recurring tasks, routine steps; metrics since 2026-11-13).
 - **2026-11-10** — Checking off, cancelling or archiving a task skips preview and confirmation, but is recorded in `status_changes` for undo.
-- **2026-11-10** — When a goal is achieved, cancel or unlink is chosen per child.
+- **2026-11-10** — ~~When a goal is achieved, cancel or unlink is chosen per child.~~ _Superseded 2026-11-13: priorities, goals and project groups were removed._
 - **2026-11-10** — Archiving a task cancels its subtasks.
-- **2026-11-10** — Pausing a routine pauses every step; resuming it resumes every step, including those paused individually beforehand. Archived steps stay archived.
+- **2026-11-10** — Pausing a routine pauses every step; resuming it resumes every step, including those paused individually beforehand. Archived steps stay archived. _Pauses are now recorded as date ranges in `routine_pauses` (2026-11-13)._
 - **2026-11-10** — Rollover runs automatically on app launch and on local date change. It moves unfinished one-off tasks to today, adds 1 to `rollover_count` per move, leaves `due_date` alone and isn't recorded for undo.
 - **2026-11-10** — All changes go through a branch and a squash-merged PR. CI moves from Phase 6 to Phase 1, so every feature PR is checked from the start.
 - **2026-11-10** — Backend uses synchronous SQLAlchemy with `def` endpoints: a single user on SQLite gains nothing from async, and it keeps tests and the PyInstaller build simple. Python is pinned to 3.14 with uv.
@@ -219,5 +120,18 @@ Design decisions: subtasks are a separate table (one level deep, not scheduled);
 - **2026-11-10** — Deleting a life area is permanent and refused with a 409 while items still belong to it; archiving is the normal way to retire one. Archiving can be reversed with unarchive, and a new life area goes to the end of the sort order.
 - **2026-11-10** — Life areas have a color but no icon.
 - **2026-11-10** — TypeScript is pinned to 6.x because Hey API needs the compiler API that TypeScript 7 removed. The generated client is committed, and CI fails if it is stale. In development Vite proxies `/api` to the backend, so no CORS setup is needed. The repo uses LF line endings on every OS.
+- **2026-11-13** — Data model revised. Removed priorities, goals, project groups and milestones. Life areas are containers with no progress. Projects keep simple sections (no status or dates). Metrics, with entries and targets, take over measurable outcomes.
+- **2026-11-13** — Tasks, recurring tasks, events, metrics and routine steps belong to a project or a life area, never both, and inherit the project's life area. The database enforces this with a composite key to `projects(id, life_area_id)` and `ON UPDATE CASCADE`, so moving a project moves its items.
+- **2026-11-13** — Tasks and recurring tasks have a priority: high, medium, low or none (default), stored as text.
+- **2026-11-13** — Targets are either "reach by a date" or "every period" (day, week, month, calendar periods, weeks start Monday). Changing a target ends it and starts a new one. Met or missed is derived.
+- **2026-11-13** — Repeating events, recurring tasks and routines offer Google Calendar's three choices: this one, this and following, all. Events are expanded on read with exceptions (iCalendar style); recurring tasks keep materialized occurrences; routines keep schedule history in `routine_schedules`.
+- **2026-11-13** — Recurring tasks can repeat from completion as well as from the schedule.
+- **2026-11-13** — "X times per week" habits aren't a routine feature; a metric with a weekly target covers them.
+- **2026-11-13** — Every table uses `AUTOINCREMENT`, so ids are never reused. Ids deleted before the life area migration could not be protected; nothing referred to them.
+- **2026-11-13** — Kept on purpose: inclusive event end dates (convert only for iCalendar import/export), floating local event times with no time zone, and whole-number `sort_order`.
+- **2026-11-13** — Routine pauses are date ranges in `routine_pauses`, so paused days never count as missed. Routines gain `archived_at`.
+- **2026-11-13** — Nothing can be created in, moved into or restored into an archived life area or an inactive project (409).
+- **2026-11-13** — A project cascade ends its repeating events from today instead of cancelling the whole series.
+- **2026-11-13** — Undo covers field changes (status changes, cascades, unlinks). Series edits that create or remove rows ask for confirmation and can't be undone.
 
 ---
