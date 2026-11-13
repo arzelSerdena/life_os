@@ -10,7 +10,16 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError
-from app.models import Base, LifeArea, Project, StatusChange, Subtask, Task, TaskTemplate
+from app.models import (
+    Base,
+    Event,
+    LifeArea,
+    Project,
+    StatusChange,
+    Subtask,
+    Task,
+    TaskTemplate,
+)
 
 ENTITY_MODELS: dict[str, type[Base]] = {
     "life_area": LifeArea,
@@ -18,6 +27,7 @@ ENTITY_MODELS: dict[str, type[Base]] = {
     "task_template": TaskTemplate,
     "task": Task,
     "subtask": Subtask,
+    "event": Event,
 }
 ENTITY_TYPES = {model: name for name, model in ENTITY_MODELS.items()}
 

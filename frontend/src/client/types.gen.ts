@@ -15,6 +15,206 @@ export type ErrorResponse = {
 };
 
 /**
+ * EventChange
+ *
+ * The event after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type EventChange = {
+    event: EventRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * EventCreate
+ *
+ * An event in a life area or a project (it inherits the project's life area).
+ *
+ * No start_time means all-day. end_date is the last day, inclusive. Add rrule to repeat
+ * from start_date, until repeat_ends_on if set; the rule may not contain DTSTART, UNTIL
+ * or COUNT.
+ */
+export type EventCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Location
+     */
+    location?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * EventMove
+ *
+ * The event's new owner: a project, or a life area. Events can't be in the Inbox.
+ */
+export type EventMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * EventRead
+ */
+export type EventRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+    /**
+     * Start Time
+     */
+    start_time: string | null;
+    /**
+     * End Time
+     */
+    end_time: string | null;
+    /**
+     * Location
+     */
+    location: string | null;
+    /**
+     * Rrule
+     */
+    rrule: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * EventUpdate
+ *
+ * Only the fields sent are changed. On a repeating event this changes the whole
+ * series; changing its timing or rule removes one-off changes to occurrences.
+ */
+export type EventUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Location
+     */
+    location?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on?: string | null;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -124,6 +324,135 @@ export type LifeAreaUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * OccurrenceCancel
+ */
+export type OccurrenceCancel = {
+    /**
+     * Scope
+     */
+    scope: 'this' | 'following' | 'all';
+};
+
+/**
+ * OccurrenceEdit
+ *
+ * Change an occurrence of a repeating event.
+ *
+ * "this" changes only this occurrence and may move it to other dates. "following" and
+ * "all" change the series and can't move dates; use the event itself for that.
+ */
+export type OccurrenceEdit = {
+    /**
+     * Scope
+     */
+    scope: 'this' | 'following' | 'all';
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Location
+     */
+    location?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on?: string | null;
+};
+
+/**
+ * OccurrenceRead
+ *
+ * One occurrence of an event, with any one-off changes applied.
+ */
+export type OccurrenceRead = {
+    /**
+     * Event Id
+     */
+    event_id: number;
+    /**
+     * Occurrence Date
+     */
+    occurrence_date: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string;
+    /**
+     * Start Time
+     */
+    start_time: string | null;
+    /**
+     * End Time
+     */
+    end_time: string | null;
+    /**
+     * Location
+     */
+    location: string | null;
+    /**
+     * Is Repeating
+     */
+    is_repeating: boolean;
+    /**
+     * Is Cancelled
+     */
+    is_cancelled: boolean;
+    /**
+     * Is Changed
+     */
+    is_changed: boolean;
+    /**
+     * Is Past
+     */
+    is_past: boolean;
 };
 
 /**
@@ -1944,6 +2273,537 @@ export type CreateTaskFromTemplateResponses = {
 };
 
 export type CreateTaskFromTemplateResponse = CreateTaskFromTemplateResponses[keyof CreateTaskFromTemplateResponses];
+
+export type ListEventsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/events';
+};
+
+export type ListEventsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEventsError = ListEventsErrors[keyof ListEventsErrors];
+
+export type ListEventsResponses = {
+    /**
+     * Response List Events
+     *
+     * Successful Response
+     */
+    200: Array<EventRead>;
+};
+
+export type ListEventsResponse = ListEventsResponses[keyof ListEventsResponses];
+
+export type CreateEventData = {
+    body: EventCreate;
+    path?: never;
+    query?: never;
+    url: '/api/events';
+};
+
+export type CreateEventErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateEventError = CreateEventErrors[keyof CreateEventErrors];
+
+export type CreateEventResponses = {
+    /**
+     * Successful Response
+     */
+    201: EventRead;
+};
+
+export type CreateEventResponse = CreateEventResponses[keyof CreateEventResponses];
+
+export type ListEventOccurrencesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * First
+         */
+        first: string;
+        /**
+         * Last
+         */
+        last: string;
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+    };
+    url: '/api/events/occurrences';
+};
+
+export type ListEventOccurrencesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEventOccurrencesError = ListEventOccurrencesErrors[keyof ListEventOccurrencesErrors];
+
+export type ListEventOccurrencesResponses = {
+    /**
+     * Response List Event Occurrences
+     *
+     * Successful Response
+     */
+    200: Array<OccurrenceRead>;
+};
+
+export type ListEventOccurrencesResponse = ListEventOccurrencesResponses[keyof ListEventOccurrencesResponses];
+
+export type DeleteEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}';
+};
+
+export type DeleteEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEventError = DeleteEventErrors[keyof DeleteEventErrors];
+
+export type DeleteEventResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteEventResponse = DeleteEventResponses[keyof DeleteEventResponses];
+
+export type GetEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}';
+};
+
+export type GetEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEventError = GetEventErrors[keyof GetEventErrors];
+
+export type GetEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type GetEventResponse = GetEventResponses[keyof GetEventResponses];
+
+export type UpdateEventData = {
+    body: EventUpdate;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}';
+};
+
+export type UpdateEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateEventError = UpdateEventErrors[keyof UpdateEventErrors];
+
+export type UpdateEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type UpdateEventResponse = UpdateEventResponses[keyof UpdateEventResponses];
+
+export type MoveEventData = {
+    body: EventMove;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/move';
+};
+
+export type MoveEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveEventError = MoveEventErrors[keyof MoveEventErrors];
+
+export type MoveEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type MoveEventResponse = MoveEventResponses[keyof MoveEventResponses];
+
+export type CancelEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/cancel';
+};
+
+export type CancelEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelEventError = CancelEventErrors[keyof CancelEventErrors];
+
+export type CancelEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type CancelEventResponse = CancelEventResponses[keyof CancelEventResponses];
+
+export type UncancelEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/uncancel';
+};
+
+export type UncancelEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UncancelEventError = UncancelEventErrors[keyof UncancelEventErrors];
+
+export type UncancelEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type UncancelEventResponse = UncancelEventResponses[keyof UncancelEventResponses];
+
+export type ArchiveEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/archive';
+};
+
+export type ArchiveEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveEventError = ArchiveEventErrors[keyof ArchiveEventErrors];
+
+export type ArchiveEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type ArchiveEventResponse = ArchiveEventResponses[keyof ArchiveEventResponses];
+
+export type UnarchiveEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/unarchive';
+};
+
+export type UnarchiveEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveEventError = UnarchiveEventErrors[keyof UnarchiveEventErrors];
+
+export type UnarchiveEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type UnarchiveEventResponse = UnarchiveEventResponses[keyof UnarchiveEventResponses];
+
+export type EditEventOccurrenceData = {
+    body: OccurrenceEdit;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}/edit';
+};
+
+export type EditEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type EditEventOccurrenceError = EditEventOccurrenceErrors[keyof EditEventOccurrenceErrors];
+
+export type EditEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type EditEventOccurrenceResponse = EditEventOccurrenceResponses[keyof EditEventOccurrenceResponses];
+
+export type CancelEventOccurrenceData = {
+    body: OccurrenceCancel;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}/cancel';
+};
+
+export type CancelEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelEventOccurrenceError = CancelEventOccurrenceErrors[keyof CancelEventOccurrenceErrors];
+
+export type CancelEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type CancelEventOccurrenceResponse = CancelEventOccurrenceResponses[keyof CancelEventOccurrenceResponses];
+
+export type RestoreEventOccurrenceData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}';
+};
+
+export type RestoreEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RestoreEventOccurrenceError = RestoreEventOccurrenceErrors[keyof RestoreEventOccurrenceErrors];
+
+export type RestoreEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type RestoreEventOccurrenceResponse = RestoreEventOccurrenceResponses[keyof RestoreEventOccurrenceResponses];
 
 export type UndoBatchData = {
     body?: never;

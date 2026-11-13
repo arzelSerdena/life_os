@@ -140,5 +140,7 @@ Summary: a life area contains projects; projects contain sections; tasks, task t
 - **2026-11-13** — Editing a template changes only tasks created later, as in Notion. Series edits from an occurrence also update unfinished occurrences (title, notes, priority, due date unless set by hand); checklist changes apply to new occurrences only.
 - **2026-11-13** — Undo also removes tasks a change created, such as the next "repeat from completion" occurrence, if they are unchanged since. Series cancellations can be undone; series edits can't.
 - **2026-11-13** — Deleting a template keeps tasks created from it by hand (the link is cleared); a recurring task with occurrences can only be archived.
+- **2026-11-13** — Events end a series with a `repeat_ends_on` column, not `UNTIL` or `COUNT` in the rule, matching task templates. A same-day event can't end before it starts (a `CHECK`).
+- **2026-11-13** — For events, "This one" can move an occurrence; "This and following" and "All" can't move dates. A timing or rule change keeps cancelled occurrences. One cancelled occurrence comes back by restoring it; cancelling a series is undone with undo.
 
 ---

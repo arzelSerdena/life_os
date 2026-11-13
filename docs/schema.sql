@@ -236,8 +236,9 @@ CREATE INDEX IF NOT EXISTS "idx_subtasks_task" ON "subtasks" ("task_id");
 -- EVENTS
 -- Statuses: upcoming / past (calculated from dates), cancelled (cancelled_at)
 -- + archived via archived_at
--- rrule NULL = one-off event. A repeating series ends through its rule
--- (UNTIL or COUNT). Each occurrence keeps the series' length in days.
+-- rrule NULL = one-off event. A repeating series runs from start_date until
+-- repeat_ends_on (if set); the rule itself carries no DTSTART, UNTIL or COUNT.
+-- Each occurrence keeps the series' length in days.
 -- end_date is the last day of the event (inclusive).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "events" (
@@ -252,10 +253,13 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"end_time" TIME CHECK(end_time IS NULL OR start_time IS NOT NULL),
 	"location" TEXT CHECK(location IS NULL OR length(location) <= 300),
 	"rrule" TEXT,
+	"repeat_ends_on" DATE CHECK(repeat_ends_on IS NULL OR (rrule IS NOT NULL AND repeat_ends_on >= start_date)),
 	"cancelled_at" DATETIME,
 	"archived_at" DATETIME,
 	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	-- On a one-day event the end time can't be before the start time
+	CHECK(end_time IS NULL OR (end_date IS NOT NULL AND end_date > start_date) OR end_time >= start_time),
 	FOREIGN KEY ("life_area_id") REFERENCES "life_areas"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION,
 	FOREIGN KEY ("project_id", "life_area_id") REFERENCES "projects"("id", "life_area_id")
