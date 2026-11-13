@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveEvent, archiveLifeArea, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeTask, createEvent, createLifeArea, createRoutine, createRoutineStep, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteRoutine, deleteRoutineStep, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, reopenTask, reorderTasks, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateRoutine, updateRoutineStep, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
-import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
+import { archiveEvent, archiveLifeArea, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeTask, createEvent, createLifeArea, createProject, createRoutine, createRoutineStep, createSection, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteProject, deleteRoutine, deleteRoutineStep, deleteSection, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getProject, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listProjects, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveProject, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, reopenTask, reorderTasks, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateProject, updateRoutine, updateRoutineStep, updateSection, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
+import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateProjectData, CreateProjectError, CreateProjectResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSectionData, CreateSectionError, CreateSectionResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteProjectData, DeleteProjectError, DeleteProjectResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSectionData, DeleteSectionError, DeleteSectionResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetProjectData, GetProjectError, GetProjectResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListProjectsData, ListProjectsError, ListProjectsResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveProjectData, MoveProjectError, MoveProjectResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateProjectData, UpdateProjectError, UpdateProjectResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSectionData, UpdateSectionError, UpdateSectionResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -150,6 +150,167 @@ export const unarchiveLifeAreaMutation = (options?: Partial<Options<UnarchiveLif
     const mutationOptions: UseMutationOptions<UnarchiveLifeAreaResponse, UnarchiveLifeAreaError, Options<UnarchiveLifeAreaData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await unarchiveLifeArea({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listProjectsQueryKey = (options?: Options<ListProjectsData>) => createQueryKey('listProjects', options);
+
+/**
+ * List Projects
+ */
+export const listProjectsOptions = (options?: Options<ListProjectsData>) => queryOptions<ListProjectsResponse, ListProjectsError, ListProjectsResponse, ReturnType<typeof listProjectsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listProjects({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listProjectsQueryKey(options)
+});
+
+/**
+ * Create Project
+ */
+export const createProjectMutation = (options?: Partial<Options<CreateProjectData>>): UseMutationOptions<CreateProjectResponse, CreateProjectError, Options<CreateProjectData>> => {
+    const mutationOptions: UseMutationOptions<CreateProjectResponse, CreateProjectError, Options<CreateProjectData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createProject({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Project
+ *
+ * Delete an empty project and its sections. Refused while anything belongs to it.
+ */
+export const deleteProjectMutation = (options?: Partial<Options<DeleteProjectData>>): UseMutationOptions<DeleteProjectResponse, DeleteProjectError, Options<DeleteProjectData>> => {
+    const mutationOptions: UseMutationOptions<DeleteProjectResponse, DeleteProjectError, Options<DeleteProjectData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteProject({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getProjectQueryKey = (options: Options<GetProjectData>) => createQueryKey('getProject', options);
+
+/**
+ * Get Project
+ */
+export const getProjectOptions = (options: Options<GetProjectData>) => queryOptions<GetProjectResponse, GetProjectError, GetProjectResponse, ReturnType<typeof getProjectQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getProject({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getProjectQueryKey(options)
+});
+
+/**
+ * Update Project
+ */
+export const updateProjectMutation = (options?: Partial<Options<UpdateProjectData>>): UseMutationOptions<UpdateProjectResponse, UpdateProjectError, Options<UpdateProjectData>> => {
+    const mutationOptions: UseMutationOptions<UpdateProjectResponse, UpdateProjectError, Options<UpdateProjectData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateProject({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Move Project
+ *
+ * Move the project, and everything in it, to another life area. Undoable.
+ */
+export const moveProjectMutation = (options?: Partial<Options<MoveProjectData>>): UseMutationOptions<MoveProjectResponse, MoveProjectError, Options<MoveProjectData>> => {
+    const mutationOptions: UseMutationOptions<MoveProjectResponse, MoveProjectError, Options<MoveProjectData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await moveProject({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Create Section
+ */
+export const createSectionMutation = (options?: Partial<Options<CreateSectionData>>): UseMutationOptions<CreateSectionResponse, CreateSectionError, Options<CreateSectionData>> => {
+    const mutationOptions: UseMutationOptions<CreateSectionResponse, CreateSectionError, Options<CreateSectionData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createSection({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Section
+ *
+ * Delete a section. Its tasks and templates stay in the project, unsectioned.
+ */
+export const deleteSectionMutation = (options?: Partial<Options<DeleteSectionData>>): UseMutationOptions<DeleteSectionResponse, DeleteSectionError, Options<DeleteSectionData>> => {
+    const mutationOptions: UseMutationOptions<DeleteSectionResponse, DeleteSectionError, Options<DeleteSectionData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteSection({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Update Section
+ */
+export const updateSectionMutation = (options?: Partial<Options<UpdateSectionData>>): UseMutationOptions<UpdateSectionResponse, UpdateSectionError, Options<UpdateSectionData>> => {
+    const mutationOptions: UseMutationOptions<UpdateSectionResponse, UpdateSectionError, Options<UpdateSectionData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateSection({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

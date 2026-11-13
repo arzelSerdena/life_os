@@ -478,6 +478,150 @@ export type OccurrenceRead = {
 };
 
 /**
+ * ProjectChange
+ */
+export type ProjectChange = {
+    project: ProjectRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * ProjectCreate
+ */
+export type ProjectCreate = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+};
+
+/**
+ * ProjectMove
+ *
+ * Move the project to another life area. Everything in it moves too.
+ */
+export type ProjectMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+};
+
+/**
+ * ProjectProgress
+ *
+ * Done one-off tasks out of those not cancelled or archived. Calculated, never stored.
+ */
+export type ProjectProgress = {
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
+ * ProjectRead
+ */
+export type ProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Status
+     */
+    status: 'active' | 'done' | 'cancelled';
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Sections
+     */
+    sections: Array<SectionRead>;
+    progress: ProjectProgress;
+};
+
+/**
+ * ProjectUpdate
+ *
+ * Only the fields sent are changed. Moving and status changes have their own endpoints.
+ */
+export type ProjectUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
  * RoutineChange
  *
  * The routine after the change, and the batch to pass to undo (None if nothing changed).
@@ -804,6 +948,52 @@ export type ScheduleRead = {
      * Starts On
      */
     starts_on: string;
+};
+
+/**
+ * SectionCreate
+ */
+export type SectionCreate = {
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
+ * SectionRead
+ */
+export type SectionRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Project Id
+     */
+    project_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+};
+
+/**
+ * SectionUpdate
+ */
+export type SectionUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
 };
 
 /**
@@ -1686,6 +1876,321 @@ export type UnarchiveLifeAreaResponses = {
 };
 
 export type UnarchiveLifeAreaResponse = UnarchiveLifeAreaResponses[keyof UnarchiveLifeAreaResponses];
+
+export type ListProjectsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/projects';
+};
+
+export type ListProjectsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListProjectsError = ListProjectsErrors[keyof ListProjectsErrors];
+
+export type ListProjectsResponses = {
+    /**
+     * Response List Projects
+     *
+     * Successful Response
+     */
+    200: Array<ProjectRead>;
+};
+
+export type ListProjectsResponse = ListProjectsResponses[keyof ListProjectsResponses];
+
+export type CreateProjectData = {
+    body: ProjectCreate;
+    path?: never;
+    query?: never;
+    url: '/api/projects';
+};
+
+export type CreateProjectErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateProjectError = CreateProjectErrors[keyof CreateProjectErrors];
+
+export type CreateProjectResponses = {
+    /**
+     * Successful Response
+     */
+    201: ProjectRead;
+};
+
+export type CreateProjectResponse = CreateProjectResponses[keyof CreateProjectResponses];
+
+export type DeleteProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}';
+};
+
+export type DeleteProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteProjectError = DeleteProjectErrors[keyof DeleteProjectErrors];
+
+export type DeleteProjectResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteProjectResponse = DeleteProjectResponses[keyof DeleteProjectResponses];
+
+export type GetProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}';
+};
+
+export type GetProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetProjectError = GetProjectErrors[keyof GetProjectErrors];
+
+export type GetProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectRead;
+};
+
+export type GetProjectResponse = GetProjectResponses[keyof GetProjectResponses];
+
+export type UpdateProjectData = {
+    body: ProjectUpdate;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}';
+};
+
+export type UpdateProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateProjectError = UpdateProjectErrors[keyof UpdateProjectErrors];
+
+export type UpdateProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectRead;
+};
+
+export type UpdateProjectResponse = UpdateProjectResponses[keyof UpdateProjectResponses];
+
+export type MoveProjectData = {
+    body: ProjectMove;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/move';
+};
+
+export type MoveProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveProjectError = MoveProjectErrors[keyof MoveProjectErrors];
+
+export type MoveProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type MoveProjectResponse = MoveProjectResponses[keyof MoveProjectResponses];
+
+export type CreateSectionData = {
+    body: SectionCreate;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/sections';
+};
+
+export type CreateSectionErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSectionError = CreateSectionErrors[keyof CreateSectionErrors];
+
+export type CreateSectionResponses = {
+    /**
+     * Successful Response
+     */
+    201: SectionRead;
+};
+
+export type CreateSectionResponse = CreateSectionResponses[keyof CreateSectionResponses];
+
+export type DeleteSectionData = {
+    body?: never;
+    path: {
+        /**
+         * Section Id
+         */
+        section_id: number;
+    };
+    query?: never;
+    url: '/api/sections/{section_id}';
+};
+
+export type DeleteSectionErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteSectionError = DeleteSectionErrors[keyof DeleteSectionErrors];
+
+export type DeleteSectionResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteSectionResponse = DeleteSectionResponses[keyof DeleteSectionResponses];
+
+export type UpdateSectionData = {
+    body: SectionUpdate;
+    path: {
+        /**
+         * Section Id
+         */
+        section_id: number;
+    };
+    query?: never;
+    url: '/api/sections/{section_id}';
+};
+
+export type UpdateSectionErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSectionError = UpdateSectionErrors[keyof UpdateSectionErrors];
+
+export type UpdateSectionResponses = {
+    /**
+     * Successful Response
+     */
+    200: SectionRead;
+};
+
+export type UpdateSectionResponse = UpdateSectionResponses[keyof UpdateSectionResponses];
 
 export type ListTasksData = {
     body?: never;

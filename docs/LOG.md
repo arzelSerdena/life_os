@@ -27,6 +27,7 @@
 - Added the week endpoint, rollover and task reordering. The Phase 2 backend is complete.
 - Added the routines backend (Phase 3, built ahead while the designs are in progress): schedules with history, steps, checking off, skipping a day, pausing and streaks.
 - Added due routine steps to each day of the week board.
+- Added the projects and sections API (status changes and archiving come with the cascade engine).
 
 **Next**
 

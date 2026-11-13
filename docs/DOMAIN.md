@@ -78,6 +78,8 @@ These belong to their parent outright and are deleted with it: subtasks, templat
 4. A section belongs to its item's project, and a section requires a project. Sections never move between projects. Moving a task to another project clears its section.
 5. Deleting a section first moves its tasks and task templates to the project's unsectioned list. The service does this, because SQLite's `ON DELETE SET NULL` on a composite key would also clear `project_id`.
 6. Nothing can be created in, moved into, or restored into an archived life area or a project that isn't active. Restore or reopen the parent first. The API answers 409.
+7. Moving a project to another life area is one undoable change; the database carries every item in it along, and undo carries them back.
+8. A project can only be deleted when nothing belongs to it; its sections go with it. Otherwise the API answers 409, as for life areas.
 
 ---
 
@@ -220,7 +222,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - The task's `scheduled_date` moves to today, however many days it missed, and `rollover_count` goes up by 1 per move.
   - `due_date` doesn't change, and rollovers aren't recorded for undo.
 - Derived values are never stored:
-  - **Project progress**: done tasks divided by tasks that aren't cancelled. Recurring occurrences don't count.
+  - **Project progress**: done one-off tasks out of those that aren't cancelled or archived. Recurring occurrences don't count.
   - **Target state**: in progress, met or missed (see section 7).
   - **Life areas** have no progress.
 
