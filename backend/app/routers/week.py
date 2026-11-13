@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app import clock
 from app.db import SessionDep
 from app.schemas.event import OccurrenceRead
+from app.schemas.routine import RoutineStepDay
 from app.schemas.task import TaskRead
 from app.schemas.week import DayRead, WeekRead
 from app.services import week as service
@@ -38,6 +39,7 @@ def get_week(
                 day=day.day,
                 tasks=[TaskRead.model_validate(task) for task in day.tasks],
                 events=[OccurrenceRead.from_occurrence(o) for o in day.events],
+                routine_steps=[RoutineStepDay.from_step_day(s) for s in day.routine_steps],
             )
             for day in week.days
         ],

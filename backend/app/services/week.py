@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import clock
 from app.models import Task
-from app.services import events, rollover, tasks, templates
+from app.services import events, rollover, routines, tasks, templates
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,7 @@ class Day:
     day: date
     tasks: list[Task]
     events: list[events.Occurrence]
+    routine_steps: list[routines.StepDay]
 
 
 @dataclass(frozen=True)
@@ -78,15 +79,20 @@ def get_week(session: Session, any_day: date, filters: WeekFilters) -> Week:
         ),
     )
 
+    week_days = [start + timedelta(days=offset) for offset in range(7)]
+    due_steps = routines.steps_for_days(
+        session, week_days, life_area_id=filters.life_area_id, project_id=filters.project_id
+    )
+
     days = []
-    for offset in range(7):
-        day = start + timedelta(days=offset)
+    for day in week_days:
         days.append(
             Day(
                 day=day,
                 tasks=[task for task in scheduled if task.scheduled_date == day],
                 # A multi-day event appears on every day it covers.
                 events=[o for o in occurrences if o.start_date <= day <= o.end_date],
+                routine_steps=due_steps[day],
             )
         )
     return Week(start=start, end=end, today=clock.today(), unscheduled=unscheduled, days=days)

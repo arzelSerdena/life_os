@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -147,6 +147,20 @@ class RoutineStepDay(BaseModel):
     project_id: int | None
     day: date
     status: DayStatus
+
+    @classmethod
+    def from_step_day(cls, found: Any) -> Self:
+        """From a routines service StepDay."""
+        return cls(
+            step_id=found.step.id,
+            routine_id=found.routine.id,
+            routine_title=found.routine.title,
+            title=found.step.title,
+            life_area_id=found.step.life_area_id,
+            project_id=found.step.project_id,
+            day=found.day,
+            status=found.status,
+        )
 
 
 class RoutineChange(BaseModel):
