@@ -11,9 +11,9 @@
 --     (project_id, life_area_id) -> projects(id, life_area_id) ON UPDATE CASCADE,
 --     so moving a project to another life area moves its items with it.
 --     SQLite skips a composite FK while any of its columns is NULL, so items
---     that may have no life area (tasks, recurring tasks) also CHECK that a
+--     that may have no life area (tasks, task templates) also CHECK that a
 --     project link comes with a life area.
---   * A task's / recurring task's section belongs to its project: composite FK
+--   * A task's / task template's section belongs to its project: composite FK
 --     (section_id, project_id) -> project_sections(id, project_id).
 --
 -- Every primary key uses AUTOINCREMENT, so a deleted row's id is never
@@ -78,7 +78,7 @@ CREATE INDEX IF NOT EXISTS "idx_projects_life_area" ON "projects" ("life_area_id
 -- PROJECT SECTIONS
 -- Plain groupings inside a project: no status, no dates. A section never
 -- moves to another project. Deleting one first moves its tasks and
--- recurring tasks to the project's unsectioned list (the service does this:
+-- task templates to the project's unsectioned list (the service does this:
 -- SQLite's ON DELETE SET NULL on a composite FK would also clear project_id).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "project_sections" (
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS "project_sections" (
 	"sort_order" INTEGER NOT NULL DEFAULT 0,
 	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	-- Target of the composite FKs on tasks / recurring_tasks
+	-- Target of the composite FKs on tasks / task_templates
 	UNIQUE("id", "project_id"),
 	FOREIGN KEY ("project_id") REFERENCES "projects"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION
@@ -98,12 +98,19 @@ CREATE INDEX IF NOT EXISTS "idx_project_sections_project" ON "project_sections" 
 
 
 -- ---------------------------------------------------------------------
--- RECURRING TASKS (templates that generate rows in tasks)
--- Statuses: active, paused (paused_at), archived (archived_at)
+-- TASK TEMPLATES
+-- Reusable task content, as in Notion. Creating a task from a template
+-- copies its title, notes, priority, owner and subtasks; later template
+-- edits don't change tasks already created.
+-- With a repeat rule (rrule) the template is a recurring task and generates
+-- occurrences; without one it is applied by hand.
+-- Statuses: active, paused (paused_at, repeating only), archived (archived_at)
 -- repeat_from: 'schedule' follows the calendar rule; 'completion' creates the
 -- next occurrence from the date the previous one was finished.
+-- due_offset_days: a created task is due this many days after its
+-- occurrence date (repeating) or creation date (by hand).
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "recurring_tasks" (
+CREATE TABLE IF NOT EXISTS "task_templates" (
 	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
 	"life_area_id" INTEGER CHECK(project_id IS NULL OR life_area_id IS NOT NULL),
 	"project_id" INTEGER,
@@ -111,15 +118,19 @@ CREATE TABLE IF NOT EXISTS "recurring_tasks" (
 	"title" TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 200),
 	"notes" TEXT CHECK(notes IS NULL OR length(notes) <= 50000),
 	"priority" TEXT NOT NULL DEFAULT 'none' CHECK(priority IN ('high', 'medium', 'low', 'none')),
-	"rrule" TEXT NOT NULL,
+	"due_offset_days" INTEGER CHECK(due_offset_days IS NULL OR due_offset_days >= 0),
+	"due_time" TIME CHECK(due_time IS NULL OR due_offset_days IS NOT NULL),
+	"rrule" TEXT,
 	"repeat_from" TEXT NOT NULL DEFAULT 'schedule' CHECK(repeat_from IN ('schedule', 'completion')),
-	"starts_on" DATE NOT NULL,
+	"starts_on" DATE,
 	"ends_on" DATE CHECK(ends_on IS NULL OR ends_on >= starts_on),
-	"due_time" TIME,
 	"paused_at" DATETIME,
 	"archived_at" DATETIME,
 	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	-- Schedule columns only make sense on a repeating template
+	CHECK((rrule IS NULL) = (starts_on IS NULL)),
+	CHECK(rrule IS NOT NULL OR (ends_on IS NULL AND paused_at IS NULL AND repeat_from = 'schedule')),
 	FOREIGN KEY ("life_area_id") REFERENCES "life_areas"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION,
 	FOREIGN KEY ("project_id", "life_area_id") REFERENCES "projects"("id", "life_area_id")
@@ -128,9 +139,27 @@ CREATE TABLE IF NOT EXISTS "recurring_tasks" (
 	ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
-CREATE INDEX IF NOT EXISTS "idx_recurring_tasks_life_area" ON "recurring_tasks" ("life_area_id");
-CREATE INDEX IF NOT EXISTS "idx_recurring_tasks_project" ON "recurring_tasks" ("project_id", "life_area_id");
-CREATE INDEX IF NOT EXISTS "idx_recurring_tasks_section" ON "recurring_tasks" ("section_id", "project_id");
+CREATE INDEX IF NOT EXISTS "idx_task_templates_life_area" ON "task_templates" ("life_area_id");
+CREATE INDEX IF NOT EXISTS "idx_task_templates_project" ON "task_templates" ("project_id", "life_area_id");
+CREATE INDEX IF NOT EXISTS "idx_task_templates_section" ON "task_templates" ("section_id", "project_id");
+
+
+-- ---------------------------------------------------------------------
+-- TASK TEMPLATE SUBTASKS
+-- The checklist copied onto every task created from the template.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "task_template_subtasks" (
+	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+	"template_id" INTEGER NOT NULL,
+	"title" TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 200),
+	"sort_order" INTEGER NOT NULL DEFAULT 0,
+	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY ("template_id") REFERENCES "task_templates"("id")
+	ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "idx_task_template_subtasks_template" ON "task_template_subtasks" ("template_id");
 
 
 -- ---------------------------------------------------------------------
@@ -142,8 +171,10 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 	"life_area_id" INTEGER CHECK(project_id IS NULL OR life_area_id IS NOT NULL),
 	"project_id" INTEGER,
 	"section_id" INTEGER CHECK(section_id IS NULL OR project_id IS NOT NULL),
-	"recurring_task_id" INTEGER,
-	"occurrence_date" DATE CHECK((recurring_task_id IS NULL) = (occurrence_date IS NULL)),
+	"template_id" INTEGER,
+	-- Set only on occurrences of a repeating template. A task created by hand
+	-- from a template keeps template_id for reference, with no occurrence_date.
+	"occurrence_date" DATE CHECK(occurrence_date IS NULL OR template_id IS NOT NULL),
 	"title" TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 200),
 	"notes" TEXT CHECK(notes IS NULL OR length(notes) <= 50000),
 	"status" TEXT NOT NULL DEFAULT 'todo' CHECK(status IN ('todo', 'done', 'cancelled')),
@@ -160,7 +191,7 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CHECK((status = 'done') = (completed_at IS NOT NULL)),
 	CHECK((status = 'cancelled') = (cancelled_at IS NOT NULL)),
-	FOREIGN KEY ("recurring_task_id") REFERENCES "recurring_tasks"("id")
+	FOREIGN KEY ("template_id") REFERENCES "task_templates"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION,
 	FOREIGN KEY ("life_area_id") REFERENCES "life_areas"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -175,7 +206,7 @@ CREATE INDEX IF NOT EXISTS "idx_tasks_project" ON "tasks" ("project_id", "life_a
 CREATE INDEX IF NOT EXISTS "idx_tasks_section" ON "tasks" ("section_id", "project_id");
 CREATE INDEX IF NOT EXISTS "idx_tasks_scheduled_date" ON "tasks" ("scheduled_date");
 CREATE INDEX IF NOT EXISTS "idx_tasks_due_date" ON "tasks" ("due_date");
-CREATE UNIQUE INDEX IF NOT EXISTS "uq_tasks_occurrence" ON "tasks" ("recurring_task_id", "occurrence_date");
+CREATE UNIQUE INDEX IF NOT EXISTS "uq_tasks_occurrence" ON "tasks" ("template_id", "occurrence_date");
 
 
 -- ---------------------------------------------------------------------
@@ -462,7 +493,7 @@ CREATE TABLE IF NOT EXISTS "status_changes" (
 	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
 	"batch_id" TEXT NOT NULL,
 	"entity_type" TEXT NOT NULL CHECK(entity_type IN (
-		'life_area', 'project', 'recurring_task', 'task', 'subtask', 'event',
+		'life_area', 'project', 'task_template', 'task', 'subtask', 'event',
 		'metric', 'routine', 'routine_step')),
 	"entity_id" INTEGER NOT NULL,
 	"field" TEXT NOT NULL,

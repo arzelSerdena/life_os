@@ -127,6 +127,297 @@ export type LifeAreaUpdate = {
 };
 
 /**
+ * SubtaskCreate
+ */
+export type SubtaskCreate = {
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
+ * SubtaskRead
+ */
+export type SubtaskRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Task Id
+     */
+    task_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Status
+     */
+    status: 'todo' | 'done' | 'cancelled';
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * SubtaskUpdate
+ *
+ * Only the fields sent are changed. Setting status also sets its timestamp.
+ */
+export type SubtaskUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Status
+     */
+    status?: 'todo' | 'done' | 'cancelled' | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * TaskChange
+ *
+ * The task after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type TaskChange = {
+    task: TaskRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * TaskCreate
+ *
+ * Send project_id for a project's task, life_area_id for a life area's, or neither for
+ * the Inbox. A project's task inherits the project's life area.
+ */
+export type TaskCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Section Id
+     */
+    section_id?: number | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string>;
+};
+
+/**
+ * TaskMove
+ *
+ * The task's whole new owner: a project (and optional section), a life area, or
+ * nothing for the Inbox. Fields left out mean none.
+ */
+export type TaskMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Section Id
+     */
+    section_id?: number | null;
+};
+
+/**
+ * TaskRead
+ */
+export type TaskRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number | null;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Section Id
+     */
+    section_id: number | null;
+    /**
+     * Template Id
+     */
+    template_id: number | null;
+    /**
+     * Occurrence Date
+     */
+    occurrence_date: string | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Status
+     */
+    status: 'todo' | 'done' | 'cancelled';
+    /**
+     * Priority
+     */
+    priority: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Scheduled Date
+     */
+    scheduled_date: string | null;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Due Time
+     */
+    due_time: string | null;
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Rollover Count
+     */
+    rollover_count: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Subtasks
+     */
+    subtasks: Array<SubtaskRead>;
+};
+
+/**
+ * TaskUpdate
+ *
+ * Only the fields sent are changed. Owner and status have their own endpoints.
+ */
+export type TaskUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none' | null;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * UndoResult
+ */
+export type UndoResult = {
+    /**
+     * Restored Items
+     */
+    restored_items: number;
+};
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -384,6 +675,565 @@ export type UnarchiveLifeAreaResponses = {
 };
 
 export type UnarchiveLifeAreaResponse = UnarchiveLifeAreaResponses[keyof UnarchiveLifeAreaResponses];
+
+export type ListTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Inbox
+         */
+        inbox?: boolean;
+        /**
+         * Scheduled From
+         */
+        scheduled_from?: string | null;
+        /**
+         * Scheduled To
+         */
+        scheduled_to?: string | null;
+        /**
+         * Unscheduled
+         */
+        unscheduled?: boolean;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/tasks';
+};
+
+export type ListTasksErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListTasksError = ListTasksErrors[keyof ListTasksErrors];
+
+export type ListTasksResponses = {
+    /**
+     * Response List Tasks
+     *
+     * Successful Response
+     */
+    200: Array<TaskRead>;
+};
+
+export type ListTasksResponse = ListTasksResponses[keyof ListTasksResponses];
+
+export type CreateTaskData = {
+    body: TaskCreate;
+    path?: never;
+    query?: never;
+    url: '/api/tasks';
+};
+
+export type CreateTaskErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaskError = CreateTaskErrors[keyof CreateTaskErrors];
+
+export type CreateTaskResponses = {
+    /**
+     * Successful Response
+     */
+    201: TaskRead;
+};
+
+export type CreateTaskResponse = CreateTaskResponses[keyof CreateTaskResponses];
+
+export type DeleteTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}';
+};
+
+export type DeleteTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTaskError = DeleteTaskErrors[keyof DeleteTaskErrors];
+
+export type DeleteTaskResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteTaskResponse = DeleteTaskResponses[keyof DeleteTaskResponses];
+
+export type GetTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}';
+};
+
+export type GetTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTaskError = GetTaskErrors[keyof GetTaskErrors];
+
+export type GetTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskRead;
+};
+
+export type GetTaskResponse = GetTaskResponses[keyof GetTaskResponses];
+
+export type UpdateTaskData = {
+    body: TaskUpdate;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}';
+};
+
+export type UpdateTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTaskError = UpdateTaskErrors[keyof UpdateTaskErrors];
+
+export type UpdateTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskRead;
+};
+
+export type UpdateTaskResponse = UpdateTaskResponses[keyof UpdateTaskResponses];
+
+export type MoveTaskData = {
+    body: TaskMove;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/move';
+};
+
+export type MoveTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveTaskError = MoveTaskErrors[keyof MoveTaskErrors];
+
+export type MoveTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type MoveTaskResponse = MoveTaskResponses[keyof MoveTaskResponses];
+
+export type CompleteTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/complete';
+};
+
+export type CompleteTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CompleteTaskError = CompleteTaskErrors[keyof CompleteTaskErrors];
+
+export type CompleteTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type CompleteTaskResponse = CompleteTaskResponses[keyof CompleteTaskResponses];
+
+export type CancelTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/cancel';
+};
+
+export type CancelTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelTaskError = CancelTaskErrors[keyof CancelTaskErrors];
+
+export type CancelTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type CancelTaskResponse = CancelTaskResponses[keyof CancelTaskResponses];
+
+export type ReopenTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/reopen';
+};
+
+export type ReopenTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReopenTaskError = ReopenTaskErrors[keyof ReopenTaskErrors];
+
+export type ReopenTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type ReopenTaskResponse = ReopenTaskResponses[keyof ReopenTaskResponses];
+
+export type ArchiveTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/archive';
+};
+
+export type ArchiveTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveTaskError = ArchiveTaskErrors[keyof ArchiveTaskErrors];
+
+export type ArchiveTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type ArchiveTaskResponse = ArchiveTaskResponses[keyof ArchiveTaskResponses];
+
+export type UnarchiveTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/unarchive';
+};
+
+export type UnarchiveTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveTaskError = UnarchiveTaskErrors[keyof UnarchiveTaskErrors];
+
+export type UnarchiveTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type UnarchiveTaskResponse = UnarchiveTaskResponses[keyof UnarchiveTaskResponses];
+
+export type CreateSubtaskData = {
+    body: SubtaskCreate;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/subtasks';
+};
+
+export type CreateSubtaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSubtaskError = CreateSubtaskErrors[keyof CreateSubtaskErrors];
+
+export type CreateSubtaskResponses = {
+    /**
+     * Successful Response
+     */
+    201: SubtaskRead;
+};
+
+export type CreateSubtaskResponse = CreateSubtaskResponses[keyof CreateSubtaskResponses];
+
+export type DeleteSubtaskData = {
+    body?: never;
+    path: {
+        /**
+         * Subtask Id
+         */
+        subtask_id: number;
+    };
+    query?: never;
+    url: '/api/subtasks/{subtask_id}';
+};
+
+export type DeleteSubtaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteSubtaskError = DeleteSubtaskErrors[keyof DeleteSubtaskErrors];
+
+export type DeleteSubtaskResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteSubtaskResponse = DeleteSubtaskResponses[keyof DeleteSubtaskResponses];
+
+export type UpdateSubtaskData = {
+    body: SubtaskUpdate;
+    path: {
+        /**
+         * Subtask Id
+         */
+        subtask_id: number;
+    };
+    query?: never;
+    url: '/api/subtasks/{subtask_id}';
+};
+
+export type UpdateSubtaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSubtaskError = UpdateSubtaskErrors[keyof UpdateSubtaskErrors];
+
+export type UpdateSubtaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: SubtaskRead;
+};
+
+export type UpdateSubtaskResponse = UpdateSubtaskResponses[keyof UpdateSubtaskResponses];
+
+export type UndoBatchData = {
+    body?: never;
+    path: {
+        /**
+         * Batch Id
+         */
+        batch_id: string;
+    };
+    query?: never;
+    url: '/api/undo/{batch_id}';
+};
+
+export type UndoBatchErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UndoBatchError = UndoBatchErrors[keyof UndoBatchErrors];
+
+export type UndoBatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: UndoResult;
+};
+
+export type UndoBatchResponse = UndoBatchResponses[keyof UndoBatchResponses];
 
 export type HealthData = {
     body?: never;
