@@ -28,8 +28,9 @@
 - Added the routines backend (Phase 3, built ahead while the designs are in progress): schedules with history, steps, checking off, skipping a day, pausing and streaks.
 - Added due routine steps to each day of the week board.
 - Added the projects and sections API (status changes and archiving come with the cascade engine).
+- Added the metrics API: entries, reach-by and per-period targets, with met or missed calculated. Everything the screens won't reshape is now built.
 
 **Next**
 
-- Merge the Life Area screens once the Figma designs are ready.
-- Phase 2 frontend once the designs are ready: week board, task drawer, Inbox, repeat picker, undo toast.
+- Phase 2 screens from the Figma designs: week board, task drawer, Inbox, repeat picker, undo toast, and restyling the Life Area screens (PR #5).
+- The cascade engine, with its preview and confirm screens: project and life area status changes and archiving.

@@ -147,5 +147,6 @@ Summary: a life area contains projects; projects contain sections; tasks, task t
 - **2026-11-13** — `POST /api/tasks/reorder` sets a day's whole order in one step, for drag and drop.
 - **2026-11-13** — Routine steps get a `starts_on`, so a step added later has no missed days before it existed. Streaks: a miss resets, while skipped and paused days are neutral. Done is allowed up to today; skipped also on future days. The routines backend is built ahead of the Phase 2 screens because the screens won't change it.
 - **2026-11-13** — Projects and sections get their API ahead of the screens. Project status changes and archiving wait for the cascade engine, since they change the project's tasks and events too. A project can be deleted only when empty; moving one is undoable. Progress counts one-off tasks that aren't cancelled or archived.
+- **2026-11-13** — Metrics, entries and targets get their API ahead of the screens. Entries can't be in the future. Changing a target ends it yesterday and starts the new one today; a target starting today or later is edited in place. Target states: upcoming, in progress, met, missed, and ended for finished per-period targets.
 
 ---

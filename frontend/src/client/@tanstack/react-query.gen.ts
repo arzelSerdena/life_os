@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveEvent, archiveLifeArea, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeTask, createEvent, createLifeArea, createProject, createRoutine, createRoutineStep, createSection, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteProject, deleteRoutine, deleteRoutineStep, deleteSection, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getProject, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listProjects, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveProject, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, reopenTask, reorderTasks, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateProject, updateRoutine, updateRoutineStep, updateSection, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
-import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateProjectData, CreateProjectError, CreateProjectResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSectionData, CreateSectionError, CreateSectionResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteProjectData, DeleteProjectError, DeleteProjectResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSectionData, DeleteSectionError, DeleteSectionResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetProjectData, GetProjectError, GetProjectResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListProjectsData, ListProjectsError, ListProjectsResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveProjectData, MoveProjectError, MoveProjectResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateProjectData, UpdateProjectError, UpdateProjectResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSectionData, UpdateSectionError, UpdateSectionResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
+import { archiveEvent, archiveLifeArea, archiveMetric, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeTask, createEvent, createLifeArea, createMetric, createMetricEntry, createMetricTarget, createProject, createRoutine, createRoutineStep, createSection, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteMetric, deleteMetricEntry, deleteMetricTarget, deleteProject, deleteRoutine, deleteRoutineStep, deleteSection, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getMetric, getProject, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listMetricEntries, listMetrics, listProjects, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveMetric, moveProject, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, reopenTask, reorderTasks, replaceMetricTarget, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveMetric, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateMetric, updateMetricEntry, updateProject, updateRoutine, updateRoutineStep, updateSection, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
+import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveMetricData, ArchiveMetricError, ArchiveMetricResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateMetricData, CreateMetricEntryData, CreateMetricEntryError, CreateMetricEntryResponse, CreateMetricError, CreateMetricResponse, CreateMetricTargetData, CreateMetricTargetError, CreateMetricTargetResponse, CreateProjectData, CreateProjectError, CreateProjectResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSectionData, CreateSectionError, CreateSectionResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteMetricData, DeleteMetricEntryData, DeleteMetricEntryError, DeleteMetricEntryResponse, DeleteMetricError, DeleteMetricResponse, DeleteMetricTargetData, DeleteMetricTargetError, DeleteMetricTargetResponse, DeleteProjectData, DeleteProjectError, DeleteProjectResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSectionData, DeleteSectionError, DeleteSectionResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetMetricData, GetMetricError, GetMetricResponse, GetProjectData, GetProjectError, GetProjectResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListMetricEntriesData, ListMetricEntriesError, ListMetricEntriesResponse, ListMetricsData, ListMetricsError, ListMetricsResponse, ListProjectsData, ListProjectsError, ListProjectsResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveMetricData, MoveMetricError, MoveMetricResponse, MoveProjectData, MoveProjectError, MoveProjectResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, ReplaceMetricTargetData, ReplaceMetricTargetError, ReplaceMetricTargetResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveMetricData, UnarchiveMetricError, UnarchiveMetricResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateMetricData, UpdateMetricEntryData, UpdateMetricEntryError, UpdateMetricEntryResponse, UpdateMetricError, UpdateMetricResponse, UpdateProjectData, UpdateProjectError, UpdateProjectResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSectionData, UpdateSectionError, UpdateSectionResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -311,6 +311,270 @@ export const updateSectionMutation = (options?: Partial<Options<UpdateSectionDat
     const mutationOptions: UseMutationOptions<UpdateSectionResponse, UpdateSectionError, Options<UpdateSectionData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateSection({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listMetricsQueryKey = (options?: Options<ListMetricsData>) => createQueryKey('listMetrics', options);
+
+/**
+ * List Metrics
+ *
+ * Metrics with their targets and how each target is going.
+ */
+export const listMetricsOptions = (options?: Options<ListMetricsData>) => queryOptions<ListMetricsResponse, ListMetricsError, ListMetricsResponse, ReturnType<typeof listMetricsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listMetrics({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listMetricsQueryKey(options)
+});
+
+/**
+ * Create Metric
+ */
+export const createMetricMutation = (options?: Partial<Options<CreateMetricData>>): UseMutationOptions<CreateMetricResponse, CreateMetricError, Options<CreateMetricData>> => {
+    const mutationOptions: UseMutationOptions<CreateMetricResponse, CreateMetricError, Options<CreateMetricData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createMetric({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Metric
+ *
+ * Delete the metric with all its entries and targets.
+ */
+export const deleteMetricMutation = (options?: Partial<Options<DeleteMetricData>>): UseMutationOptions<DeleteMetricResponse, DeleteMetricError, Options<DeleteMetricData>> => {
+    const mutationOptions: UseMutationOptions<DeleteMetricResponse, DeleteMetricError, Options<DeleteMetricData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteMetric({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getMetricQueryKey = (options: Options<GetMetricData>) => createQueryKey('getMetric', options);
+
+/**
+ * Get Metric
+ */
+export const getMetricOptions = (options: Options<GetMetricData>) => queryOptions<GetMetricResponse, GetMetricError, GetMetricResponse, ReturnType<typeof getMetricQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getMetric({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getMetricQueryKey(options)
+});
+
+/**
+ * Update Metric
+ */
+export const updateMetricMutation = (options?: Partial<Options<UpdateMetricData>>): UseMutationOptions<UpdateMetricResponse, UpdateMetricError, Options<UpdateMetricData>> => {
+    const mutationOptions: UseMutationOptions<UpdateMetricResponse, UpdateMetricError, Options<UpdateMetricData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateMetric({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Move Metric
+ */
+export const moveMetricMutation = (options?: Partial<Options<MoveMetricData>>): UseMutationOptions<MoveMetricResponse, MoveMetricError, Options<MoveMetricData>> => {
+    const mutationOptions: UseMutationOptions<MoveMetricResponse, MoveMetricError, Options<MoveMetricData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await moveMetric({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Archive Metric
+ */
+export const archiveMetricMutation = (options?: Partial<Options<ArchiveMetricData>>): UseMutationOptions<ArchiveMetricResponse, ArchiveMetricError, Options<ArchiveMetricData>> => {
+    const mutationOptions: UseMutationOptions<ArchiveMetricResponse, ArchiveMetricError, Options<ArchiveMetricData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await archiveMetric({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Unarchive Metric
+ */
+export const unarchiveMetricMutation = (options?: Partial<Options<UnarchiveMetricData>>): UseMutationOptions<UnarchiveMetricResponse, UnarchiveMetricError, Options<UnarchiveMetricData>> => {
+    const mutationOptions: UseMutationOptions<UnarchiveMetricResponse, UnarchiveMetricError, Options<UnarchiveMetricData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unarchiveMetric({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listMetricEntriesQueryKey = (options: Options<ListMetricEntriesData>) => createQueryKey('listMetricEntries', options);
+
+/**
+ * List Metric Entries
+ */
+export const listMetricEntriesOptions = (options: Options<ListMetricEntriesData>) => queryOptions<ListMetricEntriesResponse, ListMetricEntriesError, ListMetricEntriesResponse, ReturnType<typeof listMetricEntriesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listMetricEntries({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listMetricEntriesQueryKey(options)
+});
+
+/**
+ * Create Metric Entry
+ */
+export const createMetricEntryMutation = (options?: Partial<Options<CreateMetricEntryData>>): UseMutationOptions<CreateMetricEntryResponse, CreateMetricEntryError, Options<CreateMetricEntryData>> => {
+    const mutationOptions: UseMutationOptions<CreateMetricEntryResponse, CreateMetricEntryError, Options<CreateMetricEntryData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createMetricEntry({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Metric Entry
+ */
+export const deleteMetricEntryMutation = (options?: Partial<Options<DeleteMetricEntryData>>): UseMutationOptions<DeleteMetricEntryResponse, DeleteMetricEntryError, Options<DeleteMetricEntryData>> => {
+    const mutationOptions: UseMutationOptions<DeleteMetricEntryResponse, DeleteMetricEntryError, Options<DeleteMetricEntryData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteMetricEntry({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Update Metric Entry
+ */
+export const updateMetricEntryMutation = (options?: Partial<Options<UpdateMetricEntryData>>): UseMutationOptions<UpdateMetricEntryResponse, UpdateMetricEntryError, Options<UpdateMetricEntryData>> => {
+    const mutationOptions: UseMutationOptions<UpdateMetricEntryResponse, UpdateMetricEntryError, Options<UpdateMetricEntryData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateMetricEntry({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Create Metric Target
+ */
+export const createMetricTargetMutation = (options?: Partial<Options<CreateMetricTargetData>>): UseMutationOptions<CreateMetricTargetResponse, CreateMetricTargetError, Options<CreateMetricTargetData>> => {
+    const mutationOptions: UseMutationOptions<CreateMetricTargetResponse, CreateMetricTargetError, Options<CreateMetricTargetData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createMetricTarget({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Replace Metric Target
+ *
+ * Change a target: it ends yesterday and the changed one starts today.
+ */
+export const replaceMetricTargetMutation = (options?: Partial<Options<ReplaceMetricTargetData>>): UseMutationOptions<ReplaceMetricTargetResponse, ReplaceMetricTargetError, Options<ReplaceMetricTargetData>> => {
+    const mutationOptions: UseMutationOptions<ReplaceMetricTargetResponse, ReplaceMetricTargetError, Options<ReplaceMetricTargetData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await replaceMetricTarget({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Metric Target
+ */
+export const deleteMetricTargetMutation = (options?: Partial<Options<DeleteMetricTargetData>>): UseMutationOptions<DeleteMetricTargetResponse, DeleteMetricTargetError, Options<DeleteMetricTargetData>> => {
+    const mutationOptions: UseMutationOptions<DeleteMetricTargetResponse, DeleteMetricTargetError, Options<DeleteMetricTargetData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteMetricTarget({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

@@ -27,6 +27,78 @@ export type DayRead = {
 };
 
 /**
+ * EntryCreate
+ *
+ * A value for a day up to today (default: today).
+ */
+export type EntryCreate = {
+    /**
+     * Value
+     */
+    value: number;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
+/**
+ * EntryRead
+ */
+export type EntryRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Date
+     */
+    date: string;
+    /**
+     * Value
+     */
+    value: number;
+    /**
+     * Note
+     */
+    note: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * EntryUpdate
+ */
+export type EntryUpdate = {
+    /**
+     * Value
+     */
+    value?: number | null;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
+/**
  * ErrorResponse
  */
 export type ErrorResponse = {
@@ -349,6 +421,157 @@ export type LifeAreaUpdate = {
 };
 
 /**
+ * MetricChange
+ */
+export type MetricChange = {
+    metric: MetricRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * MetricCreate
+ *
+ * A metric in a life area or a project (it inherits the project's life area).
+ */
+export type MetricCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction?: 'higher' | 'lower';
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * MetricMove
+ *
+ * The metric's new owner: a project, or a life area.
+ */
+export type MetricMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * MetricRead
+ */
+export type MetricRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower';
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Targets
+     */
+    targets: Array<TargetRead>;
+};
+
+/**
+ * MetricUpdate
+ */
+export type MetricUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation?: 'sum' | 'average' | 'latest' | null;
+    /**
+     * Direction
+     */
+    direction?: 'higher' | 'lower' | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
  * OccurrenceCancel
  */
 export type OccurrenceCancel = {
@@ -475,6 +698,28 @@ export type OccurrenceRead = {
      * Is Past
      */
     is_past: boolean;
+};
+
+/**
+ * PeriodRead
+ */
+export type PeriodRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Value
+     */
+    value: number | null;
+    /**
+     * Status
+     */
+    status: 'in_progress' | 'met' | 'missed';
 };
 
 /**
@@ -1131,6 +1376,113 @@ export type SubtaskUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * TargetCreate
+ *
+ * 'reach_by' needs end_date (the deadline). 'per_period' needs period; without
+ * end_date it is ongoing. start_date defaults to today.
+ */
+export type TargetCreate = {
+    /**
+     * Kind
+     */
+    kind: 'reach_by' | 'per_period';
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Period
+     */
+    period?: 'day' | 'week' | 'month' | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+};
+
+/**
+ * TargetRead
+ *
+ * A target and how it's going, calculated from the entries.
+ */
+export type TargetRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Kind
+     */
+    kind: 'reach_by' | 'per_period';
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Period
+     */
+    period: 'day' | 'week' | 'month' | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+    /**
+     * State
+     */
+    state: 'upcoming' | 'in_progress' | 'met' | 'missed' | 'ended';
+    /**
+     * Value
+     */
+    value: number | null;
+    current_period: PeriodRead | null;
+    /**
+     * Recent Periods
+     */
+    recent_periods: Array<PeriodRead>;
+    /**
+     * Met Periods
+     */
+    met_periods: number;
+    /**
+     * Missed Periods
+     */
+    missed_periods: number;
+};
+
+/**
+ * TargetReplace
+ *
+ * Change a target: the current one ends yesterday and a new one starts today, so its
+ * history stays. Fields left out keep the current values.
+ */
+export type TargetReplace = {
+    /**
+     * Target Value
+     */
+    target_value?: number | null;
+    /**
+     * Period
+     */
+    period?: 'day' | 'week' | 'month' | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
 };
 
 /**
@@ -2191,6 +2543,552 @@ export type UpdateSectionResponses = {
 };
 
 export type UpdateSectionResponse = UpdateSectionResponses[keyof UpdateSectionResponses];
+
+export type ListMetricsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/metrics';
+};
+
+export type ListMetricsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMetricsError = ListMetricsErrors[keyof ListMetricsErrors];
+
+export type ListMetricsResponses = {
+    /**
+     * Response List Metrics
+     *
+     * Successful Response
+     */
+    200: Array<MetricRead>;
+};
+
+export type ListMetricsResponse = ListMetricsResponses[keyof ListMetricsResponses];
+
+export type CreateMetricData = {
+    body: MetricCreate;
+    path?: never;
+    query?: never;
+    url: '/api/metrics';
+};
+
+export type CreateMetricErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMetricError = CreateMetricErrors[keyof CreateMetricErrors];
+
+export type CreateMetricResponses = {
+    /**
+     * Successful Response
+     */
+    201: MetricRead;
+};
+
+export type CreateMetricResponse = CreateMetricResponses[keyof CreateMetricResponses];
+
+export type DeleteMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}';
+};
+
+export type DeleteMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMetricError = DeleteMetricErrors[keyof DeleteMetricErrors];
+
+export type DeleteMetricResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMetricResponse = DeleteMetricResponses[keyof DeleteMetricResponses];
+
+export type GetMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}';
+};
+
+export type GetMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetMetricError = GetMetricErrors[keyof GetMetricErrors];
+
+export type GetMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricRead;
+};
+
+export type GetMetricResponse = GetMetricResponses[keyof GetMetricResponses];
+
+export type UpdateMetricData = {
+    body: MetricUpdate;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}';
+};
+
+export type UpdateMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateMetricError = UpdateMetricErrors[keyof UpdateMetricErrors];
+
+export type UpdateMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricRead;
+};
+
+export type UpdateMetricResponse = UpdateMetricResponses[keyof UpdateMetricResponses];
+
+export type MoveMetricData = {
+    body: MetricMove;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/move';
+};
+
+export type MoveMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveMetricError = MoveMetricErrors[keyof MoveMetricErrors];
+
+export type MoveMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricChange;
+};
+
+export type MoveMetricResponse = MoveMetricResponses[keyof MoveMetricResponses];
+
+export type ArchiveMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/archive';
+};
+
+export type ArchiveMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveMetricError = ArchiveMetricErrors[keyof ArchiveMetricErrors];
+
+export type ArchiveMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricChange;
+};
+
+export type ArchiveMetricResponse = ArchiveMetricResponses[keyof ArchiveMetricResponses];
+
+export type UnarchiveMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/unarchive';
+};
+
+export type UnarchiveMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveMetricError = UnarchiveMetricErrors[keyof UnarchiveMetricErrors];
+
+export type UnarchiveMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricChange;
+};
+
+export type UnarchiveMetricResponse = UnarchiveMetricResponses[keyof UnarchiveMetricResponses];
+
+export type ListMetricEntriesData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: {
+        /**
+         * First
+         */
+        first?: string | null;
+        /**
+         * Last
+         */
+        last?: string | null;
+    };
+    url: '/api/metrics/{metric_id}/entries';
+};
+
+export type ListMetricEntriesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMetricEntriesError = ListMetricEntriesErrors[keyof ListMetricEntriesErrors];
+
+export type ListMetricEntriesResponses = {
+    /**
+     * Response List Metric Entries
+     *
+     * Successful Response
+     */
+    200: Array<EntryRead>;
+};
+
+export type ListMetricEntriesResponse = ListMetricEntriesResponses[keyof ListMetricEntriesResponses];
+
+export type CreateMetricEntryData = {
+    body: EntryCreate;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/entries';
+};
+
+export type CreateMetricEntryErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMetricEntryError = CreateMetricEntryErrors[keyof CreateMetricEntryErrors];
+
+export type CreateMetricEntryResponses = {
+    /**
+     * Successful Response
+     */
+    201: EntryRead;
+};
+
+export type CreateMetricEntryResponse = CreateMetricEntryResponses[keyof CreateMetricEntryResponses];
+
+export type DeleteMetricEntryData = {
+    body?: never;
+    path: {
+        /**
+         * Entry Id
+         */
+        entry_id: number;
+    };
+    query?: never;
+    url: '/api/metric-entries/{entry_id}';
+};
+
+export type DeleteMetricEntryErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMetricEntryError = DeleteMetricEntryErrors[keyof DeleteMetricEntryErrors];
+
+export type DeleteMetricEntryResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMetricEntryResponse = DeleteMetricEntryResponses[keyof DeleteMetricEntryResponses];
+
+export type UpdateMetricEntryData = {
+    body: EntryUpdate;
+    path: {
+        /**
+         * Entry Id
+         */
+        entry_id: number;
+    };
+    query?: never;
+    url: '/api/metric-entries/{entry_id}';
+};
+
+export type UpdateMetricEntryErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateMetricEntryError = UpdateMetricEntryErrors[keyof UpdateMetricEntryErrors];
+
+export type UpdateMetricEntryResponses = {
+    /**
+     * Successful Response
+     */
+    200: EntryRead;
+};
+
+export type UpdateMetricEntryResponse = UpdateMetricEntryResponses[keyof UpdateMetricEntryResponses];
+
+export type CreateMetricTargetData = {
+    body: TargetCreate;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/targets';
+};
+
+export type CreateMetricTargetErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMetricTargetError = CreateMetricTargetErrors[keyof CreateMetricTargetErrors];
+
+export type CreateMetricTargetResponses = {
+    /**
+     * Successful Response
+     */
+    201: TargetRead;
+};
+
+export type CreateMetricTargetResponse = CreateMetricTargetResponses[keyof CreateMetricTargetResponses];
+
+export type ReplaceMetricTargetData = {
+    body: TargetReplace;
+    path: {
+        /**
+         * Target Id
+         */
+        target_id: number;
+    };
+    query?: never;
+    url: '/api/metric-targets/{target_id}/replace';
+};
+
+export type ReplaceMetricTargetErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReplaceMetricTargetError = ReplaceMetricTargetErrors[keyof ReplaceMetricTargetErrors];
+
+export type ReplaceMetricTargetResponses = {
+    /**
+     * Successful Response
+     */
+    200: TargetRead;
+};
+
+export type ReplaceMetricTargetResponse = ReplaceMetricTargetResponses[keyof ReplaceMetricTargetResponses];
+
+export type DeleteMetricTargetData = {
+    body?: never;
+    path: {
+        /**
+         * Target Id
+         */
+        target_id: number;
+    };
+    query?: never;
+    url: '/api/metric-targets/{target_id}';
+};
+
+export type DeleteMetricTargetErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMetricTargetError = DeleteMetricTargetErrors[keyof DeleteMetricTargetErrors];
+
+export type DeleteMetricTargetResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMetricTargetResponse = DeleteMetricTargetResponses[keyof DeleteMetricTargetResponses];
 
 export type ListTasksData = {
     body?: never;

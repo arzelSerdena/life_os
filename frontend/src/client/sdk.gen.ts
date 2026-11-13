@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveRoutineData, ArchiveRoutineErrors, ArchiveRoutineResponses, ArchiveRoutineStepData, ArchiveRoutineStepErrors, ArchiveRoutineStepResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, ChangeRoutineScheduleData, ChangeRoutineScheduleErrors, ChangeRoutineScheduleResponses, ClearRoutineStepDayData, ClearRoutineStepDayErrors, ClearRoutineStepDayResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateProjectData, CreateProjectErrors, CreateProjectResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineStepData, CreateRoutineStepErrors, CreateRoutineStepResponses, CreateSectionData, CreateSectionErrors, CreateSectionResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteProjectData, DeleteProjectErrors, DeleteProjectResponses, DeleteRoutineData, DeleteRoutineErrors, DeleteRoutineResponses, DeleteRoutineStepData, DeleteRoutineStepErrors, DeleteRoutineStepResponses, DeleteSectionData, DeleteSectionErrors, DeleteSectionResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetProjectData, GetProjectErrors, GetProjectResponses, GetRoutineData, GetRoutineErrors, GetRoutineResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, GetWeekData, GetWeekErrors, GetWeekResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListProjectsData, ListProjectsErrors, ListProjectsResponses, ListRoutinesData, ListRoutinesErrors, ListRoutinesResponses, ListRoutineStepsForDayData, ListRoutineStepsForDayErrors, ListRoutineStepsForDayResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveProjectData, MoveProjectErrors, MoveProjectResponses, MoveRoutineStepData, MoveRoutineStepErrors, MoveRoutineStepResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseRoutineData, PauseRoutineErrors, PauseRoutineResponses, PauseRoutineStepData, PauseRoutineStepErrors, PauseRoutineStepResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ReorderTasksData, ReorderTasksErrors, ReorderTasksResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeRoutineData, ResumeRoutineErrors, ResumeRoutineResponses, ResumeRoutineStepData, ResumeRoutineStepErrors, ResumeRoutineStepResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, SetRoutineStepDayData, SetRoutineStepDayErrors, SetRoutineStepDayResponses, SkipRoutineDayData, SkipRoutineDayErrors, SkipRoutineDayResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveRoutineData, UnarchiveRoutineErrors, UnarchiveRoutineResponses, UnarchiveRoutineStepData, UnarchiveRoutineStepErrors, UnarchiveRoutineStepResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateProjectData, UpdateProjectErrors, UpdateProjectResponses, UpdateRoutineData, UpdateRoutineErrors, UpdateRoutineResponses, UpdateRoutineStepData, UpdateRoutineStepErrors, UpdateRoutineStepResponses, UpdateSectionData, UpdateSectionErrors, UpdateSectionResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
+import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveMetricData, ArchiveMetricErrors, ArchiveMetricResponses, ArchiveRoutineData, ArchiveRoutineErrors, ArchiveRoutineResponses, ArchiveRoutineStepData, ArchiveRoutineStepErrors, ArchiveRoutineStepResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, ChangeRoutineScheduleData, ChangeRoutineScheduleErrors, ChangeRoutineScheduleResponses, ClearRoutineStepDayData, ClearRoutineStepDayErrors, ClearRoutineStepDayResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateMetricData, CreateMetricEntryData, CreateMetricEntryErrors, CreateMetricEntryResponses, CreateMetricErrors, CreateMetricResponses, CreateMetricTargetData, CreateMetricTargetErrors, CreateMetricTargetResponses, CreateProjectData, CreateProjectErrors, CreateProjectResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineStepData, CreateRoutineStepErrors, CreateRoutineStepResponses, CreateSectionData, CreateSectionErrors, CreateSectionResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteMetricData, DeleteMetricEntryData, DeleteMetricEntryErrors, DeleteMetricEntryResponses, DeleteMetricErrors, DeleteMetricResponses, DeleteMetricTargetData, DeleteMetricTargetErrors, DeleteMetricTargetResponses, DeleteProjectData, DeleteProjectErrors, DeleteProjectResponses, DeleteRoutineData, DeleteRoutineErrors, DeleteRoutineResponses, DeleteRoutineStepData, DeleteRoutineStepErrors, DeleteRoutineStepResponses, DeleteSectionData, DeleteSectionErrors, DeleteSectionResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetMetricData, GetMetricErrors, GetMetricResponses, GetProjectData, GetProjectErrors, GetProjectResponses, GetRoutineData, GetRoutineErrors, GetRoutineResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, GetWeekData, GetWeekErrors, GetWeekResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListMetricEntriesData, ListMetricEntriesErrors, ListMetricEntriesResponses, ListMetricsData, ListMetricsErrors, ListMetricsResponses, ListProjectsData, ListProjectsErrors, ListProjectsResponses, ListRoutinesData, ListRoutinesErrors, ListRoutinesResponses, ListRoutineStepsForDayData, ListRoutineStepsForDayErrors, ListRoutineStepsForDayResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveMetricData, MoveMetricErrors, MoveMetricResponses, MoveProjectData, MoveProjectErrors, MoveProjectResponses, MoveRoutineStepData, MoveRoutineStepErrors, MoveRoutineStepResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseRoutineData, PauseRoutineErrors, PauseRoutineResponses, PauseRoutineStepData, PauseRoutineStepErrors, PauseRoutineStepResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ReorderTasksData, ReorderTasksErrors, ReorderTasksResponses, ReplaceMetricTargetData, ReplaceMetricTargetErrors, ReplaceMetricTargetResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeRoutineData, ResumeRoutineErrors, ResumeRoutineResponses, ResumeRoutineStepData, ResumeRoutineStepErrors, ResumeRoutineStepResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, SetRoutineStepDayData, SetRoutineStepDayErrors, SetRoutineStepDayResponses, SkipRoutineDayData, SkipRoutineDayErrors, SkipRoutineDayResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveMetricData, UnarchiveMetricErrors, UnarchiveMetricResponses, UnarchiveRoutineData, UnarchiveRoutineErrors, UnarchiveRoutineResponses, UnarchiveRoutineStepData, UnarchiveRoutineStepErrors, UnarchiveRoutineStepResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateMetricData, UpdateMetricEntryData, UpdateMetricEntryErrors, UpdateMetricEntryResponses, UpdateMetricErrors, UpdateMetricResponses, UpdateProjectData, UpdateProjectErrors, UpdateProjectResponses, UpdateRoutineData, UpdateRoutineErrors, UpdateRoutineResponses, UpdateRoutineStepData, UpdateRoutineStepErrors, UpdateRoutineStepResponses, UpdateSectionData, UpdateSectionErrors, UpdateSectionResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -152,6 +152,136 @@ export const updateSection = <ThrowOnError extends boolean = false>(options: Opt
         ...options.headers
     }
 });
+
+/**
+ * List Metrics
+ *
+ * Metrics with their targets and how each target is going.
+ */
+export const listMetrics = <ThrowOnError extends boolean = false>(options?: Options<ListMetricsData, ThrowOnError>): RequestResult<ListMetricsResponses, ListMetricsErrors, ThrowOnError> => (options?.client ?? client).get<ListMetricsResponses, ListMetricsErrors, ThrowOnError>({ url: '/api/metrics', ...options });
+
+/**
+ * Create Metric
+ */
+export const createMetric = <ThrowOnError extends boolean = false>(options: Options<CreateMetricData, ThrowOnError>): RequestResult<CreateMetricResponses, CreateMetricErrors, ThrowOnError> => (options.client ?? client).post<CreateMetricResponses, CreateMetricErrors, ThrowOnError>({
+    url: '/api/metrics',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Metric
+ *
+ * Delete the metric with all its entries and targets.
+ */
+export const deleteMetric = <ThrowOnError extends boolean = false>(options: Options<DeleteMetricData, ThrowOnError>): RequestResult<DeleteMetricResponses, DeleteMetricErrors, ThrowOnError> => (options.client ?? client).delete<DeleteMetricResponses, DeleteMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}', ...options });
+
+/**
+ * Get Metric
+ */
+export const getMetric = <ThrowOnError extends boolean = false>(options: Options<GetMetricData, ThrowOnError>): RequestResult<GetMetricResponses, GetMetricErrors, ThrowOnError> => (options.client ?? client).get<GetMetricResponses, GetMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}', ...options });
+
+/**
+ * Update Metric
+ */
+export const updateMetric = <ThrowOnError extends boolean = false>(options: Options<UpdateMetricData, ThrowOnError>): RequestResult<UpdateMetricResponses, UpdateMetricErrors, ThrowOnError> => (options.client ?? client).patch<UpdateMetricResponses, UpdateMetricErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Metric
+ */
+export const moveMetric = <ThrowOnError extends boolean = false>(options: Options<MoveMetricData, ThrowOnError>): RequestResult<MoveMetricResponses, MoveMetricErrors, ThrowOnError> => (options.client ?? client).post<MoveMetricResponses, MoveMetricErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Archive Metric
+ */
+export const archiveMetric = <ThrowOnError extends boolean = false>(options: Options<ArchiveMetricData, ThrowOnError>): RequestResult<ArchiveMetricResponses, ArchiveMetricErrors, ThrowOnError> => (options.client ?? client).post<ArchiveMetricResponses, ArchiveMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}/archive', ...options });
+
+/**
+ * Unarchive Metric
+ */
+export const unarchiveMetric = <ThrowOnError extends boolean = false>(options: Options<UnarchiveMetricData, ThrowOnError>): RequestResult<UnarchiveMetricResponses, UnarchiveMetricErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveMetricResponses, UnarchiveMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}/unarchive', ...options });
+
+/**
+ * List Metric Entries
+ */
+export const listMetricEntries = <ThrowOnError extends boolean = false>(options: Options<ListMetricEntriesData, ThrowOnError>): RequestResult<ListMetricEntriesResponses, ListMetricEntriesErrors, ThrowOnError> => (options.client ?? client).get<ListMetricEntriesResponses, ListMetricEntriesErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}/entries', ...options });
+
+/**
+ * Create Metric Entry
+ */
+export const createMetricEntry = <ThrowOnError extends boolean = false>(options: Options<CreateMetricEntryData, ThrowOnError>): RequestResult<CreateMetricEntryResponses, CreateMetricEntryErrors, ThrowOnError> => (options.client ?? client).post<CreateMetricEntryResponses, CreateMetricEntryErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}/entries',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Metric Entry
+ */
+export const deleteMetricEntry = <ThrowOnError extends boolean = false>(options: Options<DeleteMetricEntryData, ThrowOnError>): RequestResult<DeleteMetricEntryResponses, DeleteMetricEntryErrors, ThrowOnError> => (options.client ?? client).delete<DeleteMetricEntryResponses, DeleteMetricEntryErrors, ThrowOnError>({ url: '/api/metric-entries/{entry_id}', ...options });
+
+/**
+ * Update Metric Entry
+ */
+export const updateMetricEntry = <ThrowOnError extends boolean = false>(options: Options<UpdateMetricEntryData, ThrowOnError>): RequestResult<UpdateMetricEntryResponses, UpdateMetricEntryErrors, ThrowOnError> => (options.client ?? client).patch<UpdateMetricEntryResponses, UpdateMetricEntryErrors, ThrowOnError>({
+    url: '/api/metric-entries/{entry_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create Metric Target
+ */
+export const createMetricTarget = <ThrowOnError extends boolean = false>(options: Options<CreateMetricTargetData, ThrowOnError>): RequestResult<CreateMetricTargetResponses, CreateMetricTargetErrors, ThrowOnError> => (options.client ?? client).post<CreateMetricTargetResponses, CreateMetricTargetErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}/targets',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Replace Metric Target
+ *
+ * Change a target: it ends yesterday and the changed one starts today.
+ */
+export const replaceMetricTarget = <ThrowOnError extends boolean = false>(options: Options<ReplaceMetricTargetData, ThrowOnError>): RequestResult<ReplaceMetricTargetResponses, ReplaceMetricTargetErrors, ThrowOnError> => (options.client ?? client).post<ReplaceMetricTargetResponses, ReplaceMetricTargetErrors, ThrowOnError>({
+    url: '/api/metric-targets/{target_id}/replace',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Metric Target
+ */
+export const deleteMetricTarget = <ThrowOnError extends boolean = false>(options: Options<DeleteMetricTargetData, ThrowOnError>): RequestResult<DeleteMetricTargetResponses, DeleteMetricTargetErrors, ThrowOnError> => (options.client ?? client).delete<DeleteMetricTargetResponses, DeleteMetricTargetErrors, ThrowOnError>({ url: '/api/metric-targets/{target_id}', ...options });
 
 /**
  * List Tasks

@@ -14,6 +14,7 @@ from app.models import (
     Base,
     Event,
     LifeArea,
+    Metric,
     Project,
     Routine,
     RoutineStep,
@@ -30,6 +31,7 @@ ENTITY_MODELS: dict[str, type[Base]] = {
     "task": Task,
     "subtask": Subtask,
     "event": Event,
+    "metric": Metric,
     "routine": Routine,
     "routine_step": RoutineStep,
 }

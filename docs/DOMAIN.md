@@ -198,11 +198,13 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 ## 7. Metrics
 
 - A metric belongs to a life area or a project. Its **aggregation** says how a period's entries combine: `sum` (distance), `average` (sleep) or `latest` (body weight). Its **direction** says whether higher or lower is better.
-- Entries are typed in. Several per day are allowed.
+- Entries are typed in, for today or an earlier day, never a future one. Several per day are allowed.
 - A **reach-by** target has a deadline: "70 kg by June 1". It is in progress, met or missed. The value compared is the metric's entries from the target's start date, combined by its aggregation.
 - A **per-period** target repeats: "20 km per week". It shows progress for the current period and met or missed for past ones. An empty end date means it is ongoing.
 - Periods are calendar periods. Weeks start on Monday.
-- Changing a target ends the old one and starts a new one, so history is kept. A metric can't have two overlapping targets of the same kind, but it can have one of each.
+- Changing a target ends the old one yesterday and starts a new one today, so history is kept. A target that starts today or later is simply edited instead. A metric can't have two overlapping targets of the same kind, but it can have one of each.
+- A target's state is **upcoming** before its start date. A reach-by target is then **in progress**, **met** or **missed**. A per-period target reports its current period (met or in progress), its recent periods (met or missed), counts of each, and **ended** once its end date has passed.
+- Changing a metric's aggregation or direction changes how all its targets are judged, past ones included.
 
 ---
 
