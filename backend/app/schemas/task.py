@@ -124,6 +124,17 @@ class TaskMove(BaseModel):
     section_id: int | None = None
 
 
+class TaskReorder(BaseModel):
+    """The new order of a day's tasks, or of the unscheduled list (scheduled_date null).
+
+    Tasks of that day not listed keep their order, after the listed ones."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    scheduled_date: date | None
+    task_ids: Annotated[list[int], Field(min_length=1, max_length=500)]
+
+
 class TaskChange(BaseModel):
     """The task after the change, and the batch to pass to undo (None if nothing changed)."""
 

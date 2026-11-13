@@ -5,6 +5,24 @@ export type ClientOptions = {
 };
 
 /**
+ * DayRead
+ */
+export type DayRead = {
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Tasks
+     */
+    tasks: Array<TaskRead>;
+    /**
+     * Events
+     */
+    events: Array<OccurrenceRead>;
+};
+
+/**
  * ErrorResponse
  */
 export type ErrorResponse = {
@@ -776,6 +794,24 @@ export type TaskRead = {
 };
 
 /**
+ * TaskReorder
+ *
+ * The new order of a day's tasks, or of the unscheduled list (scheduled_date null).
+ *
+ * Tasks of that day not listed keep their order, after the listed ones.
+ */
+export type TaskReorder = {
+    /**
+     * Scheduled Date
+     */
+    scheduled_date: string | null;
+    /**
+     * Task Ids
+     */
+    task_ids: Array<number>;
+};
+
+/**
  * TaskTemplateCreate
  *
  * A template. Add rrule and starts_on to make it a recurring task.
@@ -1057,6 +1093,34 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WeekRead
+ *
+ * Monday to Sunday. Unscheduled holds every to-do task with no date.
+ */
+export type WeekRead = {
+    /**
+     * Week Start
+     */
+    week_start: string;
+    /**
+     * Week End
+     */
+    week_end: string;
+    /**
+     * Today
+     */
+    today: string;
+    /**
+     * Unscheduled
+     */
+    unscheduled: Array<TaskRead>;
+    /**
+     * Days
+     */
+    days: Array<DayRead>;
 };
 
 export type ListLifeAreasData = {
@@ -1378,6 +1442,37 @@ export type CreateTaskResponses = {
 };
 
 export type CreateTaskResponse = CreateTaskResponses[keyof CreateTaskResponses];
+
+export type ReorderTasksData = {
+    body: TaskReorder;
+    path?: never;
+    query?: never;
+    url: '/api/tasks/reorder';
+};
+
+export type ReorderTasksErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderTasksError = ReorderTasksErrors[keyof ReorderTasksErrors];
+
+export type ReorderTasksResponses = {
+    /**
+     * Response Reorder Tasks
+     *
+     * Successful Response
+     */
+    200: Array<TaskRead>;
+};
+
+export type ReorderTasksResponse = ReorderTasksResponses[keyof ReorderTasksResponses];
 
 export type DeleteTaskData = {
     body?: never;
@@ -2804,6 +2899,48 @@ export type RestoreEventOccurrenceResponses = {
 };
 
 export type RestoreEventOccurrenceResponse = RestoreEventOccurrenceResponses[keyof RestoreEventOccurrenceResponses];
+
+export type GetWeekData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Start
+         */
+        start?: string | null;
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+    };
+    url: '/api/week';
+};
+
+export type GetWeekErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetWeekError = GetWeekErrors[keyof GetWeekErrors];
+
+export type GetWeekResponses = {
+    /**
+     * Successful Response
+     */
+    200: WeekRead;
+};
+
+export type GetWeekResponse = GetWeekResponses[keyof GetWeekResponses];
 
 export type UndoBatchData = {
     body?: never;

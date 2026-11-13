@@ -27,27 +27,6 @@ def _change(change: service.EventChange) -> EventChange:
     return EventChange(event=EventRead.model_validate(change.event), batch_id=change.batch_id)
 
 
-def _occurrence(occurrence: service.Occurrence) -> OccurrenceRead:
-    event = occurrence.event
-    return OccurrenceRead(
-        event_id=event.id,
-        occurrence_date=occurrence.occurrence_date,
-        life_area_id=event.life_area_id,
-        project_id=event.project_id,
-        title=occurrence.title,
-        notes=occurrence.notes,
-        start_date=occurrence.start_date,
-        end_date=occurrence.end_date,
-        start_time=occurrence.start_time,
-        end_time=occurrence.end_time,
-        location=occurrence.location,
-        is_repeating=event.is_repeating,
-        is_cancelled=occurrence.is_cancelled,
-        is_changed=occurrence.is_changed,
-        is_past=occurrence.is_past,
-    )
-
-
 @router.get("")
 def list_events(
     session: SessionDep,
@@ -80,7 +59,10 @@ def list_event_occurrences(
     filters = service.OccurrenceFilters(
         life_area_id=life_area_id, project_id=project_id, include_cancelled=include_cancelled
     )
-    return [_occurrence(o) for o in service.list_occurrences(session, first, last, filters)]
+    return [
+        OccurrenceRead.from_occurrence(o)
+        for o in service.list_occurrences(session, first, last, filters)
+    ]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED, responses=CONFLICT)
