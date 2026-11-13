@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, HealthData, HealthResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
+import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -290,6 +290,120 @@ export const createTaskFromTemplate = <ThrowOnError extends boolean = false>(opt
         ...options.headers
     }
 });
+
+/**
+ * List Events
+ *
+ * Events and series themselves. For what happens on which day, list occurrences.
+ */
+export const listEvents = <ThrowOnError extends boolean = false>(options?: Options<ListEventsData, ThrowOnError>): RequestResult<ListEventsResponses, ListEventsErrors, ThrowOnError> => (options?.client ?? client).get<ListEventsResponses, ListEventsErrors, ThrowOnError>({ url: '/api/events', ...options });
+
+/**
+ * Create Event
+ */
+export const createEvent = <ThrowOnError extends boolean = false>(options: Options<CreateEventData, ThrowOnError>): RequestResult<CreateEventResponses, CreateEventErrors, ThrowOnError> => (options.client ?? client).post<CreateEventResponses, CreateEventErrors, ThrowOnError>({
+    url: '/api/events',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Event Occurrences
+ *
+ * Every occurrence that overlaps first..last (inclusive, at most 366 days).
+ */
+export const listEventOccurrences = <ThrowOnError extends boolean = false>(options: Options<ListEventOccurrencesData, ThrowOnError>): RequestResult<ListEventOccurrencesResponses, ListEventOccurrencesErrors, ThrowOnError> => (options.client ?? client).get<ListEventOccurrencesResponses, ListEventOccurrencesErrors, ThrowOnError>({ url: '/api/events/occurrences', ...options });
+
+/**
+ * Delete Event
+ */
+export const deleteEvent = <ThrowOnError extends boolean = false>(options: Options<DeleteEventData, ThrowOnError>): RequestResult<DeleteEventResponses, DeleteEventErrors, ThrowOnError> => (options.client ?? client).delete<DeleteEventResponses, DeleteEventErrors, ThrowOnError>({ url: '/api/events/{event_id}', ...options });
+
+/**
+ * Get Event
+ */
+export const getEvent = <ThrowOnError extends boolean = false>(options: Options<GetEventData, ThrowOnError>): RequestResult<GetEventResponses, GetEventErrors, ThrowOnError> => (options.client ?? client).get<GetEventResponses, GetEventErrors, ThrowOnError>({ url: '/api/events/{event_id}', ...options });
+
+/**
+ * Update Event
+ */
+export const updateEvent = <ThrowOnError extends boolean = false>(options: Options<UpdateEventData, ThrowOnError>): RequestResult<UpdateEventResponses, UpdateEventErrors, ThrowOnError> => (options.client ?? client).patch<UpdateEventResponses, UpdateEventErrors, ThrowOnError>({
+    url: '/api/events/{event_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Event
+ */
+export const moveEvent = <ThrowOnError extends boolean = false>(options: Options<MoveEventData, ThrowOnError>): RequestResult<MoveEventResponses, MoveEventErrors, ThrowOnError> => (options.client ?? client).post<MoveEventResponses, MoveEventErrors, ThrowOnError>({
+    url: '/api/events/{event_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Event
+ */
+export const cancelEvent = <ThrowOnError extends boolean = false>(options: Options<CancelEventData, ThrowOnError>): RequestResult<CancelEventResponses, CancelEventErrors, ThrowOnError> => (options.client ?? client).post<CancelEventResponses, CancelEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/cancel', ...options });
+
+/**
+ * Uncancel Event
+ */
+export const uncancelEvent = <ThrowOnError extends boolean = false>(options: Options<UncancelEventData, ThrowOnError>): RequestResult<UncancelEventResponses, UncancelEventErrors, ThrowOnError> => (options.client ?? client).post<UncancelEventResponses, UncancelEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/uncancel', ...options });
+
+/**
+ * Archive Event
+ */
+export const archiveEvent = <ThrowOnError extends boolean = false>(options: Options<ArchiveEventData, ThrowOnError>): RequestResult<ArchiveEventResponses, ArchiveEventErrors, ThrowOnError> => (options.client ?? client).post<ArchiveEventResponses, ArchiveEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/archive', ...options });
+
+/**
+ * Unarchive Event
+ */
+export const unarchiveEvent = <ThrowOnError extends boolean = false>(options: Options<UnarchiveEventData, ThrowOnError>): RequestResult<UnarchiveEventResponses, UnarchiveEventErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveEventResponses, UnarchiveEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/unarchive', ...options });
+
+/**
+ * Edit Event Occurrence
+ *
+ * Change the occurrence on `day` (its original date): this one, this and following,
+ * or all. Returns the event holding the change, which is a new series after a split.
+ */
+export const editEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<EditEventOccurrenceData, ThrowOnError>): RequestResult<EditEventOccurrenceResponses, EditEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).post<EditEventOccurrenceResponses, EditEventOccurrenceErrors, ThrowOnError>({
+    url: '/api/events/{event_id}/occurrences/{day}/edit',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Event Occurrence
+ */
+export const cancelEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<CancelEventOccurrenceData, ThrowOnError>): RequestResult<CancelEventOccurrenceResponses, CancelEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).post<CancelEventOccurrenceResponses, CancelEventOccurrenceErrors, ThrowOnError>({
+    url: '/api/events/{event_id}/occurrences/{day}/cancel',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Restore Event Occurrence
+ *
+ * Remove every one-off change to the occurrence on `day`, including cancelling it.
+ */
+export const restoreEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<RestoreEventOccurrenceData, ThrowOnError>): RequestResult<RestoreEventOccurrenceResponses, RestoreEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).delete<RestoreEventOccurrenceResponses, RestoreEventOccurrenceErrors, ThrowOnError>({ url: '/api/events/{event_id}/occurrences/{day}', ...options });
 
 /**
  * Undo Batch

@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveLifeArea, archiveTask, archiveTaskTemplate, cancelTask, cancelTaskSeries, completeTask, createLifeArea, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteLifeArea, deleteSubtask, deleteTask, deleteTaskTemplate, editTaskSeries, getLifeArea, getTask, getTaskTemplate, health, listLifeAreas, listTasks, listTaskTemplates, moveTask, moveTaskTemplate, type Options, pauseTaskTemplate, reopenTask, resumeTaskTemplate, unarchiveLifeArea, unarchiveTask, unarchiveTaskTemplate, undoBatch, updateLifeArea, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
-import type { ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, HealthData, HealthResponse2, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
+import { archiveEvent, archiveLifeArea, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, completeTask, createEvent, createLifeArea, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getTask, getTaskTemplate, health, listEventOccurrences, listEvents, listLifeAreas, listTasks, listTaskTemplates, moveEvent, moveTask, moveTaskTemplate, type Options, pauseTaskTemplate, reopenTask, restoreEventOccurrence, resumeTaskTemplate, unarchiveEvent, unarchiveLifeArea, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
+import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -625,6 +625,256 @@ export const createTaskFromTemplateMutation = (options?: Partial<Options<CreateT
     const mutationOptions: UseMutationOptions<CreateTaskFromTemplateResponse, CreateTaskFromTemplateError, Options<CreateTaskFromTemplateData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await createTaskFromTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listEventsQueryKey = (options?: Options<ListEventsData>) => createQueryKey('listEvents', options);
+
+/**
+ * List Events
+ *
+ * Events and series themselves. For what happens on which day, list occurrences.
+ */
+export const listEventsOptions = (options?: Options<ListEventsData>) => queryOptions<ListEventsResponse, ListEventsError, ListEventsResponse, ReturnType<typeof listEventsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listEvents({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listEventsQueryKey(options)
+});
+
+/**
+ * Create Event
+ */
+export const createEventMutation = (options?: Partial<Options<CreateEventData>>): UseMutationOptions<CreateEventResponse, CreateEventError, Options<CreateEventData>> => {
+    const mutationOptions: UseMutationOptions<CreateEventResponse, CreateEventError, Options<CreateEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listEventOccurrencesQueryKey = (options: Options<ListEventOccurrencesData>) => createQueryKey('listEventOccurrences', options);
+
+/**
+ * List Event Occurrences
+ *
+ * Every occurrence that overlaps first..last (inclusive, at most 366 days).
+ */
+export const listEventOccurrencesOptions = (options: Options<ListEventOccurrencesData>) => queryOptions<ListEventOccurrencesResponse, ListEventOccurrencesError, ListEventOccurrencesResponse, ReturnType<typeof listEventOccurrencesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listEventOccurrences({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listEventOccurrencesQueryKey(options)
+});
+
+/**
+ * Delete Event
+ */
+export const deleteEventMutation = (options?: Partial<Options<DeleteEventData>>): UseMutationOptions<DeleteEventResponse, DeleteEventError, Options<DeleteEventData>> => {
+    const mutationOptions: UseMutationOptions<DeleteEventResponse, DeleteEventError, Options<DeleteEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getEventQueryKey = (options: Options<GetEventData>) => createQueryKey('getEvent', options);
+
+/**
+ * Get Event
+ */
+export const getEventOptions = (options: Options<GetEventData>) => queryOptions<GetEventResponse, GetEventError, GetEventResponse, ReturnType<typeof getEventQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getEvent({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getEventQueryKey(options)
+});
+
+/**
+ * Update Event
+ */
+export const updateEventMutation = (options?: Partial<Options<UpdateEventData>>): UseMutationOptions<UpdateEventResponse, UpdateEventError, Options<UpdateEventData>> => {
+    const mutationOptions: UseMutationOptions<UpdateEventResponse, UpdateEventError, Options<UpdateEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Move Event
+ */
+export const moveEventMutation = (options?: Partial<Options<MoveEventData>>): UseMutationOptions<MoveEventResponse, MoveEventError, Options<MoveEventData>> => {
+    const mutationOptions: UseMutationOptions<MoveEventResponse, MoveEventError, Options<MoveEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await moveEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Cancel Event
+ */
+export const cancelEventMutation = (options?: Partial<Options<CancelEventData>>): UseMutationOptions<CancelEventResponse, CancelEventError, Options<CancelEventData>> => {
+    const mutationOptions: UseMutationOptions<CancelEventResponse, CancelEventError, Options<CancelEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await cancelEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Uncancel Event
+ */
+export const uncancelEventMutation = (options?: Partial<Options<UncancelEventData>>): UseMutationOptions<UncancelEventResponse, UncancelEventError, Options<UncancelEventData>> => {
+    const mutationOptions: UseMutationOptions<UncancelEventResponse, UncancelEventError, Options<UncancelEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await uncancelEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Archive Event
+ */
+export const archiveEventMutation = (options?: Partial<Options<ArchiveEventData>>): UseMutationOptions<ArchiveEventResponse, ArchiveEventError, Options<ArchiveEventData>> => {
+    const mutationOptions: UseMutationOptions<ArchiveEventResponse, ArchiveEventError, Options<ArchiveEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await archiveEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Unarchive Event
+ */
+export const unarchiveEventMutation = (options?: Partial<Options<UnarchiveEventData>>): UseMutationOptions<UnarchiveEventResponse, UnarchiveEventError, Options<UnarchiveEventData>> => {
+    const mutationOptions: UseMutationOptions<UnarchiveEventResponse, UnarchiveEventError, Options<UnarchiveEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unarchiveEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Edit Event Occurrence
+ *
+ * Change the occurrence on `day` (its original date): this one, this and following,
+ * or all. Returns the event holding the change, which is a new series after a split.
+ */
+export const editEventOccurrenceMutation = (options?: Partial<Options<EditEventOccurrenceData>>): UseMutationOptions<EditEventOccurrenceResponse, EditEventOccurrenceError, Options<EditEventOccurrenceData>> => {
+    const mutationOptions: UseMutationOptions<EditEventOccurrenceResponse, EditEventOccurrenceError, Options<EditEventOccurrenceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await editEventOccurrence({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Cancel Event Occurrence
+ */
+export const cancelEventOccurrenceMutation = (options?: Partial<Options<CancelEventOccurrenceData>>): UseMutationOptions<CancelEventOccurrenceResponse, CancelEventOccurrenceError, Options<CancelEventOccurrenceData>> => {
+    const mutationOptions: UseMutationOptions<CancelEventOccurrenceResponse, CancelEventOccurrenceError, Options<CancelEventOccurrenceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await cancelEventOccurrence({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Restore Event Occurrence
+ *
+ * Remove every one-off change to the occurrence on `day`, including cancelling it.
+ */
+export const restoreEventOccurrenceMutation = (options?: Partial<Options<RestoreEventOccurrenceData>>): UseMutationOptions<RestoreEventOccurrenceResponse, RestoreEventOccurrenceError, Options<RestoreEventOccurrenceData>> => {
+    const mutationOptions: UseMutationOptions<RestoreEventOccurrenceResponse, RestoreEventOccurrenceError, Options<RestoreEventOccurrenceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await restoreEventOccurrence({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

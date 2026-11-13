@@ -150,10 +150,13 @@ As in Google Calendar, changing or cancelling one occurrence of a repeating item
 
 ### Events
 
-- A repeating event is one row with an `rrule`. Occurrences are calculated when a range is viewed, never stored.
+- A repeating event is one row with an `rrule`, running from `start_date` until `repeat_ends_on` if set. The rule follows the same limits as task templates: no `DTSTART`, `UNTIL` or `COUNT`. Occurrences are calculated when a range is viewed, never stored. A range covers at most 366 days, and includes multi-day occurrences that started earlier and single occurrences moved into it.
 - An exception is keyed by the date the occurrence would normally fall on. It either cancels the occurrence or replaces some of its values. There is at most one exception per occurrence.
 - Each occurrence keeps the series' length in days.
-- Changing **All**: changing the timing or the rule removes one-off changes, with a warning first, because their dates no longer line up. Changing other values (title, notes, location) keeps them.
+- **This one** can change any of an occurrence's values, including moving it to other dates. A one-off change or cancellation is undone by restoring the occurrence, which removes its exception.
+- **This and following** and **All** change the series' title, notes, location, times or rule. They can't move dates; edit the event itself to move a whole series. Splitting moves later exceptions to the new series. Cancelling the series ("following" ends it, "all" cancels it) is one undoable batch.
+- Cancelling a whole event, or every occurrence of a series, sets `cancelled_at`; uncancelling clears it.
+- Changing **All**: changing the timing or the rule removes one-off changes, with a warning first, because their dates no longer line up. Cancelled occurrences stay cancelled. Changing other values (title, notes, location) keeps one-off changes. Removing the rule turns the series into a one-off event.
 
 ### Task templates and recurring tasks
 
