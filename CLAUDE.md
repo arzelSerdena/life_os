@@ -63,44 +63,45 @@ Build in vertical slices following the phases in `docs/project_details.md`: back
 
 ## Data model essentials
 
+The full rules are in `docs/DOMAIN.md`; these are the ones easiest to get wrong.
+
 ### SQLite setup
 
 - `PRAGMA foreign_keys=ON` must run on **every application connection**; use `create_db_engine` in `app/db.py`. Migrations are the one exception: they run with it off, because batch mode's `DROP TABLE` would otherwise cascade-delete child rows, and `migrations/env.py` runs `PRAGMA foreign_key_check` afterwards.
 - Alembic needs `render_as_batch=True`, because SQLite can only alter tables and constraints in batch mode.
+- Every model puts `AUTOINCREMENT` (from `app/models/base.py`) in its `__table_args__`, so ids are never reused; a test checks every table.
 - The base mixin sets `updated_at` with `onupdate=func.now()`; the DB default only covers inserts.
 - Deliberate exceptions to the timestamp convention: `routine_logs` has only `created_at`, and `status_changes` has only `changed_at`.
-- The models must carry over the CHECKs, composite FKs and unique indexes from `schema.sql`, not just the columns.
+- The models must carry over the CHECKs, composite FKs, unique and partial unique indexes from `schema.sql`, not just the columns. Alembic's autogenerate misses some of these, so check each migration.
 
 ### Ownership
 
-- Every item stores `life_area_id`, which must equal its owner's life area. Only tasks and recurring tasks may have none (that is the **Inbox**).
-- The direct owner is the most specific filled link: project → goal → priority → life area → Inbox.
-- Priorities do **not** own projects, tasks or events. A priority page derives its projects through its goals with a join.
-- **Unlink** means clearing the owner link so the item falls back to its life area.
-- Moving an item updates its `life_area_id`, and a grouped project shares its group's life area.
-- Moving a milestone to another project: the composite FK `(milestone_id, project_id)` with `ON UPDATE CASCADE` moves its tasks' and recurring tasks' `project_id`, but the **service must update their `life_area_id`**.
+- Tasks, recurring tasks, events, metrics and routine steps belong to **a project or a life area, never both**. Only tasks and recurring tasks may have neither (the **Inbox**).
+- A project-owned item stores its project's `life_area_id`. The composite FK `(project_id, life_area_id)` → `projects(id, life_area_id)` with `ON UPDATE CASCADE` enforces it, and moving a project moves its items. Tasks and recurring tasks also need the CHECK that a project link comes with a life area, because SQLite skips a composite FK while any column is NULL.
+- **Unlink** means clearing `project_id` so the item falls back to its life area.
+- Sections belong to one project (composite FK `(section_id, project_id)`) and never move. Before deleting a section, the **service moves its tasks to unsectioned**; SQLite's `SET NULL` would also clear `project_id`.
+- Nothing can be created in, moved into or restored into an archived life area or an inactive project: return 409.
+- There are no priorities, goals, project groups or milestones. A task's `priority` (high/medium/low/none) is a column, not an entity.
 
 ### Status, archive and dates
 
 - Archiving is separate from status: `archived_at` set means hidden, so queries filter on `archived_at IS NULL`. Cancelled tasks are hidden by default, with a toggle to show them.
-- DB CHECKs require status and its timestamp to match (`completed_at`, `achieved_at`, `cancelled_at`), so **set both in the same UPDATE**.
+- DB CHECKs require status and its timestamp to match (`completed_at`, `cancelled_at`), so **set both in the same UPDATE**.
 - Some rules are enforced by both the DB and the service. The service validates first so the API returns a clear 4xx instead of a DB error.
-- `scheduled_date`, `due_date` and similar are local calendar dates; `_at` datetimes are UTC.
+- `scheduled_date`, `due_date` and similar are local calendar dates; `_at` datetimes are UTC. Event times are floating local times. Weeks start on Monday.
 - Notes are Markdown in a `notes` TEXT column (max 50,000 characters).
-- Progress rollups are derived and never stored. Event upcoming/past is calculated from dates.
-- A routine step's daily state lives in `routine_logs`; no row means still to-do.
+- Derived values are never stored: project progress, target state (met/missed), event upcoming/past. Life areas have no progress.
+- A routine step's daily state lives in `routine_logs`; no row means to-do, or missed once the day is over unless a `routine_pauses` row covers it.
 
 ### Cascades and undo
 
-Status effects per entity are in the status rules table in `docs/project_details.md`. Cascades in the planning hierarchy follow one flow: preview all affected items → confirm → apply in one transaction → record in `status_changes` under a `batch_id` → undo restores the batch.
+The status and cascade table is in `docs/DOMAIN.md` section 3. Cascades follow one flow: preview all affected items → confirm → apply in one transaction → record in `status_changes` under a `batch_id` → undo restores the batch. Checking off, cancelling or archiving a task skips preview and confirmation but is still recorded.
 
-Undo must group a batch's rows by entity and restore all of an entity's fields in a **single UPDATE**, or the status/timestamp CHECK fails.
+Undo must group a batch's rows by entity and restore all of an entity's fields in a **single UPDATE**, or the status/timestamp CHECK fails. Undo covers field changes only; series edits that create or remove rows can't be undone.
 
-### Recurring tasks
+### Repeating items
 
-- A `recurring_tasks` row is a template; occurrences are rows in `tasks`, unique on `(recurring_task_id, occurrence_date)`.
-- Generate missing occurrences for the viewed week, from today forward.
-- Never recreate an existing occurrence, even if it was moved or cancelled.
-- Paused or archived templates generate nothing.
-- "Edit all future" touches only future unfinished occurrences.
-- Recurring occurrences don't roll over; only one-off tasks do.
+- Edits and cancellations offer **this one / this and following / all**. "This and following" ends the series the day before and starts a new one.
+- **Events** are expanded when a range is viewed, never stored. One-off changes live in `event_exceptions`, keyed by the occurrence's original date.
+- **Recurring tasks** are templates; occurrences are rows in `tasks`, unique on `(recurring_task_id, occurrence_date)`. Generate missing occurrences for the viewed week, from today forward, unless the template repeats from completion (one open occurrence at a time). Never recreate an existing occurrence. Paused or archived templates generate nothing. Done and cancelled occurrences never change. Recurring occurrences don't roll over; only one-off tasks do.
+- **Routines** take their due days from `routine_schedules` (one row per schedule change) and their paused days from `routine_pauses`, so history never changes.

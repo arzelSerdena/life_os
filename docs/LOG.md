@@ -13,3 +13,15 @@
 **Next**
 
 - App layout with sidebar and the Life Area screens, which finishes Phase 1.
+
+## 2026-11-13
+
+**Done**
+
+- Revised the data model: removed priorities, goals, project groups and milestones; added project sections, task priority, metrics with entries and targets, repeating events with exceptions, routine schedules and pauses.
+- Made the database enforce that items stay in their project's life area, and switched every table to `AUTOINCREMENT` ids (migration for `life_areas`).
+
+**Next**
+
+- Merge the Life Area screens once the Figma designs are ready.
+- Phase 2: tasks, subtasks, recurring tasks, events and the week board.
