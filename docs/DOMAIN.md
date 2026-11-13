@@ -202,10 +202,16 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 ## 8. Scheduling and derived values
 
 - The week view is an untimed board: Unscheduled plus seven day columns, Monday to Sunday. Tasks have no start time or duration.
+  - One call (`GET /api/week`) returns the whole board, optionally for one life area or project.
+  - **Unscheduled** holds every to-do task with no date, from every life area and the Inbox.
+  - Each day holds its tasks (done ones included, cancelled ones only on request) and its event occurrences. A multi-day event appears on every day it covers, with its real start and end dates.
+  - Loading a week first runs rollover and creates the week's missing recurring tasks. Both are safe to repeat.
+  - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones.
 - Due dates are a date plus an optional time, and a due time requires a due date.
 - Events are all-day when they have no start time. An end time requires a start time, and the end date (the last day, inclusive) can't be before the start date. Upcoming/past is calculated from dates.
 - Unfinished one-off tasks roll over. A task qualifies if it is `todo`, not archived, not a recurring occurrence, and its `scheduled_date` is before today.
-  - Rollover runs automatically on app launch and when the local date changes while the app is open.
+  - Rollover runs whenever the board loads a week, which happens on app launch and when the local date changes while the app is open.
+  - Rolled-over tasks go to the end of today's list, keeping their order.
   - The task's `scheduled_date` moves to today, however many days it missed, and `rollover_count` goes up by 1 per move.
   - `due_date` doesn't change, and rollovers aren't recorded for undo.
 - Derived values are never stored:

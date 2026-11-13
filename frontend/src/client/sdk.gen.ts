@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
+import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, GetWeekData, GetWeekErrors, GetWeekResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ReorderTasksData, ReorderTasksErrors, ReorderTasksResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -77,6 +77,20 @@ export const listTasks = <ThrowOnError extends boolean = false>(options?: Option
  */
 export const createTask = <ThrowOnError extends boolean = false>(options: Options<CreateTaskData, ThrowOnError>): RequestResult<CreateTaskResponses, CreateTaskErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskResponses, CreateTaskErrors, ThrowOnError>({
     url: '/api/tasks',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reorder Tasks
+ *
+ * Set the order of a day's tasks, or of the unscheduled list. Returns the listed tasks.
+ */
+export const reorderTasks = <ThrowOnError extends boolean = false>(options: Options<ReorderTasksData, ThrowOnError>): RequestResult<ReorderTasksResponses, ReorderTasksErrors, ThrowOnError> => (options.client ?? client).post<ReorderTasksResponses, ReorderTasksErrors, ThrowOnError>({
+    url: '/api/tasks/reorder',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -404,6 +418,16 @@ export const cancelEventOccurrence = <ThrowOnError extends boolean = false>(opti
  * Remove every one-off change to the occurrence on `day`, including cancelling it.
  */
 export const restoreEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<RestoreEventOccurrenceData, ThrowOnError>): RequestResult<RestoreEventOccurrenceResponses, RestoreEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).delete<RestoreEventOccurrenceResponses, RestoreEventOccurrenceErrors, ThrowOnError>({ url: '/api/events/{event_id}/occurrences/{day}', ...options });
+
+/**
+ * Get Week
+ *
+ * The week board for the week containing `start` (default: today), Monday to Sunday.
+ *
+ * First moves unfinished tasks from past days to today and creates the week's missing
+ * recurring tasks. Calling it again changes nothing.
+ */
+export const getWeek = <ThrowOnError extends boolean = false>(options?: Options<GetWeekData, ThrowOnError>): RequestResult<GetWeekResponses, GetWeekErrors, ThrowOnError> => (options?.client ?? client).get<GetWeekResponses, GetWeekErrors, ThrowOnError>({ url: '/api/week', ...options });
 
 /**
  * Undo Batch

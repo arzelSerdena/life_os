@@ -1,5 +1,5 @@
 from datetime import date, time
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 
@@ -119,6 +119,28 @@ class OccurrenceRead(BaseModel):
     is_cancelled: bool
     is_changed: bool
     is_past: bool
+
+    @classmethod
+    def from_occurrence(cls, occurrence: Any) -> Self:
+        """From an events service occurrence: the series' row plus any one-off changes."""
+        event = occurrence.event
+        return cls(
+            event_id=event.id,
+            occurrence_date=occurrence.occurrence_date,
+            life_area_id=event.life_area_id,
+            project_id=event.project_id,
+            title=occurrence.title,
+            notes=occurrence.notes,
+            start_date=occurrence.start_date,
+            end_date=occurrence.end_date,
+            start_time=occurrence.start_time,
+            end_time=occurrence.end_time,
+            location=occurrence.location,
+            is_repeating=event.is_repeating,
+            is_cancelled=occurrence.is_cancelled,
+            is_changed=occurrence.is_changed,
+            is_past=occurrence.is_past,
+        )
 
 
 class OccurrenceEdit(BaseModel):

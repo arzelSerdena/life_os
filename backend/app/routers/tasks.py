@@ -13,6 +13,7 @@ from app.schemas.task import (
     TaskCreate,
     TaskMove,
     TaskRead,
+    TaskReorder,
     TaskUpdate,
 )
 from app.schemas.task_template import SeriesCancel, SeriesCancelResult, SeriesEdit, TaskTemplateRead
@@ -57,6 +58,12 @@ def list_tasks(
 @router.post("/tasks", status_code=status.HTTP_201_CREATED, responses=CONFLICT)
 def create_task(session: SessionDep, data: TaskCreate) -> TaskRead:
     return TaskRead.model_validate(service.create_task(session, data))
+
+
+@router.post("/tasks/reorder", responses=NOT_FOUND)
+def reorder_tasks(session: SessionDep, data: TaskReorder) -> list[TaskRead]:
+    """Set the order of a day's tasks, or of the unscheduled list. Returns the listed tasks."""
+    return [TaskRead.model_validate(task) for task in service.reorder_tasks(session, data)]
 
 
 @router.get("/tasks/{task_id}", responses=NOT_FOUND)

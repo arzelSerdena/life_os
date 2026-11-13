@@ -8,7 +8,14 @@ from sqlalchemy.orm import Session, selectinload
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import Subtask, Task
 from app.models.base import utc_now
-from app.schemas.task import SubtaskCreate, SubtaskUpdate, TaskCreate, TaskMove, TaskUpdate
+from app.schemas.task import (
+    SubtaskCreate,
+    SubtaskUpdate,
+    TaskCreate,
+    TaskMove,
+    TaskReorder,
+    TaskUpdate,
+)
 from app.services import templates
 from app.services.history import ChangeRecorder
 from app.services.ownership import ensure_owner_open, resolve_owner
@@ -103,6 +110,31 @@ def update_task(session: Session, task_id: int, data: TaskUpdate) -> Task:
     for field, value in changes.items():
         setattr(task, field, value)
     return _save(session, task)
+
+
+def reorder_tasks(session: Session, data: TaskReorder) -> list[Task]:
+    """Set the order of a day's tasks, or of the unscheduled list, in one step."""
+    if len(set(data.task_ids)) != len(data.task_ids):
+        raise UnprocessableError("A task can only appear once in the new order.")
+    listed = [get_task(session, task_id) for task_id in data.task_ids]
+    for task in listed:
+        if task.scheduled_date != data.scheduled_date:
+            where = data.scheduled_date or "the unscheduled list"
+            raise UnprocessableError(f"Task {task.id} isn't on {where}.")
+    same_day = (
+        Task.scheduled_date.is_(None)
+        if data.scheduled_date is None
+        else Task.scheduled_date == data.scheduled_date
+    )
+    others = session.scalars(
+        select(Task)
+        .where(same_day, Task.id.not_in(data.task_ids))
+        .order_by(Task.sort_order, Task.id)
+    ).all()
+    for position, task in enumerate([*listed, *others]):
+        task.sort_order = position
+    session.commit()
+    return listed
 
 
 def move_task(session: Session, task_id: int, data: TaskMove) -> TaskChange:
