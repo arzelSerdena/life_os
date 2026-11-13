@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, HealthData, HealthResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses } from './types.gen';
+import type { ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, HealthData, HealthResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -165,6 +165,125 @@ export const deleteSubtask = <ThrowOnError extends boolean = false>(options: Opt
  */
 export const updateSubtask = <ThrowOnError extends boolean = false>(options: Options<UpdateSubtaskData, ThrowOnError>): RequestResult<UpdateSubtaskResponses, UpdateSubtaskErrors, ThrowOnError> => (options.client ?? client).patch<UpdateSubtaskResponses, UpdateSubtaskErrors, ThrowOnError>({
     url: '/api/subtasks/{subtask_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Edit Task Series
+ *
+ * Change a recurring task from this occurrence: this and following, or all.
+ *
+ * To change only this occurrence, edit the task itself.
+ */
+export const editTaskSeries = <ThrowOnError extends boolean = false>(options: Options<EditTaskSeriesData, ThrowOnError>): RequestResult<EditTaskSeriesResponses, EditTaskSeriesErrors, ThrowOnError> => (options.client ?? client).post<EditTaskSeriesResponses, EditTaskSeriesErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}/series-edit',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Task Series
+ *
+ * Cancel a recurring task from this occurrence: this and following, or all.
+ *
+ * To cancel only this occurrence, cancel the task itself.
+ */
+export const cancelTaskSeries = <ThrowOnError extends boolean = false>(options: Options<CancelTaskSeriesData, ThrowOnError>): RequestResult<CancelTaskSeriesResponses, CancelTaskSeriesErrors, ThrowOnError> => (options.client ?? client).post<CancelTaskSeriesResponses, CancelTaskSeriesErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}/series-cancel',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Task Templates
+ *
+ * All templates, or only recurring (repeating=true) or plain ones (repeating=false).
+ */
+export const listTaskTemplates = <ThrowOnError extends boolean = false>(options?: Options<ListTaskTemplatesData, ThrowOnError>): RequestResult<ListTaskTemplatesResponses, ListTaskTemplatesErrors, ThrowOnError> => (options?.client ?? client).get<ListTaskTemplatesResponses, ListTaskTemplatesErrors, ThrowOnError>({ url: '/api/task-templates', ...options });
+
+/**
+ * Create Task Template
+ */
+export const createTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<CreateTaskTemplateData, ThrowOnError>): RequestResult<CreateTaskTemplateResponses, CreateTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskTemplateResponses, CreateTaskTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Task Template
+ */
+export const deleteTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<DeleteTaskTemplateData, ThrowOnError>): RequestResult<DeleteTaskTemplateResponses, DeleteTaskTemplateErrors, ThrowOnError> => (options.client ?? client).delete<DeleteTaskTemplateResponses, DeleteTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}', ...options });
+
+/**
+ * Get Task Template
+ */
+export const getTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<GetTaskTemplateData, ThrowOnError>): RequestResult<GetTaskTemplateResponses, GetTaskTemplateErrors, ThrowOnError> => (options.client ?? client).get<GetTaskTemplateResponses, GetTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}', ...options });
+
+/**
+ * Update Task Template
+ */
+export const updateTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<UpdateTaskTemplateData, ThrowOnError>): RequestResult<UpdateTaskTemplateResponses, UpdateTaskTemplateErrors, ThrowOnError> => (options.client ?? client).patch<UpdateTaskTemplateResponses, UpdateTaskTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates/{template_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Task Template
+ */
+export const moveTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<MoveTaskTemplateData, ThrowOnError>): RequestResult<MoveTaskTemplateResponses, MoveTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<MoveTaskTemplateResponses, MoveTaskTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates/{template_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Task Template
+ */
+export const pauseTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<PauseTaskTemplateData, ThrowOnError>): RequestResult<PauseTaskTemplateResponses, PauseTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<PauseTaskTemplateResponses, PauseTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/pause', ...options });
+
+/**
+ * Resume Task Template
+ */
+export const resumeTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<ResumeTaskTemplateData, ThrowOnError>): RequestResult<ResumeTaskTemplateResponses, ResumeTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<ResumeTaskTemplateResponses, ResumeTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/resume', ...options });
+
+/**
+ * Archive Task Template
+ */
+export const archiveTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<ArchiveTaskTemplateData, ThrowOnError>): RequestResult<ArchiveTaskTemplateResponses, ArchiveTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<ArchiveTaskTemplateResponses, ArchiveTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/archive', ...options });
+
+/**
+ * Unarchive Task Template
+ */
+export const unarchiveTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<UnarchiveTaskTemplateData, ThrowOnError>): RequestResult<UnarchiveTaskTemplateResponses, UnarchiveTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveTaskTemplateResponses, UnarchiveTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/unarchive', ...options });
+
+/**
+ * Create Task From Template
+ *
+ * A new task copied from the template, checklist included.
+ */
+export const createTaskFromTemplate = <ThrowOnError extends boolean = false>(options: Options<CreateTaskFromTemplateData, ThrowOnError>): RequestResult<CreateTaskFromTemplateResponses, CreateTaskFromTemplateErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskFromTemplateResponses, CreateTaskFromTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates/{template_id}/tasks',
     ...options,
     headers: {
         'Content-Type': 'application/json',

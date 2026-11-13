@@ -128,7 +128,7 @@ Every cascade follows the same steps:
 
 Undo groups the batch's rows by entity and restores all fields of one entity in a **single UPDATE**. Status and timestamp must change together or the CHECK constraint fails.
 
-`status_changes` records field changes only. Its scope is status changes, cascades and unlinks. Edits to a repeating series, which create or remove rows, ask for confirmation instead and can't be undone.
+`status_changes` records field changes, plus tasks a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks and series cancellations. Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.
 
 AI agents may call the same service-layer operations, but cascades always require the user's confirmation.
 
@@ -145,7 +145,7 @@ As in Google Calendar, changing or cancelling one occurrence of a repeating item
 | | This one | This and following | All |
 | --- | --- | --- | --- |
 | **Event** | An exception: change or cancel just that occurrence | End the series the day before (`UNTIL`) and start a new series from this date with the changes. Cancelling only ends the series. | Change or cancel the series |
-| **Recurring task** | Change or cancel that one task row | End the template the day before and start a new template from this date with the changes | Change the template |
+| **Recurring task** | Change or cancel that one task row | End the template the day before and start a new template from this date with the changes; cancelling only ends the series | Change the template and its unfinished occurrences; cancelling archives it |
 | **Routine** | Skip the day: a skipped log for every step | A new schedule row from this date | Replace all schedule rows |
 
 ### Events
@@ -169,6 +169,10 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - Done and cancelled occurrences never change. With "This and following" or "All", only the fields actually changed are copied to unfinished occurrences in range.
 - When the rule or timing changes, unfinished occurrences that weren't moved are removed and generated again. Moved, done and cancelled occurrences stay.
 - Recurring occurrences don't roll over.
+- **Repeat rules** use `FREQ` of DAILY, WEEKLY, MONTHLY or YEARLY, without `DTSTART`, `UNTIL` or `COUNT`: the series runs from `starts_on` to `ends_on`. A picker's "ends after N times" is turned into an end date before saving.
+- **Editing a template directly** changes only tasks created from then on, as in Notion. Editing the series from one of its occurrences ("This and following" or "All") also updates unfinished occurrences: their title, notes, priority and due date (unless the due date was changed by hand). Checklist changes apply to occurrences created afterwards.
+- Removing the repeat rule turns a recurring task into a plain template and clears its schedule.
+- **Deleting a template** keeps the tasks created from it by hand, without the link. A recurring task with occurrences can only be archived.
 
 ---
 
