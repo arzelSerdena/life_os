@@ -21,7 +21,11 @@
 - Revised the data model: removed priorities, goals, project groups and milestones; added project sections, task priority, metrics with entries and targets, repeating events with exceptions, routine schedules and pauses.
 - Made the database enforce that items stay in their project's life area, and switched every table to `AUTOINCREMENT` ids (migration for `life_areas`).
 
+- Chose Notion-style task templates (a template with a repeat rule is a recurring task).
+- Started Phase 2 with the tasks backend: projects, sections and templates tables; tasks with priority, subtasks, Inbox, moves, status changes and undo.
+
 **Next**
 
 - Merge the Life Area screens once the Figma designs are ready.
-- Phase 2: tasks, subtasks, recurring tasks, events and the week board.
+- Phase 2 backend: task templates and recurring tasks, then events, then the week endpoint.
+- Phase 2 frontend once the designs are ready: week board, task drawer, Inbox, repeat picker, undo toast.

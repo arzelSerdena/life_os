@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveLifeArea, createLifeArea, deleteLifeArea, getLifeArea, health, listLifeAreas, type Options, unarchiveLifeArea, updateLifeArea } from '../sdk.gen';
-import type { ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, HealthData, HealthResponse2, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse } from '../types.gen';
+import { archiveLifeArea, archiveTask, cancelTask, completeTask, createLifeArea, createSubtask, createTask, deleteLifeArea, deleteSubtask, deleteTask, getLifeArea, getTask, health, listLifeAreas, listTasks, moveTask, type Options, reopenTask, unarchiveLifeArea, unarchiveTask, undoBatch, updateLifeArea, updateSubtask, updateTask } from '../sdk.gen';
+import type { ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetTaskData, GetTaskError, GetTaskResponse, HealthData, HealthResponse2, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListTasksData, ListTasksError, ListTasksResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -150,6 +150,265 @@ export const unarchiveLifeAreaMutation = (options?: Partial<Options<UnarchiveLif
     const mutationOptions: UseMutationOptions<UnarchiveLifeAreaResponse, UnarchiveLifeAreaError, Options<UnarchiveLifeAreaData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await unarchiveLifeArea({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listTasksQueryKey = (options?: Options<ListTasksData>) => createQueryKey('listTasks', options);
+
+/**
+ * List Tasks
+ */
+export const listTasksOptions = (options?: Options<ListTasksData>) => queryOptions<ListTasksResponse, ListTasksError, ListTasksResponse, ReturnType<typeof listTasksQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listTasks({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listTasksQueryKey(options)
+});
+
+/**
+ * Create Task
+ */
+export const createTaskMutation = (options?: Partial<Options<CreateTaskData>>): UseMutationOptions<CreateTaskResponse, CreateTaskError, Options<CreateTaskData>> => {
+    const mutationOptions: UseMutationOptions<CreateTaskResponse, CreateTaskError, Options<CreateTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Task
+ */
+export const deleteTaskMutation = (options?: Partial<Options<DeleteTaskData>>): UseMutationOptions<DeleteTaskResponse, DeleteTaskError, Options<DeleteTaskData>> => {
+    const mutationOptions: UseMutationOptions<DeleteTaskResponse, DeleteTaskError, Options<DeleteTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getTaskQueryKey = (options: Options<GetTaskData>) => createQueryKey('getTask', options);
+
+/**
+ * Get Task
+ */
+export const getTaskOptions = (options: Options<GetTaskData>) => queryOptions<GetTaskResponse, GetTaskError, GetTaskResponse, ReturnType<typeof getTaskQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTask({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTaskQueryKey(options)
+});
+
+/**
+ * Update Task
+ */
+export const updateTaskMutation = (options?: Partial<Options<UpdateTaskData>>): UseMutationOptions<UpdateTaskResponse, UpdateTaskError, Options<UpdateTaskData>> => {
+    const mutationOptions: UseMutationOptions<UpdateTaskResponse, UpdateTaskError, Options<UpdateTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Move Task
+ */
+export const moveTaskMutation = (options?: Partial<Options<MoveTaskData>>): UseMutationOptions<MoveTaskResponse, MoveTaskError, Options<MoveTaskData>> => {
+    const mutationOptions: UseMutationOptions<MoveTaskResponse, MoveTaskError, Options<MoveTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await moveTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Complete Task
+ */
+export const completeTaskMutation = (options?: Partial<Options<CompleteTaskData>>): UseMutationOptions<CompleteTaskResponse, CompleteTaskError, Options<CompleteTaskData>> => {
+    const mutationOptions: UseMutationOptions<CompleteTaskResponse, CompleteTaskError, Options<CompleteTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await completeTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Cancel Task
+ */
+export const cancelTaskMutation = (options?: Partial<Options<CancelTaskData>>): UseMutationOptions<CancelTaskResponse, CancelTaskError, Options<CancelTaskData>> => {
+    const mutationOptions: UseMutationOptions<CancelTaskResponse, CancelTaskError, Options<CancelTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await cancelTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Reopen Task
+ */
+export const reopenTaskMutation = (options?: Partial<Options<ReopenTaskData>>): UseMutationOptions<ReopenTaskResponse, ReopenTaskError, Options<ReopenTaskData>> => {
+    const mutationOptions: UseMutationOptions<ReopenTaskResponse, ReopenTaskError, Options<ReopenTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await reopenTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Archive Task
+ */
+export const archiveTaskMutation = (options?: Partial<Options<ArchiveTaskData>>): UseMutationOptions<ArchiveTaskResponse, ArchiveTaskError, Options<ArchiveTaskData>> => {
+    const mutationOptions: UseMutationOptions<ArchiveTaskResponse, ArchiveTaskError, Options<ArchiveTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await archiveTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Unarchive Task
+ */
+export const unarchiveTaskMutation = (options?: Partial<Options<UnarchiveTaskData>>): UseMutationOptions<UnarchiveTaskResponse, UnarchiveTaskError, Options<UnarchiveTaskData>> => {
+    const mutationOptions: UseMutationOptions<UnarchiveTaskResponse, UnarchiveTaskError, Options<UnarchiveTaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unarchiveTask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Create Subtask
+ */
+export const createSubtaskMutation = (options?: Partial<Options<CreateSubtaskData>>): UseMutationOptions<CreateSubtaskResponse, CreateSubtaskError, Options<CreateSubtaskData>> => {
+    const mutationOptions: UseMutationOptions<CreateSubtaskResponse, CreateSubtaskError, Options<CreateSubtaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createSubtask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Subtask
+ */
+export const deleteSubtaskMutation = (options?: Partial<Options<DeleteSubtaskData>>): UseMutationOptions<DeleteSubtaskResponse, DeleteSubtaskError, Options<DeleteSubtaskData>> => {
+    const mutationOptions: UseMutationOptions<DeleteSubtaskResponse, DeleteSubtaskError, Options<DeleteSubtaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteSubtask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Update Subtask
+ */
+export const updateSubtaskMutation = (options?: Partial<Options<UpdateSubtaskData>>): UseMutationOptions<UpdateSubtaskResponse, UpdateSubtaskError, Options<UpdateSubtaskData>> => {
+    const mutationOptions: UseMutationOptions<UpdateSubtaskResponse, UpdateSubtaskError, Options<UpdateSubtaskData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateSubtask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Undo Batch
+ *
+ * Restore everything one change did, using the batch_id it returned.
+ */
+export const undoBatchMutation = (options?: Partial<Options<UndoBatchData>>): UseMutationOptions<UndoBatchResponse, UndoBatchError, Options<UndoBatchData>> => {
+    const mutationOptions: UseMutationOptions<UndoBatchResponse, UndoBatchError, Options<UndoBatchData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await undoBatch({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

@@ -4,3 +4,7 @@ class NotFoundError(Exception):
 
 class ConflictError(Exception):
     """The request can't be applied in the item's current state. Returned as a 409."""
+
+
+class UnprocessableError(Exception):
+    """The request refers to something invalid, such as a missing project. Returned as a 422."""

@@ -14,7 +14,8 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 | **Task**           | A single to-do with a priority. Can be placed on a day with `scheduled_date`.                            |
 | **Priority**       | A task's importance: high, medium, low or none (the default). Not an entity.                             |
 | **Subtask**        | A checklist item on a task. One level deep and never scheduled.                                          |
-| **Recurring task** | A template with a repeat rule that generates tasks.                                                       |
+| **Task template**  | Reusable task content (title, notes, priority, owner, subtasks), as in Notion.                           |
+| **Recurring task** | A task template with a repeat rule. It generates tasks.                                                   |
 | **Occurrence**     | One generated instance of a repeating item: a task row, or a calculated event date.                      |
 | **Event**          | Something happening on a date or date range. All-day when it has no start time. Can repeat.              |
 | **Event exception**| A change to, or cancellation of, one occurrence of a repeating event.                                    |
@@ -24,7 +25,7 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 | **Routine**        | A set of steps due on the days its schedule says (daily by default). Has no owner.                       |
 | **Routine step**   | One action in a routine.                                                                                  |
 | **Routine log**    | The record of a step on a given day: done or skipped.                                                     |
-| **Inbox**          | Tasks and recurring tasks with no life area.                                                              |
+| **Inbox**          | Tasks and task templates with no life area.                                                               |
 | **Unlink**         | Clear an item's project link so it falls back to its life area.                                           |
 | **Cascade**        | A change to one item that also changes the items it owns.                                                 |
 | **Batch**          | The set of `status_changes` rows from one operation, sharing a `batch_id`. It is the unit of undo.        |
@@ -36,21 +37,21 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 ```
 Life area
 ├── Project
-│   ├── Section ── groups ──> Tasks, Recurring tasks
+│   ├── Section ── groups ──> Tasks, Task templates
 │   ├── Task ──< Subtask
-│   ├── Recurring task ── generates ──> Tasks
+│   ├── Task template ──< Template subtask; creates ──> Tasks
 │   ├── Event ──< Event exception
 │   ├── Metric ──< Entry, Target
 │   └── Routine step
-└── Task, Recurring task, Event, Metric, Routine step   (owned directly)
+└── Task, Task template, Event, Metric, Routine step   (owned directly)
 
-Inbox: Tasks and Recurring tasks with no life area
+Inbox: Tasks and Task templates with no life area
 Routine (no owner) ──< Schedule, Pause, Routine step ──< Routine log, Pause
 ```
 
 ### One rule for every owned item
 
-Tasks, recurring tasks, events, metrics and routine steps are each owned by **a project or a life area, never both**. Only tasks and recurring tasks may have neither, which puts them in the Inbox.
+Tasks, task templates, events, metrics and routine steps are each owned by **a project or a life area, never both**. Only tasks and task templates may have neither, which puts them in the Inbox.
 
 - The item stores `life_area_id`, plus `project_id` when a project owns it.
 - A project-owned item **inherits** its project's life area. `life_area_id` is a copy kept for fast filtering, not a second owner, and it always equals the project's.
@@ -61,21 +62,21 @@ Tasks, recurring tasks, events, metrics and routine steps are each owned by **a 
 | --------------- | ----------------------------------- | --------------------------- |
 | projects        | life area                           | —                           |
 | project_sections| project (moves never)               | —                           |
-| tasks           | —                                   | life area or project, section, recurring task |
-| recurring_tasks | —                                   | life area or project, section |
+| tasks           | —                                   | life area or project, section, template |
+| task_templates  | —                                   | life area or project, section |
 | events          | life area or project                | —                           |
 | metrics         | life area or project                | —                           |
 | routine_steps   | routine, life area or project       | —                           |
 
-These belong to their parent outright and are deleted with it: subtasks, event exceptions, metric entries and targets, routine schedules, pauses and logs.
+These belong to their parent outright and are deleted with it: subtasks, template subtasks, event exceptions, metric entries and targets, routine schedules, pauses and logs.
 
 ### Ownership invariants
 
 1. An item's `life_area_id` equals its project's life area. The database enforces this with a composite foreign key to `projects(id, life_area_id)`.
 2. Moving a project to another life area moves all its items with it, through that key's `ON UPDATE CASCADE`.
-3. A project-owned task or recurring task always has a life area (a `CHECK`), because the database skips the composite key while any of its columns is empty.
+3. A project-owned task or task template always has a life area (a `CHECK`), because the database skips the composite key while any of its columns is empty.
 4. A section belongs to its item's project, and a section requires a project. Sections never move between projects. Moving a task to another project clears its section.
-5. Deleting a section first moves its tasks and recurring tasks to the project's unsectioned list. The service does this, because SQLite's `ON DELETE SET NULL` on a composite key would also clear `project_id`.
+5. Deleting a section first moves its tasks and task templates to the project's unsectioned list. The service does this, because SQLite's `ON DELETE SET NULL` on a composite key would also clear `project_id`.
 6. Nothing can be created in, moved into, or restored into an archived life area or a project that isn't active. Restore or reopen the parent first. The API answers 409.
 
 ---
@@ -89,11 +90,11 @@ Archiving is separate from status: an item is archived when `archived_at` is set
 | Item            | States                                       | Done or cancelled →                                                                 | Archived or paused →                          |
 | --------------- | -------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------- |
 | Life area       | active, archived                             | —                                                                                   | archives everything it owns (with confirmation) |
-| Project         | active, done, cancelled, archived            | cancels open tasks and upcoming events; archives recurring tasks, routine steps and metrics (with confirmation) | archives everything it owns (with confirmation) |
+| Project         | active, done, cancelled, archived            | cancels open tasks and upcoming events; archives task templates, routine steps and metrics (with confirmation) | archives everything it owns (with confirmation) |
 | Section         | none                                         | —                                                                                   | —                                             |
 | Task            | todo, done, cancelled (+ archived)           | cancels open subtasks                                                               | cancels open subtasks                         |
 | Subtask         | todo, done, cancelled                        | —                                                                                   | —                                             |
-| Recurring task  | active, paused, archived                     | —                                                                                   | stops generating; existing occurrences stay   |
+| Task template   | active, paused (repeating), archived         | —                                                                                   | stops generating; existing occurrences stay   |
 | Event           | upcoming, past (calculated), cancelled       | —                                                                                   | —                                             |
 | Metric          | active, archived                             | —                                                                                   | entries and targets are kept                  |
 | Routine         | active, paused, archived                     | —                                                                                   | pausing pauses every step                     |
@@ -101,7 +102,7 @@ Archiving is separate from status: an item is archived when `archived_at` is set
 
 ### Applying the effects
 
-- **Items with no cancelled state** are archived when a cascade would cancel them: recurring tasks, routine steps and metrics.
+- **Items with no cancelled state** are archived when a cascade would cancel them: task templates, routine steps and metrics.
 - **Repeating events in a cascade** end from today, as "this and following" does. Past occurrences stay as history, and one-off upcoming events are cancelled.
 - **Archiving a task** cancels its open subtasks, the same as completing or cancelling it. Subtasks can't be archived.
 - **Resuming a routine** resumes every step, including steps paused individually before the routine was. Archived steps stay archived.
@@ -154,14 +155,17 @@ As in Google Calendar, changing or cancelling one occurrence of a repeating item
 - Each occurrence keeps the series' length in days.
 - Changing **All**: changing the timing or the rule removes one-off changes, with a warning first, because their dates no longer line up. Changing other values (title, notes, location) keeps them.
 
-### Recurring tasks
+### Task templates and recurring tasks
 
-A recurring task is a template; its occurrences are ordinary rows in `tasks`, identified by `(recurring_task_id, occurrence_date)`. Each occurrence copies the template's title, priority and owner when it is created.
+A **task template** holds reusable task content, as in Notion: title, notes, priority, default owner, a checklist of subtasks, and an optional due-date offset. A template with a repeat rule is a **recurring task**; one without is applied by hand.
 
+- **Creating a task from a template** copies everything onto a new task, including the subtasks. The task keeps `template_id` for reference. Later template edits don't change tasks already created, except through "This and following" or "All" on a recurring task.
+- **Due dates**: with `due_offset_days`, a created task is due that many days after its occurrence date (recurring) or its creation date (by hand), at `due_time` if set.
+- Occurrences of a recurring task are ordinary rows in `tasks`, identified by `(template_id, occurrence_date)`. Only occurrences have an `occurrence_date`.
 - **Repeat from schedule** (the default): generate missing occurrences for the viewed week, from today forward.
 - **Repeat from completion**: the template has one open occurrence at a time. Finishing or cancelling it creates the next one, counted from that day. Week generation skips these templates, and "This and following" means the same as "All".
-- Never recreate an existing occurrence, even if it was moved or cancelled.
-- Paused and archived templates generate nothing.
+- Never recreate an existing occurrence, even if it was moved or cancelled. For that reason an occurrence can't be deleted, only cancelled.
+- Paused and archived templates create nothing. Only repeating templates can be paused.
 - Done and cancelled occurrences never change. With "This and following" or "All", only the fields actually changed are copied to unfinished occurrences in range.
 - When the rule or timing changes, unfinished occurrences that weren't moved are removed and generated again. Moved, done and cancelled occurrences stay.
 - Recurring occurrences don't roll over.
@@ -222,11 +226,12 @@ The service validates rules the database also enforces, so the API returns a cle
 | Status matches its timestamp                          | CHECK                                                          | sets both in the same UPDATE             |
 | Item's life area equals its project's                 | composite FK to `projects(id, life_area_id)`                   | validates first                          |
 | Moving a project moves its items                      | `ON UPDATE CASCADE` on that key                                | —                                        |
-| Project link requires a life area                     | CHECK (tasks, recurring tasks)                                 | validates first                          |
+| Project link requires a life area                     | CHECK (tasks, task templates)                                  | validates first                          |
 | Section belongs to the item's project                 | composite FK to `project_sections(id, project_id)`             | validates first                          |
 | Deleting a section keeps its tasks                    | blocks the delete while tasks use it                           | moves them to unsectioned first          |
-| Occurrence has both template and date, or neither     | CHECK                                                          | —                                        |
-| One occurrence per template per date                  | unique index                                                   | never recreates existing occurrences     |
+| Occurrence date requires a template                   | CHECK                                                          | —                                        |
+| Schedule columns only on repeating templates          | CHECK                                                          | validates first                          |
+| One occurrence per template per date                  | unique index                                                   | never recreates or deletes occurrences   |
 | One exception per event occurrence                    | unique index                                                   | —                                        |
 | Target kind matches period and deadline               | CHECK                                                          | validates first                          |
 | No overlapping targets of one kind                    | —                                                              | enforced here only                       |

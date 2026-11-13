@@ -76,8 +76,8 @@ The full rules are in `docs/DOMAIN.md`; these are the ones easiest to get wrong.
 
 ### Ownership
 
-- Tasks, recurring tasks, events, metrics and routine steps belong to **a project or a life area, never both**. Only tasks and recurring tasks may have neither (the **Inbox**).
-- A project-owned item stores its project's `life_area_id`. The composite FK `(project_id, life_area_id)` → `projects(id, life_area_id)` with `ON UPDATE CASCADE` enforces it, and moving a project moves its items. Tasks and recurring tasks also need the CHECK that a project link comes with a life area, because SQLite skips a composite FK while any column is NULL.
+- Tasks, task templates, events, metrics and routine steps belong to **a project or a life area, never both**. Only tasks and task templates may have neither (the **Inbox**).
+- A project-owned item stores its project's `life_area_id`. The composite FK `(project_id, life_area_id)` → `projects(id, life_area_id)` with `ON UPDATE CASCADE` enforces it, and moving a project moves its items. Tasks and task templates also need the CHECK that a project link comes with a life area, because SQLite skips a composite FK while any column is NULL.
 - **Unlink** means clearing `project_id` so the item falls back to its life area.
 - Sections belong to one project (composite FK `(section_id, project_id)`) and never move. Before deleting a section, the **service moves its tasks to unsectioned**; SQLite's `SET NULL` would also clear `project_id`.
 - Nothing can be created in, moved into or restored into an archived life area or an inactive project: return 409.
@@ -103,5 +103,5 @@ Undo must group a batch's rows by entity and restore all of an entity's fields i
 
 - Edits and cancellations offer **this one / this and following / all**. "This and following" ends the series the day before and starts a new one.
 - **Events** are expanded when a range is viewed, never stored. One-off changes live in `event_exceptions`, keyed by the occurrence's original date.
-- **Recurring tasks** are templates; occurrences are rows in `tasks`, unique on `(recurring_task_id, occurrence_date)`. Generate missing occurrences for the viewed week, from today forward, unless the template repeats from completion (one open occurrence at a time). Never recreate an existing occurrence. Paused or archived templates generate nothing. Done and cancelled occurrences never change. Recurring occurrences don't roll over; only one-off tasks do.
+- **Task templates** hold reusable task content and subtasks, as in Notion; creating a task copies them. A template with an `rrule` is a recurring task: occurrences are rows in `tasks`, unique on `(template_id, occurrence_date)`, and can't be deleted, only cancelled. Generate missing occurrences for the viewed week, from today forward, unless the template repeats from completion (one open occurrence at a time). Never recreate an existing occurrence. Paused or archived templates generate nothing. Done and cancelled occurrences never change. Recurring occurrences don't roll over; only one-off tasks do.
 - **Routines** take their due days from `routine_schedules` (one row per schedule change) and their paused days from `routine_pauses`, so history never changes.

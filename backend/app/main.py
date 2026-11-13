@@ -7,8 +7,8 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 from app.db import SessionDep
-from app.errors import ConflictError, NotFoundError
-from app.routers import life_areas
+from app.errors import ConflictError, NotFoundError, UnprocessableError
+from app.routers import life_areas, tasks, undo
 
 
 def _operation_id(route: APIRoute) -> str:
@@ -18,6 +18,8 @@ def _operation_id(route: APIRoute) -> str:
 
 app = FastAPI(title="Life OS API", generate_unique_id_function=_operation_id)
 app.include_router(life_areas.router)
+app.include_router(tasks.router)
+app.include_router(undo.router)
 
 
 @app.exception_handler(NotFoundError)
@@ -28,6 +30,13 @@ def handle_not_found(_request: Request, error: NotFoundError) -> JSONResponse:
 @app.exception_handler(ConflictError)
 def handle_conflict(_request: Request, error: ConflictError) -> JSONResponse:
     return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": str(error)})
+
+
+@app.exception_handler(UnprocessableError)
+def handle_unprocessable(_request: Request, error: UnprocessableError) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": str(error)}
+    )
 
 
 class HealthResponse(BaseModel):
