@@ -185,6 +185,11 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - A step is to-do on a due date until a log row marks it done or skipped, and missed once the day is over. There is at most one log per step per date.
 - Pausing records a pause row for the routine or a single step. Paused days are not due, so they never count as missed. Resuming closes the open pause.
 - Routines have no life area of their own; each step has one, so one routine can span several life areas.
+- A step is due from its own `starts_on` (the day it was added, by default), so a step added to an existing routine has no missed days before it existed.
+- **Changing the schedule**: "following" uses the new rule from a date (today by default) and keeps earlier rows; changing it again on the same date replaces that row. "All" replaces every row, so it also changes which past days were due.
+- **Checking off**: a step can be marked done on a due day up to today, or skipped on any due day, future ones included. Unchecking returns it to to-do, or missed for a day that's over. Skipping a whole day skips every due step not already checked.
+- **Pausing** starts today and resuming ends the pause today, so a day is either paused or due. Resuming a routine also resumes its steps; a step resumed on its own stays not due while its routine is paused.
+- **Streaks** are calculated, never stored: done due days in a row. A missed day resets the count; skipped days, paused days and today (still to do) neither count nor break it.
 
 ---
 

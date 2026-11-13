@@ -15,6 +15,8 @@ from app.models import (
     Event,
     LifeArea,
     Project,
+    Routine,
+    RoutineStep,
     StatusChange,
     Subtask,
     Task,
@@ -28,6 +30,8 @@ ENTITY_MODELS: dict[str, type[Base]] = {
     "task": Task,
     "subtask": Subtask,
     "event": Event,
+    "routine": Routine,
+    "routine_step": RoutineStep,
 }
 ENTITY_TYPES = {model: name for name, model in ENTITY_MODELS.items()}
 

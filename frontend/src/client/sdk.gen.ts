@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, GetWeekData, GetWeekErrors, GetWeekResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ReorderTasksData, ReorderTasksErrors, ReorderTasksResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
+import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveRoutineData, ArchiveRoutineErrors, ArchiveRoutineResponses, ArchiveRoutineStepData, ArchiveRoutineStepErrors, ArchiveRoutineStepResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, ChangeRoutineScheduleData, ChangeRoutineScheduleErrors, ChangeRoutineScheduleResponses, ClearRoutineStepDayData, ClearRoutineStepDayErrors, ClearRoutineStepDayResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineStepData, CreateRoutineStepErrors, CreateRoutineStepResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteRoutineData, DeleteRoutineErrors, DeleteRoutineResponses, DeleteRoutineStepData, DeleteRoutineStepErrors, DeleteRoutineStepResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetRoutineData, GetRoutineErrors, GetRoutineResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, GetWeekData, GetWeekErrors, GetWeekResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListRoutinesData, ListRoutinesErrors, ListRoutinesResponses, ListRoutineStepsForDayData, ListRoutineStepsForDayErrors, ListRoutineStepsForDayResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveRoutineStepData, MoveRoutineStepErrors, MoveRoutineStepResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseRoutineData, PauseRoutineErrors, PauseRoutineResponses, PauseRoutineStepData, PauseRoutineStepErrors, PauseRoutineStepResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ReorderTasksData, ReorderTasksErrors, ReorderTasksResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeRoutineData, ResumeRoutineErrors, ResumeRoutineResponses, ResumeRoutineStepData, ResumeRoutineStepErrors, ResumeRoutineStepResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, SetRoutineStepDayData, SetRoutineStepDayErrors, SetRoutineStepDayResponses, SkipRoutineDayData, SkipRoutineDayErrors, SkipRoutineDayResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveRoutineData, UnarchiveRoutineErrors, UnarchiveRoutineResponses, UnarchiveRoutineStepData, UnarchiveRoutineStepErrors, UnarchiveRoutineStepResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateRoutineData, UpdateRoutineErrors, UpdateRoutineResponses, UpdateRoutineStepData, UpdateRoutineStepErrors, UpdateRoutineStepResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -428,6 +428,176 @@ export const restoreEventOccurrence = <ThrowOnError extends boolean = false>(opt
  * recurring tasks. Calling it again changes nothing.
  */
 export const getWeek = <ThrowOnError extends boolean = false>(options?: Options<GetWeekData, ThrowOnError>): RequestResult<GetWeekResponses, GetWeekErrors, ThrowOnError> => (options?.client ?? client).get<GetWeekResponses, GetWeekErrors, ThrowOnError>({ url: '/api/week', ...options });
+
+/**
+ * List Routines
+ *
+ * Routines with their schedule history and steps (archived steps included, marked).
+ */
+export const listRoutines = <ThrowOnError extends boolean = false>(options?: Options<ListRoutinesData, ThrowOnError>): RequestResult<ListRoutinesResponses, ListRoutinesErrors, ThrowOnError> => (options?.client ?? client).get<ListRoutinesResponses, ListRoutinesErrors, ThrowOnError>({ url: '/api/routines', ...options });
+
+/**
+ * Create Routine
+ */
+export const createRoutine = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineData, ThrowOnError>): RequestResult<CreateRoutineResponses, CreateRoutineErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineResponses, CreateRoutineErrors, ThrowOnError>({
+    url: '/api/routines',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Routine Steps For Day
+ *
+ * Every step due on `day` (default: today) and whether it is to-do, done, skipped or
+ * missed.
+ */
+export const listRoutineStepsForDay = <ThrowOnError extends boolean = false>(options?: Options<ListRoutineStepsForDayData, ThrowOnError>): RequestResult<ListRoutineStepsForDayResponses, ListRoutineStepsForDayErrors, ThrowOnError> => (options?.client ?? client).get<ListRoutineStepsForDayResponses, ListRoutineStepsForDayErrors, ThrowOnError>({ url: '/api/routines/day', ...options });
+
+/**
+ * Delete Routine
+ */
+export const deleteRoutine = <ThrowOnError extends boolean = false>(options: Options<DeleteRoutineData, ThrowOnError>): RequestResult<DeleteRoutineResponses, DeleteRoutineErrors, ThrowOnError> => (options.client ?? client).delete<DeleteRoutineResponses, DeleteRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}', ...options });
+
+/**
+ * Get Routine
+ */
+export const getRoutine = <ThrowOnError extends boolean = false>(options: Options<GetRoutineData, ThrowOnError>): RequestResult<GetRoutineResponses, GetRoutineErrors, ThrowOnError> => (options.client ?? client).get<GetRoutineResponses, GetRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}', ...options });
+
+/**
+ * Update Routine
+ */
+export const updateRoutine = <ThrowOnError extends boolean = false>(options: Options<UpdateRoutineData, ThrowOnError>): RequestResult<UpdateRoutineResponses, UpdateRoutineErrors, ThrowOnError> => (options.client ?? client).patch<UpdateRoutineResponses, UpdateRoutineErrors, ThrowOnError>({
+    url: '/api/routines/{routine_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Change Routine Schedule
+ */
+export const changeRoutineSchedule = <ThrowOnError extends boolean = false>(options: Options<ChangeRoutineScheduleData, ThrowOnError>): RequestResult<ChangeRoutineScheduleResponses, ChangeRoutineScheduleErrors, ThrowOnError> => (options.client ?? client).post<ChangeRoutineScheduleResponses, ChangeRoutineScheduleErrors, ThrowOnError>({
+    url: '/api/routines/{routine_id}/schedule',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Routine
+ */
+export const pauseRoutine = <ThrowOnError extends boolean = false>(options: Options<PauseRoutineData, ThrowOnError>): RequestResult<PauseRoutineResponses, PauseRoutineErrors, ThrowOnError> => (options.client ?? client).post<PauseRoutineResponses, PauseRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/pause', ...options });
+
+/**
+ * Resume Routine
+ */
+export const resumeRoutine = <ThrowOnError extends boolean = false>(options: Options<ResumeRoutineData, ThrowOnError>): RequestResult<ResumeRoutineResponses, ResumeRoutineErrors, ThrowOnError> => (options.client ?? client).post<ResumeRoutineResponses, ResumeRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/resume', ...options });
+
+/**
+ * Skip Routine Day
+ *
+ * Skip the whole routine on one day. Steps already checked keep their state.
+ */
+export const skipRoutineDay = <ThrowOnError extends boolean = false>(options: Options<SkipRoutineDayData, ThrowOnError>): RequestResult<SkipRoutineDayResponses, SkipRoutineDayErrors, ThrowOnError> => (options.client ?? client).post<SkipRoutineDayResponses, SkipRoutineDayErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/days/{day}/skip', ...options });
+
+/**
+ * Archive Routine
+ */
+export const archiveRoutine = <ThrowOnError extends boolean = false>(options: Options<ArchiveRoutineData, ThrowOnError>): RequestResult<ArchiveRoutineResponses, ArchiveRoutineErrors, ThrowOnError> => (options.client ?? client).post<ArchiveRoutineResponses, ArchiveRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/archive', ...options });
+
+/**
+ * Unarchive Routine
+ */
+export const unarchiveRoutine = <ThrowOnError extends boolean = false>(options: Options<UnarchiveRoutineData, ThrowOnError>): RequestResult<UnarchiveRoutineResponses, UnarchiveRoutineErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveRoutineResponses, UnarchiveRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/unarchive', ...options });
+
+/**
+ * Create Routine Step
+ */
+export const createRoutineStep = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineStepData, ThrowOnError>): RequestResult<CreateRoutineStepResponses, CreateRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineStepResponses, CreateRoutineStepErrors, ThrowOnError>({
+    url: '/api/routines/{routine_id}/steps',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Routine Step
+ */
+export const deleteRoutineStep = <ThrowOnError extends boolean = false>(options: Options<DeleteRoutineStepData, ThrowOnError>): RequestResult<DeleteRoutineStepResponses, DeleteRoutineStepErrors, ThrowOnError> => (options.client ?? client).delete<DeleteRoutineStepResponses, DeleteRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}', ...options });
+
+/**
+ * Update Routine Step
+ */
+export const updateRoutineStep = <ThrowOnError extends boolean = false>(options: Options<UpdateRoutineStepData, ThrowOnError>): RequestResult<UpdateRoutineStepResponses, UpdateRoutineStepErrors, ThrowOnError> => (options.client ?? client).patch<UpdateRoutineStepResponses, UpdateRoutineStepErrors, ThrowOnError>({
+    url: '/api/routine-steps/{step_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Routine Step
+ */
+export const moveRoutineStep = <ThrowOnError extends boolean = false>(options: Options<MoveRoutineStepData, ThrowOnError>): RequestResult<MoveRoutineStepResponses, MoveRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<MoveRoutineStepResponses, MoveRoutineStepErrors, ThrowOnError>({
+    url: '/api/routine-steps/{step_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Routine Step
+ */
+export const pauseRoutineStep = <ThrowOnError extends boolean = false>(options: Options<PauseRoutineStepData, ThrowOnError>): RequestResult<PauseRoutineStepResponses, PauseRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<PauseRoutineStepResponses, PauseRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/pause', ...options });
+
+/**
+ * Resume Routine Step
+ */
+export const resumeRoutineStep = <ThrowOnError extends boolean = false>(options: Options<ResumeRoutineStepData, ThrowOnError>): RequestResult<ResumeRoutineStepResponses, ResumeRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<ResumeRoutineStepResponses, ResumeRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/resume', ...options });
+
+/**
+ * Archive Routine Step
+ */
+export const archiveRoutineStep = <ThrowOnError extends boolean = false>(options: Options<ArchiveRoutineStepData, ThrowOnError>): RequestResult<ArchiveRoutineStepResponses, ArchiveRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<ArchiveRoutineStepResponses, ArchiveRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/archive', ...options });
+
+/**
+ * Unarchive Routine Step
+ */
+export const unarchiveRoutineStep = <ThrowOnError extends boolean = false>(options: Options<UnarchiveRoutineStepData, ThrowOnError>): RequestResult<UnarchiveRoutineStepResponses, UnarchiveRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveRoutineStepResponses, UnarchiveRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/unarchive', ...options });
+
+/**
+ * Clear Routine Step Day
+ *
+ * Uncheck the step: back to to-do, or missed for a day that's over.
+ */
+export const clearRoutineStepDay = <ThrowOnError extends boolean = false>(options: Options<ClearRoutineStepDayData, ThrowOnError>): RequestResult<ClearRoutineStepDayResponses, ClearRoutineStepDayErrors, ThrowOnError> => (options.client ?? client).delete<ClearRoutineStepDayResponses, ClearRoutineStepDayErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/days/{day}', ...options });
+
+/**
+ * Set Routine Step Day
+ *
+ * Mark the step done or skipped on a due day.
+ */
+export const setRoutineStepDay = <ThrowOnError extends boolean = false>(options: Options<SetRoutineStepDayData, ThrowOnError>): RequestResult<SetRoutineStepDayResponses, SetRoutineStepDayErrors, ThrowOnError> => (options.client ?? client).put<SetRoutineStepDayResponses, SetRoutineStepDayErrors, ThrowOnError>({
+    url: '/api/routine-steps/{step_id}/days/{day}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Undo Batch

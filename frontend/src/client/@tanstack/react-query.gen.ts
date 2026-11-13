@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveEvent, archiveLifeArea, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, completeTask, createEvent, createLifeArea, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listTasks, listTaskTemplates, moveEvent, moveTask, moveTaskTemplate, type Options, pauseTaskTemplate, reopenTask, reorderTasks, restoreEventOccurrence, resumeTaskTemplate, unarchiveEvent, unarchiveLifeArea, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
-import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
+import { archiveEvent, archiveLifeArea, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeTask, createEvent, createLifeArea, createRoutine, createRoutineStep, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteRoutine, deleteRoutineStep, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getEvent, getLifeArea, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, reopenTask, reorderTasks, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateRoutine, updateRoutineStep, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
+import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -989,6 +989,394 @@ export const getWeekInfiniteOptions = (options?: Options<GetWeekData>) => {
         queryKey: getWeekInfiniteQueryKey(options)
     });
     return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const listRoutinesQueryKey = (options?: Options<ListRoutinesData>) => createQueryKey('listRoutines', options);
+
+/**
+ * List Routines
+ *
+ * Routines with their schedule history and steps (archived steps included, marked).
+ */
+export const listRoutinesOptions = (options?: Options<ListRoutinesData>) => queryOptions<ListRoutinesResponse, ListRoutinesError, ListRoutinesResponse, ReturnType<typeof listRoutinesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listRoutines({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listRoutinesQueryKey(options)
+});
+
+/**
+ * Create Routine
+ */
+export const createRoutineMutation = (options?: Partial<Options<CreateRoutineData>>): UseMutationOptions<CreateRoutineResponse, CreateRoutineError, Options<CreateRoutineData>> => {
+    const mutationOptions: UseMutationOptions<CreateRoutineResponse, CreateRoutineError, Options<CreateRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listRoutineStepsForDayQueryKey = (options?: Options<ListRoutineStepsForDayData>) => createQueryKey('listRoutineStepsForDay', options);
+
+/**
+ * List Routine Steps For Day
+ *
+ * Every step due on `day` (default: today) and whether it is to-do, done, skipped or
+ * missed.
+ */
+export const listRoutineStepsForDayOptions = (options?: Options<ListRoutineStepsForDayData>) => queryOptions<ListRoutineStepsForDayResponse, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ReturnType<typeof listRoutineStepsForDayQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listRoutineStepsForDay({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listRoutineStepsForDayQueryKey(options)
+});
+
+/**
+ * Delete Routine
+ */
+export const deleteRoutineMutation = (options?: Partial<Options<DeleteRoutineData>>): UseMutationOptions<DeleteRoutineResponse, DeleteRoutineError, Options<DeleteRoutineData>> => {
+    const mutationOptions: UseMutationOptions<DeleteRoutineResponse, DeleteRoutineError, Options<DeleteRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getRoutineQueryKey = (options: Options<GetRoutineData>) => createQueryKey('getRoutine', options);
+
+/**
+ * Get Routine
+ */
+export const getRoutineOptions = (options: Options<GetRoutineData>) => queryOptions<GetRoutineResponse, GetRoutineError, GetRoutineResponse, ReturnType<typeof getRoutineQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRoutine({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRoutineQueryKey(options)
+});
+
+/**
+ * Update Routine
+ */
+export const updateRoutineMutation = (options?: Partial<Options<UpdateRoutineData>>): UseMutationOptions<UpdateRoutineResponse, UpdateRoutineError, Options<UpdateRoutineData>> => {
+    const mutationOptions: UseMutationOptions<UpdateRoutineResponse, UpdateRoutineError, Options<UpdateRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Change Routine Schedule
+ */
+export const changeRoutineScheduleMutation = (options?: Partial<Options<ChangeRoutineScheduleData>>): UseMutationOptions<ChangeRoutineScheduleResponse, ChangeRoutineScheduleError, Options<ChangeRoutineScheduleData>> => {
+    const mutationOptions: UseMutationOptions<ChangeRoutineScheduleResponse, ChangeRoutineScheduleError, Options<ChangeRoutineScheduleData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await changeRoutineSchedule({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Pause Routine
+ */
+export const pauseRoutineMutation = (options?: Partial<Options<PauseRoutineData>>): UseMutationOptions<PauseRoutineResponse, PauseRoutineError, Options<PauseRoutineData>> => {
+    const mutationOptions: UseMutationOptions<PauseRoutineResponse, PauseRoutineError, Options<PauseRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await pauseRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Resume Routine
+ */
+export const resumeRoutineMutation = (options?: Partial<Options<ResumeRoutineData>>): UseMutationOptions<ResumeRoutineResponse, ResumeRoutineError, Options<ResumeRoutineData>> => {
+    const mutationOptions: UseMutationOptions<ResumeRoutineResponse, ResumeRoutineError, Options<ResumeRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await resumeRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Skip Routine Day
+ *
+ * Skip the whole routine on one day. Steps already checked keep their state.
+ */
+export const skipRoutineDayMutation = (options?: Partial<Options<SkipRoutineDayData>>): UseMutationOptions<SkipRoutineDayResponse, SkipRoutineDayError, Options<SkipRoutineDayData>> => {
+    const mutationOptions: UseMutationOptions<SkipRoutineDayResponse, SkipRoutineDayError, Options<SkipRoutineDayData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await skipRoutineDay({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Archive Routine
+ */
+export const archiveRoutineMutation = (options?: Partial<Options<ArchiveRoutineData>>): UseMutationOptions<ArchiveRoutineResponse, ArchiveRoutineError, Options<ArchiveRoutineData>> => {
+    const mutationOptions: UseMutationOptions<ArchiveRoutineResponse, ArchiveRoutineError, Options<ArchiveRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await archiveRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Unarchive Routine
+ */
+export const unarchiveRoutineMutation = (options?: Partial<Options<UnarchiveRoutineData>>): UseMutationOptions<UnarchiveRoutineResponse, UnarchiveRoutineError, Options<UnarchiveRoutineData>> => {
+    const mutationOptions: UseMutationOptions<UnarchiveRoutineResponse, UnarchiveRoutineError, Options<UnarchiveRoutineData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unarchiveRoutine({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Create Routine Step
+ */
+export const createRoutineStepMutation = (options?: Partial<Options<CreateRoutineStepData>>): UseMutationOptions<CreateRoutineStepResponse, CreateRoutineStepError, Options<CreateRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<CreateRoutineStepResponse, CreateRoutineStepError, Options<CreateRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Routine Step
+ */
+export const deleteRoutineStepMutation = (options?: Partial<Options<DeleteRoutineStepData>>): UseMutationOptions<DeleteRoutineStepResponse, DeleteRoutineStepError, Options<DeleteRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<DeleteRoutineStepResponse, DeleteRoutineStepError, Options<DeleteRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Update Routine Step
+ */
+export const updateRoutineStepMutation = (options?: Partial<Options<UpdateRoutineStepData>>): UseMutationOptions<UpdateRoutineStepResponse, UpdateRoutineStepError, Options<UpdateRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<UpdateRoutineStepResponse, UpdateRoutineStepError, Options<UpdateRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Move Routine Step
+ */
+export const moveRoutineStepMutation = (options?: Partial<Options<MoveRoutineStepData>>): UseMutationOptions<MoveRoutineStepResponse, MoveRoutineStepError, Options<MoveRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<MoveRoutineStepResponse, MoveRoutineStepError, Options<MoveRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await moveRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Pause Routine Step
+ */
+export const pauseRoutineStepMutation = (options?: Partial<Options<PauseRoutineStepData>>): UseMutationOptions<PauseRoutineStepResponse, PauseRoutineStepError, Options<PauseRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<PauseRoutineStepResponse, PauseRoutineStepError, Options<PauseRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await pauseRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Resume Routine Step
+ */
+export const resumeRoutineStepMutation = (options?: Partial<Options<ResumeRoutineStepData>>): UseMutationOptions<ResumeRoutineStepResponse, ResumeRoutineStepError, Options<ResumeRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<ResumeRoutineStepResponse, ResumeRoutineStepError, Options<ResumeRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await resumeRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Archive Routine Step
+ */
+export const archiveRoutineStepMutation = (options?: Partial<Options<ArchiveRoutineStepData>>): UseMutationOptions<ArchiveRoutineStepResponse, ArchiveRoutineStepError, Options<ArchiveRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<ArchiveRoutineStepResponse, ArchiveRoutineStepError, Options<ArchiveRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await archiveRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Unarchive Routine Step
+ */
+export const unarchiveRoutineStepMutation = (options?: Partial<Options<UnarchiveRoutineStepData>>): UseMutationOptions<UnarchiveRoutineStepResponse, UnarchiveRoutineStepError, Options<UnarchiveRoutineStepData>> => {
+    const mutationOptions: UseMutationOptions<UnarchiveRoutineStepResponse, UnarchiveRoutineStepError, Options<UnarchiveRoutineStepData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unarchiveRoutineStep({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Clear Routine Step Day
+ *
+ * Uncheck the step: back to to-do, or missed for a day that's over.
+ */
+export const clearRoutineStepDayMutation = (options?: Partial<Options<ClearRoutineStepDayData>>): UseMutationOptions<ClearRoutineStepDayResponse, ClearRoutineStepDayError, Options<ClearRoutineStepDayData>> => {
+    const mutationOptions: UseMutationOptions<ClearRoutineStepDayResponse, ClearRoutineStepDayError, Options<ClearRoutineStepDayData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await clearRoutineStepDay({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Set Routine Step Day
+ *
+ * Mark the step done or skipped on a due day.
+ */
+export const setRoutineStepDayMutation = (options?: Partial<Options<SetRoutineStepDayData>>): UseMutationOptions<SetRoutineStepDayResponse, SetRoutineStepDayError, Options<SetRoutineStepDayData>> => {
+    const mutationOptions: UseMutationOptions<SetRoutineStepDayResponse, SetRoutineStepDayError, Options<SetRoutineStepDayData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await setRoutineStepDay({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
 };
 
 /**

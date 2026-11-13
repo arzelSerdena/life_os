@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from app.db import SessionDep
 from app.errors import ConflictError, NotFoundError, UnprocessableError
-from app.routers import events, life_areas, task_templates, tasks, undo, week
+from app.routers import events, life_areas, routines, task_templates, tasks, undo, week
 
 
 def _operation_id(route: APIRoute) -> str:
@@ -22,6 +22,7 @@ app.include_router(tasks.router)
 app.include_router(task_templates.router)
 app.include_router(events.router)
 app.include_router(week.router)
+app.include_router(routines.router)
 app.include_router(undo.router)
 
 

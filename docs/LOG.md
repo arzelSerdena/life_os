@@ -25,8 +25,10 @@
 - Added the task templates backend: templates with checklists, creating tasks from them, recurring tasks generated per week or from completion, and "this and following" / "all" edits and cancellations.
 - Added the events backend: one-off and repeating events, occurrences for a date range, single-occurrence changes and cancellations, and "this and following" / "all".
 - Added the week endpoint, rollover and task reordering. The Phase 2 backend is complete.
+- Added the routines backend (Phase 3, built ahead while the designs are in progress): schedules with history, steps, checking off, skipping a day, pausing and streaks.
 
 **Next**
 
 - Merge the Life Area screens once the Figma designs are ready.
+- Show due routine steps on the week board (small follow-up to the routines backend).
 - Phase 2 frontend once the designs are ready: week board, task drawer, Inbox, repeat picker, undo toast.
