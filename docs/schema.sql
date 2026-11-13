@@ -417,6 +417,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "uq_routine_schedules_start" ON "routine_sched
 -- ROUTINE STEPS
 -- Statuses: active, paused (an open row in routine_pauses), archived (archived_at)
 -- Owned by a life area or a project. Daily to-do / done lives in routine_logs.
+-- Due from starts_on, so a step added later has no missed days before it existed.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "routine_steps" (
 	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -425,6 +426,7 @@ CREATE TABLE IF NOT EXISTS "routine_steps" (
 	"project_id" INTEGER,
 	"title" TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 200),
 	"notes" TEXT CHECK(notes IS NULL OR length(notes) <= 50000),
+	"starts_on" DATE NOT NULL,
 	"sort_order" INTEGER NOT NULL DEFAULT 0,
 	"archived_at" DATETIME,
 	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

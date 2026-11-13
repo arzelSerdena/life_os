@@ -4,6 +4,13 @@ from app.models.base import Base, BaseMixin
 from app.models.event import Event, EventException
 from app.models.life_area import LifeArea
 from app.models.project import Project, ProjectSection
+from app.models.routine import (
+    Routine,
+    RoutineLog,
+    RoutinePause,
+    RoutineSchedule,
+    RoutineStep,
+)
 from app.models.status_change import StatusChange
 from app.models.task import Subtask, Task
 from app.models.task_template import TaskTemplate, TaskTemplateSubtask
@@ -16,6 +23,11 @@ __all__ = [
     "LifeArea",
     "Project",
     "ProjectSection",
+    "Routine",
+    "RoutineLog",
+    "RoutinePause",
+    "RoutineSchedule",
+    "RoutineStep",
     "StatusChange",
     "Subtask",
     "Task",

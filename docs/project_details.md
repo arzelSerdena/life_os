@@ -145,5 +145,6 @@ Summary: a life area contains projects; projects contain sections; tasks, task t
 - **2026-11-13** — Rollover moves from Phase 5 to Phase 2 and runs when the board loads a week, so unfinished tasks from past days never drop off the board. Rolled-over tasks go to the end of today's list.
 - **2026-11-13** — The week board is one call, `GET /api/week`. Unscheduled holds every to-do task with no date; a multi-day event appears on each day it covers. Loading a week creates its recurring tasks, so a read changes data, which is safe because it never creates anything twice.
 - **2026-11-13** — `POST /api/tasks/reorder` sets a day's whole order in one step, for drag and drop.
+- **2026-11-13** — Routine steps get a `starts_on`, so a step added later has no missed days before it existed. Streaks: a miss resets, while skipped and paused days are neutral. Done is allowed up to today; skipped also on future days. The routines backend is built ahead of the Phase 2 screens because the screens won't change it.
 
 ---
