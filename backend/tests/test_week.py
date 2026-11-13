@@ -260,3 +260,37 @@ def test_reorder_is_validated(client: TestClient, make_body: Any, status_code: i
     response = client.post("/api/tasks/reorder", json=make_body(ids))
 
     assert response.status_code == status_code
+
+
+# ---------- Routine steps ----------
+
+
+def test_each_day_lists_its_due_routine_steps(client: TestClient, session: Session) -> None:
+    health = make_life_area(session, "Health")
+    career = make_life_area(session, "Career")
+    routine = client.post(
+        "/api/routines",
+        json={"title": "Morning", "rrule": "FREQ=WEEKLY;BYDAY=MO,WE,FR", "starts_on": "2026-11-01"},
+    ).json()
+    stretch = client.post(
+        f"/api/routines/{routine['id']}/steps",
+        json={"title": "Stretch", "life_area_id": health.id, "starts_on": "2026-11-01"},
+    ).json()
+    client.post(
+        f"/api/routines/{routine['id']}/steps",
+        json={"title": "Plan day", "life_area_id": career.id, "starts_on": "2026-11-01"},
+    )
+    client.put(f"/api/routine-steps/{stretch['id']}/days/2026-11-18", json={"status": "done"})
+
+    week = _week(client)
+    steps = {
+        day["day"]: {step["title"]: step["status"] for step in day["routine_steps"]}
+        for day in week["days"]
+    }
+
+    assert steps["2026-11-16"] == {"Stretch": "missed", "Plan day": "missed"}
+    assert steps["2026-11-17"] == {}
+    assert steps["2026-11-18"] == {"Stretch": "done", "Plan day": "todo"}
+    assert steps["2026-11-20"] == {"Stretch": "todo", "Plan day": "todo"}
+    health_only = _week(client, life_area_id=health.id)
+    assert [s["title"] for s in health_only["days"][2]["routine_steps"]] == ["Stretch"]

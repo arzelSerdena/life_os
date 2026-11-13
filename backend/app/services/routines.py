@@ -100,6 +100,18 @@ def steps_for_day(
     project_id: int | None = None,
 ) -> list[StepDay]:
     """Every active step due on `day`, in routine then step order."""
+    found = steps_for_days(session, [day], life_area_id=life_area_id, project_id=project_id)
+    return found[day]
+
+
+def steps_for_days(
+    session: Session,
+    days: list[date],
+    *,
+    life_area_id: int | None = None,
+    project_id: int | None = None,
+) -> dict[date, list[StepDay]]:
+    """Every active step due on each of `days`, loading the routines once."""
     routines = session.scalars(
         select(Routine)
         .options(
@@ -111,7 +123,7 @@ def steps_for_day(
         .where(Routine.archived_at.is_(None))
         .order_by(Routine.sort_order, Routine.id)
     ).all()
-    found = []
+    found: dict[date, list[StepDay]] = {day: [] for day in days}
     for routine in routines:
         for step in routine.steps:
             if step.archived_at is not None:
@@ -120,8 +132,9 @@ def steps_for_day(
                 continue
             if project_id is not None and step.project_id != project_id:
                 continue
-            if is_due(routine, step, day):
-                found.append(StepDay(step, routine, day, day_status(step, day)))
+            for day in days:
+                if is_due(routine, step, day):
+                    found[day].append(StepDay(step, routine, day, day_status(step, day)))
     return found
 
 

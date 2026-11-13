@@ -65,19 +65,6 @@ def _read(routine: Routine) -> RoutineRead:
     )
 
 
-def _day(found: service.StepDay) -> RoutineStepDay:
-    return RoutineStepDay(
-        step_id=found.step.id,
-        routine_id=found.routine.id,
-        routine_title=found.routine.title,
-        title=found.step.title,
-        life_area_id=found.step.life_area_id,
-        project_id=found.step.project_id,
-        day=found.day,
-        status=found.status,  # type: ignore[arg-type]
-    )
-
-
 def _step(session: SessionDep, step: RoutineStep) -> RoutineStepRead:
     return _step_read(service.get_routine(session, step.routine_id), step)
 
@@ -103,7 +90,7 @@ def list_routine_steps_for_day(
     found = service.steps_for_day(
         session, day or clock.today(), life_area_id=life_area_id, project_id=project_id
     )
-    return [_day(item) for item in found]
+    return [RoutineStepDay.from_step_day(item) for item in found]
 
 
 @router.post("/routines", status_code=status.HTTP_201_CREATED)
@@ -141,7 +128,9 @@ def resume_routine(session: SessionDep, routine_id: int) -> RoutineRead:
 @router.post("/routines/{routine_id}/days/{day}/skip", responses={**NOT_FOUND, **CONFLICT})
 def skip_routine_day(session: SessionDep, routine_id: int, day: date) -> list[RoutineStepDay]:
     """Skip the whole routine on one day. Steps already checked keep their state."""
-    return [_day(item) for item in service.skip_day(session, routine_id, day)]
+    return [
+        RoutineStepDay.from_step_day(item) for item in service.skip_day(session, routine_id, day)
+    ]
 
 
 @router.post("/routines/{routine_id}/archive", responses=NOT_FOUND)
@@ -223,10 +212,10 @@ def set_routine_step_day(
     session: SessionDep, step_id: int, day: date, data: RoutineLogSet
 ) -> RoutineStepDay:
     """Mark the step done or skipped on a due day."""
-    return _day(service.set_log(session, step_id, day, data.status))
+    return RoutineStepDay.from_step_day(service.set_log(session, step_id, day, data.status))
 
 
 @router.delete("/routine-steps/{step_id}/days/{day}", responses=NOT_FOUND)
 def clear_routine_step_day(session: SessionDep, step_id: int, day: date) -> RoutineStepDay:
     """Uncheck the step: back to to-do, or missed for a day that's over."""
-    return _day(service.clear_log(session, step_id, day))
+    return RoutineStepDay.from_step_day(service.clear_log(session, step_id, day))

@@ -20,6 +20,10 @@ export type DayRead = {
      * Events
      */
     events: Array<OccurrenceRead>;
+    /**
+     * Routine Steps
+     */
+    routine_steps: Array<RoutineStepDay>;
 };
 
 /**

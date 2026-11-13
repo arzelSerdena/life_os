@@ -209,7 +209,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - The week view is an untimed board: Unscheduled plus seven day columns, Monday to Sunday. Tasks have no start time or duration.
   - One call (`GET /api/week`) returns the whole board, optionally for one life area or project.
   - **Unscheduled** holds every to-do task with no date, from every life area and the Inbox.
-  - Each day holds its tasks (done ones included, cancelled ones only on request) and its event occurrences. A multi-day event appears on every day it covers, with its real start and end dates.
+  - Each day holds its tasks (done ones included, cancelled ones only on request), its event occurrences, and its due routine steps with their status (to-do, done, skipped or missed). A multi-day event appears on every day it covers, with its real start and end dates.
   - Loading a week first runs rollover and creates the week's missing recurring tasks. Both are safe to repeat.
   - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones.
 - Due dates are a date plus an optional time, and a due time requires a due date.
