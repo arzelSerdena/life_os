@@ -3,6 +3,7 @@
 from app.models.base import Base, BaseMixin
 from app.models.event import Event, EventException
 from app.models.life_area import LifeArea
+from app.models.metric import Metric, MetricEntry, MetricTarget
 from app.models.project import Project, ProjectSection
 from app.models.routine import (
     Routine,
@@ -21,6 +22,9 @@ __all__ = [
     "Event",
     "EventException",
     "LifeArea",
+    "Metric",
+    "MetricEntry",
+    "MetricTarget",
     "Project",
     "ProjectSection",
     "Routine",
