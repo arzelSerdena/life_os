@@ -8,7 +8,16 @@ from sqlalchemy import text
 
 from app.db import SessionDep
 from app.errors import ConflictError, NotFoundError, UnprocessableError
-from app.routers import events, life_areas, routines, task_templates, tasks, undo, week
+from app.routers import (
+    events,
+    life_areas,
+    projects,
+    routines,
+    task_templates,
+    tasks,
+    undo,
+    week,
+)
 
 
 def _operation_id(route: APIRoute) -> str:
@@ -18,6 +27,7 @@ def _operation_id(route: APIRoute) -> str:
 
 app = FastAPI(title="Life OS API", generate_unique_id_function=_operation_id)
 app.include_router(life_areas.router)
+app.include_router(projects.router)
 app.include_router(tasks.router)
 app.include_router(task_templates.router)
 app.include_router(events.router)
