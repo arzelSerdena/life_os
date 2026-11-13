@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveLifeArea, archiveTask, cancelTask, completeTask, createLifeArea, createSubtask, createTask, deleteLifeArea, deleteSubtask, deleteTask, getLifeArea, getTask, health, listLifeAreas, listTasks, moveTask, type Options, reopenTask, unarchiveLifeArea, unarchiveTask, undoBatch, updateLifeArea, updateSubtask, updateTask } from '../sdk.gen';
-import type { ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetTaskData, GetTaskError, GetTaskResponse, HealthData, HealthResponse2, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListTasksData, ListTasksError, ListTasksResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse } from '../types.gen';
+import { archiveLifeArea, archiveTask, archiveTaskTemplate, cancelTask, cancelTaskSeries, completeTask, createLifeArea, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteLifeArea, deleteSubtask, deleteTask, deleteTaskTemplate, editTaskSeries, getLifeArea, getTask, getTaskTemplate, health, listLifeAreas, listTasks, listTaskTemplates, moveTask, moveTaskTemplate, type Options, pauseTaskTemplate, reopenTask, resumeTaskTemplate, unarchiveLifeArea, unarchiveTask, unarchiveTaskTemplate, undoBatch, updateLifeArea, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
+import type { ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, HealthData, HealthResponse2, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -390,6 +390,241 @@ export const updateSubtaskMutation = (options?: Partial<Options<UpdateSubtaskDat
     const mutationOptions: UseMutationOptions<UpdateSubtaskResponse, UpdateSubtaskError, Options<UpdateSubtaskData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateSubtask({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Edit Task Series
+ *
+ * Change a recurring task from this occurrence: this and following, or all.
+ *
+ * To change only this occurrence, edit the task itself.
+ */
+export const editTaskSeriesMutation = (options?: Partial<Options<EditTaskSeriesData>>): UseMutationOptions<EditTaskSeriesResponse, EditTaskSeriesError, Options<EditTaskSeriesData>> => {
+    const mutationOptions: UseMutationOptions<EditTaskSeriesResponse, EditTaskSeriesError, Options<EditTaskSeriesData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await editTaskSeries({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Cancel Task Series
+ *
+ * Cancel a recurring task from this occurrence: this and following, or all.
+ *
+ * To cancel only this occurrence, cancel the task itself.
+ */
+export const cancelTaskSeriesMutation = (options?: Partial<Options<CancelTaskSeriesData>>): UseMutationOptions<CancelTaskSeriesResponse, CancelTaskSeriesError, Options<CancelTaskSeriesData>> => {
+    const mutationOptions: UseMutationOptions<CancelTaskSeriesResponse, CancelTaskSeriesError, Options<CancelTaskSeriesData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await cancelTaskSeries({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listTaskTemplatesQueryKey = (options?: Options<ListTaskTemplatesData>) => createQueryKey('listTaskTemplates', options);
+
+/**
+ * List Task Templates
+ *
+ * All templates, or only recurring (repeating=true) or plain ones (repeating=false).
+ */
+export const listTaskTemplatesOptions = (options?: Options<ListTaskTemplatesData>) => queryOptions<ListTaskTemplatesResponse, ListTaskTemplatesError, ListTaskTemplatesResponse, ReturnType<typeof listTaskTemplatesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listTaskTemplates({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listTaskTemplatesQueryKey(options)
+});
+
+/**
+ * Create Task Template
+ */
+export const createTaskTemplateMutation = (options?: Partial<Options<CreateTaskTemplateData>>): UseMutationOptions<CreateTaskTemplateResponse, CreateTaskTemplateError, Options<CreateTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<CreateTaskTemplateResponse, CreateTaskTemplateError, Options<CreateTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Task Template
+ */
+export const deleteTaskTemplateMutation = (options?: Partial<Options<DeleteTaskTemplateData>>): UseMutationOptions<DeleteTaskTemplateResponse, DeleteTaskTemplateError, Options<DeleteTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<DeleteTaskTemplateResponse, DeleteTaskTemplateError, Options<DeleteTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getTaskTemplateQueryKey = (options: Options<GetTaskTemplateData>) => createQueryKey('getTaskTemplate', options);
+
+/**
+ * Get Task Template
+ */
+export const getTaskTemplateOptions = (options: Options<GetTaskTemplateData>) => queryOptions<GetTaskTemplateResponse, GetTaskTemplateError, GetTaskTemplateResponse, ReturnType<typeof getTaskTemplateQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTaskTemplate({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTaskTemplateQueryKey(options)
+});
+
+/**
+ * Update Task Template
+ */
+export const updateTaskTemplateMutation = (options?: Partial<Options<UpdateTaskTemplateData>>): UseMutationOptions<UpdateTaskTemplateResponse, UpdateTaskTemplateError, Options<UpdateTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<UpdateTaskTemplateResponse, UpdateTaskTemplateError, Options<UpdateTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Move Task Template
+ */
+export const moveTaskTemplateMutation = (options?: Partial<Options<MoveTaskTemplateData>>): UseMutationOptions<MoveTaskTemplateResponse, MoveTaskTemplateError, Options<MoveTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<MoveTaskTemplateResponse, MoveTaskTemplateError, Options<MoveTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await moveTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Pause Task Template
+ */
+export const pauseTaskTemplateMutation = (options?: Partial<Options<PauseTaskTemplateData>>): UseMutationOptions<PauseTaskTemplateResponse, PauseTaskTemplateError, Options<PauseTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<PauseTaskTemplateResponse, PauseTaskTemplateError, Options<PauseTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await pauseTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Resume Task Template
+ */
+export const resumeTaskTemplateMutation = (options?: Partial<Options<ResumeTaskTemplateData>>): UseMutationOptions<ResumeTaskTemplateResponse, ResumeTaskTemplateError, Options<ResumeTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<ResumeTaskTemplateResponse, ResumeTaskTemplateError, Options<ResumeTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await resumeTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Archive Task Template
+ */
+export const archiveTaskTemplateMutation = (options?: Partial<Options<ArchiveTaskTemplateData>>): UseMutationOptions<ArchiveTaskTemplateResponse, ArchiveTaskTemplateError, Options<ArchiveTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<ArchiveTaskTemplateResponse, ArchiveTaskTemplateError, Options<ArchiveTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await archiveTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Unarchive Task Template
+ */
+export const unarchiveTaskTemplateMutation = (options?: Partial<Options<UnarchiveTaskTemplateData>>): UseMutationOptions<UnarchiveTaskTemplateResponse, UnarchiveTaskTemplateError, Options<UnarchiveTaskTemplateData>> => {
+    const mutationOptions: UseMutationOptions<UnarchiveTaskTemplateResponse, UnarchiveTaskTemplateError, Options<UnarchiveTaskTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unarchiveTaskTemplate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Create Task From Template
+ *
+ * A new task copied from the template, checklist included.
+ */
+export const createTaskFromTemplateMutation = (options?: Partial<Options<CreateTaskFromTemplateData>>): UseMutationOptions<CreateTaskFromTemplateResponse, CreateTaskFromTemplateError, Options<CreateTaskFromTemplateData>> => {
+    const mutationOptions: UseMutationOptions<CreateTaskFromTemplateResponse, CreateTaskFromTemplateError, Options<CreateTaskFromTemplateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createTaskFromTemplate({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

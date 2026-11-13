@@ -1,17 +1,14 @@
 from datetime import date, datetime, time
 
 from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Text, Time
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import AUTOINCREMENT, Base, BaseMixin
 from app.models.ownership import PRIORITY_CHECK, optional_owner_checks, project_owner_keys
 
 
 class TaskTemplate(BaseMixin, Base):
-    """Reusable task content, as in Notion. With an rrule it is a recurring task.
-
-    Only the table for now; the API comes with recurring tasks.
-    """
+    """Reusable task content, as in Notion. With an rrule it is a recurring task."""
 
     __tablename__ = "task_templates"
     __table_args__ = (
@@ -52,6 +49,21 @@ class TaskTemplate(BaseMixin, Base):
     ends_on: Mapped[date | None] = mapped_column(Date)
     paused_at: Mapped[datetime | None] = mapped_column(DateTime)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+    subtasks: Mapped[list[TaskTemplateSubtask]] = relationship(
+        order_by="(TaskTemplateSubtask.sort_order, TaskTemplateSubtask.id)",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    @property
+    def is_repeating(self) -> bool:
+        return self.rrule is not None
+
+    @property
+    def generates(self) -> bool:
+        """Whether the template creates occurrences right now."""
+        return self.is_repeating and self.paused_at is None and self.archived_at is None
 
 
 class TaskTemplateSubtask(BaseMixin, Base):

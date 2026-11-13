@@ -136,5 +136,9 @@ Summary: a life area contains projects; projects contain sections; tasks, task t
 - **2026-11-13** — Task templates replace recurring tasks, as in Notion: one `task_templates` table holds title, notes, priority, default owner, subtasks and an optional due-date offset, and a template with a repeat rule is a recurring task. Creating a task copies the template; `tasks.template_id` keeps the link for reference.
 - **2026-11-13** — A recurring occurrence can't be deleted, only cancelled, because a deleted occurrence would be generated again.
 - **2026-11-13** — Projects, sections and templates get their tables in Phase 2 (no screens until Phase 4), so the tasks table is final from the start.
+- **2026-11-13** — Repeat rules carry no `DTSTART`, `UNTIL` or `COUNT`; a series runs from `starts_on` to `ends_on`, which keeps "this and following" a simple split. "Ends after N times" becomes an end date.
+- **2026-11-13** — Editing a template changes only tasks created later, as in Notion. Series edits from an occurrence also update unfinished occurrences (title, notes, priority, due date unless set by hand); checklist changes apply to new occurrences only.
+- **2026-11-13** — Undo also removes tasks a change created, such as the next "repeat from completion" occurrence, if they are unchanged since. Series cancellations can be undone; series edits can't.
+- **2026-11-13** — Deleting a template keeps tasks created from it by hand (the link is cleared); a recurring task with occurrences can only be archived.
 
 ---

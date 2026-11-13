@@ -9,8 +9,10 @@ from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import Subtask, Task
 from app.models.base import utc_now
 from app.schemas.task import SubtaskCreate, SubtaskUpdate, TaskCreate, TaskMove, TaskUpdate
+from app.services import templates
 from app.services.history import ChangeRecorder
 from app.services.ownership import ensure_owner_open, resolve_owner
+from app.services.task_rules import cancel_open_subtasks, next_position
 
 PRIORITY_RANK = case({"high": 0, "medium": 1, "low": 2, "none": 3}, value=Task.priority, else_=3)
 
@@ -81,7 +83,7 @@ def create_task(session: Session, data: TaskCreate) -> Task:
         life_area_id=owner.life_area_id,
         project_id=owner.project_id,
         section_id=owner.section_id,
-        sort_order=_next_position(session, data.scheduled_date),
+        sort_order=next_position(session, data.scheduled_date),
         subtasks=[
             Subtask(title=title, sort_order=position)
             for position, title in enumerate(data.subtasks)
@@ -147,7 +149,7 @@ def archive_task(session: Session, task_id: int) -> TaskChange:
     history = ChangeRecorder(session)
     if task.archived_at is None:
         history.set(task, "archived_at", utc_now())
-        _cancel_open_subtasks(task, history)
+        cancel_open_subtasks(task, history)
     return TaskChange(_save(session, task), history.batch_id)
 
 
@@ -213,16 +215,9 @@ def _finish(session: Session, task_id: int, *, status: str, timestamp_field: str
     history = ChangeRecorder(session)
     history.set(task, "status", status)
     history.set(task, timestamp_field, utc_now())
-    _cancel_open_subtasks(task, history)
+    cancel_open_subtasks(task, history)
+    templates.after_occurrence_finished(session, task, history)
     return TaskChange(_save(session, task), history.batch_id)
-
-
-def _cancel_open_subtasks(task: Task, history: ChangeRecorder) -> None:
-    now = utc_now()
-    for subtask in task.subtasks:
-        if subtask.status == "todo":
-            history.set(subtask, "status", "cancelled")
-            history.set(subtask, "cancelled_at", now)
 
 
 def _get_unarchived(session: Session, task_id: int) -> Task:
@@ -237,17 +232,6 @@ def _get_subtask(session: Session, subtask_id: int) -> Subtask:
     if subtask is None:
         raise NotFoundError(f"Subtask {subtask_id} not found")
     return subtask
-
-
-def _next_position(session: Session, scheduled_date: date | None) -> int:
-    """New tasks go to the end of their day, or of the unscheduled list."""
-    same_day = (
-        Task.scheduled_date.is_(None)
-        if scheduled_date is None
-        else Task.scheduled_date == scheduled_date
-    )
-    last_position = session.scalar(select(func.max(Task.sort_order)).where(same_day))
-    return 0 if last_position is None else last_position + 1
 
 
 def _save[T: (Task, Subtask)](session: Session, item: T) -> T:

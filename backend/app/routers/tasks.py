@@ -15,7 +15,9 @@ from app.schemas.task import (
     TaskRead,
     TaskUpdate,
 )
+from app.schemas.task_template import SeriesCancel, SeriesCancelResult, SeriesEdit, TaskTemplateRead
 from app.services import tasks as service
+from app.services import templates
 
 router = APIRouter(prefix="/api", tags=["tasks"])
 
@@ -121,3 +123,20 @@ def update_subtask(session: SessionDep, subtask_id: int, data: SubtaskUpdate) ->
 )
 def delete_subtask(session: SessionDep, subtask_id: int) -> None:
     service.delete_subtask(session, subtask_id)
+
+
+@router.post("/tasks/{task_id}/series-edit", responses={**NOT_FOUND, **CONFLICT})
+def edit_task_series(session: SessionDep, task_id: int, data: SeriesEdit) -> TaskTemplateRead:
+    """Change a recurring task from this occurrence: this and following, or all.
+
+    To change only this occurrence, edit the task itself."""
+    return TaskTemplateRead.model_validate(templates.edit_series(session, task_id, data))
+
+
+@router.post("/tasks/{task_id}/series-cancel", responses={**NOT_FOUND, **CONFLICT})
+def cancel_task_series(session: SessionDep, task_id: int, data: SeriesCancel) -> SeriesCancelResult:
+    """Cancel a recurring task from this occurrence: this and following, or all.
+
+    To cancel only this occurrence, cancel the task itself."""
+    template, batch_id = templates.cancel_series(session, task_id, data.scope)
+    return SeriesCancelResult(template=TaskTemplateRead.model_validate(template), batch_id=batch_id)

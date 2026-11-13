@@ -127,6 +127,71 @@ export type LifeAreaUpdate = {
 };
 
 /**
+ * SeriesCancel
+ */
+export type SeriesCancel = {
+    /**
+     * Scope
+     */
+    scope: 'following' | 'all';
+};
+
+/**
+ * SeriesCancelResult
+ *
+ * The recurring task after the change, and the batch to pass to undo.
+ */
+export type SeriesCancelResult = {
+    template: TaskTemplateRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * SeriesEdit
+ *
+ * Change a recurring task from one occurrence: "following" (this and following) or
+ * "all". Unfinished occurrences in range get the changed title, notes, priority and due
+ * date; checklist changes apply to occurrences created from now on.
+ */
+export type SeriesEdit = {
+    /**
+     * Scope
+     */
+    scope: 'following' | 'all';
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none' | null;
+    /**
+     * Due Offset Days
+     */
+    due_offset_days?: number | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string> | null;
+};
+
+/**
  * SubtaskCreate
  */
 export type SubtaskCreate = {
@@ -261,6 +326,16 @@ export type TaskCreate = {
 };
 
 /**
+ * TaskFromTemplate
+ */
+export type TaskFromTemplate = {
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+};
+
+/**
  * TaskMove
  *
  * The task's whole new owner: a project (and optional section), a life area, or
@@ -372,6 +447,198 @@ export type TaskRead = {
 };
 
 /**
+ * TaskTemplateCreate
+ *
+ * A template. Add rrule and starts_on to make it a recurring task.
+ *
+ * rrule is an iCalendar RRULE without DTSTART, UNTIL or COUNT, such as
+ * "FREQ=WEEKLY;BYDAY=MO". The series ends on ends_on, if set.
+ */
+export type TaskTemplateCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Due Offset Days
+     */
+    due_offset_days?: number | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat From
+     */
+    repeat_from?: 'schedule' | 'completion';
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+    /**
+     * Ends On
+     */
+    ends_on?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Section Id
+     */
+    section_id?: number | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string>;
+};
+
+/**
+ * TaskTemplateRead
+ */
+export type TaskTemplateRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number | null;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Section Id
+     */
+    section_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Priority
+     */
+    priority: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Due Offset Days
+     */
+    due_offset_days: number | null;
+    /**
+     * Due Time
+     */
+    due_time: string | null;
+    /**
+     * Rrule
+     */
+    rrule: string | null;
+    /**
+     * Repeat From
+     */
+    repeat_from: 'schedule' | 'completion';
+    /**
+     * Starts On
+     */
+    starts_on: string | null;
+    /**
+     * Ends On
+     */
+    ends_on: string | null;
+    /**
+     * Paused At
+     */
+    paused_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Subtasks
+     */
+    subtasks: Array<TemplateSubtaskRead>;
+};
+
+/**
+ * TaskTemplateUpdate
+ *
+ * Only the fields sent are changed. Tasks already created don't change; to update a
+ * recurring task's occurrences too, edit the series from one of them.
+ *
+ * Setting rrule to null turns a recurring task into a plain template.
+ */
+export type TaskTemplateUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none' | null;
+    /**
+     * Due Offset Days
+     */
+    due_offset_days?: number | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat From
+     */
+    repeat_from?: 'schedule' | 'completion' | null;
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+    /**
+     * Ends On
+     */
+    ends_on?: string | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string> | null;
+};
+
+/**
  * TaskUpdate
  *
  * Only the fields sent are changed. Owner and status have their own endpoints.
@@ -405,6 +672,24 @@ export type TaskUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * TemplateSubtaskRead
+ */
+export type TemplateSubtaskRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
 };
 
 /**
@@ -1196,6 +1481,469 @@ export type UpdateSubtaskResponses = {
 };
 
 export type UpdateSubtaskResponse = UpdateSubtaskResponses[keyof UpdateSubtaskResponses];
+
+export type EditTaskSeriesData = {
+    body: SeriesEdit;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/series-edit';
+};
+
+export type EditTaskSeriesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type EditTaskSeriesError = EditTaskSeriesErrors[keyof EditTaskSeriesErrors];
+
+export type EditTaskSeriesResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type EditTaskSeriesResponse = EditTaskSeriesResponses[keyof EditTaskSeriesResponses];
+
+export type CancelTaskSeriesData = {
+    body: SeriesCancel;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/series-cancel';
+};
+
+export type CancelTaskSeriesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelTaskSeriesError = CancelTaskSeriesErrors[keyof CancelTaskSeriesErrors];
+
+export type CancelTaskSeriesResponses = {
+    /**
+     * Successful Response
+     */
+    200: SeriesCancelResult;
+};
+
+export type CancelTaskSeriesResponse = CancelTaskSeriesResponses[keyof CancelTaskSeriesResponses];
+
+export type ListTaskTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+        /**
+         * Repeating
+         */
+        repeating?: boolean | null;
+    };
+    url: '/api/task-templates';
+};
+
+export type ListTaskTemplatesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListTaskTemplatesError = ListTaskTemplatesErrors[keyof ListTaskTemplatesErrors];
+
+export type ListTaskTemplatesResponses = {
+    /**
+     * Response List Task Templates
+     *
+     * Successful Response
+     */
+    200: Array<TaskTemplateRead>;
+};
+
+export type ListTaskTemplatesResponse = ListTaskTemplatesResponses[keyof ListTaskTemplatesResponses];
+
+export type CreateTaskTemplateData = {
+    body: TaskTemplateCreate;
+    path?: never;
+    query?: never;
+    url: '/api/task-templates';
+};
+
+export type CreateTaskTemplateErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaskTemplateError = CreateTaskTemplateErrors[keyof CreateTaskTemplateErrors];
+
+export type CreateTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    201: TaskTemplateRead;
+};
+
+export type CreateTaskTemplateResponse = CreateTaskTemplateResponses[keyof CreateTaskTemplateResponses];
+
+export type DeleteTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}';
+};
+
+export type DeleteTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTaskTemplateError = DeleteTaskTemplateErrors[keyof DeleteTaskTemplateErrors];
+
+export type DeleteTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteTaskTemplateResponse = DeleteTaskTemplateResponses[keyof DeleteTaskTemplateResponses];
+
+export type GetTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}';
+};
+
+export type GetTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTaskTemplateError = GetTaskTemplateErrors[keyof GetTaskTemplateErrors];
+
+export type GetTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type GetTaskTemplateResponse = GetTaskTemplateResponses[keyof GetTaskTemplateResponses];
+
+export type UpdateTaskTemplateData = {
+    body: TaskTemplateUpdate;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}';
+};
+
+export type UpdateTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTaskTemplateError = UpdateTaskTemplateErrors[keyof UpdateTaskTemplateErrors];
+
+export type UpdateTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type UpdateTaskTemplateResponse = UpdateTaskTemplateResponses[keyof UpdateTaskTemplateResponses];
+
+export type MoveTaskTemplateData = {
+    body: TaskMove;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/move';
+};
+
+export type MoveTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveTaskTemplateError = MoveTaskTemplateErrors[keyof MoveTaskTemplateErrors];
+
+export type MoveTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type MoveTaskTemplateResponse = MoveTaskTemplateResponses[keyof MoveTaskTemplateResponses];
+
+export type PauseTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/pause';
+};
+
+export type PauseTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PauseTaskTemplateError = PauseTaskTemplateErrors[keyof PauseTaskTemplateErrors];
+
+export type PauseTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type PauseTaskTemplateResponse = PauseTaskTemplateResponses[keyof PauseTaskTemplateResponses];
+
+export type ResumeTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/resume';
+};
+
+export type ResumeTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResumeTaskTemplateError = ResumeTaskTemplateErrors[keyof ResumeTaskTemplateErrors];
+
+export type ResumeTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type ResumeTaskTemplateResponse = ResumeTaskTemplateResponses[keyof ResumeTaskTemplateResponses];
+
+export type ArchiveTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/archive';
+};
+
+export type ArchiveTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveTaskTemplateError = ArchiveTaskTemplateErrors[keyof ArchiveTaskTemplateErrors];
+
+export type ArchiveTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type ArchiveTaskTemplateResponse = ArchiveTaskTemplateResponses[keyof ArchiveTaskTemplateResponses];
+
+export type UnarchiveTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/unarchive';
+};
+
+export type UnarchiveTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveTaskTemplateError = UnarchiveTaskTemplateErrors[keyof UnarchiveTaskTemplateErrors];
+
+export type UnarchiveTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type UnarchiveTaskTemplateResponse = UnarchiveTaskTemplateResponses[keyof UnarchiveTaskTemplateResponses];
+
+export type CreateTaskFromTemplateData = {
+    body: TaskFromTemplate;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/tasks';
+};
+
+export type CreateTaskFromTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaskFromTemplateError = CreateTaskFromTemplateErrors[keyof CreateTaskFromTemplateErrors];
+
+export type CreateTaskFromTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    201: TaskRead;
+};
+
+export type CreateTaskFromTemplateResponse = CreateTaskFromTemplateResponses[keyof CreateTaskFromTemplateResponses];
 
 export type UndoBatchData = {
     body?: never;
