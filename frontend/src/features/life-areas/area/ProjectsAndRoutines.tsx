@@ -12,7 +12,7 @@ export function ProjectsCard({ page }: { page: AreaPageRead }) {
   const name = periodInSentence(page.period as Period, page.range.start);
   if (page.projects.length === 0) {
     return (
-      <SectionCard title="Projects" description="No active projects">
+      <SectionCard title="Projects">
         <CardEmpty>No active projects.</CardEmpty>
       </SectionCard>
     );
@@ -98,7 +98,7 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
   const steps = page.routines.reduce((sum, group) => sum + group.steps.length, 0);
   if (steps === 0) {
     return (
-      <SectionCard title="Routines" description="No routine steps">
+      <SectionCard title="Routines">
         <CardEmpty>No routine steps in this area.</CardEmpty>
       </SectionCard>
     );

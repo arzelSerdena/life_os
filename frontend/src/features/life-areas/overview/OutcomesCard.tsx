@@ -37,7 +37,7 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
   const owners = new Set(outcomes.map((o) => o.life_area_id)).size;
   const description =
     outcomes.length === 0
-      ? "No metrics yet"
+      ? undefined
       : `${plural(outcomes.length, "metric")} owned by ${plural(owners, "area")} · ${good} on track or met, ${bad} behind`;
 
   const visible = sortOutcomes(
@@ -145,7 +145,7 @@ function AreaPanel({
   const bad = all.filter((o) => outcomeTone(o.status) === "bad").length;
   const summary =
     all.length === 0
-      ? "No metrics"
+      ? ""
       : [plural(all.length, "metric"), good && `${good} on track`, bad && `${bad} behind`]
           .filter(Boolean)
           .join(" · ");

@@ -66,7 +66,7 @@ async function fakeApi(request: Request): Promise<Response> {
       ...areas[index],
       archived_at: action === "archive" ? "2026-11-10T01:00:00Z" : null,
     };
-    return json(areas[index]);
+    return json({ life_area: areas[index], batch_id: "batch" });
   }
   if (deleteError) {
     return json({ detail: deleteError }, 409);
@@ -174,6 +174,9 @@ test("archives an area, then restores it from the archived areas", async () => {
 
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
   await user.click(await screen.findByRole("menuitem", { name: "Archive area" }));
+  const dialog = await screen.findByRole("alertdialog");
+  expect(dialog).toHaveTextContent("Nothing is deleted.");
+  await user.click(within(dialog).getByRole("button", { name: "Archive area" }));
 
   expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
   await waitFor(() =>
@@ -248,7 +251,7 @@ test("with areas but no data yet, each card says what will appear", async () => 
 
   const outcomes = await screen.findByRole("region", { name: "Outcomes" });
   expect(within(outcomes).getByRole("heading", { name: /Career/ })).toBeInTheDocument();
-  expect(within(outcomes).getAllByText("No metrics yet")).toHaveLength(2);
+  expect(within(outcomes).getAllByText("No metrics yet")).toHaveLength(1);
   expect(screen.getByRole("region", { name: "Projects" })).toHaveTextContent("No active projects.");
 });
 

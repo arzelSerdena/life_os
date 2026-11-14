@@ -339,7 +339,7 @@ export function AgendaCard({ page }: { page: AreaPageRead }) {
         ))}
         {!range && <p className="px-2 type-meta text-(--text-tertiary)">This period is over.</p>}
         {range && days.length === 0 && page.overdue_tasks.length === 0 && (
-          <p className="px-2 type-meta text-(--text-tertiary)">Nothing planned.</p>
+          <p className="px-2 type-meta text-(--text-tertiary)">Nothing scheduled.</p>
         )}
       </div>
     </section>

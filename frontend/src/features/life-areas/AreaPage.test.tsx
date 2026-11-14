@@ -166,6 +166,30 @@ test("an area with items can't be deleted", async () => {
   ).toBeInTheDocument();
 });
 
+test("archiving asks first and lists what is archived with the area", async () => {
+  const user = userEvent.setup();
+  renderApp("/areas/1");
+  await screen.findByRole("region", { name: "Projects" });
+
+  await user.click(screen.getByRole("button", { name: "More actions for Career" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Archive area" }));
+  const dialog = await screen.findByRole("alertdialog");
+
+  expect(dialog).toHaveTextContent("1 active project");
+  expect(dialog).toHaveTextContent("2 open tasks");
+  expect(dialog).toHaveTextContent("1 routine step");
+  expect(dialog).not.toHaveTextContent("upcoming event");
+  await user.click(within(dialog).getByRole("button", { name: "Archive area" }));
+
+  await waitFor(() =>
+    expect(requests).toContainEqual({
+      method: "POST",
+      path: "/api/life-areas/1/archive",
+      body: undefined,
+    }),
+  );
+});
+
 test("New metric creates the metric and its target", async () => {
   const user = userEvent.setup();
   renderApp("/areas/1");

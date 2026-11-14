@@ -41,6 +41,7 @@
 
 - Built the area page: `GET /api/life-areas/{id}/page` and its screen (metrics, timeline, projects, routine heatmap, task tabs, agenda, New metric pop-up, Add and ⋯ menus).
 - Made the sidebar collapsible, resizable and responsive.
+- Added the cascade engine: archiving an area archives everything in it, and completing, cancelling or archiving a project changes its items, each with a preview and one undo batch. The area page asks before archiving and lists what goes with it.
 - Built the life areas overview: `GET /api/life-areas/overview` (effort, outcomes, projects against pace, routine steps done, wins) and its five cards, with the Outcomes sort and filter menu.
 
 - Added the UI style guide, the approved mock-ups and the design tokens under `design/`.
@@ -49,7 +50,8 @@
 **Next**
 
 - Card menus for Effort, Projects, Routine steps done and Wins, and Export as CSV, once their options are designed.
-- The cascade engine, so archiving an area archives its items, with the archive confirmation from `approved-area.html`.
+- The detail panel (`approved-detail-panel.html`): editing any item and its notes happens there; then remove the Edit area pop-up and the Notes tab.
+- Project complete, cancel and archive in the UI, with previews from the cascade engine.
 - Create forms for tasks, events, projects and routine steps, which turn on the rest of the Add menu.
 - The project page and projects overview, then the Phase 2 screens.
 - The cascade engine, with its preview and confirm screens.

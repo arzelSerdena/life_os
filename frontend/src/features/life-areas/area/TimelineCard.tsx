@@ -22,7 +22,7 @@ export function TimelineCard({ page }: { page: AreaPageRead }) {
 
   if (projects.length + events.length + metrics.length === 0) {
     return (
-      <SectionCard title="Timeline" description={`Nothing in ${name}`}>
+      <SectionCard title="Timeline">
         <CardEmpty>No projects, events or metrics in {name}.</CardEmpty>
       </SectionCard>
     );

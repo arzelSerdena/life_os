@@ -12,7 +12,6 @@ import {
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
-  archiveLifeAreaMutation,
   getAreaPageOptions,
   getLifeAreaOptions,
   unarchiveLifeAreaMutation,
@@ -23,6 +22,7 @@ import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { SectionCard } from "../../components/SectionCard";
 import { usePeriodStore } from "../../stores/periodStore";
+import { ArchiveAreaDialog } from "./ArchiveAreaDialog";
 import { AreaMenu } from "./AreaMenu";
 import { useAreasContext } from "./AreasLayout";
 import { NewMetricModal } from "./area/NewMetricModal";
@@ -42,15 +42,15 @@ export function AreaPage() {
   const { period, date } = usePeriodStore();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingMetric, setIsAddingMetric] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   const lifeArea = useQuery(getLifeAreaOptions({ path: { life_area_id: lifeAreaId } }));
   const page = useQuery({
     ...getAreaPageOptions({ path: { life_area_id: lifeAreaId }, query: { period, date } }),
     placeholderData: keepPreviousData,
   });
-  const archive = useMutation(archiveLifeAreaMutation());
   const restore = useMutation(unarchiveLifeAreaMutation());
-  const actionError = archive.error ?? restore.error;
+  const actionError = restore.error;
 
   if (lifeArea.isPending) return null;
   if (lifeArea.isError) {
@@ -77,7 +77,7 @@ export function AreaPage() {
               lifeArea={area}
               canDelete={page.data ? !page.data.contents.has_items : false}
               onEdit={() => openEditForm(area)}
-              onArchive={() => archive.mutate(path, { onSuccess: () => navigate("/areas") })}
+              onArchive={() => setIsArchiving(true)}
               onRestore={() => restore.mutate(path)}
               onDelete={() => setIsDeleting(true)}
             />
@@ -102,6 +102,14 @@ export function AreaPage() {
           onDeleted={() => navigate("/areas", { replace: true })}
         />
       )}
+      {isArchiving && page.data && (
+        <ArchiveAreaDialog
+          lifeArea={area}
+          contents={page.data.contents}
+          onClose={() => setIsArchiving(false)}
+          onArchived={() => navigate("/areas")}
+        />
+      )}
       {isAddingMetric && (
         <NewMetricModal lifeArea={area} onClose={() => setIsAddingMetric(false)} />
       )}
@@ -114,7 +122,7 @@ function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () 
   const untargeted = page.metrics.filter((m) => m.target === null).length;
   const description =
     page.metrics.length === 0
-      ? "No metrics yet"
+      ? undefined
       : [
           `${plural(page.metrics.length, "metric")} owned by ${page.life_area.title}`,
           behind && `${behind} behind`,
