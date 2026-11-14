@@ -237,6 +237,13 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Routine steps done**: per area, each Monday-to-Sunday week's done steps out of those due up to today. Skipped days aren't due; paused days never are.
   - **Wins**: projects finished in the period, per-period targets met in periods that ended in it (grouped per target), and reach-by targets reached in it, newest first.
 
+- An **area page** (`GET /api/life-areas/{id}/page?period=&date=`) shows one area over a calendar period, including its projects' tasks and events:
+  - **Metrics**: the area's own metrics, as in the overview's Outcomes. **Projects**: active ones and those finished in the period.
+  - **Routines**: each routine with steps in the area, and each such step's status for every day: done, skipped, missed, paused, to-do (today), upcoming or not due.
+  - **Task lists**: needs attention (overdue, or rolled over 3 or more times), unscheduled, recurring (templates with a repeat rule), and completed in the period (the newest 100).
+  - **Agenda**: from today, or the period's start if later, to its end (nothing for a past period): open tasks scheduled or due in it, events, project due dates, and reach-by target deadlines not yet met.
+  - **Contents**: the counts an archive would affect, and whether anything still belongs to the area. Deleting is only offered when nothing does.
+
 ### Time and text
 
 - `scheduled_date`, `due_date` and similar are local calendar dates. Event times are local "floating" times with no time zone.
