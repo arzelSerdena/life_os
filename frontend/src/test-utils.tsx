@@ -2,7 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { App } from "./App";
-import type { LifeAreaRead, OverviewRead } from "./client/types.gen";
+import type { AreaPageRead, LifeAreaRead, OverviewRead } from "./client/types.gen";
 import { createQueryClient } from "./queryClient";
 
 export function renderApp(path = "/areas") {
@@ -60,6 +60,40 @@ export function emptyOverview(
       weeks: [],
     })),
     wins: [],
+    ...overrides,
+  };
+}
+
+/** An area's page with nothing in it. */
+export function emptyAreaPage(
+  lifeArea: LifeAreaRead,
+  overrides: Partial<AreaPageRead> = {},
+): AreaPageRead {
+  return {
+    life_area: lifeArea,
+    period: "quarter",
+    range: { start: "2026-10-01", end: "2026-12-31" },
+    today: "2026-11-14",
+    contents: {
+      active_projects: 0,
+      open_tasks: 0,
+      upcoming_events: 0,
+      metrics: 0,
+      routine_steps: 0,
+      has_items: false,
+    },
+    metrics: [],
+    projects: [],
+    events: [],
+    routines: [],
+    overdue_tasks: [],
+    rolled_over_tasks: [],
+    unscheduled_tasks: [],
+    recurring: [],
+    completed_tasks: [],
+    agenda_range: { start: "2026-11-14", end: "2026-12-31" },
+    agenda_tasks: [],
+    deadlines: [],
     ...overrides,
   };
 }

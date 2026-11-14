@@ -21,6 +21,9 @@ import { MetricChart } from "./MetricChart";
 type Sort = "area" | "behind" | "name";
 type Show = "good" | "bad" | "untargeted";
 
+/** The period a metric tile is shown for. */
+export type MetricView = Pick<OverviewRead, "range" | "today" | "period">;
+
 /** Every area-owned metric as a small tile, grouped into one grey panel per area. */
 export function OutcomesCard({ overview }: { overview: OverviewRead }) {
   const [sort, setSort] = useState<Sort>("area");
@@ -34,7 +37,7 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
   const owners = new Set(outcomes.map((o) => o.life_area_id)).size;
   const description =
     outcomes.length === 0
-      ? "No metrics yet"
+      ? undefined
       : `${plural(outcomes.length, "metric")} owned by ${plural(owners, "area")} · ${good} on track or met, ${bad} behind`;
 
   const visible = sortOutcomes(
@@ -81,7 +84,6 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
     if (kind === "group") setGrouped(!grouped);
   };
 
-  const period = overview.period as Period;
   return (
     <SectionCard
       title="Outcomes"
@@ -102,12 +104,7 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
                     <NoMetrics />
                   ) : (
                     own.map((outcome) => (
-                      <MetricTile
-                        key={outcome.metric_id}
-                        outcome={outcome}
-                        overview={overview}
-                        period={period}
-                      />
+                      <MetricTile key={outcome.metric_id} outcome={outcome} view={overview} />
                     ))
                   )}
                 </AreaPanel>
@@ -120,8 +117,7 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
             <MetricTile
               key={outcome.metric_id}
               outcome={outcome}
-              overview={overview}
-              period={period}
+              view={overview}
               area={areas.find((area) => area.id === outcome.life_area_id)}
             />
           ))}
@@ -149,7 +145,7 @@ function AreaPanel({
   const bad = all.filter((o) => outcomeTone(o.status) === "bad").length;
   const summary =
     all.length === 0
-      ? "No metrics"
+      ? ""
       : [plural(all.length, "metric"), good && `${good} on track`, bad && `${bad} behind`]
           .filter(Boolean)
           .join(" · ");
@@ -179,20 +175,18 @@ function NoMetrics() {
   );
 }
 
-function MetricTile({
+export function MetricTile({
   outcome,
-  overview,
-  period,
+  view,
   area,
 }: {
   outcome: OutcomeRead;
-  overview: OverviewRead;
-  period: Period;
+  view: MetricView;
   /** Shown on the tile when tiles aren't grouped by area. */
   area?: LifeAreaRead;
 }) {
   const tone = outcomeTone(outcome.status);
-  const { number, unit, context } = valueLine(outcome, overview);
+  const { number, unit, context } = valueLine(outcome, view);
   return (
     <article
       aria-label={outcome.title}
@@ -219,13 +213,13 @@ function MetricTile({
       </p>
       <MetricChart
         outcome={outcome}
-        range={overview.range}
-        today={overview.today}
-        period={period}
+        range={view.range}
+        today={view.today}
+        period={view.period as Period}
         tone={tone}
       />
       <p className="mt-1 text-[11px] leading-[14px] text-(--text-tertiary)">
-        {summaryLine(outcome, overview)}
+        {summaryLine(outcome, view)}
       </p>
     </article>
   );
@@ -234,7 +228,7 @@ function MetricTile({
 /** The big number, its unit, and what it is measured against. */
 function valueLine(
   outcome: OutcomeRead,
-  overview: OverviewRead,
+  view: MetricView,
 ): { number: string; unit: string; context: string } {
   const { value, unit, target } = outcome;
   const currency = isCurrency(unit);
@@ -267,7 +261,7 @@ function valueLine(
     };
   }
   const point = outcome.points.at(-1);
-  const step = stepName(overview.period as Period);
+  const step = stepName(view.period as Period);
   const context = point?.is_current
     ? `this ${step}${outcome.aggregation === "sum" ? " so far" : ""}`
     : "";
@@ -275,7 +269,7 @@ function valueLine(
 }
 
 /** One line under the chart saying how it's going. */
-function summaryLine(outcome: OutcomeRead, overview: OverviewRead): string {
+function summaryLine(outcome: OutcomeRead, view: MetricView): string {
   const { target, value, unit, direction, status } = outcome;
   const lower = direction === "lower" ? "Lower is better · " : "";
   if (target?.kind === "per_period" && target.period) {
@@ -284,7 +278,7 @@ function summaryLine(outcome: OutcomeRead, overview: OverviewRead): string {
     }
     const current = outcome.points.find((p) => p.is_current);
     if (current) {
-      const left = daysBetween(overview.today, current.end);
+      const left = daysBetween(view.today, current.end);
       return `${lower}${plural(left, "day")} left this ${target.period}`;
     }
     return "No finished periods yet";
@@ -292,7 +286,7 @@ function summaryLine(outcome: OutcomeRead, overview: OverviewRead): string {
   if (target?.kind === "reach_by" && target.end_date) {
     if (status === "met") return "Reached";
     if (status === "missed") return `Missed on ${shortDate(target.end_date)}`;
-    const left = Math.max(daysBetween(overview.today, target.end_date), 0);
+    const left = Math.max(daysBetween(view.today, target.end_date), 0);
     if (outcome.aggregation === "sum" && direction === "higher" && value !== null) {
       const needed = Math.max(target.target_value - value, 0);
       return `Needs ${formatAmount(needed, unit)} more in ${plural(left, "day")}`;
@@ -303,7 +297,7 @@ function summaryLine(outcome: OutcomeRead, overview: OverviewRead): string {
   if (value === null || outcome.previous_value === null || !previous) {
     return direction === "lower" ? "Lower is better" : "No earlier entries";
   }
-  const before = previousName(overview.period as Period, previous.start);
+  const before = previousName(view.period as Period, previous.start);
   const change =
     value === outcome.previous_value
       ? "same as"

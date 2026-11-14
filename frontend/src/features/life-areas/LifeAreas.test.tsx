@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import type { LifeAreaRead } from "../../client/types.gen";
-import { emptyOverview, lifeArea, renderApp } from "../../test-utils";
+import { emptyAreaPage, emptyOverview, lifeArea, renderApp } from "../../test-utils";
 
 type RecordedRequest = { method: string; path: string; body: unknown };
 
@@ -30,6 +30,11 @@ async function fakeApi(request: Request): Promise<Response> {
 
   if (request.method === "GET" && idText === "overview") {
     return json(emptyOverview(areas.filter((area) => area.archived_at === null)));
+  }
+  if (request.method === "GET" && action === "page") {
+    return index === -1
+      ? json({ detail: "Life area not found." }, 404)
+      : json(emptyAreaPage(areas[index]));
   }
   if (request.method === "GET" && idText) {
     return index === -1 ? json({ detail: "Life area not found." }, 404) : json(areas[index]);
@@ -61,7 +66,7 @@ async function fakeApi(request: Request): Promise<Response> {
       ...areas[index],
       archived_at: action === "archive" ? "2026-11-10T01:00:00Z" : null,
     };
-    return json(areas[index]);
+    return json({ life_area: areas[index], batch_id: "batch" });
   }
   if (deleteError) {
     return json({ detail: deleteError }, 409);
@@ -143,7 +148,7 @@ test("edits an area from its page with its current values filled in", async () =
   renderApp("/areas/1");
 
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
-  await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Edit area" }));
   const dialog = await screen.findByRole("dialog");
   const title = within(dialog).getByLabelText("Name");
   expect(title).toHaveValue("Health");
@@ -168,7 +173,10 @@ test("archives an area, then restores it from the archived areas", async () => {
   renderApp("/areas/1");
 
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
-  await user.click(await screen.findByRole("menuitem", { name: "Archive" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Archive area" }));
+  const dialog = await screen.findByRole("alertdialog");
+  expect(dialog).toHaveTextContent("Nothing is deleted.");
+  await user.click(within(dialog).getByRole("button", { name: "Archive area" }));
 
   expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
   await waitFor(() =>
@@ -188,7 +196,7 @@ test("deletes an area after confirmation", async () => {
   renderApp("/areas/1");
 
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
-  await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+  await user.click(await screen.findByRole("menuitem", { name: /^Delete area/ }));
   const dialog = await screen.findByRole("alertdialog");
   expect(writes()).toEqual([]);
   await user.click(within(dialog).getByRole("button", { name: "Delete" }));
@@ -243,7 +251,7 @@ test("with areas but no data yet, each card says what will appear", async () => 
 
   const outcomes = await screen.findByRole("region", { name: "Outcomes" });
   expect(within(outcomes).getByRole("heading", { name: /Career/ })).toBeInTheDocument();
-  expect(within(outcomes).getAllByText("No metrics yet")).toHaveLength(2);
+  expect(within(outcomes).getAllByText("No metrics yet")).toHaveLength(1);
   expect(screen.getByRole("region", { name: "Projects" })).toHaveTextContent("No active projects.");
 });
 
