@@ -1,5 +1,6 @@
 import { CalendarDays, House, type LucideIcon, Settings, Shapes, SquareKanban } from "lucide-react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useLocation } from "react-router";
+import { useSidebarShortcut, useSidebarVisibility } from "./Sidebar";
 
 type RailGroup = { label: string; icon: LucideIcon; to?: string };
 
@@ -14,8 +15,9 @@ const SETTINGS: RailGroup = { label: "Settings", icon: Settings };
 
 /** The icon rail. Each group renders its own sidebar and page inside the outlet. */
 export function AppLayout() {
+  useSidebarShortcut();
   return (
-    <div className="flex h-screen min-w-[1280px]">
+    <div className="relative flex h-screen min-w-[1024px]">
       <nav aria-label="Main" className="flex w-(--rail-width) shrink-0 px-1 py-2">
         <div className="flex flex-1 flex-col items-center gap-1 rounded-(--rail-radius) bg-(--rail-bg) py-1.5">
           <div
@@ -40,6 +42,9 @@ const RAIL_ITEM =
   "grid size-8 place-items-center rounded-full text-(--rail-icon) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
 
 function RailItem({ group }: { group: RailGroup }) {
+  const location = useLocation();
+  const sidebar = useSidebarVisibility();
+  const isOpenGroup = group.to !== undefined && location.pathname.startsWith(group.to);
   const Icon = group.icon;
   const icon = <Icon aria-hidden className="size-(--rail-icon-size)" strokeWidth={2} />;
   return group.to ? (
@@ -47,6 +52,13 @@ function RailItem({ group }: { group: RailGroup }) {
       to={group.to}
       aria-label={group.label}
       title={group.label}
+      onClick={(event) => {
+        // The open group's icon brings back its hidden sidebar instead of leaving the page.
+        if (isOpenGroup && sidebar.isHidden) {
+          event.preventDefault();
+          sidebar.show();
+        }
+      }}
       className={({ isActive }) =>
         `${RAIL_ITEM} ${
           isActive

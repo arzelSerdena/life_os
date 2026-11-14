@@ -5,6 +5,7 @@ import { NavLink, Outlet, useNavigate, useOutletContext } from "react-router";
 import { listLifeAreasOptions } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
+import { Sidebar } from "../../components/Sidebar";
 import type { LifeAreaPrefill } from "./form";
 import { LifeAreaFormModal } from "./LifeAreaFormModal";
 import { areaDataAttribute, nextFreePalette } from "./palette";
@@ -36,10 +37,7 @@ export function AreasLayout() {
 
   return (
     <>
-      <aside
-        aria-label="Areas"
-        className="flex w-(--sidebar-width) shrink-0 flex-col border-r border-(--border-default) bg-(--bg-surface) px-(--sidebar-gutter-x) py-(--sidebar-gutter-y)"
-      >
+      <Sidebar label="Areas">
         <div className="mb-0.5 flex h-8 items-center gap-2 rounded-(--radius-6) pr-1 has-[a:hover]:bg-(--bg-hover) has-[a[aria-current=page]]:bg-(--bg-hover) has-[a[aria-current=page]]:shadow-[inset_2px_0_0_var(--color-brand-600)]">
           <NavLink
             to="/areas"
@@ -80,7 +78,7 @@ export function AreasLayout() {
           <Archive aria-hidden className="size-4 shrink-0" strokeWidth={2} />
           Archived areas
         </SidebarLink>
-      </aside>
+      </Sidebar>
 
       <main className="flex min-w-0 flex-1 flex-col">
         <Outlet context={context} />
