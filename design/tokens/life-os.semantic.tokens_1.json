@@ -1,0 +1,212 @@
+{
+  "Semantic": {
+    "text": {
+      "primary": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.900}",
+        "$description": "Titles and main text"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.600}",
+        "$description": "Body, subtasks, sidebar items"
+      },
+      "tertiary": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.500}",
+        "$description": "Metadata; lightest color allowed for readable text"
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.400}",
+        "$description": "Completed / cancelled items only"
+      },
+      "on-accent": {
+        "$type": "color",
+        "$value": "{Primitives.color.white}",
+        "$description": "Text on accent fills"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{Primitives.color.negative.600}",
+        "$description": "Overdue dates, destructive actions"
+      }
+    },
+    "bg": {
+      "app": {
+        "$type": "color",
+        "$value": "{Primitives.color.white}",
+        "$description": "Main frame"
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "{Primitives.color.white}",
+        "$description": "Cards, panels, sidebar"
+      },
+      "hover": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.100}",
+        "$description": "Hover on white surfaces"
+      },
+      "pressed": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.200}",
+        "$description": "Pressed / hover on grey"
+      }
+    },
+    "border": {
+      "default": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.200}",
+        "$description": "Card and panel borders, dividers"
+      },
+      "strong": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.300}",
+        "$description": "Hovered card border"
+      }
+    },
+    "accent": {
+      "solid": {
+        "$type": "color",
+        "$value": "{Primitives.color.brand.500}",
+        "$description": "Rail icons, selected markers, active states"
+      },
+      "soft": {
+        "$type": "color",
+        "$value": "{Primitives.color.brand.200}",
+        "$description": "Rail background"
+      },
+      "subtle": {
+        "$type": "color",
+        "$value": "{Primitives.color.brand.100}",
+        "$description": "Selected tag background"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{Primitives.color.brand.800}",
+        "$description": "Accent text and the active rail icon"
+      }
+    },
+    "focus": {
+      "ring": {
+        "$type": "color",
+        "$value": "{Primitives.color.brand.600}",
+        "$description": "2px focus ring"
+      }
+    },
+    "priority": {
+      "high": {
+        "$type": "color",
+        "$value": "{Primitives.color.negative.500}",
+        "$description": "High priority (Do first): flag and column dot"
+      },
+      "medium": {
+        "$type": "color",
+        "$value": "{Primitives.color.warning.500}",
+        "$description": "Medium priority (Schedule): flag and column dot"
+      },
+      "none": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.400}",
+        "$description": "No priority (Eliminate): column dot; no flag on cards"
+      },
+      "low": {
+        "$type": "color",
+        "$value": "{Semantic.accent.solid}",
+        "$description": "Low priority (Delegate): column dot; no flag on cards"
+      }
+    },
+    "area": {
+      "solid": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.500}",
+        "$description": "STAND-IN for the item's area color (code: area 500). Dots, checkboxes, progress fill, event icon"
+      },
+      "tint-active": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.100}",
+        "$description": "STAND-IN (code: area 100). Upcoming event background, area pill, progress track"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.900}",
+        "$description": "STAND-IN (code: area 900). Area-colored text on white"
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.950}",
+        "$description": "STAND-IN (code: area 950). Text on an area tint"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.300}",
+        "$description": "STAND-IN (code: area 300). Area-colored borders"
+      },
+      "done": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.200}",
+        "$description": "STAND-IN (code: area 200). Checked checkbox fill"
+      },
+      "tint-past": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.50}",
+        "$description": "STAND-IN (code: area 50). Past event background"
+      }
+    },
+    "icon": {
+      "tertiary": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.500}",
+        "$description": "Metadata icons on cards"
+      },
+      "white": {
+        "$type": "color",
+        "$value": "{Primitives.color.white}",
+        "$description": "Icons on solid fills"
+      },
+      "primary": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.700}",
+        "$description": "Default UI icons"
+      }
+    },
+    "neutral": {
+      "solid": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.500}",
+        "$description": "No-area items: dots, checkboxes, progress fill (neutral 500)"
+      },
+      "done": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.200}",
+        "$description": "No-area items: checked checkbox fill (neutral 200)"
+      },
+      "tint-active": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.100}",
+        "$description": "No-area items: upcoming event background, pill (neutral 100)"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.900}",
+        "$description": "No-area items: text on white (neutral 900)"
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.950}",
+        "$description": "No-area items: text on a neutral tint (neutral 950)"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.300}",
+        "$description": "No-area items: borders (neutral 300)"
+      },
+      "tint-past": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.50}",
+        "$description": "No-area items: past event background (neutral 50)"
+      }
+    }
+  }
+}

@@ -40,6 +40,8 @@ Run these from `frontend/`:
 - `docs/schema.sql` is the settled schema. It is the reference for writing the models in Phase 1. After that, **SQLAlchemy models are the source of truth**, and every model change needs an Alembic migration.
 - `docs/DOMAIN.md` holds the business rules and a list of open questions. Check those before implementing the behavior they cover.
 - `docs/LOG.md` records what was done and what's next. Planned but not written yet: `docs/FEEDBACK.md`.
+- `design/STYLE_GUIDE.md` holds the UI rules. Later dated sections override earlier ones.
+- `design/html_mockups/` holds the approved screen mock-ups. Build screens to match them.
 
 ## Stack constraints that are easy to get wrong
 
