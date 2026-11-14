@@ -1,16 +1,6 @@
 import { z } from "zod";
 import type { LifeAreaCreate, LifeAreaRead } from "../../client/types.gen";
-
-export const COLORS = [
-  "#F43F5E",
-  "#F97316",
-  "#EAB308",
-  "#10B981",
-  "#06B6D4",
-  "#3B82F6",
-  "#8B5CF6",
-  "#D946EF",
-];
+import { type AreaPaletteKey, isPaletteKey } from "./palette";
 
 // These limits mirror the API's, so mistakes show up beside the field.
 export const lifeAreaFormSchema = z.object({
@@ -22,19 +12,20 @@ export const lifeAreaFormSchema = z.object({
 
 export type LifeAreaFormValues = z.infer<typeof lifeAreaFormSchema>;
 
-export function initialFormValues(lifeArea: LifeAreaRead | null): LifeAreaFormValues {
+/**
+ * @param defaultColor used for a new area, and for an area whose color isn't a known
+ *   palette (colors saved before the palettes existed).
+ */
+export function initialFormValues(
+  lifeArea: LifeAreaRead | null,
+  defaultColor: AreaPaletteKey,
+): LifeAreaFormValues {
   return {
     title: lifeArea?.title ?? "",
     vision: lifeArea?.vision ?? "",
     notes: lifeArea?.notes ?? "",
-    color: knownColor(lifeArea?.color),
+    color: isPaletteKey(lifeArea?.color) ? lifeArea.color : defaultColor,
   };
-}
-
-/** The swatch picker can only show colors from its palette. */
-function knownColor(color: string | null | undefined): string {
-  const upperCaseColor = color?.toUpperCase();
-  return COLORS.find((known) => known === upperCaseColor) ?? COLORS[0];
 }
 
 export function toApiBody(values: LifeAreaFormValues): LifeAreaCreate {

@@ -7,9 +7,10 @@ import { errorMessage } from "../../errors";
 type DeleteLifeAreaDialogProps = {
   lifeArea: LifeAreaRead;
   onClose: () => void;
+  onDeleted?: () => void;
 };
 
-export function DeleteLifeAreaDialog({ lifeArea, onClose }: DeleteLifeAreaDialogProps) {
+export function DeleteLifeAreaDialog({ lifeArea, onClose, onDeleted }: DeleteLifeAreaDialogProps) {
   const remove = useMutation(deleteLifeAreaMutation());
 
   return (
@@ -39,7 +40,15 @@ export function DeleteLifeAreaDialog({ lifeArea, onClose }: DeleteLifeAreaDialog
               variant="danger"
               isPending={remove.isPending}
               onPress={() =>
-                remove.mutate({ path: { life_area_id: lifeArea.id } }, { onSuccess: onClose })
+                remove.mutate(
+                  { path: { life_area_id: lifeArea.id } },
+                  {
+                    onSuccess: () => {
+                      onClose();
+                      onDeleted?.();
+                    },
+                  },
+                )
               }
             >
               Delete

@@ -1,0 +1,100 @@
+/*
+ * Maps HeroUI v3 theme variables onto Life OS tokens, so HeroUI components
+ * (buttons, popovers, fields, chips…) look like the rest of the app.
+ * Hand-written. Import AFTER @heroui/styles and tokens.css.
+ * Light theme only for now; a dark theme would add a [data-theme="dark"] block.
+ *
+ * Note: HeroUI also defines --accent-soft. tokens.css sets it to brand-200 (the
+ * rail background), so HeroUI's "soft" accent variants use the same lavender.
+ */
+:root {
+  /* Base */
+  --background: var(--bg-app);
+  --foreground: var(--text-primary);
+  --muted: var(--text-tertiary);
+
+  /* Surfaces: cards are defined by a 1px border, not a shadow */
+  --surface: var(--bg-surface);
+  --surface-foreground: var(--text-primary);
+  --surface-secondary: var(--color-neutral-100);
+  --surface-tertiary: var(--color-neutral-200);
+  --surface-shadow: none;
+
+  /* Floating things (popovers, menus, modals, the detail panel) */
+  --overlay: var(--bg-surface);
+  --overlay-foreground: var(--text-primary);
+  --overlay-shadow: var(--effect-overlay);
+
+  /* Neutral buttons and chips */
+  --default: var(--color-neutral-100);
+  --default-foreground: var(--text-primary);
+
+  /* Accent = brand purple (filled buttons use 700 so white text stays readable) */
+  --accent: var(--color-brand-700);
+  --accent-foreground: var(--text-on-accent);
+  --focus: var(--focus-ring);
+
+  /* Status */
+  --success: var(--color-positive-600);
+  --success-foreground: var(--color-white);
+  --warning: var(--color-warning-600);
+  --warning-foreground: var(--color-white);
+  --danger: var(--color-negative-600);
+  --danger-foreground: var(--color-white);
+
+  /* Lines */
+  --border: var(--border-default);
+  --separator: var(--border-default);
+
+  /* Form fields: white with a 1px border, control radius (Proposed — confirm in PR) */
+  --field-background: var(--bg-surface);
+  --field-foreground: var(--text-primary);
+  --field-placeholder: var(--text-tertiary);
+  --field-border: var(--border-default);
+  --field-border-width: 1px;
+  --field-radius: var(--radius-6);
+
+  /* HeroUI's radius scale is based on --radius (lg = 8px, matches card radius) */
+  --radius: var(--radius-8);
+}
+
+/* App-wide base: compact body text, hidden scrollbars (Decided) */
+@layer base {
+  /* font-size goes on body, not html: html stays 16px so rem-based Tailwind/HeroUI sizes are unchanged */
+  body {
+    background: var(--bg-app);
+    color: var(--text-primary);
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-13);
+    line-height: var(--font-line-height-18);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Compact buttons (Decided): 28 px tall, 12 px side padding, control radius, 12 px text.
+   Same layer as HeroUI's own, and imported after it, so Tailwind utilities still win. */
+@layer components {
+  .button,
+  .button--sm,
+  .button--md {
+    height: var(--button-height);
+    padding-inline: var(--button-pad-x);
+    border-radius: var(--button-radius);
+    gap: var(--space-6);
+    font-size: var(--font-size-12);
+    line-height: var(--font-line-height-16);
+  }
+
+  .button svg {
+    width: 16px;
+    height: 16px;
+  }
+}

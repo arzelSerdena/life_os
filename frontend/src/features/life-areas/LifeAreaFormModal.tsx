@@ -18,24 +18,28 @@ import {
 } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead } from "../../client/types.gen";
 import { errorMessage } from "../../errors";
-import {
-  COLORS,
-  initialFormValues,
-  type LifeAreaFormValues,
-  lifeAreaFormSchema,
-  toApiBody,
-} from "./form";
+import { initialFormValues, type LifeAreaFormValues, lifeAreaFormSchema, toApiBody } from "./form";
+import { AREA_PALETTES, type AreaPaletteKey } from "./palette";
 
 type LifeAreaFormModalProps = {
   /** The life area to edit, or null to create a new one. */
   lifeArea: LifeAreaRead | null;
+  /** The color a new area starts with. */
+  defaultColor: AreaPaletteKey;
   onClose: () => void;
+  /** Called with the saved area, after the modal closes. */
+  onSaved?: (lifeArea: LifeAreaRead) => void;
 };
 
-export function LifeAreaFormModal({ lifeArea, onClose }: LifeAreaFormModalProps) {
+export function LifeAreaFormModal({
+  lifeArea,
+  defaultColor,
+  onClose,
+  onSaved,
+}: LifeAreaFormModalProps) {
   const { control, handleSubmit } = useForm<LifeAreaFormValues>({
     resolver: zodResolver(lifeAreaFormSchema),
-    defaultValues: initialFormValues(lifeArea),
+    defaultValues: initialFormValues(lifeArea, defaultColor),
   });
   const create = useMutation(createLifeAreaMutation());
   const update = useMutation(updateLifeAreaMutation());
@@ -43,10 +47,14 @@ export function LifeAreaFormModal({ lifeArea, onClose }: LifeAreaFormModalProps)
 
   const onSubmit = handleSubmit((values) => {
     const body = toApiBody(values);
+    const onSuccess = (saved: LifeAreaRead) => {
+      onClose();
+      onSaved?.(saved);
+    };
     if (lifeArea) {
-      update.mutate({ path: { life_area_id: lifeArea.id }, body }, { onSuccess: onClose });
+      update.mutate({ path: { life_area_id: lifeArea.id }, body }, { onSuccess });
     } else {
-      create.mutate({ body }, { onSuccess: onClose });
+      create.mutate({ body }, { onSuccess });
     }
   });
 
@@ -56,7 +64,7 @@ export function LifeAreaFormModal({ lifeArea, onClose }: LifeAreaFormModalProps)
         <Modal.Dialog className="sm:max-w-lg">
           <Modal.CloseTrigger />
           <Modal.Header>
-            <Modal.Heading>{lifeArea ? "Edit life area" : "New life area"}</Modal.Heading>
+            <Modal.Heading>{lifeArea ? "Edit area" : "New area"}</Modal.Heading>
           </Modal.Header>
           <form noValidate onSubmit={onSubmit}>
             <Modal.Body className="mt-2 flex flex-col gap-4 p-1">
@@ -71,11 +79,15 @@ export function LifeAreaFormModal({ lifeArea, onClose }: LifeAreaFormModalProps)
                     <span className="text-sm font-medium text-foreground">Color</span>
                     <ColorSwatchPicker
                       aria-label="Color"
-                      value={field.value}
-                      onChange={(color) => field.onChange(color.toString("hex"))}
+                      value={swatchFor(field.value)}
+                      onChange={(color) => field.onChange(paletteFor(color.toString("hex")))}
                     >
-                      {COLORS.map((color) => (
-                        <ColorSwatchPicker.Item key={color} color={color}>
+                      {AREA_PALETTES.map((palette) => (
+                        <ColorSwatchPicker.Item
+                          key={palette.key}
+                          color={palette.swatch}
+                          aria-label={palette.name}
+                        >
                           <ColorSwatchPicker.Swatch />
                           <ColorSwatchPicker.Indicator />
                         </ColorSwatchPicker.Item>
@@ -98,7 +110,7 @@ export function LifeAreaFormModal({ lifeArea, onClose }: LifeAreaFormModalProps)
                 Cancel
               </Button>
               <Button type="submit" isPending={activeMutation.isPending}>
-                {lifeArea ? "Save changes" : "Create life area"}
+                {lifeArea ? "Save changes" : "Create area"}
               </Button>
             </Modal.Footer>
           </form>
@@ -141,4 +153,13 @@ function FormTextField({ control, name, label, multiline, autoFocus }: FormTextF
       )}
     />
   );
+}
+
+function swatchFor(key: string): string {
+  return AREA_PALETTES.find((palette) => palette.key === key)?.swatch ?? AREA_PALETTES[0].swatch;
+}
+
+function paletteFor(hex: string): AreaPaletteKey {
+  const swatch = hex.toLowerCase();
+  return (AREA_PALETTES.find((palette) => palette.swatch === swatch) ?? AREA_PALETTES[0]).key;
 }

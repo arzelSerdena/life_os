@@ -12,16 +12,18 @@ beforeEach(() => {
   );
 });
 
-test.each(["/", "/not-a-page"])("%s opens the life areas page", async (path) => {
+test.each(["/", "/not-a-page"])("%s opens the life areas overview", async (path) => {
   renderApp(path);
 
   expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
 });
 
-test("the sidebar marks the current page", async () => {
+test("the rail and the sidebar mark the current page", async () => {
   renderApp();
 
-  const link = await screen.findByRole("link", { name: "Life areas" });
-
-  expect(link).toHaveAttribute("aria-current", "page");
+  expect(await screen.findByRole("link", { name: "Areas" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  expect(screen.getByRole("link", { name: "Life areas" })).toHaveAttribute("aria-current", "page");
 });

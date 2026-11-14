@@ -1,0 +1,222 @@
+#!/usr/bin/env node
+/**
+ * Builds src/styles/tokens.css from the design token files in ../design/tokens/.
+ *
+ *   node scripts/build-tokens.mjs           write tokens.css
+ *   node scripts/build-tokens.mjs --check   exit 1 if tokens.css is out of date (for CI)
+ *
+ * Inputs (DTCG JSON, exported from / imported into the Figma file "Life OS App"):
+ *   life-os.tokens.json         Primitives / Semantic / Component variables
+ *   life-os.styles.tokens.json  text styles and effect styles
+ *
+ * Life area ramps are Primitives/color/area/<palette>. Semantic/area points at one palette
+ * as a stand-in; only its steps are used here, to build a [data-area] block per palette.
+ * Semantic/neutral holds the same roles for items with no area, and is the :root default.
+ *
+ * Naming: every variable is its token path joined with "-", without the collection,
+ * which is exactly the WEB code syntax set in Figma (e.g. Semantic/text/primary -> --text-primary).
+ */
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const tokensDir = resolve(here, "../../design/tokens");
+const outFile = resolve(here, "../src/styles/tokens.css");
+
+const readJson = (name) => JSON.parse(readFileSync(resolve(tokensDir, name), "utf8"));
+const tokens = readJson("life-os.tokens.json");
+const styles = readJson("life-os.styles.tokens.json").Styles;
+
+// ---------------------------------------------------------------- helpers
+
+/** Flatten a DTCG group into [{ path, type, value, description }]. */
+function flatten(group, path = []) {
+  const out = [];
+  for (const [key, node] of Object.entries(group)) {
+    if (key.startsWith("$")) continue;
+    if (node && typeof node === "object" && "$value" in node) {
+      out.push({
+        path: [...path, key],
+        type: node.$type,
+        value: node.$value,
+        description: node.$description,
+      });
+    } else if (node && typeof node === "object") {
+      out.push(...flatten(node, [...path, key]));
+    }
+  }
+  return out;
+}
+
+const varName = (path) => `--${path.join("-")}`;
+
+/** "{Primitives.color.neutral.900}" -> "var(--color-neutral-900)" (collection name dropped). */
+const resolveRefs = (value) =>
+  String(value).replace(/\{([^}]+)\}/g, (_, ref) => `var(${varName(ref.split(".").slice(1))})`);
+
+/** Bundled font: @fontsource-variable/inter registers the family "Inter Variable". */
+function fontFamily(value) {
+  const list = Array.isArray(value) ? value : [value];
+  const families = list.flatMap((f) => (f === "Inter" ? ["Inter Variable", "Inter"] : [f]));
+  return [...families, "system-ui", "sans-serif"]
+    .map((f) => (/\s/.test(f) ? `"${f}"` : f))
+    .join(", ");
+}
+
+function formatValue(token) {
+  if (token.type === "fontFamily") return fontFamily(token.value);
+  return resolveRefs(token.value);
+}
+
+function formatShadow(value) {
+  const layers = Array.isArray(value) ? value : [value];
+  return layers
+    .map(
+      (l) =>
+        `${l.inset ? "inset " : ""}${l.offsetX} ${l.offsetY} ${l.blur} ${l.spread} ${resolveRefs(l.color)}`,
+    )
+    .join(", ");
+}
+
+const decl = (name, value, note) => `  ${name}: ${value};${note ? ` /* ${note} */` : ""}`;
+
+// ---------------------------------------------------------------- collect
+
+const primitives = flatten(tokens.Primitives);
+const semantic = flatten(tokens.Semantic);
+const component = flatten(tokens.Component);
+
+const isAreaRole = (t) => t.path[0] === "area";
+const semanticBase = semantic.filter((t) => !isAreaRole(t));
+const areaRoleNames = semantic.filter(isAreaRole).map((t) => varName(t.path));
+
+// Tokens whose value (directly or through other tokens) depends on --area-*.
+// CSS resolves var() where a custom property is declared, so these must be
+// re-declared on every [data-area] element or they would keep the :root color.
+const byName = new Map([...semantic, ...component].map((t) => [varName(t.path), formatValue(t)]));
+function dependsOnArea(name, seen = new Set()) {
+  if (areaRoleNames.includes(name)) return true;
+  if (seen.has(name)) return false;
+  seen.add(name);
+  const value = byName.get(name) ?? "";
+  return [...value.matchAll(/var\((--[a-z0-9-]+)\)/g)].some(([, ref]) => dependsOnArea(ref, seen));
+}
+const areaDependent = [...semanticBase, ...component].filter((t) => dependsOnArea(varName(t.path)));
+
+/** "{Primitives.color.area.blue.500}" -> "500" */
+const refStep = (value) => String(value).replace(/[{}]/g, "").split(".").at(-1);
+// [role, step] pairs, e.g. ["solid", "500"]
+const roles = semantic.filter(isAreaRole).map((t) => [t.path.slice(1).join("-"), refStep(t.value)]);
+const noneRoles = roles.map(([role]) => [role, `var(--neutral-${role})`]);
+const palettes = Object.keys(tokens.Primitives.color.area);
+
+// ---------------------------------------------------------------- emit
+
+const lines = [];
+const push = (...l) => lines.push(...l);
+
+push(
+  "/*",
+  " * Life OS design tokens. GENERATED by frontend/scripts/build-tokens.mjs. Do not edit by hand:",
+  " * change design/tokens/*.json and run `pnpm tokens`.",
+  " *",
+  ' * Variable names match the WEB code syntax of the Figma file "Life OS App".',
+  " * Use them in Tailwind with the var shorthand: bg-(--card-bg) p-(--card-pad-x) text-(--text-secondary).",
+  " * Primitive colors also get normal utilities: bg-neutral-100, text-brand-700, border-negative-600.",
+  " */",
+  "",
+  "/* ── Primitives in Tailwind's theme (area ramps give bg-area-blue-100, text-area-teal-700…) ── */",
+  "/* Only colors, radii and font weights go in @theme: they add utilities without changing",
+  "   Tailwind's own. Other primitives (--size-4 = 4px…) would hijack classes like size-4 (16px),",
+  "   so they live in :root below. `static` makes Tailwind emit every variable, used or not. */",
+  "@theme static {",
+);
+const inTheme = (t) =>
+  ["color", "radius"].includes(t.path[0]) || (t.path[0] === "font" && t.path[1] === "weight");
+for (const t of primitives.filter(inTheme))
+  push(decl(varName(t.path), formatValue(t), t.description));
+push(
+  "",
+  "  /* Tailwind's font-sans (and HeroUI) use the Life OS family. */",
+  decl("--font-sans", "var(--font-family-sans)"),
+  "}",
+  "",
+);
+
+push(
+  "/* ── Primitives outside Tailwind's theme ──────────────────────────────────── */",
+  ":root {",
+);
+for (const t of primitives.filter((t) => !inTheme(t)))
+  push(decl(varName(t.path), formatValue(t), t.description));
+push("}", "");
+
+push(
+  "/* ── Semantic + Component ─────────────────────────────────────────────────── */",
+  ":root {",
+);
+for (const t of semanticBase) push(decl(varName(t.path), formatValue(t), t.description));
+push(
+  "",
+  "  /* Area roles. Default = no area (neutral). Figma points these at one palette as a stand-in. */",
+);
+for (const [role, value] of noneRoles) push(decl(`--area-${role}`, value));
+push("");
+for (const t of component) push(decl(varName(t.path), formatValue(t)));
+push("", "  /* Effect styles (Figma: Life OS/…). Use with shadow-(--effect-overlay). */");
+for (const [name, t] of Object.entries(styles.effect))
+  push(decl(`--effect-${name}`, formatShadow(t.$value)));
+push("}", "");
+
+push(
+  "/* ── Life areas ───────────────────────────────────────────────────────────── */",
+  '/* Set data-area="<palette key>" (the life area\'s `color` value) on a card, column or panel.',
+  '   data-area="none" resets to neutral inside an area (Inbox, Others). */',
+  '[data-area="none"] {',
+);
+for (const [role, value] of noneRoles) push(decl(`--area-${role}`, value));
+push("}");
+for (const hue of palettes) {
+  push(`[data-area="${hue}"] {`);
+  for (const [role, step] of roles)
+    push(decl(`--area-${role}`, `var(--color-area-${hue}-${step})`));
+  push("}");
+}
+push(
+  "",
+  "/* Re-declared so they pick up the nearest data-area, not the :root value. */",
+  "[data-area] {",
+);
+for (const t of areaDependent) push(decl(varName(t.path), formatValue(t)));
+push("}", "");
+
+push("/* ── Text styles (Figma: Life OS/…) ───────────────────────────────────────── */");
+for (const [name, t] of Object.entries(styles.text)) {
+  const v = t.$value;
+  push(`@utility type-${name} {`);
+  push(decl("font-family", resolveRefs(v.fontFamily)));
+  push(decl("font-size", resolveRefs(v.fontSize)));
+  push(decl("line-height", resolveRefs(v.lineHeight)));
+  push(decl("font-weight", resolveRefs(v.fontWeight)));
+  if (v.letterSpacing) push(decl("letter-spacing", resolveRefs(v.letterSpacing)));
+  if (v.textCase === "uppercase") push(decl("text-transform", "uppercase"));
+  push("}");
+}
+
+const css = `${lines.join("\n")}\n`;
+
+if (process.argv.includes("--check")) {
+  const current = existsSync(outFile) ? readFileSync(outFile, "utf8") : "";
+  if (current !== css) {
+    console.error("tokens.css is out of date. Run `pnpm tokens`.");
+    process.exit(1);
+  }
+  console.log("tokens.css is up to date.");
+} else {
+  writeFileSync(outFile, css);
+  const count = primitives.length + semantic.length + component.length;
+  console.log(
+    `Wrote ${outFile} (${count} variables, ${palettes.length} area palettes, ${areaDependent.length} area-dependent tokens).`,
+  );
+}

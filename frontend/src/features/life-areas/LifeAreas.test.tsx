@@ -28,6 +28,9 @@ async function fakeApi(request: Request): Promise<Response> {
   const id = Number(idText);
   const index = areas.findIndex((area) => area.id === id);
 
+  if (request.method === "GET" && idText) {
+    return index === -1 ? json({ detail: "Life area not found." }, 404) : json(areas[index]);
+  }
   if (request.method === "GET") {
     if (listFailures > 0) {
       listFailures -= 1;
@@ -63,6 +66,10 @@ function writes(): RecordedRequest[] {
   return requests.filter((request) => request.method !== "GET");
 }
 
+function sidebarAreas() {
+  return within(screen.getByRole("navigation", { name: "Life areas" }));
+}
+
 beforeEach(() => {
   areas = [];
   requests = [];
@@ -71,23 +78,39 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(fakeApi));
 });
 
-test("creates a life area from the form", async () => {
+test("lists the active areas in the sidebar", async () => {
+  areas = [
+    lifeArea({ id: 1, title: "Career" }),
+    lifeArea({ id: 2, title: "Old hobby", archived_at: "2026-11-10T01:00:00Z" }),
+  ];
+  renderApp();
+
+  expect(await sidebarAreas().findByRole("link", { name: "Career" })).toHaveAttribute(
+    "href",
+    "/areas/1",
+  );
+  expect(sidebarAreas().queryByRole("link", { name: "Old hobby" })).not.toBeInTheDocument();
+});
+
+test("creates an area with the first free color, then opens its page", async () => {
+  areas = [lifeArea({ id: 1, title: "Career", color: "blue" })];
   const user = userEvent.setup();
   renderApp();
 
-  await user.click(await screen.findByRole("button", { name: "Create a life area" }));
+  await user.click(await screen.findByRole("button", { name: "New area" }));
   const dialog = await screen.findByRole("dialog");
   await user.type(within(dialog).getByLabelText("Title"), "  Health  ");
   await user.type(within(dialog).getByLabelText("Vision"), "Feel strong");
-  await user.click(within(dialog).getByRole("button", { name: "Create life area" }));
+  await user.click(within(dialog).getByRole("button", { name: "Create area" }));
 
-  expect(await screen.findByText("Feel strong")).toBeInTheDocument();
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(await screen.findByRole("heading", { name: "Health" })).toBeInTheDocument();
+  expect(screen.getByText("Feel strong")).toBeInTheDocument();
+  expect(await sidebarAreas().findByRole("link", { name: "Health" })).toBeInTheDocument();
   expect(writes()).toEqual([
     {
       method: "POST",
       path: "/api/life-areas",
-      body: { title: "Health", vision: "Feel strong", notes: null, color: "#F43F5E" },
+      body: { title: "Health", vision: "Feel strong", notes: null, color: "teal" },
     },
   ]);
 });
@@ -96,20 +119,21 @@ test("asks for a title before saving", async () => {
   const user = userEvent.setup();
   renderApp();
 
-  await user.click(await screen.findByRole("button", { name: "New life area" }));
+  await user.click(await screen.findByRole("button", { name: "Create a life area" }));
   const dialog = await screen.findByRole("dialog");
-  await user.click(within(dialog).getByRole("button", { name: "Create life area" }));
+  await user.click(within(dialog).getByRole("button", { name: "Create area" }));
 
   expect(await within(dialog).findByText("Enter a title.")).toBeInTheDocument();
   expect(writes()).toEqual([]);
 });
 
-test("edits a life area with its current values filled in", async () => {
+test("edits an area from its page with its current values filled in", async () => {
   areas = [lifeArea({ title: "Health", vision: "Feel strong" })];
   const user = userEvent.setup();
-  renderApp();
+  renderApp("/areas/1");
 
-  await user.click(await screen.findByRole("button", { name: "Edit Health" }));
+  await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
   const dialog = await screen.findByRole("dialog");
   const title = within(dialog).getByLabelText("Title");
   expect(title).toHaveValue("Health");
@@ -119,53 +143,56 @@ test("edits a life area with its current values filled in", async () => {
   await user.type(title, "Fitness");
   await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
 
-  expect(await screen.findByText("Fitness")).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Fitness" })).toBeInTheDocument();
   expect(writes()[0]).toMatchObject({
     method: "PATCH",
     path: "/api/life-areas/1",
-    body: { title: "Fitness", vision: "Feel strong" },
+    body: { title: "Fitness", vision: "Feel strong", color: "teal" },
   });
 });
 
-test("archives a life area, then restores it from the archived view", async () => {
+test("archives an area, then restores it from the archived areas", async () => {
   areas = [lifeArea()];
   const user = userEvent.setup();
-  renderApp();
+  renderApp("/areas/1");
 
-  await user.click(await screen.findByRole("button", { name: "Archive Health" }));
+  await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Archive" }));
 
-  expect(await screen.findByText("No active life areas.")).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
+  await waitFor(() =>
+    expect(sidebarAreas().queryByRole("link", { name: "Health" })).not.toBeInTheDocument(),
+  );
 
-  await user.click(screen.getByRole("switch", { name: "Show archived" }));
-  expect(await screen.findByText("Archived")).toBeInTheDocument();
+  await user.click(screen.getByRole("link", { name: "Archived areas" }));
+  await user.click(await screen.findByRole("button", { name: "Restore" }));
 
-  await user.click(screen.getByRole("button", { name: "Restore Health" }));
-
-  await waitFor(() => expect(screen.queryByText("Archived")).not.toBeInTheDocument());
-  expect(screen.getByRole("button", { name: "Archive Health" })).toBeInTheDocument();
+  expect(await screen.findByText("No archived areas.")).toBeInTheDocument();
+  expect(await sidebarAreas().findByRole("link", { name: "Health" })).toBeInTheDocument();
 });
 
-test("deletes a life area after confirmation", async () => {
+test("deletes an area after confirmation", async () => {
   areas = [lifeArea()];
   const user = userEvent.setup();
-  renderApp();
+  renderApp("/areas/1");
 
-  await user.click(await screen.findByRole("button", { name: "Delete Health" }));
+  await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog");
   expect(writes()).toEqual([]);
   await user.click(within(dialog).getByRole("button", { name: "Delete" }));
 
-  expect(await screen.findByText("No active life areas.")).toBeInTheDocument();
+  expect(await screen.findByText("No life areas yet.")).toBeInTheDocument();
   expect(writes()).toEqual([{ method: "DELETE", path: "/api/life-areas/1", body: undefined }]);
 });
 
-test("explains why a delete was refused and keeps the life area", async () => {
-  areas = [lifeArea()];
+test("explains why a delete was refused and keeps the area", async () => {
+  areas = [lifeArea({ archived_at: "2026-11-10T01:00:00Z" })];
   deleteError = "Life area 1 still has items in it. Archive it instead.";
   const user = userEvent.setup();
-  renderApp();
+  renderApp("/areas/archived");
 
-  await user.click(await screen.findByRole("button", { name: "Delete Health" }));
+  await user.click(await screen.findByRole("button", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog");
   await user.click(within(dialog).getByRole("button", { name: "Delete" }));
 
@@ -173,8 +200,7 @@ test("explains why a delete was refused and keeps the life area", async () => {
   expect(areas).toHaveLength(1);
 });
 
-test("shows an error when the list can't load, and can try again", async () => {
-  areas = [lifeArea()];
+test("shows an error when the areas can't load, and can try again", async () => {
   listFailures = 1;
   const user = userEvent.setup();
   renderApp();
@@ -183,5 +209,17 @@ test("shows an error when the list can't load, and can try again", async () => {
 
   await user.click(screen.getByRole("button", { name: "Try again" }));
 
-  expect(await screen.findByRole("button", { name: "Edit Health" })).toBeInTheDocument();
+  expect(await screen.findByText("No life areas yet.")).toBeInTheDocument();
+});
+
+test("the period switch steps through periods", async () => {
+  const user = userEvent.setup();
+  renderApp();
+
+  await user.click(await screen.findByRole("radio", { name: "Year" }));
+  const label = String(new Date().getFullYear());
+  expect(screen.getByText(label)).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "Next period" }));
+  expect(screen.getByText(String(Number(label) + 1))).toBeInTheDocument();
 });

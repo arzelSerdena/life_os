@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!src/client"]
+    "includes": ["**", "!src/client", "!src/styles/tokens.css"]
   },
   "formatter": {
     "indentStyle": "space",
