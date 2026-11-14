@@ -53,7 +53,7 @@ export function LifeAreaFormModal({
   const otherAreas = lifeAreas.filter((area) => area.id !== lifeArea?.id);
 
   const onSubmit = handleSubmit((values) => {
-    const body = toApiBody(values);
+    const body = toApiBody(values, lifeArea !== null);
     const onSuccess = (saved: LifeAreaRead) => {
       onClose();
       onSaved?.(saved);
@@ -158,9 +158,6 @@ export function LifeAreaFormModal({
                         );
                       })}
                     </div>
-                    <p className={HINT}>
-                      Colors can repeat, but each area is easier to spot with its own.
-                    </p>
                   </fieldset>
                 )}
               />
@@ -187,14 +184,38 @@ export function LifeAreaFormModal({
                       placeholder="What does doing well in this area look like?"
                       className="min-h-16 resize-none type-body text-(--text-primary)"
                     />
-                    {fieldState.error ? (
-                      <FieldError>{fieldState.error.message}</FieldError>
-                    ) : (
-                      <p className={HINT}>Shown under the area's name on its page.</p>
-                    )}
+                    <FieldError>{fieldState.error?.message}</FieldError>
                   </TextField>
                 )}
               />
+
+              {lifeArea && (
+                <Controller
+                  control={control}
+                  name="notes"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      fullWidth
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={fieldState.invalid}
+                      className="gap-1.5"
+                    >
+                      <Label className={FIELD_LABEL}>
+                        Notes
+                        <span className="ml-1 font-normal text-(--text-tertiary)">Markdown</span>
+                      </Label>
+                      <TextArea
+                        rows={4}
+                        className="min-h-24 resize-none type-body text-(--text-primary)"
+                      />
+                      <FieldError>{fieldState.error?.message}</FieldError>
+                    </TextField>
+                  )}
+                />
+              )}
 
               <div className="flex items-center gap-3 border-t border-(--border-default) pt-3">
                 <span className="type-meta text-(--text-tertiary)">Preview</span>
@@ -239,4 +260,3 @@ export function LifeAreaFormModal({
 }
 
 const FIELD_LABEL = "text-xs leading-4 font-semibold text-(--text-primary)";
-const HINT = "text-[11px] leading-[14px] text-(--text-tertiary)";

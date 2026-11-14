@@ -97,4 +97,22 @@
     width: 16px;
     height: 16px;
   }
+
+  /* Compact menus (mock-ups): 28 px rows, 13 px text, 8 px gap, control radius. */
+  .dropdown__popover {
+    border-radius: var(--radius-8);
+    font-size: var(--font-size-13);
+  }
+
+  .menu {
+    gap: 0;
+  }
+
+  .menu-item {
+    min-height: 28px;
+    gap: var(--space-8);
+    padding-block: 0;
+    border-radius: var(--radius-6);
+    font-size: var(--font-size-13);
+  }
 }

@@ -1,6 +1,6 @@
 import { Button, Dropdown, Label } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
-import { ChartLine, ChevronDown, Ellipsis, LayoutGrid, Plus } from "lucide-react";
+import { Archive, ArrowDownUp, ChartLine, Ellipsis, LayoutGrid, Plus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { listLifeAreasOptions } from "../../client/@tanstack/react-query.gen";
@@ -13,6 +13,7 @@ import { type Period, periodInSentence, periodRange, today } from "../../period"
 import { usePeriodStore } from "../../stores/periodStore";
 import { useAreasContext } from "./AreasLayout";
 import { type AreaPaletteKey, areaDataAttribute } from "./palette";
+import { ReorderAreasModal } from "./ReorderAreasModal";
 
 /** Common areas offered when there are none yet; each opens the pop-up filled in. */
 const QUICK_STARTS: { title: string; color: AreaPaletteKey }[] = [
@@ -30,12 +31,16 @@ export function AreasOverviewPage() {
   const navigate = useNavigate();
   const lifeAreas = useQuery(listLifeAreasOptions());
   const hasAreas = (lifeAreas.data?.length ?? 0) > 0;
+  const [isReordering, setIsReordering] = useState(false);
+  const menuActions: Record<string, () => void> = {
+    reorder: () => setIsReordering(true),
+    archived: () => navigate("/areas/archived"),
+  };
 
   return (
     <>
       <PageHeader
         title="Life areas"
-        description="Are your areas moving toward what you set for them?"
         actions={
           <>
             <PeriodSwitch isDisabled={!hasAreas} />
@@ -50,8 +55,13 @@ export function AreasOverviewPage() {
                 <Ellipsis aria-hidden />
               </Button>
               <Dropdown.Popover placement="bottom end">
-                <Dropdown.Menu onAction={() => navigate("/areas/archived")}>
+                <Dropdown.Menu onAction={(key) => menuActions[String(key)]()}>
+                  <Dropdown.Item id="reorder" textValue="Reorder areas">
+                    <ArrowDownUp aria-hidden className={MENU_ICON} />
+                    <Label>Reorder areas</Label>
+                  </Dropdown.Item>
                   <Dropdown.Item id="archived" textValue="Archived areas">
+                    <Archive aria-hidden className={MENU_ICON} />
                     <Label>Archived areas</Label>
                   </Dropdown.Item>
                 </Dropdown.Menu>
@@ -73,9 +83,14 @@ export function AreasOverviewPage() {
             <FirstAreaWelcome onCreate={openCreateForm} />
           ))}
       </div>
+      {isReordering && lifeAreas.data && (
+        <ReorderAreasModal lifeAreas={lifeAreas.data} onClose={() => setIsReordering(false)} />
+      )}
     </>
   );
 }
+
+const MENU_ICON = "size-4 shrink-0 text-(--text-tertiary)";
 
 function FirstAreaWelcome({
   onCreate,
@@ -126,15 +141,13 @@ function OverviewCards({ lifeAreas }: { lifeAreas: readonly LifeAreaRead[] }) {
   const name = periodInSentence(period, date);
   const isCurrent = containsToday(period, date);
 
+  const effort = isCurrent ? `No tasks completed in ${name} yet` : `No tasks completed in ${name}`;
   return (
     <>
-      <SectionCard title="Effort" description={`Where your completed tasks went in ${name}`}>
-        <CardEmpty>
-          {isCurrent ? `No tasks completed in ${name} yet.` : `No tasks completed in ${name}.`}{" "}
-          Completed tasks show up here by area.
-        </CardEmpty>
+      <SectionCard title="Effort" description={effort}>
+        <CardEmpty>{effort}.</CardEmpty>
       </SectionCard>
-      <SectionCard title="Outcomes" description="Metrics owned by your areas">
+      <SectionCard title="Outcomes" description="No metrics yet">
         <div className="grid grid-cols-5 gap-3">
           {lifeAreas.map((lifeArea) => (
             <OutcomesAreaPanel key={lifeArea.id} lifeArea={lifeArea} />
@@ -142,13 +155,16 @@ function OverviewCards({ lifeAreas }: { lifeAreas: readonly LifeAreaRead[] }) {
         </div>
       </SectionCard>
       <div className="grid grid-cols-3 gap-4">
-        <SectionCard title="Projects" description="Progress of active projects in each area">
+        <SectionCard title="Projects" description="No active projects">
           <CardEmpty>No active projects.</CardEmpty>
         </SectionCard>
-        <SectionCard title="Routine steps done" description="One square per week">
+        <SectionCard title="Routine steps done" description="No routine steps">
           <CardEmpty>No routine steps in these areas.</CardEmpty>
         </SectionCard>
-        <SectionCard title="Wins" description={`Targets met and projects finished in ${name}`}>
+        <SectionCard
+          title="Wins"
+          description={isCurrent ? `None in ${name} yet` : `None in ${name}`}
+        >
           <CardEmpty>{isCurrent ? `Nothing yet this ${period}.` : `Nothing in ${name}.`}</CardEmpty>
         </SectionCard>
       </div>
@@ -156,37 +172,24 @@ function OverviewCards({ lifeAreas }: { lifeAreas: readonly LifeAreaRead[] }) {
   );
 }
 
-/** One area's grey panel in Outcomes; for now its dashed "add a metric" placeholder. */
+/** One area's grey panel in Outcomes; for now its dashed "no metrics" placeholder. */
 function OutcomesAreaPanel({ lifeArea }: { lifeArea: LifeAreaRead }) {
-  const [isOpen, setIsOpen] = useState(true);
   return (
     <div
       data-area={areaDataAttribute(lifeArea.color)}
       className="self-start rounded-(--radius-12) border border-[#eef0f3] bg-neutral-50 px-2 pt-1.5 pb-2"
     >
-      <button
-        type="button"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen(!isOpen)}
-        className="mb-1 flex h-7 w-full items-center gap-2 rounded-(--radius-6) pl-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
-      >
-        <ChevronDown
-          aria-hidden
-          className={`size-3 shrink-0 text-(--text-tertiary) transition-transform ${isOpen ? "" : "-rotate-90"}`}
-          strokeWidth={2}
-        />
+      <h3 className="mb-1 flex h-7 items-center gap-2 pl-0.5">
         <span aria-hidden className="size-2.5 shrink-0 rounded-[2px] bg-(--area-solid)" />
         <span className="truncate text-sm font-semibold text-(--text-primary)">
           {lifeArea.title}
         </span>
-        <span className="shrink-0 type-meta text-(--text-tertiary)">No metrics</span>
-      </button>
-      {isOpen && (
-        <div className="flex min-h-[120px] flex-col justify-center gap-1.5 rounded-(--radius-8) border border-dashed border-(--border-default) bg-(--bg-surface) px-2.5 py-2 text-xs text-(--text-tertiary)">
-          <ChartLine aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />
-          <span>Add a metric to see how {lifeArea.title} is going</span>
-        </div>
-      )}
+        <span className="shrink-0 type-meta font-normal text-(--text-tertiary)">No metrics</span>
+      </h3>
+      <div className="flex min-h-[120px] flex-col justify-center gap-1.5 rounded-(--radius-8) border border-dashed border-(--border-default) bg-(--bg-surface) px-2.5 py-2 text-xs text-(--text-tertiary)">
+        <ChartLine aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />
+        <span>No metrics yet</span>
+      </div>
     </div>
   );
 }

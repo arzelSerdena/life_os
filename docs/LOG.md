@@ -40,10 +40,11 @@
 **Done**
 
 - Added the UI style guide, the approved mock-ups and the design tokens under `design/`.
-- Finished Phase 1 (PR #5): the app shell from the approved mock-ups (icon rail, Areas sidebar with LIFE AREAS heading and Archived areas), an area page header, archived areas, and the period switch. Area colors are now palette keys, and the token CSS is generated and checked in CI. Added the approved empty states (no areas, areas with no data) and the New area pop-up.
+- Finished Phase 1 (PR #5): the app shell from the approved mock-ups (icon rail, Areas sidebar with LIFE AREAS heading and Archived areas), an area page header, archived areas, and the period switch. Area colors are now palette keys, and the token CSS is generated and checked in CI. Added the approved overview states: no areas, areas with no data, the New and Edit area pop-ups, the ⋯ menu and Reorder areas (with a reorder endpoint).
 
 **Next**
 
 - Life areas overview (`approved-areas-overview.html`): backend aggregates for Effort, Outcomes (area-owned metrics only), Projects pace, Routine steps done and Wins, then the cards.
-- The area page (`approved-area.html`), then the Phase 2 screens.
+- The collapsible, resizable sidebar (style guide note, Nov 14).
+- The area page (`approved-area.html` and `approved-area-states.html`: Add menu, archive confirmation, delete disabled while the area has items, New metric pop-up), then the project page and the Phase 2 screens.
 - The cascade engine, with its preview and confirm screens.

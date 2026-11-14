@@ -17,7 +17,7 @@ export function SectionCard({ title, description, children }: SectionCardProps) 
         <h2 className="type-column-title text-(--text-primary)">{title}</h2>
         {description && <p className="type-meta text-(--text-tertiary)">{description}</p>}
       </header>
-      <div className="px-4 pt-2 pb-4">{children}</div>
+      <div className="px-4 pt-1 pb-4">{children}</div>
     </section>
   );
 }

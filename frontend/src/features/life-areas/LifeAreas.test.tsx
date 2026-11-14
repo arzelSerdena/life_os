@@ -39,6 +39,11 @@ async function fakeApi(request: Request): Promise<Response> {
     const includeArchived = url.searchParams.get("include_archived") === "true";
     return json(areas.filter((area) => includeArchived || area.archived_at === null));
   }
+  if (request.method === "POST" && idText === "reorder") {
+    const ids = (body as { life_area_ids: number[] }).life_area_ids;
+    areas.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    return json(areas.filter((area) => area.archived_at === null));
+  }
   if (request.method === "POST" && !idText) {
     const created = lifeArea({ ...(body as Partial<LifeAreaRead>), id: areas.length + 1 });
     areas.push(created);
@@ -151,8 +156,7 @@ test("edits an area from its page with its current values filled in", async () =
     path: "/api/life-areas/1",
     body: { title: "Fitness", vision: "Feel strong", color: "teal" },
   });
-  // The pop-up has no notes field, so an edit leaves the notes alone.
-  expect(writes()[0].body).not.toHaveProperty("notes");
+  expect(writes()[0].body).toMatchObject({ notes: "Keep these" });
 });
 
 test("archives an area, then restores it from the archived areas", async () => {
@@ -235,8 +239,39 @@ test("with areas but no data yet, each card says what will appear", async () => 
   renderApp();
 
   const outcomes = await screen.findByRole("region", { name: "Outcomes" });
-  expect(within(outcomes).getByText("Add a metric to see how Career is going")).toBeInTheDocument();
+  expect(within(outcomes).getByRole("heading", { name: /Career/ })).toBeInTheDocument();
+  expect(within(outcomes).getAllByText("No metrics yet")).toHaveLength(2);
   expect(screen.getByRole("region", { name: "Projects" })).toHaveTextContent("No active projects.");
+});
+
+test("reorders the areas by dragging them in the Reorder areas pop-up", async () => {
+  areas = [
+    lifeArea({ id: 1, title: "Career", color: "blue" }),
+    lifeArea({ id: 2, title: "Finance", color: "teal" }),
+  ];
+  const user = userEvent.setup();
+  renderApp();
+
+  await user.click(await screen.findByRole("button", { name: "More actions" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Reorder areas" }));
+  const dialog = await screen.findByRole("dialog");
+  within(dialog).getByRole("button", { name: "Move Finance" }).focus();
+  await user.keyboard("[Space]");
+  await user.keyboard("[ArrowUp]");
+  await user.keyboard("[Space]");
+  await user.click(within(dialog).getByRole("button", { name: "Save order" }));
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(writes()).toEqual([
+    { method: "POST", path: "/api/life-areas/reorder", body: { life_area_ids: [2, 1] } },
+  ]);
+  await waitFor(() =>
+    expect(
+      sidebarAreas()
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["Finance", "Career"]),
+  );
 });
 
 test("the period switch steps through periods", async () => {

@@ -6,6 +6,7 @@ import { type AreaPaletteKey, isPaletteKey } from "./palette";
 export const lifeAreaFormSchema = z.object({
   title: z.string().trim().min(1, "Enter a name.").max(200, "Use 200 characters or fewer."),
   vision: z.string().trim().max(2000, "Use 2,000 characters or fewer."),
+  notes: z.string().trim().max(50_000, "Use 50,000 characters or fewer."),
   color: z.string(),
 });
 
@@ -26,15 +27,17 @@ export function initialFormValues(
   return {
     title: lifeArea?.title ?? prefill.title ?? "",
     vision: lifeArea?.vision ?? "",
+    notes: lifeArea?.notes ?? "",
     color: isPaletteKey(lifeArea?.color) ? lifeArea.color : (prefill.color ?? defaultColor),
   };
 }
 
-/** The pop-up doesn't edit notes, so they are left out and an edit keeps them. */
-export function toApiBody(values: LifeAreaFormValues): LifeAreaCreate {
+/** Notes are only edited on an existing area (the New area pop-up has no notes field). */
+export function toApiBody(values: LifeAreaFormValues, isEdit: boolean): LifeAreaCreate {
   return {
     title: values.title,
     vision: values.vision || null,
     color: values.color,
+    ...(isEdit ? { notes: values.notes || null } : {}),
   };
 }

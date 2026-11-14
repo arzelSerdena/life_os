@@ -57,5 +57,7 @@ CSS = '''
 html = html.replace('</style>', ov.CSS + o2.CSS + o3.CSS + CSS + '</style>', 1)
 html = html.replace(f'<span class="icon-btn" title="Show as table">{ic("table")}</span>',
                     f'<span class="icon-btn cmenu" title="Sort, filter and view as table">{ic("sliders")}</span>')
+import rules as _rules
+html = _rules.apply(html)
 Path('/mnt/user-data/outputs/life-os-mock-area.html').write_text(html)
 print('ok', len(html))

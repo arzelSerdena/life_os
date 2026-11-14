@@ -8,6 +8,7 @@ Changes from build_project.py (review of Nov 14):
 5. Timeline section rows: checkbox markers only, title in the tooltip; open tasks without a due date are counted at the row end.
 6. Sections card: one-line "done / total" value next to the bar, plus a "No section" row.
 7. Sample metric deadline moved inside the project window (Nov 30).
+9. Nov 14 review: timeline matches the area screen (no project window, no task markers): Project bar, Events, Metrics. Sections card removed.
 8. Sidebar PROJECTS lists active projects only; done ones live under Archived.
 """
 import sys
@@ -73,20 +74,13 @@ names = ''.join(f'<div class="mname">{ic("stats")}<span>{n}</span></div>' for n 
 metrics_lane = (f'<div class="lane mlane"><div class="ln"><div class="lnt"><span class="lnh">{ic("chev")}Metrics</span></div>{names}</div>'
                 f'<div class="lt2"><div class="mspacer"></div>{metric_rows}</div></div>')
 
-lanes = (sec_lane('Resume', [task_pt(D(2026, 11, 4), 'over', 'Update resume · due Nov 4 · overdue')])
-       + sec_lane('Portfolio', [task_pt(D(2026, 11, 8), 'done', 'Write case study · done Nov 8'),
-                                task_pt(D(2026, 11, 13), 'done', 'Draft portfolio page · done Nov 13')])
-       + sec_lane('LinkedIn', [task_pt(D(2026, 10, 28), 'done', 'Add featured posts · done Oct 28')])
-       + sec_lane('No section', [task_pt(D(2026, 11, 26), 'open', 'Ask Prof. Reyes for a reference · due Nov 26')])
+lanes = (a4.lane('Project', '<div class="trow">' + a4.bar('Resume &amp; portfolio', P_START, P_DUE, prog=60, tip='Resume &amp; portfolio · Oct 20 – Nov 30 · 60% · 3 of 5 tasks') + '</div>')
        + a4.lane('Events', '<div class="trow">' + a4.point('Mock interview', D(2026, 11, 20), tip='Mock interview with Ana · Fri, Nov 20 · 2:00 PM') + '</div>')
        + metrics_lane)
-timeline = (f'<div class="tl">{a4.tl_axis()}<div class="tl-body"><div class="tl-grid">{a4.grid_lines}</div>{window}'
+timeline = (f'<div class="tl">{a4.tl_axis()}<div class="tl-body"><div class="tl-grid">{a4.grid_lines}</div>'
             f'<div class="today" style="left:calc(140px + (100% - 140px) * {a4.pct(a4.TODAY)/100:.4f})"><span>Today</span></div>'
             f'{lanes}</div></div>'
-            '<div class="tlegend"><span><i class="pwl"></i>Project window</span>'
-            '<span><span class="check" style="width:12px;height:12px;margin:0"></span>Open task (due date)</span>'
-            '<span><span class="check done" style="width:12px;height:12px;margin:0"></span>Done task (done date)</span>'
-            '<span><i class="sw"></i>Progress</span><span><i class="lg met"></i>Target met</span></div>')
+            '<div class="tlegend"><span><i class="sw"></i>Progress</span><span><i class="lg met"></i>Target met</span><span><i class="lg up"></i>Upcoming</span></div>')
 
 # ---------- sections ----------
 def sections():
@@ -180,7 +174,7 @@ html = f'''<!doctype html>
           <div class="ttl"><span class="pfold">{ic('folder')}</span><h1 class="t-page">Resume &amp; portfolio</h1></div>
           <div class="phead-sub" style="padding-left:28px"><span class="tag area"><span class="dot"></span>Career</span>
             <span class="tag neutral">Active</span>
-            <span class="t-meta" data-tip="Start is the created date until projects get a start date">Oct 20 – Nov 30 · 16 days left</span>
+            <span class="t-meta">Oct 20 – Nov 30 · 16 days left</span>
             {header_progress}</div>
         </div>
         <div class="acts">
@@ -194,9 +188,8 @@ html = f'''<!doctype html>
         {metrics_card}
         <div class="split">
           <div class="leftcol">
-            {a2.card('Timeline', "Tasks by section, events and this project’s metric targets in Q4", timeline)}
-            {a2.card('Sections', 'Tasks done in each section', sections())}
-            {a2.card('Routines', 'Routine steps in this project · one square per day of Q4 · shown only when the project has steps', routines())}
+            {a2.card('Timeline', "1 project · 1 event · 2 metrics in Q4", timeline)}
+            {a2.card('Routines', '1 step in 1 routine', routines())}
             {tab_card}
           </div>
           {agenda_panel}
@@ -215,5 +208,7 @@ document.addEventListener('mousemove',e=>{{const t=e.target.closest('[data-tip]'
 </body></html>'''
 html = html.replace(f'<span class="icon-btn" title="Show as table">{ic("table")}</span>',
                     f'<span class="icon-btn cmenu" title="Sort, filter and view as table">{ic("sliders")}</span>')
-Path('/mnt/user-data/outputs/draft-project.html').write_text(html)
+import rules as _rules
+html = _rules.apply(html)
+Path('/mnt/user-data/outputs/life-os-mock-project.html').write_text(html)
 print('ok', len(html))
