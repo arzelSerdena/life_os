@@ -21,10 +21,10 @@ import { PageHeader } from "../../components/PageHeader";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { SectionCard } from "../../components/SectionCard";
+import { useDetailPanel } from "../../stores/detailPanelStore";
 import { usePeriodStore } from "../../stores/periodStore";
 import { ArchiveAreaDialog } from "./ArchiveAreaDialog";
 import { AreaMenu } from "./AreaMenu";
-import { useAreasContext } from "./AreasLayout";
 import { NewMetricModal } from "./area/NewMetricModal";
 import { ProjectsCard, RoutinesCard } from "./area/ProjectsAndRoutines";
 import { AgendaCard, TasksCard } from "./area/TasksAndAgenda";
@@ -38,7 +38,7 @@ import { areaDataAttribute } from "./palette";
 export function AreaPage() {
   const lifeAreaId = Number(useParams().areaId);
   const navigate = useNavigate();
-  const { openEditForm } = useAreasContext();
+  const openPanel = useDetailPanel((state) => state.open);
   const { period, date } = usePeriodStore();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingMetric, setIsAddingMetric] = useState(false);
@@ -76,7 +76,7 @@ export function AreaPage() {
             <AreaMenu
               lifeArea={area}
               canDelete={page.data ? !page.data.contents.has_items : false}
-              onEdit={() => openEditForm(area)}
+              onEdit={() => openPanel({ kind: "area", id: area.id })}
               onArchive={() => setIsArchiving(true)}
               onRestore={() => restore.mutate(path)}
               onDelete={() => setIsDeleting(true)}

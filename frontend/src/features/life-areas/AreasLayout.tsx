@@ -3,7 +3,6 @@ import { Archive, Plus } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useOutletContext } from "react-router";
 import { listLifeAreasOptions } from "../../client/@tanstack/react-query.gen";
-import type { LifeAreaRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import type { LifeAreaPrefill } from "./form";
 import { LifeAreaFormModal } from "./LifeAreaFormModal";
@@ -12,15 +11,14 @@ import { areaDataAttribute, nextFreePalette } from "./palette";
 type AreasContext = {
   /** Opens the New area pop-up, optionally with a quick-start name and color filled in. */
   openCreateForm: (prefill?: LifeAreaPrefill) => void;
-  openEditForm: (lifeArea: LifeAreaRead) => void;
 };
 
-/** Lets pages inside the Areas group open the shared create and edit form. */
+/** Lets pages inside the Areas group open the New area pop-up. */
 export function useAreasContext(): AreasContext {
   return useOutletContext<AreasContext>();
 }
 
-type FormTarget = { lifeArea: LifeAreaRead | null; prefill?: LifeAreaPrefill };
+type FormTarget = { prefill?: LifeAreaPrefill };
 
 /** The Areas group: its sidebar beside the overview, an area's page or the archived areas. */
 export function AreasLayout() {
@@ -30,8 +28,7 @@ export function AreasLayout() {
   const activeAreas = lifeAreas.data ?? [];
 
   const context: AreasContext = {
-    openCreateForm: (prefill) => setFormTarget({ lifeArea: null, prefill }),
-    openEditForm: (lifeArea) => setFormTarget({ lifeArea }),
+    openCreateForm: (prefill) => setFormTarget({ prefill }),
   };
 
   return (
@@ -88,16 +85,11 @@ export function AreasLayout() {
 
       {formTarget && (
         <LifeAreaFormModal
-          lifeArea={formTarget.lifeArea}
           lifeAreas={activeAreas}
           prefill={formTarget.prefill}
           defaultColor={nextFreePalette(activeAreas)}
           onClose={() => setFormTarget(null)}
-          onSaved={(saved) => {
-            if (!formTarget.lifeArea) {
-              navigate(`/areas/${saved.id}`);
-            }
-          }}
+          onSaved={(saved) => navigate(`/areas/${saved.id}`)}
         />
       )}
     </>

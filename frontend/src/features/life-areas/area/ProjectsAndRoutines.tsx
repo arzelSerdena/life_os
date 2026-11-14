@@ -2,6 +2,7 @@ import { Folder } from "lucide-react";
 import type { AreaPageRead, StepRowRead } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
+import { PanelLink } from "../../detail-panel/PanelLink";
 import { daysBetween, plural, shortDate } from "../overview/format";
 import { describeRule, eachDay, scaleTicks, timeScale } from "./timeScale";
 
@@ -39,7 +40,7 @@ export function ProjectsCard({ page }: { page: AreaPageRead }) {
           return (
             <li
               key={project.id}
-              className="flex min-w-0 flex-col gap-1.5 rounded-(--radius-8) border border-(--border-default) px-3 py-2"
+              className="relative flex min-w-0 flex-col gap-1.5 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--bg-hover)"
             >
               <span className="flex min-w-0 items-start gap-2">
                 <Folder
@@ -47,11 +48,13 @@ export function ProjectsCard({ page }: { page: AreaPageRead }) {
                   className="mt-0.5 size-4 shrink-0 text-(--area-solid)"
                   strokeWidth={2}
                 />
-                <span
+                <PanelLink
+                  stretched
+                  target={{ kind: "project", id: project.id }}
                   className={`text-sm font-medium ${done ? "text-(--text-disabled) line-through" : "text-(--text-primary)"}`}
                 >
                   {project.title}
-                </span>
+                </PanelLink>
               </span>
               <span className="ml-6 h-1 rounded-full bg-(--area-tint-active)">
                 <span
@@ -132,9 +135,12 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
           className="border-b border-(--border-default) py-2 last:border-b-0"
         >
           <p className="flex h-7 items-center gap-2 text-xs">
-            <span className="font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase">
+            <PanelLink
+              target={{ kind: "routine", id: group.routine_id }}
+              className="font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase"
+            >
               {group.title}
-            </span>
+            </PanelLink>
             <span className="text-(--text-tertiary)">{describeRule(group.rrule)}</span>
             <span className="ml-auto text-(--text-tertiary)">
               {group.steps.length} of its {plural(group.total_steps, "step")}{" "}
@@ -143,7 +149,12 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
           </p>
           {group.steps.map((row) => (
             <div key={row.step_id} className="grid h-7 items-center" style={columns}>
-              <span className="truncate pr-2 text-[13px] text-(--text-primary)">{row.title}</span>
+              <PanelLink
+                target={{ kind: "step", id: row.step_id, routineId: group.routine_id }}
+                className="truncate pr-2 text-[13px] text-(--text-primary)"
+              >
+                {row.title}
+              </PanelLink>
               <span
                 className="grid h-3 items-center gap-px"
                 style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
