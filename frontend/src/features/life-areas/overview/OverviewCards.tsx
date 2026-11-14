@@ -59,7 +59,7 @@ function EffortCard({ overview, name, isCurrent }: CardProps) {
   if (total === 0) {
     const empty = `No tasks completed in ${name}${isCurrent ? " yet" : ""}`;
     return (
-      <SectionCard title="Effort" description={empty}>
+      <SectionCard title="Effort">
         <CardEmpty>{empty}.</CardEmpty>
       </SectionCard>
     );
@@ -121,7 +121,7 @@ function ProjectsCard({ overview }: { overview: OverviewRead }) {
   const rows = overview.projects.filter((area) => area.active_projects > 0);
   if (rows.length === 0) {
     return (
-      <SectionCard title="Projects" description="No active projects">
+      <SectionCard title="Projects">
         <CardEmpty>No active projects.</CardEmpty>
       </SectionCard>
     );
@@ -195,7 +195,7 @@ function RoutinesCard({ overview, name }: { overview: OverviewRead; name: string
   const rows = overview.routines.filter((area) => area.steps > 0);
   if (rows.length === 0) {
     return (
-      <SectionCard title="Routine steps done" description="No routine steps">
+      <SectionCard title="Routine steps done">
         <CardEmpty>No routine steps in these areas.</CardEmpty>
       </SectionCard>
     );
@@ -287,7 +287,7 @@ function WinsCard({ overview, name, isCurrent }: CardProps) {
   const { wins } = overview;
   if (wins.length === 0) {
     return (
-      <SectionCard title="Wins" description={`None in ${name}${isCurrent ? " yet" : ""}`}>
+      <SectionCard title="Wins">
         <CardEmpty>
           {isCurrent ? `Nothing yet this ${overview.period}.` : `Nothing in ${name}.`}
         </CardEmpty>
