@@ -156,5 +156,6 @@ Summary: a life area contains projects; projects contain sections; tasks, task t
 - **2026-11-14** — `POST /api/life-areas/reorder` sets the area order (sidebar and every overview) in one transaction, like task reordering; areas not listed, such as archived ones, keep their order after the listed ones. The Reorder areas pop-up uses dnd-kit, with keyboard dragging.
 - **2026-11-14** — The life areas overview loads from one call, `GET /api/life-areas/overview?period=&date=`, built ahead of its cards like `GET /api/week`. The API returns numbers and states; the screen writes the sentences. Rules are in `docs/DOMAIN.md` section 8. Pace uses a project's created date as its start until projects get a start date.
 - **2026-11-14** — An area page loads from one call, `GET /api/life-areas/{id}/page`, which reuses the overview's metric rules. Archiving an area asks for confirmation only once the cascade engine archives its items; until then the page's archive stays as it is.
+- **2026-11-14** — Cascade engine v2: one service plans each cascade (area archive; project complete, cancel and archive), so the preview and the change come from the same plan. Applying it runs in one transaction under one undo batch. Restoring an area or project brings back what its last archive took. Completing and cancelling share one cascade.
 
 ---

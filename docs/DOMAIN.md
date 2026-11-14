@@ -128,6 +128,10 @@ Every cascade follows the same steps:
 
 **Exception: tasks.** When the user checks off, cancels or archives a task, it applies immediately with no preview or confirmation. The task and its subtask cascade are still applied in one transaction and recorded under one `batch_id`, so the change can be undone. This exception covers only the user's own actions.
 
+Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/projects/{id}/preview?action=complete|cancel|archive`, which list every affected item and what happens to it (archive, cancel, or end the series from today). Archiving and status changes return the `batch_id` to undo.
+
+**Restoring** an archived life area or project restores it and the items its last archive took with it; items archived on their own before that stay archived. Reopening a finished project only makes it active again; undo is how its cancelled items come back.
+
 Undo groups the batch's rows by entity and restores all fields of one entity in a **single UPDATE**. Status and timestamp must change together or the CHECK constraint fails.
 
 `status_changes` records field changes, plus tasks a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks and series cancellations. Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.

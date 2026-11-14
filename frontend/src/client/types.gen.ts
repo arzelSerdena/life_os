@@ -112,6 +112,41 @@ export type AreaProjectRead = {
 };
 
 /**
+ * CascadeItemRead
+ */
+export type CascadeItemRead = {
+    /**
+     * Kind
+     */
+    kind: 'project' | 'task' | 'task_template' | 'event' | 'metric' | 'routine_step';
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Effect
+     */
+    effect: 'archive' | 'cancel' | 'end_series';
+};
+
+/**
+ * CascadePreview
+ *
+ * Everything a change would also do to the items inside, for the user to confirm.
+ * Applying it records one batch, which undo restores in one step.
+ */
+export type CascadePreview = {
+    /**
+     * Items
+     */
+    items: Array<CascadeItemRead>;
+};
+
+/**
  * ChartPointRead
  */
 export type ChartPointRead = {
@@ -549,6 +584,19 @@ export type HealthResponse = {
      * Status
      */
     status: 'ok';
+};
+
+/**
+ * LifeAreaChange
+ *
+ * The area after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type LifeAreaChange = {
+    life_area: LifeAreaRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
 };
 
 /**
@@ -2835,6 +2883,40 @@ export type GetAreaPageResponses = {
 
 export type GetAreaPageResponse = GetAreaPageResponses[keyof GetAreaPageResponses];
 
+export type PreviewLifeAreaArchiveData = {
+    body?: never;
+    path: {
+        /**
+         * Life Area Id
+         */
+        life_area_id: number;
+    };
+    query?: never;
+    url: '/api/life-areas/{life_area_id}/archive/preview';
+};
+
+export type PreviewLifeAreaArchiveErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewLifeAreaArchiveError = PreviewLifeAreaArchiveErrors[keyof PreviewLifeAreaArchiveErrors];
+
+export type PreviewLifeAreaArchiveResponses = {
+    /**
+     * Successful Response
+     */
+    200: CascadePreview;
+};
+
+export type PreviewLifeAreaArchiveResponse = PreviewLifeAreaArchiveResponses[keyof PreviewLifeAreaArchiveResponses];
+
 export type ArchiveLifeAreaData = {
     body?: never;
     path: {
@@ -2864,7 +2946,7 @@ export type ArchiveLifeAreaResponses = {
     /**
      * Successful Response
      */
-    200: LifeAreaRead;
+    200: LifeAreaChange;
 };
 
 export type ArchiveLifeAreaResponse = ArchiveLifeAreaResponses[keyof ArchiveLifeAreaResponses];
@@ -2898,7 +2980,7 @@ export type UnarchiveLifeAreaResponses = {
     /**
      * Successful Response
      */
-    200: LifeAreaRead;
+    200: LifeAreaChange;
 };
 
 export type UnarchiveLifeAreaResponse = UnarchiveLifeAreaResponses[keyof UnarchiveLifeAreaResponses];
@@ -3217,6 +3299,231 @@ export type UpdateSectionResponses = {
 };
 
 export type UpdateSectionResponse = UpdateSectionResponses[keyof UpdateSectionResponses];
+
+export type PreviewProjectChangeData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query: {
+        /**
+         * Action
+         */
+        action: 'complete' | 'cancel' | 'archive';
+    };
+    url: '/api/projects/{project_id}/preview';
+};
+
+export type PreviewProjectChangeErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewProjectChangeError = PreviewProjectChangeErrors[keyof PreviewProjectChangeErrors];
+
+export type PreviewProjectChangeResponses = {
+    /**
+     * Successful Response
+     */
+    200: CascadePreview;
+};
+
+export type PreviewProjectChangeResponse = PreviewProjectChangeResponses[keyof PreviewProjectChangeResponses];
+
+export type CompleteProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/complete';
+};
+
+export type CompleteProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CompleteProjectError = CompleteProjectErrors[keyof CompleteProjectErrors];
+
+export type CompleteProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type CompleteProjectResponse = CompleteProjectResponses[keyof CompleteProjectResponses];
+
+export type CancelProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/cancel';
+};
+
+export type CancelProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelProjectError = CancelProjectErrors[keyof CancelProjectErrors];
+
+export type CancelProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type CancelProjectResponse = CancelProjectResponses[keyof CancelProjectResponses];
+
+export type ReopenProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/reopen';
+};
+
+export type ReopenProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReopenProjectError = ReopenProjectErrors[keyof ReopenProjectErrors];
+
+export type ReopenProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type ReopenProjectResponse = ReopenProjectResponses[keyof ReopenProjectResponses];
+
+export type ArchiveProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/archive';
+};
+
+export type ArchiveProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveProjectError = ArchiveProjectErrors[keyof ArchiveProjectErrors];
+
+export type ArchiveProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type ArchiveProjectResponse = ArchiveProjectResponses[keyof ArchiveProjectResponses];
+
+export type UnarchiveProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/unarchive';
+};
+
+export type UnarchiveProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveProjectError = UnarchiveProjectErrors[keyof UnarchiveProjectErrors];
+
+export type UnarchiveProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type UnarchiveProjectResponse = UnarchiveProjectResponses[keyof UnarchiveProjectResponses];
 
 export type ListMetricsData = {
     body?: never;
