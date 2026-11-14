@@ -8,7 +8,7 @@ are in design/html_mockups/.
 
 # Life OS — UI Style Guide
 
-2026-11-10 · @Arzel
+Nov 10, 2026 · @Arzel
 
 ## Purpose
 
@@ -377,25 +377,25 @@ One Task card with properties (state, status, priority, subtasks, meta, progress
 - Section labels (group names, sidebar and panel section labels) go up to 12 / 16, weight 600, caps.
 - Being tested: a white main frame with no grey column backgrounds, so each card is defined by its 1 px border alone. Columns lose their padding, and the gap between columns goes to 16. Routine steps take the same neutral border as other cards, since the border is now the only edge (the earlier area-colored outline stays removed).
 
-- The first group label sits 6 px under the column header, the same gap the Inbox column has before its first card. The 12 px group gap applies only between groups.
-- Inside a card every vertical step is 2 px: title → metadata → progress bar or subtasks.
+* The first group label sits 6 px under the column header, the same gap the Inbox column has before its first card. The 12 px group gap applies only between groups.
+* Inside a card every vertical step is 2 px: title → metadata → progress bar or subtasks.
 
 - A 16 px gap separates the 48 px page header from the board (`board/padding-top` = 16).
 
-- Page gutter is 24 px on the top, sides and bottom. The page header row is 32 px tall, starting 24 px from the top of the window; the sidebar's section title lines up with it.
+* Page gutter is 24 px on the top, sides and bottom. The page header row is 32 px tall, starting 24 px from the top of the window; the sidebar's section title lines up with it.
 
 - The 24 px top gutter applies to the main content only; the expanded sidebar keeps its own header position.
 - Sidebar labels all start at the same x: area dots sit in the same 16 px slot as icons, with the same 8 px gap.
 - Metric cards: title, then the progress bar, then one metadata row with the period on the left and the value on the right ("This week … 12 / 20 km"). The bar has 2 px extra above and below so it looks evenly spaced against the text lines.
 - The subtask toggle ("1/3") sits at the right end of the metadata row, not beside the title.
 
-- The expanded sidebar has no title; the rail already shows which section is open. Its groups (views, Projects, Routines, and Completed/Archived at the bottom) are separated by 1 px dividers with 8 px above and below and no side inset.
+* The expanded sidebar has no title; the rail already shows which section is open. Its groups (views, Projects, Routines, and Completed/Archived at the bottom) are separated by 1 px dividers with 8 px above and below and no side inset.
 
 - Expanded sidebar gutter: 16 px top and bottom, 12 px sides; dividers have 12 px above and below.
 - Detail panel: the title comes first, then subtasks and notes. The properties (area, project and section, priority, status, scheduled and due dates) live in a "Details" section at the bottom, collapsed by default.
 
-- Detail panel, replacing the collapsed "Details" section: the header shows a breadcrumb (area dot › area › project › section) with actions on the right. Under the title, one row of 28 px icon buttons (no borders, grey hover) holds the properties: priority flag in its color (icon only, tooltip names the level), due date (red when overdue), scheduled date, and repeat. Clicking one edits that property. The row lines up with the title text.
-- No border between the rail and the expanded sidebar. Sidebar dividers have 16 px above and below.
+* Detail panel, replacing the collapsed "Details" section: the header shows a breadcrumb (area dot › area › project › section) with actions on the right. Under the title, one row of 28 px icon buttons (no borders, grey hover) holds the properties: priority flag in its color (icon only, tooltip names the level), due date (red when overdue), scheduled date, and repeat. Clicking one edits that property. The row lines up with the title text.
+* No border between the rail and the expanded sidebar. Sidebar dividers have 16 px above and below.
 
 - Detail panel, final layout for now. Header: the done checkbox, a short vertical divider, the priority flag (icon only, in its color), another divider, the due date (red when overdue), then only the "⋯" menu on the right; no close button and no breadcrumb. Body: the title, then the property list (Area, Project › Section, Scheduled with its rollover count), then subtasks and notes. Status is not listed (the checkbox shows it); priority and due date aren't repeated in the list because the header shows them.
 
@@ -407,7 +407,7 @@ Tokens are exported as DTCG JSON in three collections: Primitives (113 tokens: c
 
 ## Approved: Area screen (Nov 14)
 
-The Career mock-up (`design/html_mockups/approved-area.html`) is the approved design for every life area's page. Decided.
+The Career mock-up (life-os-approved-area.html) is the approved design for every life area's page. Decided.
 
 - Navigation: the rail icon is a group and the sidebar lists the screens in that group. The Areas group's sidebar has a LIFE AREAS group heading (13 px, semibold, caps; clicking it opens the all-areas overview) with a + on the right to add an area, then one row per area with its color dot. No counts in the sidebar. Archived areas sits at the bottom. The sidebar has a 1 px right border, and the last group has no divider under it.
 - Header: area dot + name (20/28), the vision underneath, then on the right one period switch (Week / Month / Quarter / Year with ‹ › and a label such as Q4 2026), a ⋯ menu, and an Add split button in the area's 500 color with a divider before the ▾.
@@ -425,7 +425,7 @@ The Career mock-up (`design/html_mockups/approved-area.html`) is the approved de
 
 ## Approved: Life areas overview (Nov 14)
 
-The overview behind the LIFE AREAS heading (`design/html_mockups/approved-areas-overview.html`) is approved. Decided. It compares areas instead of repeating an area page.
+The overview behind the LIFE AREAS heading (life-os-approved-areas-overview.html) is approved. Decided. It compares areas instead of repeating an area page.
 
 - Header: "Life areas", the same period switch, a ⋯ menu and a New area button in brand 700.
 - Effort (top): one 24 px split bar of completed tasks by area, solid area colors, only the white percentage inside each segment. Under each segment, aligned to it: the area name, the task count and the change in share vs the previous period.
@@ -435,3 +435,85 @@ The overview behind the LIFE AREAS heading (`design/html_mockups/approved-areas-
 - Wins: targets met and projects finished in the period, each with a green check and its area.
 - Every colored mark also carries its area's name: plum and rose fail the color-distance check, so color is never the only cue.
 - Each card keeps one chart style; the card's corner menu holds sort, filter and view as table.
+
+## Update: metrics belong to their owner (Nov 14)
+
+Replaces the KPI tiles and timeline rules in "Approved: Area screen" and the Outcomes rule in "Approved: Life areas overview". Decided.
+
+- A metric shows only on its owner's screens. Area-owned metrics appear on the area page and the Life areas overview; project-owned metrics appear only on that project's page.
+- Area page: the top card is Metrics, the area's own metrics as the same small tiles used in the overview's Outcomes (five per row; smooth positive or negative line; value with its target in words; one summary line). The six task-statistics tiles (open tasks, completed, on time, rollovers, routine steps done, active projects) are removed.
+- Area page timeline: Projects, Events and Metrics sections. The Metrics section shows the area's own metrics only, one row each: per-period targets as one segment per period (met = full, not met or current = filled to the amount reached, upcoming = outline) and a dashed "No target" line when a metric has none. Section labels are sentence case, 13 px semibold.
+- Area page agenda: tasks and events from the area and from every project inside it, plus project due dates. Target deadlines appear only for the area's own metrics.
+- Life areas overview, Outcomes: area-owned metrics only, grouped by area.
+
+## Approved: Life areas empty states and New area pop-up (Nov 14)
+
+Mock-up: design/html\_mockups/approved-areas-empty.html (switch states at the bottom left). Decided.
+
+- No areas: the sidebar shows the LIFE AREAS heading with + and one muted line ("No life areas yet. Use + to add one."). The header's period switch and ⋯ are faded; New area stays active. The page shows a centered message ("Set up your first life area"), one explanatory line, a New area button, and quick-start chips (Career, Finance, Health, Personal, Relationships, Home) that open the pop-up with the name and color filled in.
+- Areas but no data: every card keeps its title and place; its body is one muted line saying what will appear there, plus a ghost action where useful (New project, New routine, Add metric). Outcomes shows each area's panel with a dashed placeholder tile.
+- New area pop-up (460 px, 12 px radius, overlay shadow, 32% backdrop): Name (required), Color (the six palette colors with names; a color in use shows the area that uses it; repeats allowed with a hint), Vision (optional), a sidebar-row preview, then Cancel and Create area (brand 700). The area color is stored as its palette name.
+
+## Working rule: every screen mock-up includes its mock states (Nov 14)
+
+Decided. Every new screen mock-up ships with a dark "Mock state" switcher at the bottom left (as in approved-areas-empty.html and draft-week-board.html) covering at least:
+
+- The normal state with realistic data.
+- Empty states: nothing created yet, and items created but no data yet. Every card keeps its title and place, with one muted line and a ghost action where useful.
+- The screen's pop-ups and overlays: create and edit forms, menus, confirm dialogs, the detail panel, and the undo popup where they apply.
+- Interaction states that matter on that screen, such as dragging, selected, or a collapsed section.
+
+## Approved: Project screen (Nov 14)
+
+Mock-up: design/html\_mockups/approved-project.html (Resume & portfolio, Career). It is the approved design for every project's page and follows the area screen. Decided.
+
+- Navigation: the Areas group's sidebar has two groups, LIFE AREAS and PROJECTS, each a caps heading with a + on the right. PROJECTS lists active projects only, each with a folder icon in its area's color; clicking the heading opens the all-projects overview. Done and cancelled projects live under Archived at the bottom.
+- Header: folder icon in the area color + project name (20/28). Under it: the area tag, a status chip, the date range with days left, then a 120 px progress bar (area 500 on 100) with a black pace mark and "60% · 3 of 5 tasks · on pace". On the right: the same period switch, a ⋯ menu (edit, complete, archive, delete) and the Add split button in the area's 500 color.
+- Top card: Metrics, the project's own metrics as the same tiles as the area page. No task-statistics tiles.
+- Timeline, the same as the area page's: Project (one bar from start to due date with its progress), Events (the project's events) and Metrics (the project's metrics, same segment and reach-by rules). No shaded project window, no task markers.
+- Routines: the routine steps the project owns, in the area page's heatmap. The card shows only when the project owns steps.
+- Tabbed card: the area page's tabs (Needs attention, Unscheduled, Recurring, Completed, Notes). Each row's note starts with its section ("Resume · Overdue 10 days").
+- Agenda (360 px, right): the project's overdue and upcoming tasks, its events, its due date and its metrics' target deadlines.
+- No Sections card; sections show in the tabbed card's row notes.
+- Open: projects have no start date yet, so the start is the created date. Proposed: add a nullable `start_date` that falls back to the created date.
+- Mock states (same file, switcher at the bottom left), following the area screen and the presentation rules (data-only subtitles, no legends except the routine key, "Sort and filter" card menus): Normal; New project with no data (Started Nov 14 · no due date, "No tasks yet", each card with one muted line and a ghost action, no Routines card); Add menu (Task, Section, Event, then Metric and Routine step); ⋯ menu (Edit project, Complete project, Cancel project, Archive project, then Delete project, disabled with "Only empty projects can be deleted. Archive it instead." while the project has items); Edit project pop-up (Name, Life area, Start and Due, Notes in Markdown); Complete project confirmation listing the cascade (open tasks and upcoming events cancelled; recurring tasks, routine steps and metrics archived with entries kept), and Cancel project uses the same confirmation; Archive project confirmation; New metric pop-up with the project as owner.
+
+## Approved: Area screen mock states (Nov 14)
+
+Mock-up: design/html\_mockups/approved-area-states.html. Decided.
+
+- New area, no data: every card keeps its title and place with one muted line and a ghost action (Add metric, New project, New event, New routine step, Add task). The Metrics card shows a dashed tile explaining what metrics are for.
+- Add menu (the ▾ of the Add split button): Task, Event, Project, then Metric and Routine step, with a footer saying everything added belongs to this area.
+- ⋯ menu: Edit area, Archive area, then Delete area. Delete is disabled with "Only empty areas can be deleted. Archive it instead." while the area has items (the API refuses with 409); for an empty area it opens a red delete confirmation.
+- Edit area pop-up: the New area form pre-filled (name, color with the area using each color, vision) plus Notes (Markdown); Cancel and Save changes.
+- Archive area confirmation: lists what is archived with it (active projects, open tasks, upcoming events, metrics with entries and targets kept, routine steps) and notes that nothing is deleted and it can be restored from Archived areas; Cancel and Archive area.
+- New metric pop-up (520 px): owner tag (the area), Name, Unit (optional), Combine entries by (Sum / Average / Latest, each explained), Better when (Higher / Lower), and an optional Target (No target / Every period: value per day, week or month with a start date / Reach by a date), with a hint for how it will look on the tile and timeline; Cancel and Create metric.
+
+## Note: the sidebar is responsive and collapsible (Nov 14)
+
+Decided; replaces the earlier "Navbar, expanded" row in App shell where they differ.
+
+- Collapsible: a toggle (and `Ctrl + B`) hides the 240 px sidebar so only the 48 px rail shows. The rail icon of the open group shows the sidebar again. The choice is remembered.
+- Resizable: drag the sidebar's right border between 200 and 320 px; double-click resets it to 240. Dragging below 160 collapses it.
+- Responsive: when the window is narrower than about 1440 px, the sidebar collapses on its own and opens as an overlay on top of the page when needed, closing again after a choice. At 1920 px it stays docked.
+
+## Approved: Life areas overview mock states, and presentation rules for every screen (Nov 14)
+
+Mock-up: design/html\_mockups/approved-areas-overview-states.html. It supersedes approved-areas-overview.html and approved-areas-empty.html, which are kept only for history. Decided.
+
+- States: Normal, No areas, Areas with no data, New area pop-up, ⋯ menu (Reorder areas, Archived areas, Export as CSV), Reorder areas pop-up (drag handles; the order is used in the sidebar and every overview; Cancel and Save order), and the card menu.
+- Card menu (one corner icon per card, tooltip "Sort and filter"): Sort by, Show filters and, on Outcomes, an Areas filter with one checkbox per area; Group by area. Checkboxes in menus use the accent (brand 600). No "View as table" for now.
+- Outcomes groups do not collapse; hiding areas is done with the card menu's Areas filter. Group headers show the area dot, name and a data summary only.
+
+Presentation rules, applied to the overview and to the approved area screens (approved-area.html, approved-area-states.html):
+
+- Show data, not guidance. Card subtitles carry data only (for example "10 metrics owned by 6 areas · 6 on track or met, 4 behind", "Where your completed tasks went in Q4 · 132 in total", "5 steps in 2 routines"). Explanatory sentences, chart legends, form hints and menu footers are removed; there are no info icons. Empty states keep a short status line ("No metrics yet", "Nothing in Q4 yet.") plus their action. The first-run "Set up your first life area" message keeps its explanation.
+- Card titles sit 4 px closer to the card content (body top padding 4 px).
+- Status messages that explain why an action is unavailable stay (for example "Only empty areas can be deleted. Archive it instead.").
+- Requires a sort\_order on life areas for Reorder areas, if it doesn't exist yet.
+
+## Working rule: one mock-up file per screen (Nov 14)
+
+Decided. Each screen has exactly one approved file, design/html\_mockups/approved-\<screen>.html, holding every mock state. When a new version is approved it overwrites that file, and outdated files (older approved versions, drafts that were approved) are deleted. Drafts are named draft-\<screen>.html until approved.
+
+Current files: approved-area.html (area page, all states; earlier sections call it approved-area-states.html), approved-areas-overview.html (Life areas overview, all states; earlier sections call it approved-areas-overview-states.html or approved-areas-empty.html), approved-project.html (project page).

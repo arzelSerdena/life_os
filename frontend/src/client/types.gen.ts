@@ -393,6 +393,18 @@ export type LifeAreaRead = {
 };
 
 /**
+ * LifeAreaReorder
+ *
+ * The new order of the life areas. Areas not listed keep their order, after these.
+ */
+export type LifeAreaReorder = {
+    /**
+     * Life Area Ids
+     */
+    life_area_ids: Array<number>;
+};
+
+/**
  * LifeAreaUpdate
  *
  * Only the fields sent are changed. Sending null clears an optional field.
@@ -2054,6 +2066,37 @@ export type CreateLifeAreaResponses = {
 };
 
 export type CreateLifeAreaResponse = CreateLifeAreaResponses[keyof CreateLifeAreaResponses];
+
+export type ReorderLifeAreasData = {
+    body: LifeAreaReorder;
+    path?: never;
+    query?: never;
+    url: '/api/life-areas/reorder';
+};
+
+export type ReorderLifeAreasErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderLifeAreasError = ReorderLifeAreasErrors[keyof ReorderLifeAreasErrors];
+
+export type ReorderLifeAreasResponses = {
+    /**
+     * Response Reorder Life Areas
+     *
+     * Successful Response
+     */
+    200: Array<LifeAreaRead>;
+};
+
+export type ReorderLifeAreasResponse = ReorderLifeAreasResponses[keyof ReorderLifeAreasResponses];
 
 export type DeleteLifeAreaData = {
     body?: never;

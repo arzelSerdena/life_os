@@ -4,10 +4,10 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import ConflictError, NotFoundError
+from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import LifeArea
 from app.models.base import utc_now
-from app.schemas.life_area import LifeAreaCreate, LifeAreaUpdate
+from app.schemas.life_area import LifeAreaCreate, LifeAreaReorder, LifeAreaUpdate
 
 
 def list_life_areas(session: Session, *, include_archived: bool = False) -> Sequence[LifeArea]:
@@ -38,6 +38,22 @@ def update_life_area(session: Session, life_area_id: int, data: LifeAreaUpdate) 
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(life_area, field, value)
     return _save(session, life_area)
+
+
+def reorder_life_areas(session: Session, data: LifeAreaReorder) -> Sequence[LifeArea]:
+    """Set the order used by the sidebar and every overview, in one step."""
+    if len(set(data.life_area_ids)) != len(data.life_area_ids):
+        raise UnprocessableError("A life area can only appear once in the new order.")
+    listed = [get_life_area(session, life_area_id) for life_area_id in data.life_area_ids]
+    others = session.scalars(
+        select(LifeArea)
+        .where(LifeArea.id.not_in(data.life_area_ids))
+        .order_by(LifeArea.sort_order, LifeArea.id)
+    ).all()
+    for position, life_area in enumerate([*listed, *others]):
+        life_area.sort_order = position
+    session.commit()
+    return list_life_areas(session)
 
 
 def archive_life_area(session: Session, life_area_id: int) -> LifeArea:

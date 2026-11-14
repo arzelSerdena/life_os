@@ -48,6 +48,8 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - name: Check the design tokens CSS is up to date
+        run: pnpm tokens:check
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build

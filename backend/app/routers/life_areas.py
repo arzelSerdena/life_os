@@ -6,7 +6,7 @@ from fastapi import APIRouter, status
 from app.db import SessionDep
 from app.models import LifeArea
 from app.schemas.common import ErrorResponse
-from app.schemas.life_area import LifeAreaCreate, LifeAreaRead, LifeAreaUpdate
+from app.schemas.life_area import LifeAreaCreate, LifeAreaRead, LifeAreaReorder, LifeAreaUpdate
 from app.services import life_areas as service
 
 router = APIRouter(prefix="/api/life-areas", tags=["life-areas"])
@@ -23,6 +23,16 @@ def list_life_areas(session: SessionDep, include_archived: bool = False) -> Sequ
 @router.post("", response_model=LifeAreaRead, status_code=status.HTTP_201_CREATED)
 def create_life_area(session: SessionDep, data: LifeAreaCreate) -> LifeArea:
     return service.create_life_area(session, data)
+
+
+@router.post(
+    "/reorder",
+    response_model=list[LifeAreaRead],
+    responses=NOT_FOUND,
+)
+def reorder_life_areas(session: SessionDep, data: LifeAreaReorder) -> Sequence[LifeArea]:
+    """Set the areas' order; returns the active areas in their new order."""
+    return service.reorder_life_areas(session, data)
 
 
 @router.get("/{life_area_id}", response_model=LifeAreaRead, responses=NOT_FOUND)

@@ -48,3 +48,11 @@ class LifeAreaRead(BaseModel):
     archived_at: UtcDatetime | None
     created_at: UtcDatetime
     updated_at: UtcDatetime
+
+
+class LifeAreaReorder(BaseModel):
+    """The new order of the life areas. Areas not listed keep their order, after these."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    life_area_ids: Annotated[list[int], Field(min_length=1, max_length=500)]

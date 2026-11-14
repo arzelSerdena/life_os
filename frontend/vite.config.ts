@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      "/api": "http://127.0.0.1:8000",
+      // LIFE_OS_API_URL points a second dev server at another API, such as one on a scratch DB.
+      "/api": process.env.LIFE_OS_API_URL ?? "http://127.0.0.1:8000",
     },
   },
   test: {

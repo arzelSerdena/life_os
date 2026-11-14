@@ -1,28 +1,21 @@
-import { Button } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
-import { healthOptions } from "./client/@tanstack/react-query.gen";
+import { Navigate, Route, Routes } from "react-router";
+import { AppLayout } from "./components/AppLayout";
+import { ArchivedAreasPage } from "./features/life-areas/ArchivedAreasPage";
+import { AreaPage } from "./features/life-areas/AreaPage";
+import { AreasLayout } from "./features/life-areas/AreasLayout";
+import { AreasOverviewPage } from "./features/life-areas/AreasOverviewPage";
 
 export function App() {
-  const health = useQuery({ ...healthOptions(), retry: false });
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-3xl font-semibold">Life OS</h1>
-      <p role="status">{statusMessage(health.isPending, health.isError)}</p>
-      <Button
-        variant="secondary"
-        isPending={health.isFetching}
-        onPress={() => void health.refetch()}
-      >
-        Check again
-      </Button>
-    </main>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="areas" element={<AreasLayout />}>
+          <Route index element={<AreasOverviewPage />} />
+          <Route path="archived" element={<ArchivedAreasPage />} />
+          <Route path=":areaId" element={<AreaPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/areas" replace />} />
+      </Route>
+    </Routes>
   );
-}
-
-function statusMessage(isPending: boolean, isError: boolean): string {
-  if (isPending) {
-    return "Checking the API…";
-  }
-  return isError ? "API unreachable" : "API connected";
 }

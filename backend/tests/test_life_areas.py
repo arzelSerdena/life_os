@@ -188,6 +188,39 @@ def test_delete_is_refused_while_items_belong_to_it(client: TestClient, engine: 
     assert client.get(f"{URL}/{created['id']}").status_code == 200
 
 
+def test_reorder_sets_the_order_of_the_sidebar(client: TestClient) -> None:
+    career, finance, home = (
+        _create(client, title)["id"] for title in ["Career", "Finance", "Home"]
+    )
+
+    response = client.post(f"{URL}/reorder", json={"life_area_ids": [home, career, finance]})
+
+    assert response.status_code == 200, response.text
+    assert [area["title"] for area in response.json()] == ["Home", "Career", "Finance"]
+    assert [area["title"] for area in client.get(URL).json()] == ["Home", "Career", "Finance"]
+
+
+def test_reorder_puts_unlisted_areas_after_the_listed_ones(client: TestClient) -> None:
+    career, finance, home = (
+        _create(client, title)["id"] for title in ["Career", "Finance", "Home"]
+    )
+    client.post(f"{URL}/{career}/archive")
+
+    client.post(f"{URL}/reorder", json={"life_area_ids": [home, finance]})
+    client.post(f"{URL}/{career}/unarchive")
+
+    assert [area["title"] for area in client.get(URL).json()] == ["Home", "Finance", "Career"]
+
+
+def test_reorder_rejects_an_area_listed_twice(client: TestClient) -> None:
+    career = _create(client, "Career")["id"]
+
+    response = client.post(f"{URL}/reorder", json={"life_area_ids": [career, career]})
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "A life area can only appear once in the new order."}
+
+
 @pytest.mark.parametrize(
     ("method", "path", "payload"),
     [
@@ -196,6 +229,7 @@ def test_delete_is_refused_while_items_belong_to_it(client: TestClient, engine: 
         ("POST", "/999/archive", None),
         ("POST", "/999/unarchive", None),
         ("DELETE", "/999", None),
+        ("POST", "/reorder", {"life_area_ids": [999]}),
     ],
 )
 def test_missing_life_area_returns_404(
