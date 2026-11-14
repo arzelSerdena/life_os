@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import LifeArea
-from app.models.base import utc_now
 from app.schemas.life_area import LifeAreaCreate, LifeAreaReorder, LifeAreaUpdate
 
 
@@ -54,19 +53,6 @@ def reorder_life_areas(session: Session, data: LifeAreaReorder) -> Sequence[Life
         life_area.sort_order = position
     session.commit()
     return list_life_areas(session)
-
-
-def archive_life_area(session: Session, life_area_id: int) -> LifeArea:
-    life_area = get_life_area(session, life_area_id)
-    if life_area.archived_at is None:
-        life_area.archived_at = utc_now()
-    return _save(session, life_area)
-
-
-def unarchive_life_area(session: Session, life_area_id: int) -> LifeArea:
-    life_area = get_life_area(session, life_area_id)
-    life_area.archived_at = None
-    return _save(session, life_area)
 
 
 def delete_life_area(session: Session, life_area_id: int) -> None:

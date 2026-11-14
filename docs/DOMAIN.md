@@ -128,6 +128,10 @@ Every cascade follows the same steps:
 
 **Exception: tasks.** When the user checks off, cancels or archives a task, it applies immediately with no preview or confirmation. The task and its subtask cascade are still applied in one transaction and recorded under one `batch_id`, so the change can be undone. This exception covers only the user's own actions.
 
+Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/projects/{id}/preview?action=complete|cancel|archive`, which list every affected item and what happens to it (archive, cancel, or end the series from today). Archiving and status changes return the `batch_id` to undo.
+
+**Restoring** an archived life area or project restores it and the items its last archive took with it; items archived on their own before that stay archived. Reopening a finished project only makes it active again; undo is how its cancelled items come back.
+
 Undo groups the batch's rows by entity and restores all fields of one entity in a **single UPDATE**. Status and timestamp must change together or the CHECK constraint fails.
 
 `status_changes` records field changes, plus tasks a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks and series cancellations. Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.
@@ -236,6 +240,13 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Projects**: tasks done across each area's active projects (as project progress counts them) against pace, the share of those projects' time that has passed. A project's time runs from its creation to its due date; without a due date it counts toward progress but not pace. Within 5 points of pace counts as on pace.
   - **Routine steps done**: per area, each Monday-to-Sunday week's done steps out of those due up to today. Skipped days aren't due; paused days never are.
   - **Wins**: projects finished in the period, per-period targets met in periods that ended in it (grouped per target), and reach-by targets reached in it, newest first.
+
+- An **area page** (`GET /api/life-areas/{id}/page?period=&date=`) shows one area over a calendar period, including its projects' tasks and events:
+  - **Metrics**: the area's own metrics, as in the overview's Outcomes. **Projects**: active ones and those finished in the period.
+  - **Routines**: each routine with steps in the area, and each such step's status for every day: done, skipped, missed, paused, to-do (today), upcoming or not due.
+  - **Task lists**: needs attention (overdue, or rolled over 3 or more times), unscheduled, recurring (templates with a repeat rule), and completed in the period (the newest 100).
+  - **Agenda**: from today, or the period's start if later, to its end (nothing for a past period): open tasks scheduled or due in it, events, project due dates, and reach-by target deadlines not yet met.
+  - **Contents**: the counts an archive would affect, and whether anything still belongs to the area. Deleting is only offered when nothing does.
 
 ### Time and text
 

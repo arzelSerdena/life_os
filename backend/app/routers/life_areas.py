@@ -7,9 +7,13 @@ from fastapi import APIRouter, status
 from app import clock
 from app.db import SessionDep
 from app.models import LifeArea
+from app.schemas.area_page import AreaPageRead
+from app.schemas.cascade import CascadePreview, LifeAreaChange
 from app.schemas.common import ErrorResponse
 from app.schemas.life_area import LifeAreaCreate, LifeAreaRead, LifeAreaReorder, LifeAreaUpdate
 from app.schemas.overview import OverviewPeriod, OverviewRead
+from app.services import area_page as area_page_service
+from app.services import cascades
 from app.services import life_areas as service
 from app.services import overview as overview_service
 
@@ -54,19 +58,46 @@ def get_life_area(session: SessionDep, life_area_id: int) -> LifeArea:
     return service.get_life_area(session, life_area_id)
 
 
+@router.get("/{life_area_id}/page", responses=NOT_FOUND)
+def get_area_page(
+    session: SessionDep,
+    life_area_id: int,
+    period: OverviewPeriod = "quarter",
+    date: date | None = None,
+) -> AreaPageRead:
+    """One area over the week, month, quarter or year containing `date` (default: today):
+    metrics, timeline, projects, routine steps, task lists, agenda, and what it contains."""
+    page = area_page_service.get_area_page(session, life_area_id, period, date or clock.today())
+    return AreaPageRead.from_page(page)
+
+
 @router.patch("/{life_area_id}", response_model=LifeAreaRead, responses=NOT_FOUND)
 def update_life_area(session: SessionDep, life_area_id: int, data: LifeAreaUpdate) -> LifeArea:
     return service.update_life_area(session, life_area_id, data)
 
 
-@router.post("/{life_area_id}/archive", response_model=LifeAreaRead, responses=NOT_FOUND)
-def archive_life_area(session: SessionDep, life_area_id: int) -> LifeArea:
-    return service.archive_life_area(session, life_area_id)
+@router.get("/{life_area_id}/archive/preview", responses=NOT_FOUND)
+def preview_life_area_archive(session: SessionDep, life_area_id: int) -> CascadePreview:
+    """What archiving the area would archive with it, to confirm first."""
+    return CascadePreview.from_plan(cascades.plan_area_archive(session, life_area_id))
 
 
-@router.post("/{life_area_id}/unarchive", response_model=LifeAreaRead, responses=NOT_FOUND)
-def unarchive_life_area(session: SessionDep, life_area_id: int) -> LifeArea:
-    return service.unarchive_life_area(session, life_area_id)
+@router.post("/{life_area_id}/archive", responses=NOT_FOUND)
+def archive_life_area(session: SessionDep, life_area_id: int) -> LifeAreaChange:
+    """Archive the area and everything in it, as one change that undo restores."""
+    result = cascades.archive_area(session, life_area_id)
+    return LifeAreaChange(
+        life_area=LifeAreaRead.model_validate(result.item), batch_id=result.batch_id
+    )
+
+
+@router.post("/{life_area_id}/unarchive", responses=NOT_FOUND)
+def unarchive_life_area(session: SessionDep, life_area_id: int) -> LifeAreaChange:
+    """Restore the area and the items its last archive took with it."""
+    result = cascades.restore_area(session, life_area_id)
+    return LifeAreaChange(
+        life_area=LifeAreaRead.model_validate(result.item), batch_id=result.batch_id
+    )
 
 
 @router.delete(

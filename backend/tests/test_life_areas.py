@@ -141,7 +141,8 @@ def test_archive_sets_the_timestamp_and_keeps_the_row(client: TestClient) -> Non
 
     body = client.post(f"{URL}/{created['id']}/archive").json()
 
-    assert body["archived_at"].endswith("Z")
+    assert body["life_area"]["archived_at"].endswith("Z")
+    assert body["batch_id"]
     assert client.get(f"{URL}/{created['id']}").status_code == 200
 
 
@@ -151,7 +152,8 @@ def test_archiving_twice_keeps_the_first_timestamp(client: TestClient) -> None:
 
     second = client.post(f"{URL}/{created['id']}/archive").json()
 
-    assert second["archived_at"] == first["archived_at"]
+    assert second["life_area"]["archived_at"] == first["life_area"]["archived_at"]
+    assert second["batch_id"] is None
 
 
 def test_unarchive_brings_it_back(client: TestClient) -> None:
@@ -160,7 +162,7 @@ def test_unarchive_brings_it_back(client: TestClient) -> None:
 
     body = client.post(f"{URL}/{created['id']}/unarchive").json()
 
-    assert body["archived_at"] is None
+    assert body["life_area"]["archived_at"] is None
     assert [item["id"] for item in client.get(URL).json()] == [created["id"]]
 
 
