@@ -1,18 +1,15 @@
 import { Button, Dropdown, Label } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
-import { Archive, ArrowDownUp, ChartLine, Ellipsis, LayoutGrid, Plus } from "lucide-react";
+import { Archive, ArrowDownUp, Ellipsis, LayoutGrid, Plus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { listLifeAreasOptions } from "../../client/@tanstack/react-query.gen";
-import type { LifeAreaRead } from "../../client/types.gen";
 import { PageHeader } from "../../components/PageHeader";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
-import { CardEmpty, SectionCard } from "../../components/SectionCard";
-import { type Period, periodInSentence, periodRange, today } from "../../period";
-import { usePeriodStore } from "../../stores/periodStore";
 import { useAreasContext } from "./AreasLayout";
-import { type AreaPaletteKey, areaDataAttribute } from "./palette";
+import { OverviewCards } from "./overview/OverviewCards";
+import type { AreaPaletteKey } from "./palette";
 import { ReorderAreasModal } from "./ReorderAreasModal";
 
 /** Common areas offered when there are none yet; each opens the pop-up filled in. */
@@ -77,11 +74,7 @@ export function AreasOverviewPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
         {lifeAreas.isError && <QueryError error={lifeAreas.error} onRetry={lifeAreas.refetch} />}
         {lifeAreas.isSuccess &&
-          (hasAreas ? (
-            <OverviewCards lifeAreas={lifeAreas.data} />
-          ) : (
-            <FirstAreaWelcome onCreate={openCreateForm} />
-          ))}
+          (hasAreas ? <OverviewCards /> : <FirstAreaWelcome onCreate={openCreateForm} />)}
       </div>
       {isReordering && lifeAreas.data && (
         <ReorderAreasModal lifeAreas={lifeAreas.data} onClose={() => setIsReordering(false)} />
@@ -130,72 +123,4 @@ function FirstAreaWelcome({
       </div>
     </div>
   );
-}
-
-/**
- * The overview's cards. Their data comes with the overview API; until then each shows
- * the empty state the mock-up gives for areas with no data yet.
- */
-function OverviewCards({ lifeAreas }: { lifeAreas: readonly LifeAreaRead[] }) {
-  const { period, date } = usePeriodStore();
-  const name = periodInSentence(period, date);
-  const isCurrent = containsToday(period, date);
-
-  const effort = isCurrent ? `No tasks completed in ${name} yet` : `No tasks completed in ${name}`;
-  return (
-    <>
-      <SectionCard title="Effort" description={effort}>
-        <CardEmpty>{effort}.</CardEmpty>
-      </SectionCard>
-      <SectionCard title="Outcomes" description="No metrics yet">
-        <div className="grid grid-cols-5 gap-3">
-          {lifeAreas.map((lifeArea) => (
-            <OutcomesAreaPanel key={lifeArea.id} lifeArea={lifeArea} />
-          ))}
-        </div>
-      </SectionCard>
-      <div className="grid grid-cols-3 gap-4">
-        <SectionCard title="Projects" description="No active projects">
-          <CardEmpty>No active projects.</CardEmpty>
-        </SectionCard>
-        <SectionCard title="Routine steps done" description="No routine steps">
-          <CardEmpty>No routine steps in these areas.</CardEmpty>
-        </SectionCard>
-        <SectionCard
-          title="Wins"
-          description={isCurrent ? `None in ${name} yet` : `None in ${name}`}
-        >
-          <CardEmpty>{isCurrent ? `Nothing yet this ${period}.` : `Nothing in ${name}.`}</CardEmpty>
-        </SectionCard>
-      </div>
-    </>
-  );
-}
-
-/** One area's grey panel in Outcomes; for now its dashed "no metrics" placeholder. */
-function OutcomesAreaPanel({ lifeArea }: { lifeArea: LifeAreaRead }) {
-  return (
-    <div
-      data-area={areaDataAttribute(lifeArea.color)}
-      className="self-start rounded-(--radius-12) border border-[#eef0f3] bg-neutral-50 px-2 pt-1.5 pb-2"
-    >
-      <h3 className="mb-1 flex h-7 items-center gap-2 pl-0.5">
-        <span aria-hidden className="size-2.5 shrink-0 rounded-[2px] bg-(--area-solid)" />
-        <span className="truncate text-sm font-semibold text-(--text-primary)">
-          {lifeArea.title}
-        </span>
-        <span className="shrink-0 type-meta font-normal text-(--text-tertiary)">No metrics</span>
-      </h3>
-      <div className="flex min-h-[120px] flex-col justify-center gap-1.5 rounded-(--radius-8) border border-dashed border-(--border-default) bg-(--bg-surface) px-2.5 py-2 text-xs text-(--text-tertiary)">
-        <ChartLine aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />
-        <span>No metrics yet</span>
-      </div>
-    </div>
-  );
-}
-
-function containsToday(period: Period, date: string): boolean {
-  const { start, end } = periodRange(period, date);
-  const now = today();
-  return start <= now && now <= end;
 }

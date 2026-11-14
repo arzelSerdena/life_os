@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import type { LifeAreaRead } from "../../client/types.gen";
-import { lifeArea, renderApp } from "../../test-utils";
+import { emptyOverview, lifeArea, renderApp } from "../../test-utils";
 
 type RecordedRequest = { method: string; path: string; body: unknown };
 
@@ -28,6 +28,9 @@ async function fakeApi(request: Request): Promise<Response> {
   const id = Number(idText);
   const index = areas.findIndex((area) => area.id === id);
 
+  if (request.method === "GET" && idText === "overview") {
+    return json(emptyOverview(areas.filter((area) => area.archived_at === null)));
+  }
   if (request.method === "GET" && idText) {
     return index === -1 ? json({ detail: "Life area not found." }, 404) : json(areas[index]);
   }
