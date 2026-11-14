@@ -5,6 +5,100 @@ export type ClientOptions = {
 };
 
 /**
+ * DayRead
+ */
+export type DayRead = {
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Tasks
+     */
+    tasks: Array<TaskRead>;
+    /**
+     * Events
+     */
+    events: Array<OccurrenceRead>;
+    /**
+     * Routine Steps
+     */
+    routine_steps: Array<RoutineStepDay>;
+};
+
+/**
+ * EntryCreate
+ *
+ * A value for a day up to today (default: today).
+ */
+export type EntryCreate = {
+    /**
+     * Value
+     */
+    value: number;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
+/**
+ * EntryRead
+ */
+export type EntryRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Date
+     */
+    date: string;
+    /**
+     * Value
+     */
+    value: number;
+    /**
+     * Note
+     */
+    note: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * EntryUpdate
+ */
+export type EntryUpdate = {
+    /**
+     * Value
+     */
+    value?: number | null;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
+/**
  * ErrorResponse
  */
 export type ErrorResponse = {
@@ -12,6 +106,206 @@ export type ErrorResponse = {
      * Detail
      */
     detail: string;
+};
+
+/**
+ * EventChange
+ *
+ * The event after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type EventChange = {
+    event: EventRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * EventCreate
+ *
+ * An event in a life area or a project (it inherits the project's life area).
+ *
+ * No start_time means all-day. end_date is the last day, inclusive. Add rrule to repeat
+ * from start_date, until repeat_ends_on if set; the rule may not contain DTSTART, UNTIL
+ * or COUNT.
+ */
+export type EventCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Location
+     */
+    location?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * EventMove
+ *
+ * The event's new owner: a project, or a life area. Events can't be in the Inbox.
+ */
+export type EventMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * EventRead
+ */
+export type EventRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+    /**
+     * Start Time
+     */
+    start_time: string | null;
+    /**
+     * End Time
+     */
+    end_time: string | null;
+    /**
+     * Location
+     */
+    location: string | null;
+    /**
+     * Rrule
+     */
+    rrule: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * EventUpdate
+ *
+ * Only the fields sent are changed. On a repeating event this changes the whole
+ * series; changing its timing or rule removes one-off changes to occurrences.
+ */
+export type EventUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Location
+     */
+    location?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on?: string | null;
 };
 
 /**
@@ -127,6 +421,1528 @@ export type LifeAreaUpdate = {
 };
 
 /**
+ * MetricChange
+ */
+export type MetricChange = {
+    metric: MetricRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * MetricCreate
+ *
+ * A metric in a life area or a project (it inherits the project's life area).
+ */
+export type MetricCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction?: 'higher' | 'lower';
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * MetricMove
+ *
+ * The metric's new owner: a project, or a life area.
+ */
+export type MetricMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * MetricRead
+ */
+export type MetricRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower';
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Targets
+     */
+    targets: Array<TargetRead>;
+};
+
+/**
+ * MetricUpdate
+ */
+export type MetricUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation?: 'sum' | 'average' | 'latest' | null;
+    /**
+     * Direction
+     */
+    direction?: 'higher' | 'lower' | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * OccurrenceCancel
+ */
+export type OccurrenceCancel = {
+    /**
+     * Scope
+     */
+    scope: 'this' | 'following' | 'all';
+};
+
+/**
+ * OccurrenceEdit
+ *
+ * Change an occurrence of a repeating event.
+ *
+ * "this" changes only this occurrence and may move it to other dates. "following" and
+ * "all" change the series and can't move dates; use the event itself for that.
+ */
+export type OccurrenceEdit = {
+    /**
+     * Scope
+     */
+    scope: 'this' | 'following' | 'all';
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Location
+     */
+    location?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat Ends On
+     */
+    repeat_ends_on?: string | null;
+};
+
+/**
+ * OccurrenceRead
+ *
+ * One occurrence of an event, with any one-off changes applied.
+ */
+export type OccurrenceRead = {
+    /**
+     * Event Id
+     */
+    event_id: number;
+    /**
+     * Occurrence Date
+     */
+    occurrence_date: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string;
+    /**
+     * Start Time
+     */
+    start_time: string | null;
+    /**
+     * End Time
+     */
+    end_time: string | null;
+    /**
+     * Location
+     */
+    location: string | null;
+    /**
+     * Is Repeating
+     */
+    is_repeating: boolean;
+    /**
+     * Is Cancelled
+     */
+    is_cancelled: boolean;
+    /**
+     * Is Changed
+     */
+    is_changed: boolean;
+    /**
+     * Is Past
+     */
+    is_past: boolean;
+};
+
+/**
+ * PeriodRead
+ */
+export type PeriodRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Value
+     */
+    value: number | null;
+    /**
+     * Status
+     */
+    status: 'in_progress' | 'met' | 'missed';
+};
+
+/**
+ * ProjectChange
+ */
+export type ProjectChange = {
+    project: ProjectRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * ProjectCreate
+ */
+export type ProjectCreate = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+};
+
+/**
+ * ProjectMove
+ *
+ * Move the project to another life area. Everything in it moves too.
+ */
+export type ProjectMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+};
+
+/**
+ * ProjectProgress
+ *
+ * Done one-off tasks out of those not cancelled or archived. Calculated, never stored.
+ */
+export type ProjectProgress = {
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
+ * ProjectRead
+ */
+export type ProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Status
+     */
+    status: 'active' | 'done' | 'cancelled';
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Sections
+     */
+    sections: Array<SectionRead>;
+    progress: ProjectProgress;
+};
+
+/**
+ * ProjectUpdate
+ *
+ * Only the fields sent are changed. Moving and status changes have their own endpoints.
+ */
+export type ProjectUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * RoutineChange
+ *
+ * The routine after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type RoutineChange = {
+    routine: RoutineRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * RoutineCreate
+ *
+ * A routine, due on the days its rule says from starts_on (default: today, daily).
+ */
+export type RoutineCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string;
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+};
+
+/**
+ * RoutineLogSet
+ */
+export type RoutineLogSet = {
+    /**
+     * Status
+     */
+    status: 'done' | 'skipped';
+};
+
+/**
+ * RoutineRead
+ */
+export type RoutineRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Is Paused
+     */
+    is_paused: boolean;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Schedules
+     */
+    schedules: Array<ScheduleRead>;
+    /**
+     * Steps
+     */
+    steps: Array<RoutineStepRead>;
+};
+
+/**
+ * RoutineStepChange
+ */
+export type RoutineStepChange = {
+    step: RoutineStepRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * RoutineStepCreate
+ *
+ * A step owned by a life area or a project. Due from starts_on (default: today).
+ */
+export type RoutineStepCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+};
+
+/**
+ * RoutineStepDay
+ *
+ * A step due on a given day, and how it went.
+ */
+export type RoutineStepDay = {
+    /**
+     * Step Id
+     */
+    step_id: number;
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Routine Title
+     */
+    routine_title: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Status
+     */
+    status: 'todo' | 'done' | 'skipped' | 'missed';
+};
+
+/**
+ * RoutineStepMove
+ *
+ * The step's new owner: a project, or a life area. Steps can't be in the Inbox.
+ */
+export type RoutineStepMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
+ * RoutineStepRead
+ */
+export type RoutineStepRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Starts On
+     */
+    starts_on: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Is Paused
+     */
+    is_paused: boolean;
+    /**
+     * Current Streak
+     */
+    current_streak: number;
+    /**
+     * Best Streak
+     */
+    best_streak: number;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * RoutineStepUpdate
+ */
+export type RoutineStepUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+};
+
+/**
+ * RoutineUpdate
+ *
+ * Only the fields sent are changed. The schedule has its own endpoint.
+ */
+export type RoutineUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * ScheduleChange
+ *
+ * Change which days the routine is due.
+ *
+ * "following" uses the new rule from starts_on (default: today) and keeps the past.
+ * "all" replaces the whole schedule; starts_on then moves the routine's start.
+ */
+export type ScheduleChange = {
+    /**
+     * Scope
+     */
+    scope: 'following' | 'all';
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+};
+
+/**
+ * ScheduleRead
+ */
+export type ScheduleRead = {
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Starts On
+     */
+    starts_on: string;
+};
+
+/**
+ * SectionCreate
+ */
+export type SectionCreate = {
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
+ * SectionRead
+ */
+export type SectionRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Project Id
+     */
+    project_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+};
+
+/**
+ * SectionUpdate
+ */
+export type SectionUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * SeriesCancel
+ */
+export type SeriesCancel = {
+    /**
+     * Scope
+     */
+    scope: 'following' | 'all';
+};
+
+/**
+ * SeriesCancelResult
+ *
+ * The recurring task after the change, and the batch to pass to undo.
+ */
+export type SeriesCancelResult = {
+    template: TaskTemplateRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * SeriesEdit
+ *
+ * Change a recurring task from one occurrence: "following" (this and following) or
+ * "all". Unfinished occurrences in range get the changed title, notes, priority and due
+ * date; checklist changes apply to occurrences created from now on.
+ */
+export type SeriesEdit = {
+    /**
+     * Scope
+     */
+    scope: 'following' | 'all';
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none' | null;
+    /**
+     * Due Offset Days
+     */
+    due_offset_days?: number | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string> | null;
+};
+
+/**
+ * SubtaskCreate
+ */
+export type SubtaskCreate = {
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
+ * SubtaskRead
+ */
+export type SubtaskRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Task Id
+     */
+    task_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Status
+     */
+    status: 'todo' | 'done' | 'cancelled';
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * SubtaskUpdate
+ *
+ * Only the fields sent are changed. Setting status also sets its timestamp.
+ */
+export type SubtaskUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Status
+     */
+    status?: 'todo' | 'done' | 'cancelled' | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * TargetCreate
+ *
+ * 'reach_by' needs end_date (the deadline). 'per_period' needs period; without
+ * end_date it is ongoing. start_date defaults to today.
+ */
+export type TargetCreate = {
+    /**
+     * Kind
+     */
+    kind: 'reach_by' | 'per_period';
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Period
+     */
+    period?: 'day' | 'week' | 'month' | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+};
+
+/**
+ * TargetRead
+ *
+ * A target and how it's going, calculated from the entries.
+ */
+export type TargetRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Kind
+     */
+    kind: 'reach_by' | 'per_period';
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Period
+     */
+    period: 'day' | 'week' | 'month' | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+    /**
+     * State
+     */
+    state: 'upcoming' | 'in_progress' | 'met' | 'missed' | 'ended';
+    /**
+     * Value
+     */
+    value: number | null;
+    current_period: PeriodRead | null;
+    /**
+     * Recent Periods
+     */
+    recent_periods: Array<PeriodRead>;
+    /**
+     * Met Periods
+     */
+    met_periods: number;
+    /**
+     * Missed Periods
+     */
+    missed_periods: number;
+};
+
+/**
+ * TargetReplace
+ *
+ * Change a target: the current one ends yesterday and a new one starts today, so its
+ * history stays. Fields left out keep the current values.
+ */
+export type TargetReplace = {
+    /**
+     * Target Value
+     */
+    target_value?: number | null;
+    /**
+     * Period
+     */
+    period?: 'day' | 'week' | 'month' | null;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+};
+
+/**
+ * TaskChange
+ *
+ * The task after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type TaskChange = {
+    task: TaskRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
+ * TaskCreate
+ *
+ * Send project_id for a project's task, life_area_id for a life area's, or neither for
+ * the Inbox. A project's task inherits the project's life area.
+ */
+export type TaskCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Section Id
+     */
+    section_id?: number | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string>;
+};
+
+/**
+ * TaskFromTemplate
+ */
+export type TaskFromTemplate = {
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+};
+
+/**
+ * TaskMove
+ *
+ * The task's whole new owner: a project (and optional section), a life area, or
+ * nothing for the Inbox. Fields left out mean none.
+ */
+export type TaskMove = {
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Section Id
+     */
+    section_id?: number | null;
+};
+
+/**
+ * TaskRead
+ */
+export type TaskRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number | null;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Section Id
+     */
+    section_id: number | null;
+    /**
+     * Template Id
+     */
+    template_id: number | null;
+    /**
+     * Occurrence Date
+     */
+    occurrence_date: string | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Status
+     */
+    status: 'todo' | 'done' | 'cancelled';
+    /**
+     * Priority
+     */
+    priority: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Scheduled Date
+     */
+    scheduled_date: string | null;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Due Time
+     */
+    due_time: string | null;
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Rollover Count
+     */
+    rollover_count: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Subtasks
+     */
+    subtasks: Array<SubtaskRead>;
+};
+
+/**
+ * TaskReorder
+ *
+ * The new order of a day's tasks, or of the unscheduled list (scheduled_date null).
+ *
+ * Tasks of that day not listed keep their order, after the listed ones.
+ */
+export type TaskReorder = {
+    /**
+     * Scheduled Date
+     */
+    scheduled_date: string | null;
+    /**
+     * Task Ids
+     */
+    task_ids: Array<number>;
+};
+
+/**
+ * TaskTemplateCreate
+ *
+ * A template. Add rrule and starts_on to make it a recurring task.
+ *
+ * rrule is an iCalendar RRULE without DTSTART, UNTIL or COUNT, such as
+ * "FREQ=WEEKLY;BYDAY=MO". The series ends on ends_on, if set.
+ */
+export type TaskTemplateCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Due Offset Days
+     */
+    due_offset_days?: number | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat From
+     */
+    repeat_from?: 'schedule' | 'completion';
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+    /**
+     * Ends On
+     */
+    ends_on?: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+    /**
+     * Section Id
+     */
+    section_id?: number | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string>;
+};
+
+/**
+ * TaskTemplateRead
+ */
+export type TaskTemplateRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number | null;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Section Id
+     */
+    section_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Priority
+     */
+    priority: 'high' | 'medium' | 'low' | 'none';
+    /**
+     * Due Offset Days
+     */
+    due_offset_days: number | null;
+    /**
+     * Due Time
+     */
+    due_time: string | null;
+    /**
+     * Rrule
+     */
+    rrule: string | null;
+    /**
+     * Repeat From
+     */
+    repeat_from: 'schedule' | 'completion';
+    /**
+     * Starts On
+     */
+    starts_on: string | null;
+    /**
+     * Ends On
+     */
+    ends_on: string | null;
+    /**
+     * Paused At
+     */
+    paused_at: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Subtasks
+     */
+    subtasks: Array<TemplateSubtaskRead>;
+};
+
+/**
+ * TaskTemplateUpdate
+ *
+ * Only the fields sent are changed. Tasks already created don't change; to update a
+ * recurring task's occurrences too, edit the series from one of them.
+ *
+ * Setting rrule to null turns a recurring task into a plain template.
+ */
+export type TaskTemplateUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none' | null;
+    /**
+     * Due Offset Days
+     */
+    due_offset_days?: number | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * Repeat From
+     */
+    repeat_from?: 'schedule' | 'completion' | null;
+    /**
+     * Starts On
+     */
+    starts_on?: string | null;
+    /**
+     * Ends On
+     */
+    ends_on?: string | null;
+    /**
+     * Subtasks
+     */
+    subtasks?: Array<string> | null;
+};
+
+/**
+ * TaskUpdate
+ *
+ * Only the fields sent are changed. Owner and status have their own endpoints.
+ */
+export type TaskUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Priority
+     */
+    priority?: 'high' | 'medium' | 'low' | 'none' | null;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+    /**
+     * Due Date
+     */
+    due_date?: string | null;
+    /**
+     * Due Time
+     */
+    due_time?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * TemplateSubtaskRead
+ */
+export type TemplateSubtaskRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+};
+
+/**
+ * UndoResult
+ */
+export type UndoResult = {
+    /**
+     * Restored Items
+     */
+    restored_items: number;
+};
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -152,6 +1968,34 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WeekRead
+ *
+ * Monday to Sunday. Unscheduled holds every to-do task with no date.
+ */
+export type WeekRead = {
+    /**
+     * Week Start
+     */
+    week_start: string;
+    /**
+     * Week End
+     */
+    week_end: string;
+    /**
+     * Today
+     */
+    today: string;
+    /**
+     * Unscheduled
+     */
+    unscheduled: Array<TaskRead>;
+    /**
+     * Days
+     */
+    days: Array<DayRead>;
 };
 
 export type ListLifeAreasData = {
@@ -384,6 +2228,3286 @@ export type UnarchiveLifeAreaResponses = {
 };
 
 export type UnarchiveLifeAreaResponse = UnarchiveLifeAreaResponses[keyof UnarchiveLifeAreaResponses];
+
+export type ListProjectsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/projects';
+};
+
+export type ListProjectsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListProjectsError = ListProjectsErrors[keyof ListProjectsErrors];
+
+export type ListProjectsResponses = {
+    /**
+     * Response List Projects
+     *
+     * Successful Response
+     */
+    200: Array<ProjectRead>;
+};
+
+export type ListProjectsResponse = ListProjectsResponses[keyof ListProjectsResponses];
+
+export type CreateProjectData = {
+    body: ProjectCreate;
+    path?: never;
+    query?: never;
+    url: '/api/projects';
+};
+
+export type CreateProjectErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateProjectError = CreateProjectErrors[keyof CreateProjectErrors];
+
+export type CreateProjectResponses = {
+    /**
+     * Successful Response
+     */
+    201: ProjectRead;
+};
+
+export type CreateProjectResponse = CreateProjectResponses[keyof CreateProjectResponses];
+
+export type DeleteProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}';
+};
+
+export type DeleteProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteProjectError = DeleteProjectErrors[keyof DeleteProjectErrors];
+
+export type DeleteProjectResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteProjectResponse = DeleteProjectResponses[keyof DeleteProjectResponses];
+
+export type GetProjectData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}';
+};
+
+export type GetProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetProjectError = GetProjectErrors[keyof GetProjectErrors];
+
+export type GetProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectRead;
+};
+
+export type GetProjectResponse = GetProjectResponses[keyof GetProjectResponses];
+
+export type UpdateProjectData = {
+    body: ProjectUpdate;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}';
+};
+
+export type UpdateProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateProjectError = UpdateProjectErrors[keyof UpdateProjectErrors];
+
+export type UpdateProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectRead;
+};
+
+export type UpdateProjectResponse = UpdateProjectResponses[keyof UpdateProjectResponses];
+
+export type MoveProjectData = {
+    body: ProjectMove;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/move';
+};
+
+export type MoveProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveProjectError = MoveProjectErrors[keyof MoveProjectErrors];
+
+export type MoveProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type MoveProjectResponse = MoveProjectResponses[keyof MoveProjectResponses];
+
+export type CreateSectionData = {
+    body: SectionCreate;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/sections';
+};
+
+export type CreateSectionErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSectionError = CreateSectionErrors[keyof CreateSectionErrors];
+
+export type CreateSectionResponses = {
+    /**
+     * Successful Response
+     */
+    201: SectionRead;
+};
+
+export type CreateSectionResponse = CreateSectionResponses[keyof CreateSectionResponses];
+
+export type DeleteSectionData = {
+    body?: never;
+    path: {
+        /**
+         * Section Id
+         */
+        section_id: number;
+    };
+    query?: never;
+    url: '/api/sections/{section_id}';
+};
+
+export type DeleteSectionErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteSectionError = DeleteSectionErrors[keyof DeleteSectionErrors];
+
+export type DeleteSectionResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteSectionResponse = DeleteSectionResponses[keyof DeleteSectionResponses];
+
+export type UpdateSectionData = {
+    body: SectionUpdate;
+    path: {
+        /**
+         * Section Id
+         */
+        section_id: number;
+    };
+    query?: never;
+    url: '/api/sections/{section_id}';
+};
+
+export type UpdateSectionErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSectionError = UpdateSectionErrors[keyof UpdateSectionErrors];
+
+export type UpdateSectionResponses = {
+    /**
+     * Successful Response
+     */
+    200: SectionRead;
+};
+
+export type UpdateSectionResponse = UpdateSectionResponses[keyof UpdateSectionResponses];
+
+export type ListMetricsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/metrics';
+};
+
+export type ListMetricsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMetricsError = ListMetricsErrors[keyof ListMetricsErrors];
+
+export type ListMetricsResponses = {
+    /**
+     * Response List Metrics
+     *
+     * Successful Response
+     */
+    200: Array<MetricRead>;
+};
+
+export type ListMetricsResponse = ListMetricsResponses[keyof ListMetricsResponses];
+
+export type CreateMetricData = {
+    body: MetricCreate;
+    path?: never;
+    query?: never;
+    url: '/api/metrics';
+};
+
+export type CreateMetricErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMetricError = CreateMetricErrors[keyof CreateMetricErrors];
+
+export type CreateMetricResponses = {
+    /**
+     * Successful Response
+     */
+    201: MetricRead;
+};
+
+export type CreateMetricResponse = CreateMetricResponses[keyof CreateMetricResponses];
+
+export type DeleteMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}';
+};
+
+export type DeleteMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMetricError = DeleteMetricErrors[keyof DeleteMetricErrors];
+
+export type DeleteMetricResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMetricResponse = DeleteMetricResponses[keyof DeleteMetricResponses];
+
+export type GetMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}';
+};
+
+export type GetMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetMetricError = GetMetricErrors[keyof GetMetricErrors];
+
+export type GetMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricRead;
+};
+
+export type GetMetricResponse = GetMetricResponses[keyof GetMetricResponses];
+
+export type UpdateMetricData = {
+    body: MetricUpdate;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}';
+};
+
+export type UpdateMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateMetricError = UpdateMetricErrors[keyof UpdateMetricErrors];
+
+export type UpdateMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricRead;
+};
+
+export type UpdateMetricResponse = UpdateMetricResponses[keyof UpdateMetricResponses];
+
+export type MoveMetricData = {
+    body: MetricMove;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/move';
+};
+
+export type MoveMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveMetricError = MoveMetricErrors[keyof MoveMetricErrors];
+
+export type MoveMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricChange;
+};
+
+export type MoveMetricResponse = MoveMetricResponses[keyof MoveMetricResponses];
+
+export type ArchiveMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/archive';
+};
+
+export type ArchiveMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveMetricError = ArchiveMetricErrors[keyof ArchiveMetricErrors];
+
+export type ArchiveMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricChange;
+};
+
+export type ArchiveMetricResponse = ArchiveMetricResponses[keyof ArchiveMetricResponses];
+
+export type UnarchiveMetricData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/unarchive';
+};
+
+export type UnarchiveMetricErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveMetricError = UnarchiveMetricErrors[keyof UnarchiveMetricErrors];
+
+export type UnarchiveMetricResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricChange;
+};
+
+export type UnarchiveMetricResponse = UnarchiveMetricResponses[keyof UnarchiveMetricResponses];
+
+export type ListMetricEntriesData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: {
+        /**
+         * First
+         */
+        first?: string | null;
+        /**
+         * Last
+         */
+        last?: string | null;
+    };
+    url: '/api/metrics/{metric_id}/entries';
+};
+
+export type ListMetricEntriesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMetricEntriesError = ListMetricEntriesErrors[keyof ListMetricEntriesErrors];
+
+export type ListMetricEntriesResponses = {
+    /**
+     * Response List Metric Entries
+     *
+     * Successful Response
+     */
+    200: Array<EntryRead>;
+};
+
+export type ListMetricEntriesResponse = ListMetricEntriesResponses[keyof ListMetricEntriesResponses];
+
+export type CreateMetricEntryData = {
+    body: EntryCreate;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/entries';
+};
+
+export type CreateMetricEntryErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMetricEntryError = CreateMetricEntryErrors[keyof CreateMetricEntryErrors];
+
+export type CreateMetricEntryResponses = {
+    /**
+     * Successful Response
+     */
+    201: EntryRead;
+};
+
+export type CreateMetricEntryResponse = CreateMetricEntryResponses[keyof CreateMetricEntryResponses];
+
+export type DeleteMetricEntryData = {
+    body?: never;
+    path: {
+        /**
+         * Entry Id
+         */
+        entry_id: number;
+    };
+    query?: never;
+    url: '/api/metric-entries/{entry_id}';
+};
+
+export type DeleteMetricEntryErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMetricEntryError = DeleteMetricEntryErrors[keyof DeleteMetricEntryErrors];
+
+export type DeleteMetricEntryResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMetricEntryResponse = DeleteMetricEntryResponses[keyof DeleteMetricEntryResponses];
+
+export type UpdateMetricEntryData = {
+    body: EntryUpdate;
+    path: {
+        /**
+         * Entry Id
+         */
+        entry_id: number;
+    };
+    query?: never;
+    url: '/api/metric-entries/{entry_id}';
+};
+
+export type UpdateMetricEntryErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateMetricEntryError = UpdateMetricEntryErrors[keyof UpdateMetricEntryErrors];
+
+export type UpdateMetricEntryResponses = {
+    /**
+     * Successful Response
+     */
+    200: EntryRead;
+};
+
+export type UpdateMetricEntryResponse = UpdateMetricEntryResponses[keyof UpdateMetricEntryResponses];
+
+export type CreateMetricTargetData = {
+    body: TargetCreate;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/targets';
+};
+
+export type CreateMetricTargetErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMetricTargetError = CreateMetricTargetErrors[keyof CreateMetricTargetErrors];
+
+export type CreateMetricTargetResponses = {
+    /**
+     * Successful Response
+     */
+    201: TargetRead;
+};
+
+export type CreateMetricTargetResponse = CreateMetricTargetResponses[keyof CreateMetricTargetResponses];
+
+export type ReplaceMetricTargetData = {
+    body: TargetReplace;
+    path: {
+        /**
+         * Target Id
+         */
+        target_id: number;
+    };
+    query?: never;
+    url: '/api/metric-targets/{target_id}/replace';
+};
+
+export type ReplaceMetricTargetErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReplaceMetricTargetError = ReplaceMetricTargetErrors[keyof ReplaceMetricTargetErrors];
+
+export type ReplaceMetricTargetResponses = {
+    /**
+     * Successful Response
+     */
+    200: TargetRead;
+};
+
+export type ReplaceMetricTargetResponse = ReplaceMetricTargetResponses[keyof ReplaceMetricTargetResponses];
+
+export type DeleteMetricTargetData = {
+    body?: never;
+    path: {
+        /**
+         * Target Id
+         */
+        target_id: number;
+    };
+    query?: never;
+    url: '/api/metric-targets/{target_id}';
+};
+
+export type DeleteMetricTargetErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMetricTargetError = DeleteMetricTargetErrors[keyof DeleteMetricTargetErrors];
+
+export type DeleteMetricTargetResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMetricTargetResponse = DeleteMetricTargetResponses[keyof DeleteMetricTargetResponses];
+
+export type ListTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Inbox
+         */
+        inbox?: boolean;
+        /**
+         * Scheduled From
+         */
+        scheduled_from?: string | null;
+        /**
+         * Scheduled To
+         */
+        scheduled_to?: string | null;
+        /**
+         * Unscheduled
+         */
+        unscheduled?: boolean;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/tasks';
+};
+
+export type ListTasksErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListTasksError = ListTasksErrors[keyof ListTasksErrors];
+
+export type ListTasksResponses = {
+    /**
+     * Response List Tasks
+     *
+     * Successful Response
+     */
+    200: Array<TaskRead>;
+};
+
+export type ListTasksResponse = ListTasksResponses[keyof ListTasksResponses];
+
+export type CreateTaskData = {
+    body: TaskCreate;
+    path?: never;
+    query?: never;
+    url: '/api/tasks';
+};
+
+export type CreateTaskErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaskError = CreateTaskErrors[keyof CreateTaskErrors];
+
+export type CreateTaskResponses = {
+    /**
+     * Successful Response
+     */
+    201: TaskRead;
+};
+
+export type CreateTaskResponse = CreateTaskResponses[keyof CreateTaskResponses];
+
+export type ReorderTasksData = {
+    body: TaskReorder;
+    path?: never;
+    query?: never;
+    url: '/api/tasks/reorder';
+};
+
+export type ReorderTasksErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderTasksError = ReorderTasksErrors[keyof ReorderTasksErrors];
+
+export type ReorderTasksResponses = {
+    /**
+     * Response Reorder Tasks
+     *
+     * Successful Response
+     */
+    200: Array<TaskRead>;
+};
+
+export type ReorderTasksResponse = ReorderTasksResponses[keyof ReorderTasksResponses];
+
+export type DeleteTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}';
+};
+
+export type DeleteTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTaskError = DeleteTaskErrors[keyof DeleteTaskErrors];
+
+export type DeleteTaskResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteTaskResponse = DeleteTaskResponses[keyof DeleteTaskResponses];
+
+export type GetTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}';
+};
+
+export type GetTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTaskError = GetTaskErrors[keyof GetTaskErrors];
+
+export type GetTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskRead;
+};
+
+export type GetTaskResponse = GetTaskResponses[keyof GetTaskResponses];
+
+export type UpdateTaskData = {
+    body: TaskUpdate;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}';
+};
+
+export type UpdateTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTaskError = UpdateTaskErrors[keyof UpdateTaskErrors];
+
+export type UpdateTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskRead;
+};
+
+export type UpdateTaskResponse = UpdateTaskResponses[keyof UpdateTaskResponses];
+
+export type MoveTaskData = {
+    body: TaskMove;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/move';
+};
+
+export type MoveTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveTaskError = MoveTaskErrors[keyof MoveTaskErrors];
+
+export type MoveTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type MoveTaskResponse = MoveTaskResponses[keyof MoveTaskResponses];
+
+export type CompleteTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/complete';
+};
+
+export type CompleteTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CompleteTaskError = CompleteTaskErrors[keyof CompleteTaskErrors];
+
+export type CompleteTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type CompleteTaskResponse = CompleteTaskResponses[keyof CompleteTaskResponses];
+
+export type CancelTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/cancel';
+};
+
+export type CancelTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelTaskError = CancelTaskErrors[keyof CancelTaskErrors];
+
+export type CancelTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type CancelTaskResponse = CancelTaskResponses[keyof CancelTaskResponses];
+
+export type ReopenTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/reopen';
+};
+
+export type ReopenTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReopenTaskError = ReopenTaskErrors[keyof ReopenTaskErrors];
+
+export type ReopenTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type ReopenTaskResponse = ReopenTaskResponses[keyof ReopenTaskResponses];
+
+export type ArchiveTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/archive';
+};
+
+export type ArchiveTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveTaskError = ArchiveTaskErrors[keyof ArchiveTaskErrors];
+
+export type ArchiveTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type ArchiveTaskResponse = ArchiveTaskResponses[keyof ArchiveTaskResponses];
+
+export type UnarchiveTaskData = {
+    body?: never;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/unarchive';
+};
+
+export type UnarchiveTaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveTaskError = UnarchiveTaskErrors[keyof UnarchiveTaskErrors];
+
+export type UnarchiveTaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskChange;
+};
+
+export type UnarchiveTaskResponse = UnarchiveTaskResponses[keyof UnarchiveTaskResponses];
+
+export type CreateSubtaskData = {
+    body: SubtaskCreate;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/subtasks';
+};
+
+export type CreateSubtaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSubtaskError = CreateSubtaskErrors[keyof CreateSubtaskErrors];
+
+export type CreateSubtaskResponses = {
+    /**
+     * Successful Response
+     */
+    201: SubtaskRead;
+};
+
+export type CreateSubtaskResponse = CreateSubtaskResponses[keyof CreateSubtaskResponses];
+
+export type DeleteSubtaskData = {
+    body?: never;
+    path: {
+        /**
+         * Subtask Id
+         */
+        subtask_id: number;
+    };
+    query?: never;
+    url: '/api/subtasks/{subtask_id}';
+};
+
+export type DeleteSubtaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteSubtaskError = DeleteSubtaskErrors[keyof DeleteSubtaskErrors];
+
+export type DeleteSubtaskResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteSubtaskResponse = DeleteSubtaskResponses[keyof DeleteSubtaskResponses];
+
+export type UpdateSubtaskData = {
+    body: SubtaskUpdate;
+    path: {
+        /**
+         * Subtask Id
+         */
+        subtask_id: number;
+    };
+    query?: never;
+    url: '/api/subtasks/{subtask_id}';
+};
+
+export type UpdateSubtaskErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSubtaskError = UpdateSubtaskErrors[keyof UpdateSubtaskErrors];
+
+export type UpdateSubtaskResponses = {
+    /**
+     * Successful Response
+     */
+    200: SubtaskRead;
+};
+
+export type UpdateSubtaskResponse = UpdateSubtaskResponses[keyof UpdateSubtaskResponses];
+
+export type EditTaskSeriesData = {
+    body: SeriesEdit;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/series-edit';
+};
+
+export type EditTaskSeriesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type EditTaskSeriesError = EditTaskSeriesErrors[keyof EditTaskSeriesErrors];
+
+export type EditTaskSeriesResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type EditTaskSeriesResponse = EditTaskSeriesResponses[keyof EditTaskSeriesResponses];
+
+export type CancelTaskSeriesData = {
+    body: SeriesCancel;
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: number;
+    };
+    query?: never;
+    url: '/api/tasks/{task_id}/series-cancel';
+};
+
+export type CancelTaskSeriesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelTaskSeriesError = CancelTaskSeriesErrors[keyof CancelTaskSeriesErrors];
+
+export type CancelTaskSeriesResponses = {
+    /**
+     * Successful Response
+     */
+    200: SeriesCancelResult;
+};
+
+export type CancelTaskSeriesResponse = CancelTaskSeriesResponses[keyof CancelTaskSeriesResponses];
+
+export type ListTaskTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+        /**
+         * Repeating
+         */
+        repeating?: boolean | null;
+    };
+    url: '/api/task-templates';
+};
+
+export type ListTaskTemplatesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListTaskTemplatesError = ListTaskTemplatesErrors[keyof ListTaskTemplatesErrors];
+
+export type ListTaskTemplatesResponses = {
+    /**
+     * Response List Task Templates
+     *
+     * Successful Response
+     */
+    200: Array<TaskTemplateRead>;
+};
+
+export type ListTaskTemplatesResponse = ListTaskTemplatesResponses[keyof ListTaskTemplatesResponses];
+
+export type CreateTaskTemplateData = {
+    body: TaskTemplateCreate;
+    path?: never;
+    query?: never;
+    url: '/api/task-templates';
+};
+
+export type CreateTaskTemplateErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaskTemplateError = CreateTaskTemplateErrors[keyof CreateTaskTemplateErrors];
+
+export type CreateTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    201: TaskTemplateRead;
+};
+
+export type CreateTaskTemplateResponse = CreateTaskTemplateResponses[keyof CreateTaskTemplateResponses];
+
+export type DeleteTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}';
+};
+
+export type DeleteTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTaskTemplateError = DeleteTaskTemplateErrors[keyof DeleteTaskTemplateErrors];
+
+export type DeleteTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteTaskTemplateResponse = DeleteTaskTemplateResponses[keyof DeleteTaskTemplateResponses];
+
+export type GetTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}';
+};
+
+export type GetTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTaskTemplateError = GetTaskTemplateErrors[keyof GetTaskTemplateErrors];
+
+export type GetTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type GetTaskTemplateResponse = GetTaskTemplateResponses[keyof GetTaskTemplateResponses];
+
+export type UpdateTaskTemplateData = {
+    body: TaskTemplateUpdate;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}';
+};
+
+export type UpdateTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTaskTemplateError = UpdateTaskTemplateErrors[keyof UpdateTaskTemplateErrors];
+
+export type UpdateTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type UpdateTaskTemplateResponse = UpdateTaskTemplateResponses[keyof UpdateTaskTemplateResponses];
+
+export type MoveTaskTemplateData = {
+    body: TaskMove;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/move';
+};
+
+export type MoveTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveTaskTemplateError = MoveTaskTemplateErrors[keyof MoveTaskTemplateErrors];
+
+export type MoveTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type MoveTaskTemplateResponse = MoveTaskTemplateResponses[keyof MoveTaskTemplateResponses];
+
+export type PauseTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/pause';
+};
+
+export type PauseTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PauseTaskTemplateError = PauseTaskTemplateErrors[keyof PauseTaskTemplateErrors];
+
+export type PauseTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type PauseTaskTemplateResponse = PauseTaskTemplateResponses[keyof PauseTaskTemplateResponses];
+
+export type ResumeTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/resume';
+};
+
+export type ResumeTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResumeTaskTemplateError = ResumeTaskTemplateErrors[keyof ResumeTaskTemplateErrors];
+
+export type ResumeTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type ResumeTaskTemplateResponse = ResumeTaskTemplateResponses[keyof ResumeTaskTemplateResponses];
+
+export type ArchiveTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/archive';
+};
+
+export type ArchiveTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveTaskTemplateError = ArchiveTaskTemplateErrors[keyof ArchiveTaskTemplateErrors];
+
+export type ArchiveTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type ArchiveTaskTemplateResponse = ArchiveTaskTemplateResponses[keyof ArchiveTaskTemplateResponses];
+
+export type UnarchiveTaskTemplateData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/unarchive';
+};
+
+export type UnarchiveTaskTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveTaskTemplateError = UnarchiveTaskTemplateErrors[keyof UnarchiveTaskTemplateErrors];
+
+export type UnarchiveTaskTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TaskTemplateRead;
+};
+
+export type UnarchiveTaskTemplateResponse = UnarchiveTaskTemplateResponses[keyof UnarchiveTaskTemplateResponses];
+
+export type CreateTaskFromTemplateData = {
+    body: TaskFromTemplate;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/tasks';
+};
+
+export type CreateTaskFromTemplateErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaskFromTemplateError = CreateTaskFromTemplateErrors[keyof CreateTaskFromTemplateErrors];
+
+export type CreateTaskFromTemplateResponses = {
+    /**
+     * Successful Response
+     */
+    201: TaskRead;
+};
+
+export type CreateTaskFromTemplateResponse = CreateTaskFromTemplateResponses[keyof CreateTaskFromTemplateResponses];
+
+export type ListEventsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/events';
+};
+
+export type ListEventsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEventsError = ListEventsErrors[keyof ListEventsErrors];
+
+export type ListEventsResponses = {
+    /**
+     * Response List Events
+     *
+     * Successful Response
+     */
+    200: Array<EventRead>;
+};
+
+export type ListEventsResponse = ListEventsResponses[keyof ListEventsResponses];
+
+export type CreateEventData = {
+    body: EventCreate;
+    path?: never;
+    query?: never;
+    url: '/api/events';
+};
+
+export type CreateEventErrors = {
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateEventError = CreateEventErrors[keyof CreateEventErrors];
+
+export type CreateEventResponses = {
+    /**
+     * Successful Response
+     */
+    201: EventRead;
+};
+
+export type CreateEventResponse = CreateEventResponses[keyof CreateEventResponses];
+
+export type ListEventOccurrencesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * First
+         */
+        first: string;
+        /**
+         * Last
+         */
+        last: string;
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+    };
+    url: '/api/events/occurrences';
+};
+
+export type ListEventOccurrencesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEventOccurrencesError = ListEventOccurrencesErrors[keyof ListEventOccurrencesErrors];
+
+export type ListEventOccurrencesResponses = {
+    /**
+     * Response List Event Occurrences
+     *
+     * Successful Response
+     */
+    200: Array<OccurrenceRead>;
+};
+
+export type ListEventOccurrencesResponse = ListEventOccurrencesResponses[keyof ListEventOccurrencesResponses];
+
+export type DeleteEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}';
+};
+
+export type DeleteEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEventError = DeleteEventErrors[keyof DeleteEventErrors];
+
+export type DeleteEventResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteEventResponse = DeleteEventResponses[keyof DeleteEventResponses];
+
+export type GetEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}';
+};
+
+export type GetEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEventError = GetEventErrors[keyof GetEventErrors];
+
+export type GetEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type GetEventResponse = GetEventResponses[keyof GetEventResponses];
+
+export type UpdateEventData = {
+    body: EventUpdate;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}';
+};
+
+export type UpdateEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateEventError = UpdateEventErrors[keyof UpdateEventErrors];
+
+export type UpdateEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type UpdateEventResponse = UpdateEventResponses[keyof UpdateEventResponses];
+
+export type MoveEventData = {
+    body: EventMove;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/move';
+};
+
+export type MoveEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveEventError = MoveEventErrors[keyof MoveEventErrors];
+
+export type MoveEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type MoveEventResponse = MoveEventResponses[keyof MoveEventResponses];
+
+export type CancelEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/cancel';
+};
+
+export type CancelEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelEventError = CancelEventErrors[keyof CancelEventErrors];
+
+export type CancelEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type CancelEventResponse = CancelEventResponses[keyof CancelEventResponses];
+
+export type UncancelEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/uncancel';
+};
+
+export type UncancelEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UncancelEventError = UncancelEventErrors[keyof UncancelEventErrors];
+
+export type UncancelEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type UncancelEventResponse = UncancelEventResponses[keyof UncancelEventResponses];
+
+export type ArchiveEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/archive';
+};
+
+export type ArchiveEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveEventError = ArchiveEventErrors[keyof ArchiveEventErrors];
+
+export type ArchiveEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type ArchiveEventResponse = ArchiveEventResponses[keyof ArchiveEventResponses];
+
+export type UnarchiveEventData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/unarchive';
+};
+
+export type UnarchiveEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveEventError = UnarchiveEventErrors[keyof UnarchiveEventErrors];
+
+export type UnarchiveEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type UnarchiveEventResponse = UnarchiveEventResponses[keyof UnarchiveEventResponses];
+
+export type EditEventOccurrenceData = {
+    body: OccurrenceEdit;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}/edit';
+};
+
+export type EditEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type EditEventOccurrenceError = EditEventOccurrenceErrors[keyof EditEventOccurrenceErrors];
+
+export type EditEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type EditEventOccurrenceResponse = EditEventOccurrenceResponses[keyof EditEventOccurrenceResponses];
+
+export type CancelEventOccurrenceData = {
+    body: OccurrenceCancel;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}/cancel';
+};
+
+export type CancelEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelEventOccurrenceError = CancelEventOccurrenceErrors[keyof CancelEventOccurrenceErrors];
+
+export type CancelEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type CancelEventOccurrenceResponse = CancelEventOccurrenceResponses[keyof CancelEventOccurrenceResponses];
+
+export type RestoreEventOccurrenceData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}';
+};
+
+export type RestoreEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RestoreEventOccurrenceError = RestoreEventOccurrenceErrors[keyof RestoreEventOccurrenceErrors];
+
+export type RestoreEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type RestoreEventOccurrenceResponse = RestoreEventOccurrenceResponses[keyof RestoreEventOccurrenceResponses];
+
+export type GetWeekData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Start
+         */
+        start?: string | null;
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+    };
+    url: '/api/week';
+};
+
+export type GetWeekErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetWeekError = GetWeekErrors[keyof GetWeekErrors];
+
+export type GetWeekResponses = {
+    /**
+     * Successful Response
+     */
+    200: WeekRead;
+};
+
+export type GetWeekResponse = GetWeekResponses[keyof GetWeekResponses];
+
+export type ListRoutinesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Include Archived
+         */
+        include_archived?: boolean;
+    };
+    url: '/api/routines';
+};
+
+export type ListRoutinesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListRoutinesError = ListRoutinesErrors[keyof ListRoutinesErrors];
+
+export type ListRoutinesResponses = {
+    /**
+     * Response List Routines
+     *
+     * Successful Response
+     */
+    200: Array<RoutineRead>;
+};
+
+export type ListRoutinesResponse = ListRoutinesResponses[keyof ListRoutinesResponses];
+
+export type CreateRoutineData = {
+    body: RoutineCreate;
+    path?: never;
+    query?: never;
+    url: '/api/routines';
+};
+
+export type CreateRoutineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateRoutineError = CreateRoutineErrors[keyof CreateRoutineErrors];
+
+export type CreateRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    201: RoutineRead;
+};
+
+export type CreateRoutineResponse = CreateRoutineResponses[keyof CreateRoutineResponses];
+
+export type ListRoutineStepsForDayData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Day
+         */
+        day?: string | null;
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+    };
+    url: '/api/routines/day';
+};
+
+export type ListRoutineStepsForDayErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListRoutineStepsForDayError = ListRoutineStepsForDayErrors[keyof ListRoutineStepsForDayErrors];
+
+export type ListRoutineStepsForDayResponses = {
+    /**
+     * Response List Routine Steps For Day
+     *
+     * Successful Response
+     */
+    200: Array<RoutineStepDay>;
+};
+
+export type ListRoutineStepsForDayResponse = ListRoutineStepsForDayResponses[keyof ListRoutineStepsForDayResponses];
+
+export type DeleteRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}';
+};
+
+export type DeleteRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteRoutineError = DeleteRoutineErrors[keyof DeleteRoutineErrors];
+
+export type DeleteRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteRoutineResponse = DeleteRoutineResponses[keyof DeleteRoutineResponses];
+
+export type GetRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}';
+};
+
+export type GetRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRoutineError = GetRoutineErrors[keyof GetRoutineErrors];
+
+export type GetRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineRead;
+};
+
+export type GetRoutineResponse = GetRoutineResponses[keyof GetRoutineResponses];
+
+export type UpdateRoutineData = {
+    body: RoutineUpdate;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}';
+};
+
+export type UpdateRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateRoutineError = UpdateRoutineErrors[keyof UpdateRoutineErrors];
+
+export type UpdateRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineRead;
+};
+
+export type UpdateRoutineResponse = UpdateRoutineResponses[keyof UpdateRoutineResponses];
+
+export type ChangeRoutineScheduleData = {
+    body: ScheduleChange;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/schedule';
+};
+
+export type ChangeRoutineScheduleErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ChangeRoutineScheduleError = ChangeRoutineScheduleErrors[keyof ChangeRoutineScheduleErrors];
+
+export type ChangeRoutineScheduleResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineRead;
+};
+
+export type ChangeRoutineScheduleResponse = ChangeRoutineScheduleResponses[keyof ChangeRoutineScheduleResponses];
+
+export type PauseRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/pause';
+};
+
+export type PauseRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PauseRoutineError = PauseRoutineErrors[keyof PauseRoutineErrors];
+
+export type PauseRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineRead;
+};
+
+export type PauseRoutineResponse = PauseRoutineResponses[keyof PauseRoutineResponses];
+
+export type ResumeRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/resume';
+};
+
+export type ResumeRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResumeRoutineError = ResumeRoutineErrors[keyof ResumeRoutineErrors];
+
+export type ResumeRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineRead;
+};
+
+export type ResumeRoutineResponse = ResumeRoutineResponses[keyof ResumeRoutineResponses];
+
+export type SkipRoutineDayData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/days/{day}/skip';
+};
+
+export type SkipRoutineDayErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SkipRoutineDayError = SkipRoutineDayErrors[keyof SkipRoutineDayErrors];
+
+export type SkipRoutineDayResponses = {
+    /**
+     * Response Skip Routine Day
+     *
+     * Successful Response
+     */
+    200: Array<RoutineStepDay>;
+};
+
+export type SkipRoutineDayResponse = SkipRoutineDayResponses[keyof SkipRoutineDayResponses];
+
+export type ArchiveRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/archive';
+};
+
+export type ArchiveRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveRoutineError = ArchiveRoutineErrors[keyof ArchiveRoutineErrors];
+
+export type ArchiveRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineChange;
+};
+
+export type ArchiveRoutineResponse = ArchiveRoutineResponses[keyof ArchiveRoutineResponses];
+
+export type UnarchiveRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/unarchive';
+};
+
+export type UnarchiveRoutineErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveRoutineError = UnarchiveRoutineErrors[keyof UnarchiveRoutineErrors];
+
+export type UnarchiveRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineChange;
+};
+
+export type UnarchiveRoutineResponse = UnarchiveRoutineResponses[keyof UnarchiveRoutineResponses];
+
+export type CreateRoutineStepData = {
+    body: RoutineStepCreate;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/steps';
+};
+
+export type CreateRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateRoutineStepError = CreateRoutineStepErrors[keyof CreateRoutineStepErrors];
+
+export type CreateRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    201: RoutineStepRead;
+};
+
+export type CreateRoutineStepResponse = CreateRoutineStepResponses[keyof CreateRoutineStepResponses];
+
+export type DeleteRoutineStepData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}';
+};
+
+export type DeleteRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteRoutineStepError = DeleteRoutineStepErrors[keyof DeleteRoutineStepErrors];
+
+export type DeleteRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteRoutineStepResponse = DeleteRoutineStepResponses[keyof DeleteRoutineStepResponses];
+
+export type UpdateRoutineStepData = {
+    body: RoutineStepUpdate;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}';
+};
+
+export type UpdateRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateRoutineStepError = UpdateRoutineStepErrors[keyof UpdateRoutineStepErrors];
+
+export type UpdateRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepRead;
+};
+
+export type UpdateRoutineStepResponse = UpdateRoutineStepResponses[keyof UpdateRoutineStepResponses];
+
+export type MoveRoutineStepData = {
+    body: RoutineStepMove;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/move';
+};
+
+export type MoveRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MoveRoutineStepError = MoveRoutineStepErrors[keyof MoveRoutineStepErrors];
+
+export type MoveRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepRead;
+};
+
+export type MoveRoutineStepResponse = MoveRoutineStepResponses[keyof MoveRoutineStepResponses];
+
+export type PauseRoutineStepData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/pause';
+};
+
+export type PauseRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PauseRoutineStepError = PauseRoutineStepErrors[keyof PauseRoutineStepErrors];
+
+export type PauseRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepRead;
+};
+
+export type PauseRoutineStepResponse = PauseRoutineStepResponses[keyof PauseRoutineStepResponses];
+
+export type ResumeRoutineStepData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/resume';
+};
+
+export type ResumeRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResumeRoutineStepError = ResumeRoutineStepErrors[keyof ResumeRoutineStepErrors];
+
+export type ResumeRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepRead;
+};
+
+export type ResumeRoutineStepResponse = ResumeRoutineStepResponses[keyof ResumeRoutineStepResponses];
+
+export type ArchiveRoutineStepData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/archive';
+};
+
+export type ArchiveRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ArchiveRoutineStepError = ArchiveRoutineStepErrors[keyof ArchiveRoutineStepErrors];
+
+export type ArchiveRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepChange;
+};
+
+export type ArchiveRoutineStepResponse = ArchiveRoutineStepResponses[keyof ArchiveRoutineStepResponses];
+
+export type UnarchiveRoutineStepData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/unarchive';
+};
+
+export type UnarchiveRoutineStepErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnarchiveRoutineStepError = UnarchiveRoutineStepErrors[keyof UnarchiveRoutineStepErrors];
+
+export type UnarchiveRoutineStepResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepChange;
+};
+
+export type UnarchiveRoutineStepResponse = UnarchiveRoutineStepResponses[keyof UnarchiveRoutineStepResponses];
+
+export type ClearRoutineStepDayData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/days/{day}';
+};
+
+export type ClearRoutineStepDayErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ClearRoutineStepDayError = ClearRoutineStepDayErrors[keyof ClearRoutineStepDayErrors];
+
+export type ClearRoutineStepDayResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepDay;
+};
+
+export type ClearRoutineStepDayResponse = ClearRoutineStepDayResponses[keyof ClearRoutineStepDayResponses];
+
+export type SetRoutineStepDayData = {
+    body: RoutineLogSet;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/days/{day}';
+};
+
+export type SetRoutineStepDayErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SetRoutineStepDayError = SetRoutineStepDayErrors[keyof SetRoutineStepDayErrors];
+
+export type SetRoutineStepDayResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineStepDay;
+};
+
+export type SetRoutineStepDayResponse = SetRoutineStepDayResponses[keyof SetRoutineStepDayResponses];
+
+export type UndoBatchData = {
+    body?: never;
+    path: {
+        /**
+         * Batch Id
+         */
+        batch_id: string;
+    };
+    query?: never;
+    url: '/api/undo/{batch_id}';
+};
+
+export type UndoBatchErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UndoBatchError = UndoBatchErrors[keyof UndoBatchErrors];
+
+export type UndoBatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: UndoResult;
+};
+
+export type UndoBatchResponse = UndoBatchResponses[keyof UndoBatchResponses];
 
 export type HealthData = {
     body?: never;

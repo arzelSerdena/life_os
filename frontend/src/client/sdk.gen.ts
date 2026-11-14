@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, HealthData, HealthResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses } from './types.gen';
+import type { ArchiveEventData, ArchiveEventErrors, ArchiveEventResponses, ArchiveLifeAreaData, ArchiveLifeAreaErrors, ArchiveLifeAreaResponses, ArchiveMetricData, ArchiveMetricErrors, ArchiveMetricResponses, ArchiveRoutineData, ArchiveRoutineErrors, ArchiveRoutineResponses, ArchiveRoutineStepData, ArchiveRoutineStepErrors, ArchiveRoutineStepResponses, ArchiveTaskData, ArchiveTaskErrors, ArchiveTaskResponses, ArchiveTaskTemplateData, ArchiveTaskTemplateErrors, ArchiveTaskTemplateResponses, CancelEventData, CancelEventErrors, CancelEventOccurrenceData, CancelEventOccurrenceErrors, CancelEventOccurrenceResponses, CancelEventResponses, CancelTaskData, CancelTaskErrors, CancelTaskResponses, CancelTaskSeriesData, CancelTaskSeriesErrors, CancelTaskSeriesResponses, ChangeRoutineScheduleData, ChangeRoutineScheduleErrors, ChangeRoutineScheduleResponses, ClearRoutineStepDayData, ClearRoutineStepDayErrors, ClearRoutineStepDayResponses, CompleteTaskData, CompleteTaskErrors, CompleteTaskResponses, CreateEventData, CreateEventErrors, CreateEventResponses, CreateLifeAreaData, CreateLifeAreaErrors, CreateLifeAreaResponses, CreateMetricData, CreateMetricEntryData, CreateMetricEntryErrors, CreateMetricEntryResponses, CreateMetricErrors, CreateMetricResponses, CreateMetricTargetData, CreateMetricTargetErrors, CreateMetricTargetResponses, CreateProjectData, CreateProjectErrors, CreateProjectResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineStepData, CreateRoutineStepErrors, CreateRoutineStepResponses, CreateSectionData, CreateSectionErrors, CreateSectionResponses, CreateSubtaskData, CreateSubtaskErrors, CreateSubtaskResponses, CreateTaskData, CreateTaskErrors, CreateTaskFromTemplateData, CreateTaskFromTemplateErrors, CreateTaskFromTemplateResponses, CreateTaskResponses, CreateTaskTemplateData, CreateTaskTemplateErrors, CreateTaskTemplateResponses, DeleteEventData, DeleteEventErrors, DeleteEventResponses, DeleteLifeAreaData, DeleteLifeAreaErrors, DeleteLifeAreaResponses, DeleteMetricData, DeleteMetricEntryData, DeleteMetricEntryErrors, DeleteMetricEntryResponses, DeleteMetricErrors, DeleteMetricResponses, DeleteMetricTargetData, DeleteMetricTargetErrors, DeleteMetricTargetResponses, DeleteProjectData, DeleteProjectErrors, DeleteProjectResponses, DeleteRoutineData, DeleteRoutineErrors, DeleteRoutineResponses, DeleteRoutineStepData, DeleteRoutineStepErrors, DeleteRoutineStepResponses, DeleteSectionData, DeleteSectionErrors, DeleteSectionResponses, DeleteSubtaskData, DeleteSubtaskErrors, DeleteSubtaskResponses, DeleteTaskData, DeleteTaskErrors, DeleteTaskResponses, DeleteTaskTemplateData, DeleteTaskTemplateErrors, DeleteTaskTemplateResponses, EditEventOccurrenceData, EditEventOccurrenceErrors, EditEventOccurrenceResponses, EditTaskSeriesData, EditTaskSeriesErrors, EditTaskSeriesResponses, GetEventData, GetEventErrors, GetEventResponses, GetLifeAreaData, GetLifeAreaErrors, GetLifeAreaResponses, GetMetricData, GetMetricErrors, GetMetricResponses, GetProjectData, GetProjectErrors, GetProjectResponses, GetRoutineData, GetRoutineErrors, GetRoutineResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetTaskTemplateData, GetTaskTemplateErrors, GetTaskTemplateResponses, GetWeekData, GetWeekErrors, GetWeekResponses, HealthData, HealthResponses, ListEventOccurrencesData, ListEventOccurrencesErrors, ListEventOccurrencesResponses, ListEventsData, ListEventsErrors, ListEventsResponses, ListLifeAreasData, ListLifeAreasErrors, ListLifeAreasResponses, ListMetricEntriesData, ListMetricEntriesErrors, ListMetricEntriesResponses, ListMetricsData, ListMetricsErrors, ListMetricsResponses, ListProjectsData, ListProjectsErrors, ListProjectsResponses, ListRoutinesData, ListRoutinesErrors, ListRoutinesResponses, ListRoutineStepsForDayData, ListRoutineStepsForDayErrors, ListRoutineStepsForDayResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTaskTemplatesData, ListTaskTemplatesErrors, ListTaskTemplatesResponses, MoveEventData, MoveEventErrors, MoveEventResponses, MoveMetricData, MoveMetricErrors, MoveMetricResponses, MoveProjectData, MoveProjectErrors, MoveProjectResponses, MoveRoutineStepData, MoveRoutineStepErrors, MoveRoutineStepResponses, MoveTaskData, MoveTaskErrors, MoveTaskResponses, MoveTaskTemplateData, MoveTaskTemplateErrors, MoveTaskTemplateResponses, PauseRoutineData, PauseRoutineErrors, PauseRoutineResponses, PauseRoutineStepData, PauseRoutineStepErrors, PauseRoutineStepResponses, PauseTaskTemplateData, PauseTaskTemplateErrors, PauseTaskTemplateResponses, ReopenTaskData, ReopenTaskErrors, ReopenTaskResponses, ReorderTasksData, ReorderTasksErrors, ReorderTasksResponses, ReplaceMetricTargetData, ReplaceMetricTargetErrors, ReplaceMetricTargetResponses, RestoreEventOccurrenceData, RestoreEventOccurrenceErrors, RestoreEventOccurrenceResponses, ResumeRoutineData, ResumeRoutineErrors, ResumeRoutineResponses, ResumeRoutineStepData, ResumeRoutineStepErrors, ResumeRoutineStepResponses, ResumeTaskTemplateData, ResumeTaskTemplateErrors, ResumeTaskTemplateResponses, SetRoutineStepDayData, SetRoutineStepDayErrors, SetRoutineStepDayResponses, SkipRoutineDayData, SkipRoutineDayErrors, SkipRoutineDayResponses, UnarchiveEventData, UnarchiveEventErrors, UnarchiveEventResponses, UnarchiveLifeAreaData, UnarchiveLifeAreaErrors, UnarchiveLifeAreaResponses, UnarchiveMetricData, UnarchiveMetricErrors, UnarchiveMetricResponses, UnarchiveRoutineData, UnarchiveRoutineErrors, UnarchiveRoutineResponses, UnarchiveRoutineStepData, UnarchiveRoutineStepErrors, UnarchiveRoutineStepResponses, UnarchiveTaskData, UnarchiveTaskErrors, UnarchiveTaskResponses, UnarchiveTaskTemplateData, UnarchiveTaskTemplateErrors, UnarchiveTaskTemplateResponses, UncancelEventData, UncancelEventErrors, UncancelEventResponses, UndoBatchData, UndoBatchErrors, UndoBatchResponses, UpdateEventData, UpdateEventErrors, UpdateEventResponses, UpdateLifeAreaData, UpdateLifeAreaErrors, UpdateLifeAreaResponses, UpdateMetricData, UpdateMetricEntryData, UpdateMetricEntryErrors, UpdateMetricEntryResponses, UpdateMetricErrors, UpdateMetricResponses, UpdateProjectData, UpdateProjectErrors, UpdateProjectResponses, UpdateRoutineData, UpdateRoutineErrors, UpdateRoutineResponses, UpdateRoutineStepData, UpdateRoutineStepErrors, UpdateRoutineStepResponses, UpdateSectionData, UpdateSectionErrors, UpdateSectionResponses, UpdateSubtaskData, UpdateSubtaskErrors, UpdateSubtaskResponses, UpdateTaskData, UpdateTaskErrors, UpdateTaskResponses, UpdateTaskTemplateData, UpdateTaskTemplateErrors, UpdateTaskTemplateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -66,6 +66,761 @@ export const archiveLifeArea = <ThrowOnError extends boolean = false>(options: O
  * Unarchive Life Area
  */
 export const unarchiveLifeArea = <ThrowOnError extends boolean = false>(options: Options<UnarchiveLifeAreaData, ThrowOnError>): RequestResult<UnarchiveLifeAreaResponses, UnarchiveLifeAreaErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveLifeAreaResponses, UnarchiveLifeAreaErrors, ThrowOnError>({ url: '/api/life-areas/{life_area_id}/unarchive', ...options });
+
+/**
+ * List Projects
+ */
+export const listProjects = <ThrowOnError extends boolean = false>(options?: Options<ListProjectsData, ThrowOnError>): RequestResult<ListProjectsResponses, ListProjectsErrors, ThrowOnError> => (options?.client ?? client).get<ListProjectsResponses, ListProjectsErrors, ThrowOnError>({ url: '/api/projects', ...options });
+
+/**
+ * Create Project
+ */
+export const createProject = <ThrowOnError extends boolean = false>(options: Options<CreateProjectData, ThrowOnError>): RequestResult<CreateProjectResponses, CreateProjectErrors, ThrowOnError> => (options.client ?? client).post<CreateProjectResponses, CreateProjectErrors, ThrowOnError>({
+    url: '/api/projects',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Project
+ *
+ * Delete an empty project and its sections. Refused while anything belongs to it.
+ */
+export const deleteProject = <ThrowOnError extends boolean = false>(options: Options<DeleteProjectData, ThrowOnError>): RequestResult<DeleteProjectResponses, DeleteProjectErrors, ThrowOnError> => (options.client ?? client).delete<DeleteProjectResponses, DeleteProjectErrors, ThrowOnError>({ url: '/api/projects/{project_id}', ...options });
+
+/**
+ * Get Project
+ */
+export const getProject = <ThrowOnError extends boolean = false>(options: Options<GetProjectData, ThrowOnError>): RequestResult<GetProjectResponses, GetProjectErrors, ThrowOnError> => (options.client ?? client).get<GetProjectResponses, GetProjectErrors, ThrowOnError>({ url: '/api/projects/{project_id}', ...options });
+
+/**
+ * Update Project
+ */
+export const updateProject = <ThrowOnError extends boolean = false>(options: Options<UpdateProjectData, ThrowOnError>): RequestResult<UpdateProjectResponses, UpdateProjectErrors, ThrowOnError> => (options.client ?? client).patch<UpdateProjectResponses, UpdateProjectErrors, ThrowOnError>({
+    url: '/api/projects/{project_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Project
+ *
+ * Move the project, and everything in it, to another life area. Undoable.
+ */
+export const moveProject = <ThrowOnError extends boolean = false>(options: Options<MoveProjectData, ThrowOnError>): RequestResult<MoveProjectResponses, MoveProjectErrors, ThrowOnError> => (options.client ?? client).post<MoveProjectResponses, MoveProjectErrors, ThrowOnError>({
+    url: '/api/projects/{project_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create Section
+ */
+export const createSection = <ThrowOnError extends boolean = false>(options: Options<CreateSectionData, ThrowOnError>): RequestResult<CreateSectionResponses, CreateSectionErrors, ThrowOnError> => (options.client ?? client).post<CreateSectionResponses, CreateSectionErrors, ThrowOnError>({
+    url: '/api/projects/{project_id}/sections',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Section
+ *
+ * Delete a section. Its tasks and templates stay in the project, unsectioned.
+ */
+export const deleteSection = <ThrowOnError extends boolean = false>(options: Options<DeleteSectionData, ThrowOnError>): RequestResult<DeleteSectionResponses, DeleteSectionErrors, ThrowOnError> => (options.client ?? client).delete<DeleteSectionResponses, DeleteSectionErrors, ThrowOnError>({ url: '/api/sections/{section_id}', ...options });
+
+/**
+ * Update Section
+ */
+export const updateSection = <ThrowOnError extends boolean = false>(options: Options<UpdateSectionData, ThrowOnError>): RequestResult<UpdateSectionResponses, UpdateSectionErrors, ThrowOnError> => (options.client ?? client).patch<UpdateSectionResponses, UpdateSectionErrors, ThrowOnError>({
+    url: '/api/sections/{section_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Metrics
+ *
+ * Metrics with their targets and how each target is going.
+ */
+export const listMetrics = <ThrowOnError extends boolean = false>(options?: Options<ListMetricsData, ThrowOnError>): RequestResult<ListMetricsResponses, ListMetricsErrors, ThrowOnError> => (options?.client ?? client).get<ListMetricsResponses, ListMetricsErrors, ThrowOnError>({ url: '/api/metrics', ...options });
+
+/**
+ * Create Metric
+ */
+export const createMetric = <ThrowOnError extends boolean = false>(options: Options<CreateMetricData, ThrowOnError>): RequestResult<CreateMetricResponses, CreateMetricErrors, ThrowOnError> => (options.client ?? client).post<CreateMetricResponses, CreateMetricErrors, ThrowOnError>({
+    url: '/api/metrics',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Metric
+ *
+ * Delete the metric with all its entries and targets.
+ */
+export const deleteMetric = <ThrowOnError extends boolean = false>(options: Options<DeleteMetricData, ThrowOnError>): RequestResult<DeleteMetricResponses, DeleteMetricErrors, ThrowOnError> => (options.client ?? client).delete<DeleteMetricResponses, DeleteMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}', ...options });
+
+/**
+ * Get Metric
+ */
+export const getMetric = <ThrowOnError extends boolean = false>(options: Options<GetMetricData, ThrowOnError>): RequestResult<GetMetricResponses, GetMetricErrors, ThrowOnError> => (options.client ?? client).get<GetMetricResponses, GetMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}', ...options });
+
+/**
+ * Update Metric
+ */
+export const updateMetric = <ThrowOnError extends boolean = false>(options: Options<UpdateMetricData, ThrowOnError>): RequestResult<UpdateMetricResponses, UpdateMetricErrors, ThrowOnError> => (options.client ?? client).patch<UpdateMetricResponses, UpdateMetricErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Metric
+ */
+export const moveMetric = <ThrowOnError extends boolean = false>(options: Options<MoveMetricData, ThrowOnError>): RequestResult<MoveMetricResponses, MoveMetricErrors, ThrowOnError> => (options.client ?? client).post<MoveMetricResponses, MoveMetricErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Archive Metric
+ */
+export const archiveMetric = <ThrowOnError extends boolean = false>(options: Options<ArchiveMetricData, ThrowOnError>): RequestResult<ArchiveMetricResponses, ArchiveMetricErrors, ThrowOnError> => (options.client ?? client).post<ArchiveMetricResponses, ArchiveMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}/archive', ...options });
+
+/**
+ * Unarchive Metric
+ */
+export const unarchiveMetric = <ThrowOnError extends boolean = false>(options: Options<UnarchiveMetricData, ThrowOnError>): RequestResult<UnarchiveMetricResponses, UnarchiveMetricErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveMetricResponses, UnarchiveMetricErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}/unarchive', ...options });
+
+/**
+ * List Metric Entries
+ */
+export const listMetricEntries = <ThrowOnError extends boolean = false>(options: Options<ListMetricEntriesData, ThrowOnError>): RequestResult<ListMetricEntriesResponses, ListMetricEntriesErrors, ThrowOnError> => (options.client ?? client).get<ListMetricEntriesResponses, ListMetricEntriesErrors, ThrowOnError>({ url: '/api/metrics/{metric_id}/entries', ...options });
+
+/**
+ * Create Metric Entry
+ */
+export const createMetricEntry = <ThrowOnError extends boolean = false>(options: Options<CreateMetricEntryData, ThrowOnError>): RequestResult<CreateMetricEntryResponses, CreateMetricEntryErrors, ThrowOnError> => (options.client ?? client).post<CreateMetricEntryResponses, CreateMetricEntryErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}/entries',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Metric Entry
+ */
+export const deleteMetricEntry = <ThrowOnError extends boolean = false>(options: Options<DeleteMetricEntryData, ThrowOnError>): RequestResult<DeleteMetricEntryResponses, DeleteMetricEntryErrors, ThrowOnError> => (options.client ?? client).delete<DeleteMetricEntryResponses, DeleteMetricEntryErrors, ThrowOnError>({ url: '/api/metric-entries/{entry_id}', ...options });
+
+/**
+ * Update Metric Entry
+ */
+export const updateMetricEntry = <ThrowOnError extends boolean = false>(options: Options<UpdateMetricEntryData, ThrowOnError>): RequestResult<UpdateMetricEntryResponses, UpdateMetricEntryErrors, ThrowOnError> => (options.client ?? client).patch<UpdateMetricEntryResponses, UpdateMetricEntryErrors, ThrowOnError>({
+    url: '/api/metric-entries/{entry_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create Metric Target
+ */
+export const createMetricTarget = <ThrowOnError extends boolean = false>(options: Options<CreateMetricTargetData, ThrowOnError>): RequestResult<CreateMetricTargetResponses, CreateMetricTargetErrors, ThrowOnError> => (options.client ?? client).post<CreateMetricTargetResponses, CreateMetricTargetErrors, ThrowOnError>({
+    url: '/api/metrics/{metric_id}/targets',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Replace Metric Target
+ *
+ * Change a target: it ends yesterday and the changed one starts today.
+ */
+export const replaceMetricTarget = <ThrowOnError extends boolean = false>(options: Options<ReplaceMetricTargetData, ThrowOnError>): RequestResult<ReplaceMetricTargetResponses, ReplaceMetricTargetErrors, ThrowOnError> => (options.client ?? client).post<ReplaceMetricTargetResponses, ReplaceMetricTargetErrors, ThrowOnError>({
+    url: '/api/metric-targets/{target_id}/replace',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Metric Target
+ */
+export const deleteMetricTarget = <ThrowOnError extends boolean = false>(options: Options<DeleteMetricTargetData, ThrowOnError>): RequestResult<DeleteMetricTargetResponses, DeleteMetricTargetErrors, ThrowOnError> => (options.client ?? client).delete<DeleteMetricTargetResponses, DeleteMetricTargetErrors, ThrowOnError>({ url: '/api/metric-targets/{target_id}', ...options });
+
+/**
+ * List Tasks
+ */
+export const listTasks = <ThrowOnError extends boolean = false>(options?: Options<ListTasksData, ThrowOnError>): RequestResult<ListTasksResponses, ListTasksErrors, ThrowOnError> => (options?.client ?? client).get<ListTasksResponses, ListTasksErrors, ThrowOnError>({ url: '/api/tasks', ...options });
+
+/**
+ * Create Task
+ */
+export const createTask = <ThrowOnError extends boolean = false>(options: Options<CreateTaskData, ThrowOnError>): RequestResult<CreateTaskResponses, CreateTaskErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskResponses, CreateTaskErrors, ThrowOnError>({
+    url: '/api/tasks',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reorder Tasks
+ *
+ * Set the order of a day's tasks, or of the unscheduled list. Returns the listed tasks.
+ */
+export const reorderTasks = <ThrowOnError extends boolean = false>(options: Options<ReorderTasksData, ThrowOnError>): RequestResult<ReorderTasksResponses, ReorderTasksErrors, ThrowOnError> => (options.client ?? client).post<ReorderTasksResponses, ReorderTasksErrors, ThrowOnError>({
+    url: '/api/tasks/reorder',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Task
+ */
+export const deleteTask = <ThrowOnError extends boolean = false>(options: Options<DeleteTaskData, ThrowOnError>): RequestResult<DeleteTaskResponses, DeleteTaskErrors, ThrowOnError> => (options.client ?? client).delete<DeleteTaskResponses, DeleteTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}', ...options });
+
+/**
+ * Get Task
+ */
+export const getTask = <ThrowOnError extends boolean = false>(options: Options<GetTaskData, ThrowOnError>): RequestResult<GetTaskResponses, GetTaskErrors, ThrowOnError> => (options.client ?? client).get<GetTaskResponses, GetTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}', ...options });
+
+/**
+ * Update Task
+ */
+export const updateTask = <ThrowOnError extends boolean = false>(options: Options<UpdateTaskData, ThrowOnError>): RequestResult<UpdateTaskResponses, UpdateTaskErrors, ThrowOnError> => (options.client ?? client).patch<UpdateTaskResponses, UpdateTaskErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Task
+ */
+export const moveTask = <ThrowOnError extends boolean = false>(options: Options<MoveTaskData, ThrowOnError>): RequestResult<MoveTaskResponses, MoveTaskErrors, ThrowOnError> => (options.client ?? client).post<MoveTaskResponses, MoveTaskErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Complete Task
+ */
+export const completeTask = <ThrowOnError extends boolean = false>(options: Options<CompleteTaskData, ThrowOnError>): RequestResult<CompleteTaskResponses, CompleteTaskErrors, ThrowOnError> => (options.client ?? client).post<CompleteTaskResponses, CompleteTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}/complete', ...options });
+
+/**
+ * Cancel Task
+ */
+export const cancelTask = <ThrowOnError extends boolean = false>(options: Options<CancelTaskData, ThrowOnError>): RequestResult<CancelTaskResponses, CancelTaskErrors, ThrowOnError> => (options.client ?? client).post<CancelTaskResponses, CancelTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}/cancel', ...options });
+
+/**
+ * Reopen Task
+ */
+export const reopenTask = <ThrowOnError extends boolean = false>(options: Options<ReopenTaskData, ThrowOnError>): RequestResult<ReopenTaskResponses, ReopenTaskErrors, ThrowOnError> => (options.client ?? client).post<ReopenTaskResponses, ReopenTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}/reopen', ...options });
+
+/**
+ * Archive Task
+ */
+export const archiveTask = <ThrowOnError extends boolean = false>(options: Options<ArchiveTaskData, ThrowOnError>): RequestResult<ArchiveTaskResponses, ArchiveTaskErrors, ThrowOnError> => (options.client ?? client).post<ArchiveTaskResponses, ArchiveTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}/archive', ...options });
+
+/**
+ * Unarchive Task
+ */
+export const unarchiveTask = <ThrowOnError extends boolean = false>(options: Options<UnarchiveTaskData, ThrowOnError>): RequestResult<UnarchiveTaskResponses, UnarchiveTaskErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveTaskResponses, UnarchiveTaskErrors, ThrowOnError>({ url: '/api/tasks/{task_id}/unarchive', ...options });
+
+/**
+ * Create Subtask
+ */
+export const createSubtask = <ThrowOnError extends boolean = false>(options: Options<CreateSubtaskData, ThrowOnError>): RequestResult<CreateSubtaskResponses, CreateSubtaskErrors, ThrowOnError> => (options.client ?? client).post<CreateSubtaskResponses, CreateSubtaskErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}/subtasks',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Subtask
+ */
+export const deleteSubtask = <ThrowOnError extends boolean = false>(options: Options<DeleteSubtaskData, ThrowOnError>): RequestResult<DeleteSubtaskResponses, DeleteSubtaskErrors, ThrowOnError> => (options.client ?? client).delete<DeleteSubtaskResponses, DeleteSubtaskErrors, ThrowOnError>({ url: '/api/subtasks/{subtask_id}', ...options });
+
+/**
+ * Update Subtask
+ */
+export const updateSubtask = <ThrowOnError extends boolean = false>(options: Options<UpdateSubtaskData, ThrowOnError>): RequestResult<UpdateSubtaskResponses, UpdateSubtaskErrors, ThrowOnError> => (options.client ?? client).patch<UpdateSubtaskResponses, UpdateSubtaskErrors, ThrowOnError>({
+    url: '/api/subtasks/{subtask_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Edit Task Series
+ *
+ * Change a recurring task from this occurrence: this and following, or all.
+ *
+ * To change only this occurrence, edit the task itself.
+ */
+export const editTaskSeries = <ThrowOnError extends boolean = false>(options: Options<EditTaskSeriesData, ThrowOnError>): RequestResult<EditTaskSeriesResponses, EditTaskSeriesErrors, ThrowOnError> => (options.client ?? client).post<EditTaskSeriesResponses, EditTaskSeriesErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}/series-edit',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Task Series
+ *
+ * Cancel a recurring task from this occurrence: this and following, or all.
+ *
+ * To cancel only this occurrence, cancel the task itself.
+ */
+export const cancelTaskSeries = <ThrowOnError extends boolean = false>(options: Options<CancelTaskSeriesData, ThrowOnError>): RequestResult<CancelTaskSeriesResponses, CancelTaskSeriesErrors, ThrowOnError> => (options.client ?? client).post<CancelTaskSeriesResponses, CancelTaskSeriesErrors, ThrowOnError>({
+    url: '/api/tasks/{task_id}/series-cancel',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Task Templates
+ *
+ * All templates, or only recurring (repeating=true) or plain ones (repeating=false).
+ */
+export const listTaskTemplates = <ThrowOnError extends boolean = false>(options?: Options<ListTaskTemplatesData, ThrowOnError>): RequestResult<ListTaskTemplatesResponses, ListTaskTemplatesErrors, ThrowOnError> => (options?.client ?? client).get<ListTaskTemplatesResponses, ListTaskTemplatesErrors, ThrowOnError>({ url: '/api/task-templates', ...options });
+
+/**
+ * Create Task Template
+ */
+export const createTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<CreateTaskTemplateData, ThrowOnError>): RequestResult<CreateTaskTemplateResponses, CreateTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskTemplateResponses, CreateTaskTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Task Template
+ */
+export const deleteTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<DeleteTaskTemplateData, ThrowOnError>): RequestResult<DeleteTaskTemplateResponses, DeleteTaskTemplateErrors, ThrowOnError> => (options.client ?? client).delete<DeleteTaskTemplateResponses, DeleteTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}', ...options });
+
+/**
+ * Get Task Template
+ */
+export const getTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<GetTaskTemplateData, ThrowOnError>): RequestResult<GetTaskTemplateResponses, GetTaskTemplateErrors, ThrowOnError> => (options.client ?? client).get<GetTaskTemplateResponses, GetTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}', ...options });
+
+/**
+ * Update Task Template
+ */
+export const updateTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<UpdateTaskTemplateData, ThrowOnError>): RequestResult<UpdateTaskTemplateResponses, UpdateTaskTemplateErrors, ThrowOnError> => (options.client ?? client).patch<UpdateTaskTemplateResponses, UpdateTaskTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates/{template_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Task Template
+ */
+export const moveTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<MoveTaskTemplateData, ThrowOnError>): RequestResult<MoveTaskTemplateResponses, MoveTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<MoveTaskTemplateResponses, MoveTaskTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates/{template_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Task Template
+ */
+export const pauseTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<PauseTaskTemplateData, ThrowOnError>): RequestResult<PauseTaskTemplateResponses, PauseTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<PauseTaskTemplateResponses, PauseTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/pause', ...options });
+
+/**
+ * Resume Task Template
+ */
+export const resumeTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<ResumeTaskTemplateData, ThrowOnError>): RequestResult<ResumeTaskTemplateResponses, ResumeTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<ResumeTaskTemplateResponses, ResumeTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/resume', ...options });
+
+/**
+ * Archive Task Template
+ */
+export const archiveTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<ArchiveTaskTemplateData, ThrowOnError>): RequestResult<ArchiveTaskTemplateResponses, ArchiveTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<ArchiveTaskTemplateResponses, ArchiveTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/archive', ...options });
+
+/**
+ * Unarchive Task Template
+ */
+export const unarchiveTaskTemplate = <ThrowOnError extends boolean = false>(options: Options<UnarchiveTaskTemplateData, ThrowOnError>): RequestResult<UnarchiveTaskTemplateResponses, UnarchiveTaskTemplateErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveTaskTemplateResponses, UnarchiveTaskTemplateErrors, ThrowOnError>({ url: '/api/task-templates/{template_id}/unarchive', ...options });
+
+/**
+ * Create Task From Template
+ *
+ * A new task copied from the template, checklist included.
+ */
+export const createTaskFromTemplate = <ThrowOnError extends boolean = false>(options: Options<CreateTaskFromTemplateData, ThrowOnError>): RequestResult<CreateTaskFromTemplateResponses, CreateTaskFromTemplateErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskFromTemplateResponses, CreateTaskFromTemplateErrors, ThrowOnError>({
+    url: '/api/task-templates/{template_id}/tasks',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Events
+ *
+ * Events and series themselves. For what happens on which day, list occurrences.
+ */
+export const listEvents = <ThrowOnError extends boolean = false>(options?: Options<ListEventsData, ThrowOnError>): RequestResult<ListEventsResponses, ListEventsErrors, ThrowOnError> => (options?.client ?? client).get<ListEventsResponses, ListEventsErrors, ThrowOnError>({ url: '/api/events', ...options });
+
+/**
+ * Create Event
+ */
+export const createEvent = <ThrowOnError extends boolean = false>(options: Options<CreateEventData, ThrowOnError>): RequestResult<CreateEventResponses, CreateEventErrors, ThrowOnError> => (options.client ?? client).post<CreateEventResponses, CreateEventErrors, ThrowOnError>({
+    url: '/api/events',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Event Occurrences
+ *
+ * Every occurrence that overlaps first..last (inclusive, at most 366 days).
+ */
+export const listEventOccurrences = <ThrowOnError extends boolean = false>(options: Options<ListEventOccurrencesData, ThrowOnError>): RequestResult<ListEventOccurrencesResponses, ListEventOccurrencesErrors, ThrowOnError> => (options.client ?? client).get<ListEventOccurrencesResponses, ListEventOccurrencesErrors, ThrowOnError>({ url: '/api/events/occurrences', ...options });
+
+/**
+ * Delete Event
+ */
+export const deleteEvent = <ThrowOnError extends boolean = false>(options: Options<DeleteEventData, ThrowOnError>): RequestResult<DeleteEventResponses, DeleteEventErrors, ThrowOnError> => (options.client ?? client).delete<DeleteEventResponses, DeleteEventErrors, ThrowOnError>({ url: '/api/events/{event_id}', ...options });
+
+/**
+ * Get Event
+ */
+export const getEvent = <ThrowOnError extends boolean = false>(options: Options<GetEventData, ThrowOnError>): RequestResult<GetEventResponses, GetEventErrors, ThrowOnError> => (options.client ?? client).get<GetEventResponses, GetEventErrors, ThrowOnError>({ url: '/api/events/{event_id}', ...options });
+
+/**
+ * Update Event
+ */
+export const updateEvent = <ThrowOnError extends boolean = false>(options: Options<UpdateEventData, ThrowOnError>): RequestResult<UpdateEventResponses, UpdateEventErrors, ThrowOnError> => (options.client ?? client).patch<UpdateEventResponses, UpdateEventErrors, ThrowOnError>({
+    url: '/api/events/{event_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Event
+ */
+export const moveEvent = <ThrowOnError extends boolean = false>(options: Options<MoveEventData, ThrowOnError>): RequestResult<MoveEventResponses, MoveEventErrors, ThrowOnError> => (options.client ?? client).post<MoveEventResponses, MoveEventErrors, ThrowOnError>({
+    url: '/api/events/{event_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Event
+ */
+export const cancelEvent = <ThrowOnError extends boolean = false>(options: Options<CancelEventData, ThrowOnError>): RequestResult<CancelEventResponses, CancelEventErrors, ThrowOnError> => (options.client ?? client).post<CancelEventResponses, CancelEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/cancel', ...options });
+
+/**
+ * Uncancel Event
+ */
+export const uncancelEvent = <ThrowOnError extends boolean = false>(options: Options<UncancelEventData, ThrowOnError>): RequestResult<UncancelEventResponses, UncancelEventErrors, ThrowOnError> => (options.client ?? client).post<UncancelEventResponses, UncancelEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/uncancel', ...options });
+
+/**
+ * Archive Event
+ */
+export const archiveEvent = <ThrowOnError extends boolean = false>(options: Options<ArchiveEventData, ThrowOnError>): RequestResult<ArchiveEventResponses, ArchiveEventErrors, ThrowOnError> => (options.client ?? client).post<ArchiveEventResponses, ArchiveEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/archive', ...options });
+
+/**
+ * Unarchive Event
+ */
+export const unarchiveEvent = <ThrowOnError extends boolean = false>(options: Options<UnarchiveEventData, ThrowOnError>): RequestResult<UnarchiveEventResponses, UnarchiveEventErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveEventResponses, UnarchiveEventErrors, ThrowOnError>({ url: '/api/events/{event_id}/unarchive', ...options });
+
+/**
+ * Edit Event Occurrence
+ *
+ * Change the occurrence on `day` (its original date): this one, this and following,
+ * or all. Returns the event holding the change, which is a new series after a split.
+ */
+export const editEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<EditEventOccurrenceData, ThrowOnError>): RequestResult<EditEventOccurrenceResponses, EditEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).post<EditEventOccurrenceResponses, EditEventOccurrenceErrors, ThrowOnError>({
+    url: '/api/events/{event_id}/occurrences/{day}/edit',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Event Occurrence
+ */
+export const cancelEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<CancelEventOccurrenceData, ThrowOnError>): RequestResult<CancelEventOccurrenceResponses, CancelEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).post<CancelEventOccurrenceResponses, CancelEventOccurrenceErrors, ThrowOnError>({
+    url: '/api/events/{event_id}/occurrences/{day}/cancel',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Restore Event Occurrence
+ *
+ * Remove every one-off change to the occurrence on `day`, including cancelling it.
+ */
+export const restoreEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<RestoreEventOccurrenceData, ThrowOnError>): RequestResult<RestoreEventOccurrenceResponses, RestoreEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).delete<RestoreEventOccurrenceResponses, RestoreEventOccurrenceErrors, ThrowOnError>({ url: '/api/events/{event_id}/occurrences/{day}', ...options });
+
+/**
+ * Get Week
+ *
+ * The week board for the week containing `start` (default: today), Monday to Sunday.
+ *
+ * First moves unfinished tasks from past days to today and creates the week's missing
+ * recurring tasks. Calling it again changes nothing.
+ */
+export const getWeek = <ThrowOnError extends boolean = false>(options?: Options<GetWeekData, ThrowOnError>): RequestResult<GetWeekResponses, GetWeekErrors, ThrowOnError> => (options?.client ?? client).get<GetWeekResponses, GetWeekErrors, ThrowOnError>({ url: '/api/week', ...options });
+
+/**
+ * List Routines
+ *
+ * Routines with their schedule history and steps (archived steps included, marked).
+ */
+export const listRoutines = <ThrowOnError extends boolean = false>(options?: Options<ListRoutinesData, ThrowOnError>): RequestResult<ListRoutinesResponses, ListRoutinesErrors, ThrowOnError> => (options?.client ?? client).get<ListRoutinesResponses, ListRoutinesErrors, ThrowOnError>({ url: '/api/routines', ...options });
+
+/**
+ * Create Routine
+ */
+export const createRoutine = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineData, ThrowOnError>): RequestResult<CreateRoutineResponses, CreateRoutineErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineResponses, CreateRoutineErrors, ThrowOnError>({
+    url: '/api/routines',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Routine Steps For Day
+ *
+ * Every step due on `day` (default: today) and whether it is to-do, done, skipped or
+ * missed.
+ */
+export const listRoutineStepsForDay = <ThrowOnError extends boolean = false>(options?: Options<ListRoutineStepsForDayData, ThrowOnError>): RequestResult<ListRoutineStepsForDayResponses, ListRoutineStepsForDayErrors, ThrowOnError> => (options?.client ?? client).get<ListRoutineStepsForDayResponses, ListRoutineStepsForDayErrors, ThrowOnError>({ url: '/api/routines/day', ...options });
+
+/**
+ * Delete Routine
+ */
+export const deleteRoutine = <ThrowOnError extends boolean = false>(options: Options<DeleteRoutineData, ThrowOnError>): RequestResult<DeleteRoutineResponses, DeleteRoutineErrors, ThrowOnError> => (options.client ?? client).delete<DeleteRoutineResponses, DeleteRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}', ...options });
+
+/**
+ * Get Routine
+ */
+export const getRoutine = <ThrowOnError extends boolean = false>(options: Options<GetRoutineData, ThrowOnError>): RequestResult<GetRoutineResponses, GetRoutineErrors, ThrowOnError> => (options.client ?? client).get<GetRoutineResponses, GetRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}', ...options });
+
+/**
+ * Update Routine
+ */
+export const updateRoutine = <ThrowOnError extends boolean = false>(options: Options<UpdateRoutineData, ThrowOnError>): RequestResult<UpdateRoutineResponses, UpdateRoutineErrors, ThrowOnError> => (options.client ?? client).patch<UpdateRoutineResponses, UpdateRoutineErrors, ThrowOnError>({
+    url: '/api/routines/{routine_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Change Routine Schedule
+ */
+export const changeRoutineSchedule = <ThrowOnError extends boolean = false>(options: Options<ChangeRoutineScheduleData, ThrowOnError>): RequestResult<ChangeRoutineScheduleResponses, ChangeRoutineScheduleErrors, ThrowOnError> => (options.client ?? client).post<ChangeRoutineScheduleResponses, ChangeRoutineScheduleErrors, ThrowOnError>({
+    url: '/api/routines/{routine_id}/schedule',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Routine
+ */
+export const pauseRoutine = <ThrowOnError extends boolean = false>(options: Options<PauseRoutineData, ThrowOnError>): RequestResult<PauseRoutineResponses, PauseRoutineErrors, ThrowOnError> => (options.client ?? client).post<PauseRoutineResponses, PauseRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/pause', ...options });
+
+/**
+ * Resume Routine
+ */
+export const resumeRoutine = <ThrowOnError extends boolean = false>(options: Options<ResumeRoutineData, ThrowOnError>): RequestResult<ResumeRoutineResponses, ResumeRoutineErrors, ThrowOnError> => (options.client ?? client).post<ResumeRoutineResponses, ResumeRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/resume', ...options });
+
+/**
+ * Skip Routine Day
+ *
+ * Skip the whole routine on one day. Steps already checked keep their state.
+ */
+export const skipRoutineDay = <ThrowOnError extends boolean = false>(options: Options<SkipRoutineDayData, ThrowOnError>): RequestResult<SkipRoutineDayResponses, SkipRoutineDayErrors, ThrowOnError> => (options.client ?? client).post<SkipRoutineDayResponses, SkipRoutineDayErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/days/{day}/skip', ...options });
+
+/**
+ * Archive Routine
+ */
+export const archiveRoutine = <ThrowOnError extends boolean = false>(options: Options<ArchiveRoutineData, ThrowOnError>): RequestResult<ArchiveRoutineResponses, ArchiveRoutineErrors, ThrowOnError> => (options.client ?? client).post<ArchiveRoutineResponses, ArchiveRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/archive', ...options });
+
+/**
+ * Unarchive Routine
+ */
+export const unarchiveRoutine = <ThrowOnError extends boolean = false>(options: Options<UnarchiveRoutineData, ThrowOnError>): RequestResult<UnarchiveRoutineResponses, UnarchiveRoutineErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveRoutineResponses, UnarchiveRoutineErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/unarchive', ...options });
+
+/**
+ * Create Routine Step
+ */
+export const createRoutineStep = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineStepData, ThrowOnError>): RequestResult<CreateRoutineStepResponses, CreateRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineStepResponses, CreateRoutineStepErrors, ThrowOnError>({
+    url: '/api/routines/{routine_id}/steps',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Routine Step
+ */
+export const deleteRoutineStep = <ThrowOnError extends boolean = false>(options: Options<DeleteRoutineStepData, ThrowOnError>): RequestResult<DeleteRoutineStepResponses, DeleteRoutineStepErrors, ThrowOnError> => (options.client ?? client).delete<DeleteRoutineStepResponses, DeleteRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}', ...options });
+
+/**
+ * Update Routine Step
+ */
+export const updateRoutineStep = <ThrowOnError extends boolean = false>(options: Options<UpdateRoutineStepData, ThrowOnError>): RequestResult<UpdateRoutineStepResponses, UpdateRoutineStepErrors, ThrowOnError> => (options.client ?? client).patch<UpdateRoutineStepResponses, UpdateRoutineStepErrors, ThrowOnError>({
+    url: '/api/routine-steps/{step_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Move Routine Step
+ */
+export const moveRoutineStep = <ThrowOnError extends boolean = false>(options: Options<MoveRoutineStepData, ThrowOnError>): RequestResult<MoveRoutineStepResponses, MoveRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<MoveRoutineStepResponses, MoveRoutineStepErrors, ThrowOnError>({
+    url: '/api/routine-steps/{step_id}/move',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Routine Step
+ */
+export const pauseRoutineStep = <ThrowOnError extends boolean = false>(options: Options<PauseRoutineStepData, ThrowOnError>): RequestResult<PauseRoutineStepResponses, PauseRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<PauseRoutineStepResponses, PauseRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/pause', ...options });
+
+/**
+ * Resume Routine Step
+ */
+export const resumeRoutineStep = <ThrowOnError extends boolean = false>(options: Options<ResumeRoutineStepData, ThrowOnError>): RequestResult<ResumeRoutineStepResponses, ResumeRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<ResumeRoutineStepResponses, ResumeRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/resume', ...options });
+
+/**
+ * Archive Routine Step
+ */
+export const archiveRoutineStep = <ThrowOnError extends boolean = false>(options: Options<ArchiveRoutineStepData, ThrowOnError>): RequestResult<ArchiveRoutineStepResponses, ArchiveRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<ArchiveRoutineStepResponses, ArchiveRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/archive', ...options });
+
+/**
+ * Unarchive Routine Step
+ */
+export const unarchiveRoutineStep = <ThrowOnError extends boolean = false>(options: Options<UnarchiveRoutineStepData, ThrowOnError>): RequestResult<UnarchiveRoutineStepResponses, UnarchiveRoutineStepErrors, ThrowOnError> => (options.client ?? client).post<UnarchiveRoutineStepResponses, UnarchiveRoutineStepErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/unarchive', ...options });
+
+/**
+ * Clear Routine Step Day
+ *
+ * Uncheck the step: back to to-do, or missed for a day that's over.
+ */
+export const clearRoutineStepDay = <ThrowOnError extends boolean = false>(options: Options<ClearRoutineStepDayData, ThrowOnError>): RequestResult<ClearRoutineStepDayResponses, ClearRoutineStepDayErrors, ThrowOnError> => (options.client ?? client).delete<ClearRoutineStepDayResponses, ClearRoutineStepDayErrors, ThrowOnError>({ url: '/api/routine-steps/{step_id}/days/{day}', ...options });
+
+/**
+ * Set Routine Step Day
+ *
+ * Mark the step done or skipped on a due day.
+ */
+export const setRoutineStepDay = <ThrowOnError extends boolean = false>(options: Options<SetRoutineStepDayData, ThrowOnError>): RequestResult<SetRoutineStepDayResponses, SetRoutineStepDayErrors, ThrowOnError> => (options.client ?? client).put<SetRoutineStepDayResponses, SetRoutineStepDayErrors, ThrowOnError>({
+    url: '/api/routine-steps/{step_id}/days/{day}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Undo Batch
+ *
+ * Restore everything one change did, using the batch_id it returned.
+ */
+export const undoBatch = <ThrowOnError extends boolean = false>(options: Options<UndoBatchData, ThrowOnError>): RequestResult<UndoBatchResponses, UndoBatchErrors, ThrowOnError> => (options.client ?? client).post<UndoBatchResponses, UndoBatchErrors, ThrowOnError>({ url: '/api/undo/{batch_id}', ...options });
 
 /**
  * Health

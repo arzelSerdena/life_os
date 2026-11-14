@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Life OS — Calendar · Week board (batch A mock)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* neutral */
+  --n50:#f9fafb;--n100:#f3f4f6;--n200:#e5e7eb;--n300:#d1d5db;--n400:#9ca3af;--n500:#6b7280;--n600:#4b5563;--n900:#111827;
+  /* accent = brand */
+  --acc100:#f1f0f7;--acc200:#e6e3f1;--acc500:#a18ec4;--acc600:#8f74b3;--acc700:#7e61a0;
+  /* semantic text */
+  --text-primary:var(--n900);--text-secondary:var(--n600);--text-tertiary:var(--n500);--text-disabled:var(--n400);
+  --bg-app:#ffffff;--bg-surface:#fff;--bg-column:#eceef1;--border:var(--n200);
+  --priority-high:#cc363c;--priority-medium:#c9510c;--priority-low:var(--n400);--danger:#cc363c;
+  /* spacing tokens */
+  --card-pad-y:8px;--card-pad-x:12px;--card-gap:2px;--subtask-row:20px;--stack-gap:6px;
+  --col-pad:0px;--col-w:260px;--board-gap:16px;--group-gap:12px;--side-item:28px;
+  --tag-h:20px;--counter-h:18px;
+  --r-card:8px;--r-control:6px;--r-check:4px;
+}
+/* area palettes: --a-solid(500) --a-tint(100) --a-text(700) --a-ink(800) --a-border(300) */
+.career{--a-solid:#3579c2;--a-tint:#e5edf9;--a-text:#1f4c85;--a-ink:#1d416f;--a-border:#94bbe5}
+.finance{--a-solid:#11bbb3;--a-tint:#cbfcf4;--a-text:#0d7876;--a-ink:#105f5f;--a-border:#5cece0}
+.health{--a-solid:#ca6a93;--a-tint:#f8ebf1;--a-text:#9c3a5c;--a-ink:#81334d;--a-border:#e8b9d0}
+.personal{--a-solid:#b181b4;--a-tint:#f5f0f7;--a-text:#7a4f7c;--a-ink:#654266;--a-border:#ddc7e0}
+.relation{--a-solid:#cba927;--a-tint:#f6f4cb;--a-text:#8c621c;--a-ink:#754f1e;--a-border:#e4d460}
+.home{--a-solid:#cc6b43;--a-tint:#f7e9dd;--a-text:#9e4330;--a-ink:#7f372d;--a-border:#e2af8f}
+.noarea{--a-solid:var(--n400);--a-tint:var(--n100);--a-text:var(--n600);--a-ink:var(--n900);--a-border:var(--n300)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Inter,system-ui,sans-serif;color:var(--text-primary);background:var(--bg-app);-webkit-font-smoothing:antialiased;font-size:13px;line-height:18px}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* type tokens */
+.t-page{font-size:20px;line-height:28px;font-weight:600}
+.t-heading{font-size:14px;line-height:20px;font-weight:600}
+.t-card{font-size:14px;line-height:20px;font-weight:500}
+.t-body{font-size:13px;line-height:18px;color:var(--text-secondary)}
+.t-subtask{font-size:12px;line-height:16px;color:var(--text-secondary)}
+.t-meta{font-size:12px;line-height:16px;color:var(--text-tertiary)}
+.t-label{font-size:12px;line-height:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-tertiary)}
+
+.app{display:flex;height:100vh;min-width:1280px}
+/* rail */
+.rail{width:48px;flex:none;padding:8px 4px;display:flex}
+.rail-pill{flex:1;background:var(--acc200);border-radius:20px;display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:4px}
+.logo{width:28px;height:28px;border-radius:50%;background:var(--acc700);color:#fff;display:grid;place-items:center;font-weight:600;font-size:12px;margin-bottom:6px}
+.rail a{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--acc600)}
+.rail a svg{width:18px;height:18px}
+.rail a.on{background:#fff;color:var(--acc700);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.rail a:hover{background:rgba(255,255,255,.6)}
+.rail .sp{flex:1}
+/* sidebar */
+.side{width:240px;flex:none;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 12px}
+.side-head{height:48px;display:flex;align-items:center;padding:0 8px;margin-top:-8px}
+.side .sec{margin-top:0}
+.side-divider{height:1px;background:var(--border);margin:16px 0;flex:none}
+.side .t-label{padding:0 8px;height:24px;display:flex;align-items:center}
+.item{height:var(--side-item);display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:var(--r-control);color:var(--text-secondary);font-weight:500;cursor:default}
+.item:hover{background:var(--n100)}
+.item.on{background:var(--n100);color:var(--text-primary);box-shadow:inset 2px 0 0 var(--acc600)}
+.item>.dot{margin:0 4px}
+.item .c{margin-left:auto;font-size:11px;font-weight:500;color:var(--text-tertiary)}
+.item.sub{padding-left:28px}
+.dot{width:8px;height:8px;border-radius:2px;background:var(--a-solid);flex:none}
+.side .grow{flex:1}
+
+/* main */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.page-head{height:32px;margin-top:24px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px}
+.seg{display:flex;background:var(--n200);border-radius:var(--r-control);padding:2px;height:28px}
+.seg span{padding:0 12px;display:flex;align-items:center;font-size:12px;font-weight:500;color:var(--text-secondary);border-radius:4px}
+.seg span.on{background:#fff;color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.btn{height:28px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:var(--r-control);font:500 12px/16px Inter,sans-serif;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer}
+.btn.primary{background:var(--acc700);border-color:var(--acc700);color:#fff}
+.btn svg{width:16px;height:16px}
+.head-sp{flex:1}
+
+.board{flex:1;display:flex;gap:var(--board-gap);padding:16px 24px 24px;overflow-x:auto;align-items:flex-start;
+  mask-image:linear-gradient(to right,#000 calc(100% - 16px),transparent)}
+.col{width:var(--col-w);flex:none;background:transparent;border-radius:var(--r-card);padding:var(--col-pad);display:flex;flex-direction:column;max-height:100%}
+.col-head{height:32px;display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:6px}
+.col-head .t-heading{font-size:16px;line-height:24px}
+.col-head .dot{width:10px;height:10px;border-radius:2px}
+.col-head .t-heading{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.counter{height:var(--counter-h);min-width:18px;padding:0 6px;border-radius:999px;background:var(--n200);color:var(--text-secondary);font-size:11px;line-height:16px;font-weight:500;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn{width:24px;height:24px;border-radius:var(--r-control);display:grid;place-items:center;color:var(--text-tertiary);margin-left:auto}
+.icon-btn:hover{background:var(--n100)}
+.icon-btn svg{width:16px;height:16px}
+.group{display:flex;align-items:center;gap:6px;height:24px;padding:0 4px;margin:var(--group-gap) 0 4px}
+.col-head + .group{margin-top:0}
+.group .dot{width:6px;height:6px}
+.group svg{width:12px;height:12px;color:var(--text-tertiary)}
+.group .counter{height:16px;min-width:16px;padding:0 4px;font-size:11px;background:transparent;color:var(--text-tertiary)}
+.stack{display:flex;flex-direction:column;gap:var(--stack-gap)}
+
+/* cards */
+.card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-card);padding:var(--card-pad-y) var(--card-pad-x);display:flex;gap:8px}
+.card:hover,.card.hover{background:var(--n100);border-color:var(--n300)}
+.card .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--card-gap)}
+.check{width:16px;height:16px;border-radius:var(--r-check);border:2px solid var(--a-solid);flex:none;margin-top:2px;display:grid;place-items:center}
+.check.done{background:var(--a-solid)}
+.check.done::after{content:"";width:7px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.meta svg{width:12px;height:12px}
+.meta .sep{color:var(--n300)}
+.flag-high{color:var(--priority-high)}.flag-med{color:var(--priority-medium)}.flag-low{color:var(--priority-low)}
+.overdue{color:var(--danger)}
+.card.done .t-card{color:var(--text-disabled);text-decoration:line-through}
+.card.done .t-meta{color:var(--text-disabled)}
+.subtasks{display:flex;flex-direction:column;gap:2px;margin-top:0}
+.subtask{height:var(--subtask-row);display:flex;align-items:center;gap:8px}
+.subtask .check{width:14px;height:14px;margin:0;border-width:2px}
+.subtask.done span{color:var(--text-disabled);text-decoration:line-through}
+.sub-counter{margin-left:auto;align-self:flex-start;height:var(--counter-h);padding:0 6px;border-radius:999px;border:1px solid var(--border);font-size:11px;font-weight:500;color:var(--text-secondary);display:inline-flex;align-items:center;gap:2px}
+.sub-counter svg{width:12px;height:12px}
+.card.event{background:var(--a-tint);border-color:transparent}
+.card.event .t-card{color:var(--a-ink)}
+.card.event .t-meta{color:var(--a-text)}
+.ev-icon{width:16px;height:16px;border-radius:var(--r-check);background:var(--a-solid);color:#fff;display:grid;place-items:center;flex:none;margin-top:2px}
+.ev-icon svg{width:11px;height:11px;stroke-width:2.2}
+.card.routine{border-color:var(--border)}
+.check.round{border-radius:50%}
+.ring{width:16px;height:16px;border-radius:50%;border:2px solid var(--a-solid);flex:none;margin-top:1px}
+.mark{width:16px;height:16px;flex:none;margin-top:2px;color:var(--a-solid);display:grid;place-items:center}
+.mark svg{width:16px;height:16px}
+.progress{display:flex;align-items:center;gap:8px;margin-top:0}
+.body>.bar{flex:none;width:100%;margin:2px 0}
+.meta-row{display:flex;align-items:center;gap:8px}
+.meta-row .pct{margin-left:auto}
+.meta-row .sub-counter{margin-left:auto;align-self:center}
+.bar{flex:1;height:4px;border-radius:999px;background:var(--n200);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--a-solid);border-radius:999px}
+.pct{font-size:12px;line-height:16px;font-weight:500;color:var(--text-secondary)}
+
+/* tags */
+.tag{height:var(--tag-h);padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-size:11px;line-height:16px;font-weight:500;white-space:nowrap}
+.tag.neutral{background:var(--n100);color:var(--text-secondary)}
+.tag.area{background:var(--a-tint);color:var(--a-text)}
+.tag.area .dot{width:6px;height:6px}
+.tag.prio-high{background:#fce4e5;color:#a5282d}
+.tag.prio-med{background:#ffedd5;color:#9a3412}
+.tag.accent{background:var(--acc100);color:var(--acc700)}
+.tag svg{width:12px;height:12px}
+
+/* detail panel (floating overlay) */
+.panel{position:fixed;top:8px;right:8px;bottom:8px;width:400px;background:#fff;border-radius:12px;border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.06),0 -6px 12px rgba(0,0,0,.03),0 14px 28px rgba(0,0,0,.08);display:flex;flex-direction:column}
+.panel-head{height:48px;display:flex;align-items:center;gap:4px;padding:0 12px 0 16px;border-bottom:1px solid var(--border)}
+.panel-body{padding:16px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.title-row{display:flex;gap:8px;align-items:flex-start}
+.title-row .check{width:18px;height:18px;margin-top:3px}
+.panel h2{font-size:16px;line-height:24px;font-weight:600}
+.props{display:grid;grid-template-columns:96px 1fr;row-gap:4px;align-items:center}
+.props .k{font-size:12px;line-height:16px;color:var(--text-tertiary);display:flex;align-items:center;gap:6px;height:28px}
+.props .k svg{width:16px;height:16px}
+.props .v{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:28px;font-size:12px;color:var(--text-primary)}
+.divider{height:1px;background:var(--border)}
+.panel .subtask{height:28px;padding:0 4px;border-radius:var(--r-control)}
+.panel .subtask:hover{background:var(--n100)}
+.panel .subtask .check{width:14px;height:14px}
+.panel .subtask span{font-size:13px;color:var(--text-primary)}
+.notes{font-size:13px;line-height:18px;color:var(--text-secondary)}
+.tags-demo{display:flex;flex-direction:column;gap:8px}
+.tags-demo .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+.details-toggle{display:flex;align-items:center;gap:6px;height:24px;background:none;border:0;padding:0;cursor:pointer;font:inherit}
+.details-toggle .chev{width:12px;height:12px;color:var(--text-tertiary);transition:transform .15s}
+.details.open .chev{transform:rotate(90deg)}
+.details-body{display:none;margin-top:8px}
+.details.open .details-body{display:block}
+.crumbs{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:12px;line-height:16px;color:var(--text-tertiary);white-space:nowrap;overflow:hidden}
+.crumbs .dot{width:8px;height:8px}
+.crumbs .sep{color:var(--n300)}
+.quick{display:flex;gap:4px;margin:-8px 0 0 18px}
+.qbtn{height:28px;min-width:28px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 8px;border:0;border-radius:var(--r-control);background:none;font:500 12px/16px Inter,sans-serif;color:var(--text-secondary);cursor:pointer}
+.qbtn:hover{background:var(--n100)}
+.qbtn svg{width:16px;height:16px}
+.qbtn.overdue{color:var(--danger)}
+.qbtn.flag-high{color:var(--priority-high)}
+.panel-head{gap:8px}
+.head-check{width:18px;height:18px;margin:0}
+.vdiv{width:1px;height:20px;background:var(--border);flex:none}
+/* spacing inspector */
+.toggle{position:fixed;left:312px;bottom:12px;z-index:5}
+body.inspect .card{outline:1px dashed var(--acc600);outline-offset:-1px;background-image:linear-gradient(rgba(161,142,196,.18),rgba(161,142,196,.18));background-clip:padding-box}
+body.inspect .card .body,body.inspect .card>.check,body.inspect .card>.ev-icon,body.inspect .card>.mark,body.inspect .card>.ring{background:#fff;outline:1px solid rgba(143,116,179,.4)}
+body.inspect .col{outline:1px dashed #cc6b43}
+body.inspect .stack{background:rgba(204,107,67,.12)}
+body.inspect .tag,body.inspect .counter,body.inspect .sub-counter{outline:1px solid #0b9895}
+body.inspect .item{outline:1px dashed var(--n400)}
+
+
+/* ---------- batch A additions ---------- */
+svg{stroke-width:2}
+:root{--acc-solid:#a18ec4}
+.career{--a-past:#f3f6fc}.finance{--a-past:#f0fdfb}.health{--a-past:#fbf4f8}.personal{--a-past:#fbf8fb}.relation{--a-past:#fbfbeb}.home{--a-past:#fbf6f1}.noarea{--a-past:var(--n50)}
+.side{border-right:0;overflow:auto}
+.board{mask-image:none;overflow:hidden;min-height:0;align-items:stretch}
+.col{min-height:0}
+.col .stack{overflow:auto;min-height:0;padding-bottom:4px}
+.col.unsched{width:240px;flex:none;padding-right:16px;border-right:1px solid var(--border)}
+.week{flex:1;min-width:0;display:flex;gap:var(--board-gap)}
+.col.day:not(.unsched){flex:1;min-width:176px;width:auto;position:relative}
+.col-head .icon-btn{opacity:0}.col:hover .col-head .icon-btn,.col.today .col-head .icon-btn{opacity:1}
+.daynum{font-size:16px;line-height:24px;font-weight:600;color:var(--text-primary);min-width:24px;height:24px;border-radius:999px;display:inline-grid;place-items:center;margin-left:-4px}
+.col.past .col-head .t-heading,.col.past .daynum{color:var(--text-tertiary)}
+.col.today .daynum{background:var(--acc-solid);color:#fff;padding:0 6px;margin-left:-2px}
+/* meta project */
+.mp{display:inline-flex;align-items:center;gap:4px;min-width:0}
+.mp .pi{color:var(--a-solid)}
+.card.done .mp .pi{color:var(--text-disabled)}
+.meta{flex-wrap:wrap;min-width:0;white-space:nowrap;row-gap:0}
+.meta .lead{display:inline-flex;align-items:center;gap:6px;flex:none}
+.meta .mp{max-width:100%}
+.meta .sub-counter{margin-left:auto;flex:none}
+.meta:has(.sub-counter) .mp{max-width:calc(100% - 52px)}
+.meta-row .meta{flex:1;min-width:0}
+.mp .pn{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.meta .overdue,.meta .dd,.meta .sep,.meta>svg{flex:none}
+.card.event .meta{white-space:normal;flex-wrap:wrap}
+.card .subtask{height:auto;min-height:20px;align-items:flex-start;padding:2px 0}
+.card .subtask .check{margin-top:1px}
+.card .subtasks{gap:0}
+/* events */
+.card.event.past{background:var(--a-past)}
+.card.event.past .ev-icon{background:var(--a-border)}
+/* routine card */
+.pring{width:16px;height:16px;border-radius:50%;flex:none;margin-top:2px;background:conic-gradient(var(--n500) var(--p),var(--n200) 0);
+  -webkit-mask:radial-gradient(circle,transparent 4.5px,#000 5px);mask:radial-gradient(circle,transparent 4.5px,#000 5px)}
+.card.routine .t-card{font-weight:500}
+.step .check{margin:0}
+.step.done span.t-subtask{color:var(--text-disabled);text-decoration:line-through}
+.step.missed .check,.step.skipped .check{border-color:var(--n300);position:relative}
+.step.missed .check::after{content:"×";font-size:12px;line-height:10px;color:var(--n400);font-weight:600}
+.step.skipped .check::after{content:"";width:6px;height:2px;background:var(--n400);border-radius:1px}
+.step.missed span.t-subtask,.step.skipped span.t-subtask{color:var(--text-tertiary)}
+.meta svg.flame{color:var(--n500)}
+/* mini month */
+.mm{padding:0 4px}
+.mm-head{height:28px;display:flex;align-items:center;gap:2px;margin-bottom:4px}
+.mm-head .t-heading{font-size:13px}
+.mm-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px;text-align:center;font-size:11px;line-height:16px}
+.mm-grid b{font-weight:600;color:var(--text-tertiary);height:20px;display:grid;place-items:center}
+.mm-grid span{height:24px;display:grid;place-items:center;color:var(--text-secondary);font-weight:500;position:relative}
+.mm-grid span.o{color:var(--n400)}
+.mm-grid span.w{background:var(--n100)}
+.mm-grid span.w:nth-child(7n+1){border-radius:var(--r-control) 0 0 var(--r-control)}
+.mm-grid span.w:nth-child(7n){border-radius:0 var(--r-control) var(--r-control) 0}
+.mm-grid span.t{color:#fff}
+.mm-grid span.t::before{content:"";position:absolute;width:22px;height:22px;border-radius:50%;background:var(--acc-solid);z-index:0}
+.mm-grid span.t{z-index:0}
+.mm-grid span.t{isolation:isolate}
+.mm-grid span.t::before{z-index:-1}
+.mini-check{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--n400);display:grid;place-items:center;margin:0 1px}
+.mini-check.on{background:var(--n600);border-color:var(--n600);color:#fff}
+.mini-check svg{width:10px;height:10px;stroke-width:3}
+/* header */
+.page-head .nav{display:flex;gap:2px;margin-left:-6px}
+.page-head .nav .icon-btn{margin:0;width:28px;height:28px}
+.btn.icon{width:28px;padding:0;justify-content:center}
+.btn.primary{background:var(--acc-solid);border-color:var(--acc-solid)}
+/* selected card */
+.card.sel{box-shadow:0 0 0 2px var(--acc600);border-color:transparent}
+/* drag */
+.drop{height:38px;border:1.5px dashed var(--acc500);border-radius:var(--r-card);background:var(--acc100);display:none}
+.drag-ghost{display:none;position:absolute;left:14px;top:178px;width:calc(100% - 6px);background:#fff;transform:rotate(-2deg);
+  box-shadow:0 2px 8px rgba(0,0,0,.06),0 14px 28px rgba(0,0,0,.08);z-index:3}
+body.s-drag .drop,body.s-drag .drag-ghost{display:flex}
+body.s-drag .card.src{opacity:.4}
+/* panel/picker visibility */
+.panel,.picker,.scrim,.modal,.toast{display:none}
+body.s-panel .panel,body.s-panel .picker{display:flex}
+body.s-series .panel{display:flex}
+body.s-series .scrim,body.s-series .modal{display:flex}
+body.s-toast .toast{display:flex}
+body:not(.s-panel):not(.s-series) .card.sel{box-shadow:none;border-color:var(--border)}
+.prop-btn{height:24px;display:inline-flex;align-items:center;gap:4px;padding:0 8px;border-radius:var(--r-control);font-size:12px;font-weight:500;color:var(--text-primary);background:var(--n100)}
+.prop-btn svg{width:12px;height:12px;color:var(--text-tertiary)}
+/* popover */
+.pop{position:fixed;background:#fff;border:1px solid var(--border);border-radius:12px;flex-direction:column;
+  box-shadow:0 2px 8px rgba(0,0,0,.06),0 14px 28px rgba(0,0,0,.08);z-index:6}
+.picker{right:416px;top:206px;width:320px}
+.pop-sec{padding:6px}
+.opt{height:28px;display:flex;align-items:center;padding:0 8px;border-radius:var(--r-control);color:var(--text-primary);font-size:13px}
+.opt:hover{background:var(--n100)}
+.opt.on{background:var(--n100);font-weight:500}
+.opt svg{margin-left:auto;width:16px;height:16px;color:var(--acc600)}
+.custom{padding:8px 12px 12px;display:flex;flex-direction:column;gap:8px}
+.custom .t-label{height:20px;display:flex;align-items:center}
+.frow{display:flex;align-items:center;gap:8px;min-height:28px}
+.frow.top{align-items:flex-start}
+.fl{width:84px;flex:none;font-size:12px;color:var(--text-tertiary)}
+.frow.top .fl{line-height:28px}
+.field{height:28px;display:inline-flex;align-items:center;gap:6px;padding:0 8px;border:1px solid var(--border);border-radius:var(--r-control);font-size:12px;font-weight:500;color:var(--text-primary);background:#fff}
+.field svg{width:12px;height:12px;color:var(--text-tertiary)}
+.field.num{width:44px;justify-content:center}
+.field.dim{color:var(--text-disabled)}
+.wds{display:flex;gap:4px}
+.wd{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--text-secondary);background:var(--n100)}
+.wd.on{background:var(--a-solid);color:#fff}
+.radios{display:flex;flex-direction:column;gap:4px}
+.r{display:flex;align-items:center;gap:8px;min-height:28px;font-size:12px;color:var(--text-primary)}
+.rd{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--n400);flex:none}
+.r.on .rd{border:4px solid var(--acc600)}
+.hint{padding-top:4px;border-top:1px solid var(--border);margin-top:2px;padding-top:8px}
+.pop-foot{display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-top:1px solid var(--border)}
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(17,24,39,.32);z-index:7}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:400px;background:#fff;border-radius:12px;padding:16px;
+  flex-direction:column;gap:12px;z-index:8;box-shadow:0 2px 8px rgba(0,0,0,.06),0 14px 28px rgba(0,0,0,.08)}
+.radios.big{gap:2px}
+.radios.big .r{align-items:flex-start;padding:6px 8px;border-radius:var(--r-control)}
+.radios.big .r:hover{background:var(--n100)}
+.radios.big .r .rd{margin-top:2px}
+.radios.big .r span b{display:block;font-weight:500;font-size:13px;line-height:18px}
+.radios.big .r.on{background:var(--acc100)}
+.warn{display:flex;align-items:center;gap:6px}
+.warn svg{width:12px;height:12px}
+/* toast */
+.toast{position:fixed;bottom:24px;left:calc(288px + (100vw - 288px)/2);transform:translateX(-50%);height:40px;align-items:center;gap:10px;
+  padding:0 8px 0 12px;background:#fff;border:1px solid var(--border);border-radius:var(--r-card);z-index:9;
+  box-shadow:0 2px 8px rgba(0,0,0,.06),0 14px 28px rgba(0,0,0,.08)}
+.toast .ok{color:#328f32;display:grid}
+.toast .msg{font-size:13px;color:var(--text-primary)}
+.toast .link{border:0;background:none;font:600 12px/16px Inter,sans-serif;color:var(--acc700);cursor:pointer;padding:4px 6px;border-radius:4px}
+.toast .link:hover{background:var(--acc100)}
+.toast kbd{font:500 11px/16px Inter,sans-serif;color:var(--text-tertiary);border:1px solid var(--border);border-radius:4px;padding:0 4px}
+/* state switcher */
+.states{position:fixed;left:12px;bottom:12px;z-index:20;display:flex;gap:8px;align-items:center;background:#111827;color:#fff;padding:6px 8px;border-radius:10px;font-size:12px}
+.states .seg{background:#374151}
+.states .seg span{color:#d1d5db;cursor:pointer}
+.states .seg span.on{background:#fff;color:#111827}
+.states label{display:flex;align-items:center;gap:4px;cursor:pointer}
+.states .sp-btn{background:#374151;border:0;color:#d1d5db;font:500 12px/16px Inter,sans-serif;padding:4px 8px;border-radius:6px;cursor:pointer}
+
+</style>
+</head>
+<body class="s-toast">
+<div class="app">
+  <nav class="rail" aria-label="Sections"><div class="rail-pill">
+    <div class="logo">L</div>
+    <a title="Home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></a><a title="Tasks"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v7M12 7v4M16 7v9"/></svg></a><a class=on title="Calendar"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></a><a title="Areas"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="4"/><rect x="13" y="3" width="8" height="8" rx="1"/><path d="M7 13l4 8H3z"/><rect x="13" y="13" width="8" height="8" rx="4"/></svg></a><a title="Projects"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></a><a title="Routines"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></a><a title="Stats"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></a>
+    <div class="sp"></div>
+    <a title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a>
+  </div></nav>
+  <aside class="side"><div class="mm"><div class="mm-head"><span class="t-heading">November 2026</span><span class="icon-btn" style="margin-left:auto"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></span><span class="icon-btn" style="margin:0"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span></div><div class="mm-grid"><b>M</b><b>T</b><b>W</b><b>T</b><b>F</b><b>S</b><b>S</b><span class="o">26</span><span class="o">27</span><span class="o">28</span><span class="o">29</span><span class="o">30</span><span class="o">31</span><span class="">1</span><span class="">2</span><span class="">3</span><span class="">4</span><span class="">5</span><span class="">6</span><span class="">7</span><span class="">8</span><span class="w">9</span><span class="w">10</span><span class="w">11</span><span class="w">12</span><span class="w">13</span><span class="w t">14</span><span class="w">15</span><span class="">16</span><span class="">17</span><span class="">18</span><span class="">19</span><span class="">20</span><span class="">21</span><span class="">22</span><span class="">23</span><span class="">24</span><span class="">25</span><span class="">26</span><span class="">27</span><span class="">28</span><span class="">29</span><span class="">30</span><span class="o">1</span><span class="o">2</span><span class="o">3</span><span class="o">4</span><span class="o">5</span><span class="o">6</span></div></div><div class="side-divider"></div><div class="sec"><div class="t-label">Areas</div><div class="item on"><svg viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>All areas<span class="c">27</span></div><div class="item career"><span class="dot"></span>Career<span class="c">6</span></div><div class="item finance"><span class="dot"></span>Finance<span class="c">4</span></div><div class="item health"><span class="dot"></span>Health &amp; Beauty<span class="c">4</span></div><div class="item personal"><span class="dot"></span>Personal<span class="c">2</span></div><div class="item relation"><span class="dot"></span>Relationships<span class="c">2</span></div><div class="item home"><span class="dot"></span>Home<span class="c">5</span></div><div class="item"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>Inbox<span class="c">3</span></div></div><div class="side-divider"></div><div class="sec"><div class="t-label">Show</div><div class="item"><span class="mini-check on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>Events</div><div class="item"><span class="mini-check on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>Routine steps</div><div class="item"><span class="mini-check on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>Completed tasks</div><div class="item"><span class="mini-check"></span>Cancelled tasks</div></div></aside>
+  <main class="main">
+    <header class="page-head">
+      <div class="nav"><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span></div>
+      <h1 class="t-page">Nov 9 – 15, 2026</h1>
+      <button class="btn">Today</button>
+      <div class="seg"><span class="on">Week</span><span>Month</span><span>Quarter</span><span>Year</span></div>
+      <div class="head-sp"></div>
+      <button class="btn icon" title="Agenda panel"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg></button>
+      <button class="btn"><svg viewBox="0 0 24 24"><path d="M3 5h18M6 12h12M10 19h4"/></svg>Filter</button>
+      <button class="btn primary"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New task</button>
+    </header>
+    <div class="board"><section class="col day unsched"><div class="col-head"><span class="t-heading">Unscheduled</span><span class="counter">6</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card src career"><span class="check"></span><div class="body"><span class="t-card">Collect project screenshots</span><span class="meta t-meta"><span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">Life OS app</span></span></span></div></div><div class="card noarea"><span class="check"></span><div class="body"><span class="t-card">Research weekly review apps</span><span class="meta t-meta"><span class="lead"><span class="dd">Nov 18</span></span></span></div></div><div class="card finance"><span class="check"></span><div class="body"><span class="t-card">Open a savings account</span><span class="meta t-meta"><span class="lead"><span class="dd">Dec 1</span></span> <span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">Emergency fund</span></span></span></div></div><div class="card personal"><span class="check"></span><div class="body"><span class="t-card">Research speaking clubs</span></div></div><div class="card home"><span class="check"></span><div class="body"><span class="t-card">Organize the closet</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24" class="flag-med"><path d="M4 22V4l7 2 9-2v12l-9 2-7-2"/></svg></span></span></div></div><div class="card noarea"><span class="check"></span><div class="body"><span class="t-card">Sort downloads folder</span></div></div></div></section><div class="week"><section class="col day past"><div class="col-head"><span class="t-heading">Mon</span><span class="daynum">9</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card event past health"><span class="ev-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span><div class="body"><span class="t-card">Dentist appointment</span><span class="meta t-meta">10:00 AM</span></div></div><div class="card routine"><span class="pring" style="--p:100%"></span><div class="body"><span class="t-card">Morning routine</span><div class="meta-row"><span></span><span class="sub-counter">4/4<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div><div class="card done finance"><span class="check done"></span><div class="body"><span class="t-card">Pay internet bill</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></span></span></div></div><div class="card done home"><span class="check done"></span><div class="body"><span class="t-card">Clean the fridge</span></div></div></div></section><section class="col day past"><div class="col-head"><span class="t-heading">Tue</span><span class="daynum">10</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card routine"><span class="pring" style="--p:75%"></span><div class="body"><span class="t-card">Morning routine</span><div class="meta-row"><span></span><span class="sub-counter">3/4<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div><div class="card done career"><span class="check done"></span><div class="body"><span class="t-card">Review the Phase 2 PR</span><span class="meta t-meta"><span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">Life OS app</span></span></span></div></div><div class="card done home"><span class="check done"></span><div class="body"><span class="t-card">Laundry</span></div></div></div></section><section class="col day past"><div class="col-head"><span class="t-heading">Wed</span><span class="daynum">11</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card event past relation"><span class="ev-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span><div class="body"><span class="t-card">Coffee with Mia</span><span class="meta t-meta">4:00 PM</span></div></div><div class="card routine"><span class="pring" style="--p:100%"></span><div class="body"><span class="t-card">Morning routine</span><div class="meta-row"><span></span><span class="sub-counter">4/4<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div><div class="card done health"><span class="check done"></span><div class="body"><span class="t-card">Run 5 km</span><span class="meta t-meta"><span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">5K training</span></span></span></div></div></div></section><section class="col day past"><div class="col-head"><span class="t-heading">Thu</span><span class="daynum">12</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card event past career"><span class="ev-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span><div class="body"><span class="t-card">Hackathon info session</span><span class="meta t-meta">7:00 PM</span></div></div><div class="card routine"><span class="pring" style="--p:50%"></span><div class="body"><span class="t-card">Morning routine</span><div class="meta-row"><span></span><span class="sub-counter">2/4<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div><div class="card done relation"><span class="check done"></span><div class="body"><span class="t-card">Plan the first meetup</span></div></div></div></section><section class="col day past"><div class="col-head"><span class="t-heading">Fri</span><span class="daynum">13</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card event career"><span class="ev-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span><div class="body"><span class="t-card">Hackathon weekend</span><span class="meta t-meta">Nov 13 – 15 · 6:00 PM</span></div></div><div class="card routine"><span class="pring" style="--p:100%"></span><div class="body"><span class="t-card">Morning routine</span><div class="meta-row"><span></span><span class="sub-counter">3/3<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div><div class="card done finance"><span class="check done"></span><div class="body"><span class="t-card">Weekly budget check</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></span></span></div></div><div class="card done career"><span class="check done"></span><div class="body"><span class="t-card">Draft portfolio page</span><span class="meta t-meta"><span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">Resume & portfolio</span></span></span></div></div></div></section><section class="col day today"><div class="col-head"><span class="t-heading">Sat</span><span class="daynum">14</span><span class="counter">4</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card event career"><span class="ev-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span><div class="body"><span class="t-card">Hackathon weekend</span><span class="meta t-meta">Nov 13 – 15 · All day</span></div></div><div class="card routine"><span class="pring" style="--p:25%"></span><div class="body"><span class="t-card">Morning routine</span><div class="meta-row"><span class="meta t-meta"><svg viewBox="0 0 24 24"><path d="M12 22c4 0 7-3 7-7 0-5-5-7-6-12-2 3-6 6-6 11 0 1 .2 2 .6 3A3 3 0 0 1 6 14c-1 1-1 2.5-1 3 0 3 3 5 7 5z"/></svg>4 days</span><span class="sub-counter">1/4<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div><div class=subtasks><div class="subtask step done"><span class="check round health done"></span><span class="t-subtask">Stretch 10 minutes</span></div><div class="subtask step todo"><span class="check round health"></span><span class="t-subtask">Drink a glass of water</span></div><div class="subtask step todo"><span class="check round personal"></span><span class="t-subtask">Review today's plan</span></div><div class="subtask step todo"><span class="check round personal"></span><span class="t-subtask">Journal 5 minutes</span></div></div></div></div><div class="card career"><span class="check"></span><div class="body"><span class="t-card">Update resume</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24" class="flag-high"><path d="M4 22V4l7 2 9-2v12l-9 2-7-2"/></svg><span class="overdue">Nov 4 · Overdue</span></span> <span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">Resume & portfolio</span></span> <span class="sub-counter">1/3<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span><div class="subtasks"><div class="subtask done"><span class="check done"></span><span class="t-subtask">Add projects section</span></div><div class="subtask"><span class="check"></span><span class="t-subtask">Fix formatting</span></div><div class="subtask"><span class="check"></span><span class="t-subtask">Ask a friend to review</span></div></div></div></div><div class="card health"><span class="check"></span><div class="body"><span class="t-card">Buy running shoes</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24" class="flag-med"><path d="M4 22V4l7 2 9-2v12l-9 2-7-2"/></svg><span class="overdue">Nov 7 · Overdue</span></span> <span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">5K training</span></span></span></div></div><div class="card home"><span class="check"></span><div class="body"><span class="t-card">Fix the leaking faucet</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24" class="flag-high"><path d="M4 22V4l7 2 9-2v12l-9 2-7-2"/></svg><span class="dd">Nov 16</span></span></span></div></div><div class="card noarea"><span class="check"></span><div class="body"><span class="t-card">Reply to Kuya's message</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24" class="flag-med"><path d="M4 22V4l7 2 9-2v12l-9 2-7-2"/></svg></span></span></div></div><div class="card done finance"><span class="check done"></span><div class="body"><span class="t-card">Pay insurance</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg><span class="dd">Nov 15</span></span></span></div></div></div></section><section class="col day"><div class="col-head"><span class="t-heading">Sun</span><span class="daynum">15</span><span class="counter">2</span><span class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div><div class="stack"><div class="card event career"><span class="ev-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span><div class="body"><span class="t-card">Hackathon weekend</span><span class="meta t-meta">Nov 13 – 15 · Ends 3:00 PM</span></div></div><div class="card routine"><span class="pring" style="--p:0%"></span><div class="body"><span class="t-card">Weekly reset</span><div class="meta-row"><span></span><span class="sub-counter">0/3<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div><div class="drop"></div><div class="card sel health"><span class="check"></span><div class="body"><span class="t-card">Long run</span><span class="meta t-meta"><span class="lead"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></span> <span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">5K training</span></span></span></div></div><div class="card home"><span class="check"></span><div class="body"><span class="t-card">Meal prep</span></div></div></div><div class="drag-ghost card career"><span class="check"></span><div class="body"><span class="t-card">Collect project screenshots</span><span class="meta t-meta"><span class="mp"><svg viewBox="0 0 24 24" class="pi"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="pn">Life OS app</span></span></span></div></div></section></div></div>
+  </main>
+</div>
+
+<aside class="panel health" aria-label="Task details">
+  <div class="panel-head">
+    <span class="check head-check" title="Mark done"></span>
+    <span class="vdiv"></span>
+    <button class="qbtn" title="Priority: None · Eliminate"><svg viewBox="0 0 24 24"><path d="M4 22V4l7 2 9-2v12l-9 2-7-2"/></svg></button>
+    <span class="vdiv"></span>
+    <button class="qbtn" title="Due date"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg>No due date</button>
+    <span style="flex:1"></span>
+    <span class="icon-btn" style="margin:0"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span>
+  </div>
+  <div class="panel-body">
+    <h2>Long run</h2>
+    <div class="props">
+      <span class="k"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="4"/><rect x="13" y="13" width="8" height="8" rx="4"/></svg>Area</span><span class="v"><span class="tag area"><span class="dot"></span>Health &amp; Beauty</span></span>
+      <span class="k"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Project</span><span class="v"><span class="tag neutral">5K training</span></span>
+      <span class="k"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg>Scheduled</span><span class="v">Sun, Nov 15</span>
+      <span class="k"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>Repeat</span><span class="v"><span class="prop-btn on">Weekly on Sunday<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
+    </div>
+    <div class="divider"></div>
+    <div>
+      <div style="display:flex;align-items:center;gap:6px;height:24px;margin-bottom:4px"><span class="t-label">Subtasks</span><span class="counter">0/2</span></div>
+      <div class="subtask"><span class="check"></span><span>Warm up 10 minutes</span></div>
+      <div class="subtask"><span class="check"></span><span>Run 8 km at easy pace</span></div>
+    </div>
+    <div class="divider"></div>
+    <div><div class="t-label" style="margin-bottom:6px">Notes</div><p class="notes">Keep the pace conversational. Log the distance in the Distance run metric.</p></div>
+  </div>
+</aside>
+
+<div class="pop picker health">
+  <div class="pop-sec">
+    <div class="opt">Does not repeat</div>
+    <div class="opt">Daily</div>
+    <div class="opt">Every weekday (Mon – Fri)</div>
+    <div class="opt on">Weekly on Sunday<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="opt">Monthly on the 15th</div>
+    <div class="opt">Yearly on Nov 15</div>
+  </div>
+  <div class="divider"></div>
+  <div class="pop-sec custom">
+    <div class="t-label">Custom</div>
+    <div class="frow"><span class="fl">Every</span><span class="field num">1</span><span class="field sel">week<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="frow"><span class="fl">On</span><div class="wds"><span class="wd">M</span><span class="wd">T</span><span class="wd">W</span><span class="wd">T</span><span class="wd">F</span><span class="wd">S</span><span class="wd on">S</span></div></div>
+    <div class="frow"><span class="fl">Repeat from</span><div class="seg"><span class="on">Schedule</span><span>Completion</span></div></div>
+    <div class="frow"><span class="fl">Starts</span><span class="field sel">Nov 15, 2026<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span></div>
+    <div class="frow top"><span class="fl">Ends</span>
+      <div class="radios">
+        <label class="r on"><span class="rd"></span>Never</label>
+        <label class="r"><span class="rd"></span>On<span class="field sel dim">Mar 21, 2027<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></span></label>
+        <label class="r"><span class="rd"></span>After<span class="field num dim">12</span>times</label>
+      </div>
+    </div>
+    <p class="hint t-meta">Every week on Sunday, from Nov 15</p>
+  </div>
+  <div class="pop-foot"><button class="btn">Cancel</button><button class="btn primary">Save</button></div>
+</div>
+
+<div class="scrim"></div>
+<div class="modal" role="dialog" aria-label="Change recurring task">
+  <h3 class="t-heading" style="font-size:16px;line-height:24px">Change recurring task</h3>
+  <p class="t-body">“Long run” repeats every week. Apply the new repeat rule to:</p>
+  <div class="radios big">
+    <label class="r"><span class="rd"></span><span><b>This task</b><span class="t-meta">Only Sun, Nov 15</span></span></label>
+    <label class="r on"><span class="rd"></span><span><b>This and following tasks</b><span class="t-meta">From Nov 15 on. Earlier tasks stay as they are.</span></span></label>
+    <label class="r"><span class="rd"></span><span><b>All tasks</b><span class="t-meta">Every unfinished task in the series</span></span></label>
+  </div>
+  <p class="warn t-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Changing the series can't be undone.</p>
+  <div class="pop-foot" style="padding:0;border:0"><button class="btn">Cancel</button><button class="btn primary">Apply</button></div>
+</div>
+
+<div class="toast" role="status">
+  <span class="ok"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg></span>
+  <span class="msg">Completed “Pay insurance”</span>
+  <button class="link">Undo</button><kbd>Ctrl Z</kbd>
+  <span class="icon-btn" style="margin:0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+</div>
+<div class="states">
+  <span>Mock state</span>
+  <div class="seg" id="st">
+    <span class="on" data-s="">Board</span><span data-s="s-drag">Dragging</span><span data-s="s-panel">Panel + repeat</span><span data-s="s-series">Series dialog</span>
+  </div>
+  <label><input type="checkbox" id="tt" checked> Undo popup</label>
+  <button class="sp-btn" onclick="document.body.classList.toggle('inspect')">Spacing</button>
+</div>
+<script>
+const st=document.getElementById('st');
+st.onclick=e=>{const s=e.target.dataset.s;if(s===undefined)return;
+  ['s-drag','s-panel','s-series'].forEach(c=>document.body.classList.remove(c));if(s)document.body.classList.add(s);
+  st.querySelectorAll('span').forEach(x=>x.classList.toggle('on',x===e.target));};
+document.getElementById('tt').onchange=e=>document.body.classList.toggle('s-toast',e.target.checked);
+</script>
+</body>
+</html>
