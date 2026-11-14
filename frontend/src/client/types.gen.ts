@@ -5,6 +5,113 @@ export type ClientOptions = {
 };
 
 /**
+ * AreaPageRead
+ *
+ * One area over one calendar period. Tasks and events include those of the area's
+ * projects. The agenda runs from today (or the period's start, if later) to its end, and
+ * is empty for a past period.
+ */
+export type AreaPageRead = {
+    life_area: LifeAreaRead;
+    /**
+     * Period
+     */
+    period: 'week' | 'month' | 'quarter' | 'year';
+    range: DateRangeRead;
+    /**
+     * Today
+     */
+    today: string;
+    contents: ContentsRead;
+    /**
+     * Metrics
+     */
+    metrics: Array<OutcomeRead>;
+    /**
+     * Projects
+     */
+    projects: Array<AreaProjectRead>;
+    /**
+     * Events
+     */
+    events: Array<OccurrenceRead>;
+    /**
+     * Routines
+     */
+    routines: Array<RoutineGroupRead>;
+    /**
+     * Overdue Tasks
+     */
+    overdue_tasks: Array<TaskRead>;
+    /**
+     * Rolled Over Tasks
+     */
+    rolled_over_tasks: Array<TaskRead>;
+    /**
+     * Unscheduled Tasks
+     */
+    unscheduled_tasks: Array<TaskRead>;
+    /**
+     * Recurring
+     */
+    recurring: Array<TaskTemplateRead>;
+    /**
+     * Completed Tasks
+     */
+    completed_tasks: Array<TaskRead>;
+    agenda_range: DateRangeRead | null;
+    /**
+     * Agenda Tasks
+     */
+    agenda_tasks: Array<TaskRead>;
+    /**
+     * Deadlines
+     */
+    deadlines: Array<DeadlineRead>;
+};
+
+/**
+ * AreaProjectRead
+ *
+ * An active project, or one finished in the period. start is its created date until
+ * projects get a start date.
+ */
+export type AreaProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Status
+     */
+    status: 'active' | 'done' | 'cancelled';
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Completed On
+     */
+    completed_on: string | null;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
  * ChartPointRead
  */
 export type ChartPointRead = {
@@ -28,6 +135,36 @@ export type ChartPointRead = {
      * Is Current
      */
     is_current: boolean;
+};
+
+/**
+ * ContentsRead
+ */
+export type ContentsRead = {
+    /**
+     * Active Projects
+     */
+    active_projects: number;
+    /**
+     * Open Tasks
+     */
+    open_tasks: number;
+    /**
+     * Upcoming Events
+     */
+    upcoming_events: number;
+    /**
+     * Metrics
+     */
+    metrics: number;
+    /**
+     * Routine Steps
+     */
+    routine_steps: number;
+    /**
+     * Has Items
+     */
+    has_items: boolean;
 };
 
 /**
@@ -64,6 +201,32 @@ export type DayRead = {
      * Routine Steps
      */
     routine_steps: Array<RoutineStepDay>;
+};
+
+/**
+ * DeadlineRead
+ */
+export type DeadlineRead = {
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Unit
+     */
+    unit: string | null;
 };
 
 /**
@@ -1146,6 +1309,32 @@ export type RoutineCreate = {
 };
 
 /**
+ * RoutineGroupRead
+ */
+export type RoutineGroupRead = {
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Total Steps
+     */
+    total_steps: number;
+    /**
+     * Steps
+     */
+    steps: Array<StepRowRead>;
+};
+
+/**
  * RoutineLogSet
  */
 export type RoutineLogSet = {
@@ -1606,6 +1795,28 @@ export type SeriesEdit = {
      * Subtasks
      */
     subtasks?: Array<string> | null;
+};
+
+/**
+ * StepRowRead
+ */
+export type StepRowRead = {
+    /**
+     * Step Id
+     */
+    step_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Days
+     */
+    days: Array<'done' | 'skipped' | 'missed' | 'paused' | 'todo' | 'upcoming' | 'not_due'>;
 };
 
 /**
@@ -2580,6 +2791,49 @@ export type UpdateLifeAreaResponses = {
 };
 
 export type UpdateLifeAreaResponse = UpdateLifeAreaResponses[keyof UpdateLifeAreaResponses];
+
+export type GetAreaPageData = {
+    body?: never;
+    path: {
+        /**
+         * Life Area Id
+         */
+        life_area_id: number;
+    };
+    query?: {
+        /**
+         * Period
+         */
+        period?: 'week' | 'month' | 'quarter' | 'year';
+        /**
+         * Date
+         */
+        date?: string | null;
+    };
+    url: '/api/life-areas/{life_area_id}/page';
+};
+
+export type GetAreaPageErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetAreaPageError = GetAreaPageErrors[keyof GetAreaPageErrors];
+
+export type GetAreaPageResponses = {
+    /**
+     * Successful Response
+     */
+    200: AreaPageRead;
+};
+
+export type GetAreaPageResponse = GetAreaPageResponses[keyof GetAreaPageResponses];
 
 export type ArchiveLifeAreaData = {
     body?: never;

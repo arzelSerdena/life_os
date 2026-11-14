@@ -7,9 +7,11 @@ from fastapi import APIRouter, status
 from app import clock
 from app.db import SessionDep
 from app.models import LifeArea
+from app.schemas.area_page import AreaPageRead
 from app.schemas.common import ErrorResponse
 from app.schemas.life_area import LifeAreaCreate, LifeAreaRead, LifeAreaReorder, LifeAreaUpdate
 from app.schemas.overview import OverviewPeriod, OverviewRead
+from app.services import area_page as area_page_service
 from app.services import life_areas as service
 from app.services import overview as overview_service
 
@@ -52,6 +54,19 @@ def reorder_life_areas(session: SessionDep, data: LifeAreaReorder) -> Sequence[L
 @router.get("/{life_area_id}", response_model=LifeAreaRead, responses=NOT_FOUND)
 def get_life_area(session: SessionDep, life_area_id: int) -> LifeArea:
     return service.get_life_area(session, life_area_id)
+
+
+@router.get("/{life_area_id}/page", responses=NOT_FOUND)
+def get_area_page(
+    session: SessionDep,
+    life_area_id: int,
+    period: OverviewPeriod = "quarter",
+    date: date | None = None,
+) -> AreaPageRead:
+    """One area over the week, month, quarter or year containing `date` (default: today):
+    metrics, timeline, projects, routine steps, task lists, agenda, and what it contains."""
+    page = area_page_service.get_area_page(session, life_area_id, period, date or clock.today())
+    return AreaPageRead.from_page(page)
 
 
 @router.patch("/{life_area_id}", response_model=LifeAreaRead, responses=NOT_FOUND)

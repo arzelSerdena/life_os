@@ -185,8 +185,8 @@ def get_overview(session: Session, period: str, day: date) -> Overview:
     )
     area_ids = [area.id for area in overview.life_areas]
     overview.effort = _effort(session, area_ids, view, overview.previous)
-    metrics = _area_metrics(session, area_ids)
-    overview.outcomes = [_outcome(metric, period, view, overview.today) for metric in metrics]
+    metrics = area_metrics(session, area_ids)
+    overview.outcomes = [outcome_for(metric, period, view, overview.today) for metric in metrics]
     overview.projects = _projects(session, area_ids, overview.today)
     overview.routines = _routines(session, area_ids, view, overview.today)
     overview.wins = _wins(session, area_ids, metrics, view, overview.today)
@@ -229,7 +229,7 @@ def _effort(
 # ---------- Outcomes ----------
 
 
-def _area_metrics(session: Session, area_ids: list[int]) -> Sequence[Metric]:
+def area_metrics(session: Session, area_ids: list[int]) -> Sequence[Metric]:
     return session.scalars(
         select(Metric)
         .options(selectinload(Metric.entries), selectinload(Metric.targets))
@@ -253,7 +253,7 @@ def target_for(metric: Metric, view: DateRange) -> MetricTarget | None:
     return max(covering, key=lambda target: target.start_date, default=None)
 
 
-def _outcome(metric: Metric, period: str, view: DateRange, today: date) -> Outcome:
+def outcome_for(metric: Metric, period: str, view: DateRange, today: date) -> Outcome:
     target = target_for(metric, view)
     if target is not None and target.kind == "per_period":
         return _per_period_outcome(metric, target, view, today)
