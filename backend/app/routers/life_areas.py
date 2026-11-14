@@ -8,10 +8,12 @@ from app import clock
 from app.db import SessionDep
 from app.models import LifeArea
 from app.schemas.area_page import AreaPageRead
+from app.schemas.cascade import CascadePreview, LifeAreaChange
 from app.schemas.common import ErrorResponse
 from app.schemas.life_area import LifeAreaCreate, LifeAreaRead, LifeAreaReorder, LifeAreaUpdate
 from app.schemas.overview import OverviewPeriod, OverviewRead
 from app.services import area_page as area_page_service
+from app.services import cascades
 from app.services import life_areas as service
 from app.services import overview as overview_service
 
@@ -74,14 +76,28 @@ def update_life_area(session: SessionDep, life_area_id: int, data: LifeAreaUpdat
     return service.update_life_area(session, life_area_id, data)
 
 
-@router.post("/{life_area_id}/archive", response_model=LifeAreaRead, responses=NOT_FOUND)
-def archive_life_area(session: SessionDep, life_area_id: int) -> LifeArea:
-    return service.archive_life_area(session, life_area_id)
+@router.get("/{life_area_id}/archive/preview", responses=NOT_FOUND)
+def preview_life_area_archive(session: SessionDep, life_area_id: int) -> CascadePreview:
+    """What archiving the area would archive with it, to confirm first."""
+    return CascadePreview.from_plan(cascades.plan_area_archive(session, life_area_id))
 
 
-@router.post("/{life_area_id}/unarchive", response_model=LifeAreaRead, responses=NOT_FOUND)
-def unarchive_life_area(session: SessionDep, life_area_id: int) -> LifeArea:
-    return service.unarchive_life_area(session, life_area_id)
+@router.post("/{life_area_id}/archive", responses=NOT_FOUND)
+def archive_life_area(session: SessionDep, life_area_id: int) -> LifeAreaChange:
+    """Archive the area and everything in it, as one change that undo restores."""
+    result = cascades.archive_area(session, life_area_id)
+    return LifeAreaChange(
+        life_area=LifeAreaRead.model_validate(result.item), batch_id=result.batch_id
+    )
+
+
+@router.post("/{life_area_id}/unarchive", responses=NOT_FOUND)
+def unarchive_life_area(session: SessionDep, life_area_id: int) -> LifeAreaChange:
+    """Restore the area and the items its last archive took with it."""
+    result = cascades.restore_area(session, life_area_id)
+    return LifeAreaChange(
+        life_area=LifeAreaRead.model_validate(result.item), batch_id=result.batch_id
+    )
 
 
 @router.delete(

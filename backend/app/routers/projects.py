@@ -1,9 +1,10 @@
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, status
 
 from app.db import SessionDep
 from app.models import Project
+from app.schemas.cascade import CascadePreview
 from app.schemas.common import ErrorResponse
 from app.schemas.project import (
     ProjectChange,
@@ -16,6 +17,7 @@ from app.schemas.project import (
     SectionRead,
     SectionUpdate,
 )
+from app.services import cascades
 from app.services import projects as service
 
 router = APIRouter(prefix="/api", tags=["projects"])
@@ -106,3 +108,48 @@ def update_section(session: SessionDep, section_id: int, data: SectionUpdate) ->
 def delete_section(session: SessionDep, section_id: int) -> None:
     """Delete a section. Its tasks and templates stay in the project, unsectioned."""
     service.delete_section(session, section_id)
+
+
+# ---------- Status and archiving (cascades) ----------
+
+
+@router.get("/projects/{project_id}/preview", responses=NOT_FOUND)
+def preview_project_change(
+    session: SessionDep, project_id: int, action: Literal["complete", "cancel", "archive"]
+) -> CascadePreview:
+    """What completing, cancelling or archiving the project would do to its items."""
+    return CascadePreview.from_plan(cascades.plan_project(session, project_id, action))
+
+
+def _change(session: SessionDep, result: cascades.CascadeResult) -> ProjectChange:
+    return ProjectChange(project=_read(session, result.item), batch_id=result.batch_id)  # type: ignore[arg-type]
+
+
+@router.post("/projects/{project_id}/complete", responses={**NOT_FOUND, **CONFLICT})
+def complete_project(session: SessionDep, project_id: int) -> ProjectChange:
+    """Done: cancels open tasks and upcoming events, ends repeating events from today, and
+    archives templates, routine steps and metrics. One change, undoable."""
+    return _change(session, cascades.finish_project(session, project_id, "done"))
+
+
+@router.post("/projects/{project_id}/cancel", responses={**NOT_FOUND, **CONFLICT})
+def cancel_project(session: SessionDep, project_id: int) -> ProjectChange:
+    """Cancelled, with the same effects on the project's items as completing it."""
+    return _change(session, cascades.finish_project(session, project_id, "cancelled"))
+
+
+@router.post("/projects/{project_id}/reopen", responses={**NOT_FOUND, **CONFLICT})
+def reopen_project(session: SessionDep, project_id: int) -> ProjectChange:
+    return _change(session, cascades.reopen_project(session, project_id))
+
+
+@router.post("/projects/{project_id}/archive", responses=NOT_FOUND)
+def archive_project(session: SessionDep, project_id: int) -> ProjectChange:
+    """Archive the project and everything in it."""
+    return _change(session, cascades.archive_project(session, project_id))
+
+
+@router.post("/projects/{project_id}/unarchive", responses={**NOT_FOUND, **CONFLICT})
+def unarchive_project(session: SessionDep, project_id: int) -> ProjectChange:
+    """Restore the project and the items its last archive took with it."""
+    return _change(session, cascades.restore_project(session, project_id))
