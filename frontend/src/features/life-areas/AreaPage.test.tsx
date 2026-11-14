@@ -33,6 +33,27 @@ function task(overrides: Partial<TaskRead>): TaskRead {
   } as TaskRead;
 }
 
+const resumeTask = task({
+  id: 2,
+  title: "Update resume",
+  due_date: "2026-11-04",
+  project_id: 7,
+  section_id: 5,
+  priority: "high",
+  notes: "Bring the PDF",
+  subtasks: [
+    { id: 21, task_id: 2, title: "Add projects section", status: "done" },
+    { id: 22, task_id: 2, title: "Fix formatting", status: "todo" },
+  ] as TaskRead["subtasks"],
+});
+const resumeProject = {
+  id: 7,
+  life_area_id: 1,
+  title: "Resume & portfolio",
+  sections: [{ id: 5, project_id: 7, title: "Resume" }],
+  progress: { done: 3, total: 5 },
+};
+
 let page: AreaPageRead;
 let requests: { method: string; path: string; body: unknown }[];
 
@@ -96,6 +117,8 @@ beforeEach(() => {
       if (url.pathname === "/api/life-areas/1") return json(career);
       if (url.pathname === "/api/life-areas/1/page") return json(page);
       if (url.pathname === "/api/metrics") return json({ id: 9, ...(body as object) }, 201);
+      if (url.pathname === "/api/tasks/2" && request.method === "GET") return json(resumeTask);
+      if (url.pathname === "/api/projects/7") return json(resumeProject);
       return json({}, 200);
     }),
   );
@@ -126,13 +149,39 @@ test("shows the area's projects, routines, lists and agenda", async () => {
   expect(within(agenda).getByText("Draft the pitch")).toBeInTheDocument();
 });
 
-test("the Notes tab shows the area's notes", async () => {
+test("clicking a task opens it in the detail panel", async () => {
   const user = userEvent.setup();
   renderApp("/areas/1");
 
-  await user.click(await screen.findByRole("tab", { name: "Notes" }));
+  const lists = await screen.findByRole("region", { name: "Area lists" });
+  expect(within(lists).queryByRole("tab", { name: "Notes" })).not.toBeInTheDocument();
+  await user.click(within(lists).getByRole("button", { name: "Update resume" }));
 
-  expect(screen.getByRole("tabpanel")).toHaveTextContent("Aim for a senior role.");
+  const panel = await screen.findByRole("complementary", { name: "Details" });
+  expect(await within(panel).findByRole("textbox", { name: "Title" })).toHaveValue("Update resume");
+  await waitFor(() =>
+    expect(within(panel).getByRole("navigation", { name: "Breadcrumb" })).toHaveTextContent(
+      "Career/Resume & portfolio/Resume",
+    ),
+  );
+  expect(within(panel).getByRole("button", { name: "Due date" })).toHaveTextContent(
+    "Nov 4 · Overdue",
+  );
+  expect(within(panel).getByRole("button", { name: "Priority" })).toHaveTextContent("High");
+  expect(within(panel).getByRole("region", { name: "Subtasks" })).toHaveTextContent("1/2");
+  expect(within(panel).getByText("Bring the PDF")).toBeInTheDocument();
+
+  await user.click(within(panel).getByRole("checkbox", { name: "Fix formatting" }));
+  await user.click(within(panel).getByRole("button", { name: "Mark Update resume done" }));
+
+  await waitFor(() =>
+    expect(requests).toEqual(
+      expect.arrayContaining([
+        { method: "PATCH", path: "/api/subtasks/22", body: { status: "done" } },
+        { method: "POST", path: "/api/tasks/2/complete", body: undefined },
+      ]),
+    ),
+  );
 });
 
 test("checking a task in the agenda completes it", async () => {

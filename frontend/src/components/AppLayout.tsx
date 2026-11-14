@@ -1,6 +1,15 @@
 import { CalendarDays, House, type LucideIcon, Settings, Shapes, SquareKanban } from "lucide-react";
+import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
+import { useDetailPanel } from "../stores/detailPanelStore";
 import { useSidebarShortcut, useSidebarVisibility } from "./Sidebar";
+
+// The panel brings the notes editor, so it loads the first time something is opened.
+const DetailPanel = lazy(() =>
+  import("../features/detail-panel/DetailPanel").then((module) => ({
+    default: module.DetailPanel,
+  })),
+);
 
 type RailGroup = { label: string; icon: LucideIcon; to?: string };
 
@@ -16,6 +25,7 @@ const SETTINGS: RailGroup = { label: "Settings", icon: Settings };
 /** The icon rail. Each group renders its own sidebar and page inside the outlet. */
 export function AppLayout() {
   useSidebarShortcut();
+  const hasPanel = useDetailPanel((state) => state.target !== null);
   return (
     <div className="relative flex h-screen min-w-[1024px]">
       <nav aria-label="Main" className="flex w-(--rail-width) shrink-0 px-1 py-2">
@@ -34,6 +44,7 @@ export function AppLayout() {
         </div>
       </nav>
       <Outlet />
+      <Suspense fallback={null}>{hasPanel && <DetailPanel />}</Suspense>
     </div>
   );
 }
