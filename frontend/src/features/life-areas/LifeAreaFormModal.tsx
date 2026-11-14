@@ -3,10 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import {
-  createLifeAreaMutation,
-  updateLifeAreaMutation,
-} from "../../client/@tanstack/react-query.gen";
+import { createLifeAreaMutation } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
@@ -20,8 +17,6 @@ import {
 import { AREA_PALETTES, type AreaPaletteKey, areaDataAttribute } from "./palette";
 
 type LifeAreaFormModalProps = {
-  /** The life area to edit, or null to create a new one. */
-  lifeArea: LifeAreaRead | null;
   /** Active areas, to show which area already uses each color. */
   lifeAreas: readonly LifeAreaRead[];
   /** The color a new area starts with. */
@@ -33,9 +28,8 @@ type LifeAreaFormModalProps = {
   onSaved?: (lifeArea: LifeAreaRead) => void;
 };
 
-/** The New area / Edit life area pop-up. */
+/** The New area pop-up. Existing areas are edited in the detail panel. */
 export function LifeAreaFormModal({
-  lifeArea,
   lifeAreas,
   defaultColor,
   prefill,
@@ -44,25 +38,21 @@ export function LifeAreaFormModal({
 }: LifeAreaFormModalProps) {
   const { control, handleSubmit } = useForm<LifeAreaFormValues>({
     resolver: zodResolver(lifeAreaFormSchema),
-    defaultValues: initialFormValues(lifeArea, defaultColor, prefill),
+    defaultValues: initialFormValues(defaultColor, prefill),
   });
   const [title, color] = useWatch({ control, name: ["title", "color"] });
   const create = useMutation(createLifeAreaMutation());
-  const update = useMutation(updateLifeAreaMutation());
-  const activeMutation = lifeArea ? update : create;
-  const otherAreas = lifeAreas.filter((area) => area.id !== lifeArea?.id);
 
   const onSubmit = handleSubmit((values) => {
-    const body = toApiBody(values, lifeArea !== null);
-    const onSuccess = (saved: LifeAreaRead) => {
-      onClose();
-      onSaved?.(saved);
-    };
-    if (lifeArea) {
-      update.mutate({ path: { life_area_id: lifeArea.id }, body }, { onSuccess });
-    } else {
-      create.mutate({ body }, { onSuccess });
-    }
+    create.mutate(
+      { body: toApiBody(values) },
+      {
+        onSuccess: (saved) => {
+          onClose();
+          onSaved?.(saved);
+        },
+      },
+    );
   });
 
   return (
@@ -75,7 +65,7 @@ export function LifeAreaFormModal({
         <Modal.Dialog className="w-[460px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
           <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
             <Modal.Heading className="type-panel-title text-(--text-primary)">
-              {lifeArea ? "Edit life area" : "New life area"}
+              New life area
             </Modal.Heading>
             <IconButton label="Close" size="md" onPress={onClose}>
               <X />
@@ -112,7 +102,7 @@ export function LifeAreaFormModal({
                     <legend className={`${FIELD_LABEL} mb-1.5`}>Color</legend>
                     <div className="grid grid-cols-6 gap-1.5">
                       {AREA_PALETTES.map((palette) => {
-                        const usedBy = otherAreas
+                        const usedBy = lifeAreas
                           .filter((area) => area.color === palette.key)
                           .map((area) => area.title)
                           .join(", ");
@@ -189,34 +179,6 @@ export function LifeAreaFormModal({
                 )}
               />
 
-              {lifeArea && (
-                <Controller
-                  control={control}
-                  name="notes"
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      fullWidth
-                      name={field.name}
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      isInvalid={fieldState.invalid}
-                      className="gap-1.5"
-                    >
-                      <Label className={FIELD_LABEL}>
-                        Notes
-                        <span className="ml-1 font-normal text-(--text-tertiary)">Markdown</span>
-                      </Label>
-                      <TextArea
-                        rows={4}
-                        className="min-h-24 resize-none type-body text-(--text-primary)"
-                      />
-                      <FieldError>{fieldState.error?.message}</FieldError>
-                    </TextField>
-                  )}
-                />
-              )}
-
               <div className="flex items-center gap-3 border-t border-(--border-default) pt-3">
                 <span className="type-meta text-(--text-tertiary)">Preview</span>
                 <div
@@ -231,11 +193,11 @@ export function LifeAreaFormModal({
                 </div>
               </div>
 
-              {activeMutation.isError && (
+              {create.isError && (
                 <Alert status="danger">
                   <Alert.Indicator />
                   <Alert.Content>
-                    <Alert.Description>{errorMessage(activeMutation.error)}</Alert.Description>
+                    <Alert.Description>{errorMessage(create.error)}</Alert.Description>
                   </Alert.Content>
                 </Alert>
               )}
@@ -248,8 +210,8 @@ export function LifeAreaFormModal({
               >
                 Cancel
               </Button>
-              <Button type="submit" isPending={activeMutation.isPending}>
-                {lifeArea ? "Save changes" : "Create area"}
+              <Button type="submit" isPending={create.isPending}>
+                Create area
               </Button>
             </Modal.Footer>
           </form>
