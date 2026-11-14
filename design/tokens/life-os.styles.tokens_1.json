@@ -1,0 +1,157 @@
+{
+  "Styles": {
+    "text": {
+      "page-title": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.20}",
+          "lineHeight": "{Primitives.font.line-height.28}",
+          "fontWeight": "{Primitives.font.weight.semibold}"
+        }
+      },
+      "column-title": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.16}",
+          "lineHeight": "{Primitives.font.line-height.24}",
+          "fontWeight": "{Primitives.font.weight.semibold}"
+        }
+      },
+      "panel-title": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.16}",
+          "lineHeight": "{Primitives.font.line-height.24}",
+          "fontWeight": "{Primitives.font.weight.semibold}"
+        }
+      },
+      "card-title": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.14}",
+          "lineHeight": "{Primitives.font.line-height.20}",
+          "fontWeight": "{Primitives.font.weight.medium}"
+        }
+      },
+      "body": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.13}",
+          "lineHeight": "{Primitives.font.line-height.18}",
+          "fontWeight": "{Primitives.font.weight.regular}"
+        }
+      },
+      "sidebar-item": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.13}",
+          "lineHeight": "{Primitives.font.line-height.18}",
+          "fontWeight": "{Primitives.font.weight.medium}"
+        }
+      },
+      "subtask": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.12}",
+          "lineHeight": "{Primitives.font.line-height.16}",
+          "fontWeight": "{Primitives.font.weight.regular}"
+        }
+      },
+      "meta": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.12}",
+          "lineHeight": "{Primitives.font.line-height.16}",
+          "fontWeight": "{Primitives.font.weight.regular}"
+        }
+      },
+      "button": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.12}",
+          "lineHeight": "{Primitives.font.line-height.16}",
+          "fontWeight": "{Primitives.font.weight.medium}"
+        }
+      },
+      "label": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.12}",
+          "lineHeight": "{Primitives.font.line-height.16}",
+          "fontWeight": "{Primitives.font.weight.semibold}",
+          "letterSpacing": "0.04em",
+          "textCase": "uppercase"
+        }
+      },
+      "tag": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.11}",
+          "lineHeight": "{Primitives.font.line-height.16}",
+          "fontWeight": "{Primitives.font.weight.medium}"
+        }
+      },
+      "counter": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{Primitives.font.family.sans}",
+          "fontSize": "{Primitives.font.size.11}",
+          "lineHeight": "{Primitives.font.line-height.16}",
+          "fontWeight": "{Primitives.font.weight.medium}"
+        }
+      }
+    },
+    "effect": {
+      "overlay": {
+        "$type": "shadow",
+        "$value": [
+          {
+            "color": "#0000000f",
+            "offsetX": "0px",
+            "offsetY": "2px",
+            "blur": "8px",
+            "spread": "0px"
+          },
+          {
+            "color": "#00000014",
+            "offsetX": "0px",
+            "offsetY": "14px",
+            "blur": "28px",
+            "spread": "0px"
+          }
+        ]
+      },
+      "raised": {
+        "$type": "shadow",
+        "$value": {
+          "color": "#00000014",
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px"
+        }
+      },
+      "focus-ring": {
+        "$type": "shadow",
+        "$value": {
+          "color": "{Primitives.color.brand.600}",
+          "offsetX": "0px",
+          "offsetY": "0px",
+          "blur": "0px",
+          "spread": "2px"
+        }
+      }
+    }
+  }
+}
