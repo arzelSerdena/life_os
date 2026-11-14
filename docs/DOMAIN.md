@@ -227,6 +227,15 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Project progress**: done one-off tasks out of those that aren't cancelled or archived. Recurring occurrences don't count.
   - **Target state**: in progress, met or missed (see section 7).
   - **Life areas** have no progress.
+- The **life areas overview** (`GET /api/life-areas/overview?period=&date=`) compares the active areas over one calendar week, month, quarter or year, all derived on read:
+  - **Effort**: done tasks per area by the local date they were completed, in the period and the one before. Archived tasks and Inbox tasks don't count.
+  - **Outcomes**: area-owned, active metrics only (a project's metrics belong to its page), each charted by the latest target covering the period:
+    - **Every period**: one point per target period that has started; the current one is in progress until it ends. Status is met; on track or behind against the time passed for higher-is-better sums; on track while under a lower-is-better limit; behind otherwise. A past view shows how its last period went.
+    - **Reach by a date**: the value counted from the target's start at the end of each step (days in a week, weeks in a month, months in a quarter or year). Status is met, missed, or on track or behind: progress from the start (zero for a sum, the first entry otherwise) against the share of time passed.
+    - **No target**: the value of each step, and improving, worsening or steady against the step before.
+  - **Projects**: tasks done across each area's active projects (as project progress counts them) against pace, the share of those projects' time that has passed. A project's time runs from its creation to its due date; without a due date it counts toward progress but not pace. Within 5 points of pace counts as on pace.
+  - **Routine steps done**: per area, each Monday-to-Sunday week's done steps out of those due up to today. Skipped days aren't due; paused days never are.
+  - **Wins**: projects finished in the period, per-period targets met in periods that ended in it (grouped per target), and reach-by targets reached in it, newest first.
 
 ### Time and text
 

@@ -1,13 +1,17 @@
 from collections.abc import Sequence
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, status
 
+from app import clock
 from app.db import SessionDep
 from app.models import LifeArea
 from app.schemas.common import ErrorResponse
 from app.schemas.life_area import LifeAreaCreate, LifeAreaRead, LifeAreaReorder, LifeAreaUpdate
+from app.schemas.overview import OverviewPeriod, OverviewRead
 from app.services import life_areas as service
+from app.services import overview as overview_service
 
 router = APIRouter(prefix="/api/life-areas", tags=["life-areas"])
 
@@ -23,6 +27,16 @@ def list_life_areas(session: SessionDep, include_archived: bool = False) -> Sequ
 @router.post("", response_model=LifeAreaRead, status_code=status.HTTP_201_CREATED)
 def create_life_area(session: SessionDep, data: LifeAreaCreate) -> LifeArea:
     return service.create_life_area(session, data)
+
+
+@router.get("/overview")
+def get_overview(
+    session: SessionDep, period: OverviewPeriod = "quarter", date: date | None = None
+) -> OverviewRead:
+    """The active areas compared over the week, month, quarter or year containing `date`
+    (default: today): effort, outcomes, projects against pace, routine steps and wins."""
+    overview = overview_service.get_overview(session, period, date or clock.today())
+    return OverviewRead.from_overview(overview)
 
 
 @router.post(
