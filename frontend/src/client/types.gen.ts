@@ -5,6 +5,46 @@ export type ClientOptions = {
 };
 
 /**
+ * ChartPointRead
+ */
+export type ChartPointRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Value
+     */
+    value: number | null;
+    /**
+     * Status
+     */
+    status: 'in_progress' | 'met' | 'missed' | null;
+    /**
+     * Is Current
+     */
+    is_current: boolean;
+};
+
+/**
+ * DateRangeRead
+ */
+export type DateRangeRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+};
+
+/**
  * DayRead
  */
 export type DayRead = {
@@ -24,6 +64,26 @@ export type DayRead = {
      * Routine Steps
      */
     routine_steps: Array<RoutineStepDay>;
+};
+
+/**
+ * EffortAreaRead
+ *
+ * Done tasks in the area, completed in the period and in the one before.
+ */
+export type EffortAreaRead = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Previous Done
+     */
+    previous_done: number;
 };
 
 /**
@@ -713,6 +773,143 @@ export type OccurrenceRead = {
 };
 
 /**
+ * OutcomeRead
+ *
+ * An area-owned metric over the period.
+ *
+ * chart is per_period (one point per target period), reach_by (the value counted from
+ * the target's start) or none (the value of each step: days, weeks or months).
+ */
+export type OutcomeRead = {
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower';
+    target: OutcomeTargetRead | null;
+    /**
+     * Chart
+     */
+    chart: 'per_period' | 'reach_by' | 'none';
+    /**
+     * Points
+     */
+    points: Array<ChartPointRead>;
+    /**
+     * Value
+     */
+    value: number | null;
+    /**
+     * Previous Value
+     */
+    previous_value: number | null;
+    /**
+     * Status
+     */
+    status: 'met' | 'on_track' | 'behind' | 'missed' | 'improving' | 'worsening' | 'steady' | null;
+    /**
+     * Met Periods
+     */
+    met_periods: number;
+    /**
+     * Finished Periods
+     */
+    finished_periods: number;
+};
+
+/**
+ * OutcomeTargetRead
+ */
+export type OutcomeTargetRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Kind
+     */
+    kind: 'reach_by' | 'per_period';
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Period
+     */
+    period: 'day' | 'week' | 'month' | null;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+};
+
+/**
+ * OverviewRead
+ *
+ * The active life areas compared over one calendar period. Lists follow the area
+ * order, except wins, which are newest first.
+ */
+export type OverviewRead = {
+    /**
+     * Period
+     */
+    period: 'week' | 'month' | 'quarter' | 'year';
+    range: DateRangeRead;
+    previous_range: DateRangeRead;
+    /**
+     * Today
+     */
+    today: string;
+    /**
+     * Life Areas
+     */
+    life_areas: Array<LifeAreaRead>;
+    /**
+     * Effort
+     */
+    effort: Array<EffortAreaRead>;
+    /**
+     * Outcomes
+     */
+    outcomes: Array<OutcomeRead>;
+    /**
+     * Projects
+     */
+    projects: Array<ProjectsAreaRead>;
+    /**
+     * Routines
+     */
+    routines: Array<RoutinesAreaRead>;
+    /**
+     * Wins
+     */
+    wins: Array<WinRead>;
+};
+
+/**
  * PeriodRead
  */
 export type PeriodRead = {
@@ -876,6 +1073,39 @@ export type ProjectUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * ProjectsAreaRead
+ *
+ * Tasks done across the area's active projects, against how much of their time has
+ * passed (pace, 0 to 1; null when none has a due date).
+ */
+export type ProjectsAreaRead = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Active Projects
+     */
+    active_projects: number;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Pace
+     */
+    pace: number | null;
+    /**
+     * Pace Status
+     */
+    pace_status: 'ahead' | 'behind' | 'on_pace' | null;
 };
 
 /**
@@ -1168,6 +1398,66 @@ export type RoutineUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * RoutineWeekRead
+ */
+export type RoutineWeekRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Due
+     */
+    due: number;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Is Current
+     */
+    is_current: boolean;
+    /**
+     * Is Upcoming
+     */
+    is_upcoming: boolean;
+};
+
+/**
+ * RoutinesAreaRead
+ */
+export type RoutinesAreaRead = {
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Steps
+     */
+    steps: number;
+    /**
+     * Routines
+     */
+    routines: number;
+    /**
+     * Due
+     */
+    due: number;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Weeks
+     */
+    weeks: Array<RoutineWeekRead>;
 };
 
 /**
@@ -2010,6 +2300,59 @@ export type WeekRead = {
     days: Array<DayRead>;
 };
 
+/**
+ * WinRead
+ *
+ * A project finished, a per-period target met (times = how many periods), or a
+ * reach-by target reached. day is when it happened (for periods, the last one's end).
+ */
+export type WinRead = {
+    /**
+     * Kind
+     */
+    kind: 'project_finished' | 'target_periods_met' | 'target_reached';
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Metric Id
+     */
+    metric_id: number | null;
+    /**
+     * Target Value
+     */
+    target_value: number | null;
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower' | null;
+    /**
+     * Period
+     */
+    period: 'day' | 'week' | 'month' | null;
+    /**
+     * Times
+     */
+    times: number;
+};
+
 export type ListLifeAreasData = {
     body?: never;
     path?: never;
@@ -2066,6 +2409,40 @@ export type CreateLifeAreaResponses = {
 };
 
 export type CreateLifeAreaResponse = CreateLifeAreaResponses[keyof CreateLifeAreaResponses];
+
+export type GetOverviewData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Period
+         */
+        period?: 'week' | 'month' | 'quarter' | 'year';
+        /**
+         * Date
+         */
+        date?: string | null;
+    };
+    url: '/api/life-areas/overview';
+};
+
+export type GetOverviewErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetOverviewError = GetOverviewErrors[keyof GetOverviewErrors];
+
+export type GetOverviewResponses = {
+    /**
+     * Successful Response
+     */
+    200: OverviewRead;
+};
+
+export type GetOverviewResponse = GetOverviewResponses[keyof GetOverviewResponses];
 
 export type ReorderLifeAreasData = {
     body: LifeAreaReorder;
