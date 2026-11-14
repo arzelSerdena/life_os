@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { LifeAreaRead, OutcomeRead, OverviewRead } from "../../../client/types.gen";
 import { SectionCard } from "../../../components/SectionCard";
 import type { Period } from "../../../period";
+import { PanelLink } from "../../detail-panel/PanelLink";
 import { areaDataAttribute } from "../palette";
 import { CardMenu, type MenuOption } from "./CardMenu";
 import {
@@ -191,10 +192,12 @@ export function MetricTile({
     <article
       aria-label={outcome.title}
       data-area={area ? areaDataAttribute(area.color) : undefined}
-      className="flex min-w-0 flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-2.5 py-2"
+      className="relative flex min-w-0 flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-2.5 py-2 hover:border-(--color-neutral-300)"
     >
       <h4 className="truncate text-[13px] leading-[18px] font-semibold text-(--text-primary)">
-        {outcome.title}
+        <PanelLink stretched target={{ kind: "metric", id: outcome.metric_id }}>
+          {outcome.title}
+        </PanelLink>
       </h4>
       {area && (
         <p className="flex items-center gap-1.5 text-xs font-medium text-(--text-tertiary)">

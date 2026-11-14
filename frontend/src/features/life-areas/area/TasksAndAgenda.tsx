@@ -4,12 +4,22 @@ import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 import { completeTaskMutation } from "../../../client/@tanstack/react-query.gen";
 import type { AreaPageRead, OccurrenceRead, TaskRead } from "../../../client/types.gen";
 import { QueryError } from "../../../components/QueryError";
+import type { PanelTarget } from "../../../stores/detailPanelStore";
+import { PanelLink } from "../../detail-panel/PanelLink";
 import { daysBetween, formatAmount, outcomeTone, plural, shortDate } from "../overview/format";
 import { describeRule, eachDay } from "./timeScale";
 
-type Row = { key: string; icon?: ReactNode; title: string; note: string; danger?: boolean };
+type Row = {
+  key: string;
+  target: PanelTarget;
+  icon?: ReactNode;
+  title: string;
+  note: string;
+  danger?: boolean;
+};
 
-/** Needs attention, Unscheduled, Recurring, Completed and Notes, one 36 px row per item. */
+/** Needs attention, Unscheduled, Recurring and Completed, one 36 px row per item. Notes live
+ * in the detail panel. */
 export function TasksCard({ page }: { page: AreaPageRead }) {
   const projectTitle = (id: number | null) =>
     page.projects.find((project) => project.id === id)?.title;
@@ -17,75 +27,95 @@ export function TasksCard({ page }: { page: AreaPageRead }) {
     [projectTitle(task.project_id), note].filter(Boolean).join(" · ");
 
   const attention: Row[] = [
-    ...page.overdue_tasks.map((task) => ({
-      key: `t${task.id}`,
-      title: task.title,
-      note: withProject(
-        task,
-        `Overdue ${plural(daysBetween(task.due_date as string, page.today), "day")}`,
-      ),
-      danger: true,
-    })),
-    ...page.rolled_over_tasks.map((task) => ({
-      key: `r${task.id}`,
-      title: task.title,
-      note: withProject(task, `Rolled over ${task.rollover_count} times`),
-    })),
+    ...page.overdue_tasks.map(
+      (task): Row => ({
+        key: `t${task.id}`,
+        target: { kind: "task", id: task.id },
+        title: task.title,
+        note: withProject(
+          task,
+          `Overdue ${plural(daysBetween(task.due_date as string, page.today), "day")}`,
+        ),
+        danger: true,
+      }),
+    ),
+    ...page.rolled_over_tasks.map(
+      (task): Row => ({
+        key: `r${task.id}`,
+        target: { kind: "task", id: task.id },
+        title: task.title,
+        note: withProject(task, `Rolled over ${task.rollover_count} times`),
+      }),
+    ),
     ...page.projects
       .filter(
         (p) => p.status === "active" && p.due_date && daysBetween(page.today, p.due_date) <= 14,
       )
-      .map((p) => ({
-        key: `p${p.id}`,
-        icon: <Folder aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />,
-        title: p.title,
-        note: `Due in ${plural(Math.max(daysBetween(page.today, p.due_date as string), 0), "day")} · ${
-          p.total ? Math.round((p.done / p.total) * 100) : 0
-        }% done`,
-      })),
+      .map(
+        (p): Row => ({
+          key: `p${p.id}`,
+          target: { kind: "project", id: p.id },
+          icon: <Folder aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />,
+          title: p.title,
+          note: `Due in ${plural(Math.max(daysBetween(page.today, p.due_date as string), 0), "day")} · ${
+            p.total ? Math.round((p.done / p.total) * 100) : 0
+          }% done`,
+        }),
+      ),
     ...page.metrics
       .filter((metric) => outcomeTone(metric.status) === "bad")
-      .map((metric) => ({
-        key: `m${metric.metric_id}`,
-        icon: <ChartLine aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />,
-        title: metric.title,
-        note:
-          metric.target && metric.value !== null
-            ? `${formatAmount(metric.value, metric.unit)} of ${formatAmount(metric.target.target_value, metric.unit)}`
-            : "Behind",
-      })),
+      .map(
+        (metric): Row => ({
+          key: `m${metric.metric_id}`,
+          target: { kind: "metric", id: metric.metric_id },
+          icon: <ChartLine aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />,
+          title: metric.title,
+          note:
+            metric.target && metric.value !== null
+              ? `${formatAmount(metric.value, metric.unit)} of ${formatAmount(metric.target.target_value, metric.unit)}`
+              : "Behind",
+        }),
+      ),
   ];
-  const tabs: { id: string; label: string; rows?: Row[]; notes?: string | null }[] = [
+  const tabs: { id: string; label: string; rows: Row[] }[] = [
     { id: "attention", label: "Needs attention", rows: attention },
     {
       id: "unscheduled",
       label: "Unscheduled",
-      rows: page.unscheduled_tasks.map((task) => ({
-        key: `u${task.id}`,
-        title: task.title,
-        note: withProject(task, task.due_date ? `Due ${shortDate(task.due_date)}` : ""),
-      })),
+      rows: page.unscheduled_tasks.map(
+        (task): Row => ({
+          key: `u${task.id}`,
+          target: { kind: "task", id: task.id },
+          title: task.title,
+          note: withProject(task, task.due_date ? `Due ${shortDate(task.due_date)}` : ""),
+        }),
+      ),
     },
     {
       id: "recurring",
       label: "Recurring",
-      rows: page.recurring.map((template) => ({
-        key: `c${template.id}`,
-        icon: <Repeat aria-hidden className="size-4 text-(--text-tertiary)" strokeWidth={2} />,
-        title: template.title,
-        note: template.paused_at ? "Paused" : describeRule(template.rrule ?? ""),
-      })),
+      rows: page.recurring.map(
+        (template): Row => ({
+          key: `c${template.id}`,
+          target: { kind: "template", id: template.id },
+          icon: <Repeat aria-hidden className="size-4 text-(--text-tertiary)" strokeWidth={2} />,
+          title: template.title,
+          note: template.paused_at ? "Paused" : describeRule(template.rrule ?? ""),
+        }),
+      ),
     },
     {
       id: "completed",
       label: "Completed",
-      rows: page.completed_tasks.map((task) => ({
-        key: `d${task.id}`,
-        title: task.title,
-        note: withProject(task, `Done ${shortDate((task.completed_at ?? "").slice(0, 10))}`),
-      })),
+      rows: page.completed_tasks.map(
+        (task): Row => ({
+          key: `d${task.id}`,
+          target: { kind: "task", id: task.id },
+          title: task.title,
+          note: withProject(task, `Done ${shortDate((task.completed_at ?? "").slice(0, 10))}`),
+        }),
+      ),
     },
-    { id: "notes", label: "Notes", notes: page.life_area.notes },
   ];
   const [selected, setSelected] = useState("attention");
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -131,7 +161,7 @@ export function TasksCard({ page }: { page: AreaPageRead }) {
             }`}
           >
             {tab.label}
-            {tab.rows && tab.rows.length > 0 && <Counter count={tab.rows.length} />}
+            {tab.rows.length > 0 && <Counter count={tab.rows.length} />}
           </button>
         ))}
       </div>
@@ -141,41 +171,38 @@ export function TasksCard({ page }: { page: AreaPageRead }) {
         aria-labelledby={`tab-${current.id}`}
         className="px-4 py-2"
       >
-        {current.rows ? (
-          current.rows.length === 0 ? (
-            <p className="flex min-h-10 items-center type-meta text-(--text-tertiary)">
-              Nothing here.
-            </p>
-          ) : (
-            <ul>
-              {current.rows.map((row) => (
-                <li key={row.key} className="flex h-9 items-center gap-2.5">
-                  {row.icon ?? (
-                    <span
-                      aria-hidden
-                      className="size-4 shrink-0 rounded-[4px] border-2 border-(--color-neutral-300)"
-                    />
-                  )}
-                  <span className="min-w-0 flex-1 truncate text-[13px] text-(--text-primary)">
-                    {row.title}
-                  </span>
-                  <span
-                    className={`shrink-0 type-meta ${row.danger ? "text-(--text-danger)" : "text-(--text-tertiary)"}`}
-                  >
-                    {row.note}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )
-        ) : current.notes ? (
-          <p className="py-2 type-body whitespace-pre-wrap text-(--text-secondary)">
-            {current.notes}
+        {current.rows.length === 0 ? (
+          <p className="flex min-h-10 items-center type-meta text-(--text-tertiary)">
+            Nothing here.
           </p>
         ) : (
-          <p className="flex min-h-10 items-center type-meta text-(--text-tertiary)">
-            No notes yet. Add them with Edit area.
-          </p>
+          <ul>
+            {current.rows.map((row) => (
+              <li
+                key={row.key}
+                className="relative -mx-2 flex h-9 items-center gap-2.5 rounded-(--radius-6) px-2 hover:bg-(--bg-hover)"
+              >
+                {row.icon ?? (
+                  <span
+                    aria-hidden
+                    className="size-4 shrink-0 rounded-[4px] border-2 border-(--color-neutral-300)"
+                  />
+                )}
+                <PanelLink
+                  stretched
+                  target={row.target}
+                  className="flex-1 truncate text-[13px] text-(--text-primary)"
+                >
+                  {row.title}
+                </PanelLink>
+                <span
+                  className={`shrink-0 type-meta ${row.danger ? "text-(--text-danger)" : "text-(--text-tertiary)"}`}
+                >
+                  {row.note}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </section>
@@ -303,6 +330,11 @@ export function AgendaCard({ page }: { page: AreaPageRead }) {
                 return (
                   <Item
                     key={`e${event.event_id}-${event.occurrence_date}`}
+                    target={{
+                      kind: "event",
+                      id: event.event_id,
+                      day: event.is_repeating ? event.occurrence_date : null,
+                    }}
                     tinted
                     icon={
                       <CalendarDays
@@ -319,6 +351,7 @@ export function AgendaCard({ page }: { page: AreaPageRead }) {
               return (
                 <Item
                   key={`${item.kind}${item.id}`}
+                  target={{ kind: item.kind === "project" ? "project" : "metric", id: item.id }}
                   icon={
                     item.kind === "project" ? (
                       <Folder aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />
@@ -379,12 +412,13 @@ function TaskItem({
 }) {
   return (
     <Item
+      target={{ kind: "task", id: task.id }}
       icon={
         <input
           type="checkbox"
           aria-label={`Mark ${task.title} done`}
           onChange={onDone}
-          className="size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border-2 border-(--area-solid) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          className="relative z-10 size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border-2 border-(--area-solid) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         />
       }
       title={task.title}
@@ -405,11 +439,13 @@ function TaskItem({
 }
 
 function Item({
+  target,
   icon,
   title,
   note,
   tinted,
 }: {
+  target: PanelTarget;
   icon: ReactNode;
   title: string;
   note: ReactNode;
@@ -417,15 +453,17 @@ function Item({
 }) {
   return (
     <li
-      className={`flex gap-2.5 rounded-(--radius-6) px-2 py-1.5 ${tinted ? "bg-(--area-tint-active)" : ""}`}
+      className={`relative flex gap-2.5 rounded-(--radius-6) px-2 py-1.5 ${tinted ? "bg-(--area-tint-active)" : "hover:bg-(--bg-hover)"}`}
     >
       <span className="mt-0.5 grid size-4 shrink-0 place-items-center">{icon}</span>
       <span className="flex min-w-0 flex-col">
-        <span
+        <PanelLink
+          stretched
+          target={target}
           className={`truncate text-[13px] ${tinted ? "text-(--area-ink)" : "text-(--text-primary)"}`}
         >
           {title}
-        </span>
+        </PanelLink>
         <span className={`type-meta ${tinted ? "text-(--area-text)" : "text-(--text-tertiary)"}`}>
           {note}
         </span>

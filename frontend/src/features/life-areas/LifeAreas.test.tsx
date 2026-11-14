@@ -142,29 +142,52 @@ test("asks for a name before saving", async () => {
   expect(writes()).toEqual([]);
 });
 
-test("edits an area from its page with its current values filled in", async () => {
+test("Edit area opens the area in the detail panel, where its fields save on their own", async () => {
   areas = [lifeArea({ title: "Health", vision: "Feel strong", notes: "Keep these" })];
   const user = userEvent.setup();
   renderApp("/areas/1");
 
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
   await user.click(await screen.findByRole("menuitem", { name: "Edit area" }));
-  const dialog = await screen.findByRole("dialog");
-  const title = within(dialog).getByLabelText("Name");
+  const panel = await screen.findByRole("complementary", { name: "Details" });
+  const title = within(panel).getByRole("textbox", { name: "Title" });
   expect(title).toHaveValue("Health");
-  expect(within(dialog).getByLabelText(/^Vision/)).toHaveValue("Feel strong");
+  expect(within(panel).getByRole("textbox", { name: "Vision" })).toHaveValue("Feel strong");
+  expect(within(panel).getByText("Keep these")).toBeInTheDocument();
 
   await user.clear(title);
-  await user.type(title, "Fitness");
-  await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
+  await user.type(title, "Fitness{Enter}");
 
   expect(await screen.findByRole("heading", { name: "Fitness" })).toBeInTheDocument();
-  expect(writes()[0]).toMatchObject({
-    method: "PATCH",
-    path: "/api/life-areas/1",
-    body: { title: "Fitness", vision: "Feel strong", color: "teal" },
-  });
-  expect(writes()[0].body).toMatchObject({ notes: "Keep these" });
+  expect(writes()).toEqual([
+    { method: "PATCH", path: "/api/life-areas/1", body: { title: "Fitness" } },
+  ]);
+});
+
+test("notes save on their own, also from the Markdown view", async () => {
+  areas = [lifeArea({ title: "Health", notes: "Keep these" })];
+  const user = userEvent.setup();
+  renderApp("/areas/1");
+
+  await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Edit area" }));
+  const panel = await screen.findByRole("complementary", { name: "Details" });
+  await user.click(within(panel).getByRole("button", { name: "More actions" }));
+  await user.click(await screen.findByRole("menuitem", { name: "View Markdown" }));
+  const source = within(panel).getByRole("textbox", { name: "Notes in Markdown" });
+  expect(source).toHaveValue("Keep these");
+
+  await user.type(source, " **daily**");
+
+  await waitFor(() =>
+    expect(writes()).toEqual([
+      { method: "PATCH", path: "/api/life-areas/1", body: { notes: "Keep these **daily**" } },
+    ]),
+  );
+  expect(within(panel).getByRole("status")).toHaveTextContent("Saved");
+
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
 });
 
 test("archives an area, then restores it from the archived areas", async () => {
