@@ -66,6 +66,40 @@ export function periodLabel(period: Period, date: string): string {
   }
 }
 
+const FULL_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/**
+ * The period's name inside a sentence ("Where your completed tasks went in Q4"):
+ * "the week of Nov 9", "November", "Q4", "2026". The year is added when it isn't this year.
+ */
+export function periodInSentence(period: Period, date: string): string {
+  const first = parseDate(periodRange(period, date).start);
+  const year = first.year === parseDate(today()).year ? "" : ` ${first.year}`;
+  switch (period) {
+    case "week":
+      return `the week of ${MONTHS[first.month]} ${first.day}${year ? `,${year}` : ""}`;
+    case "month":
+      return `${FULL_MONTHS[first.month]}${year}`;
+    case "quarter":
+      return `Q${first.month / 3 + 1}${year}`;
+    case "year":
+      return `${first.year}`;
+  }
+}
+
 export function addDays(date: string, days: number): string {
   const { year, month, day } = parseDate(date);
   const moved = utc(year, month, day + days);

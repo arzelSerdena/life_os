@@ -435,3 +435,21 @@ The overview behind the LIFE AREAS heading (`design/html_mockups/approved-areas-
 - Wins: targets met and projects finished in the period, each with a green check and its area.
 - Every colored mark also carries its area's name: plum and rose fail the color-distance check, so color is never the only cue.
 - Each card keeps one chart style; the card's corner menu holds sort, filter and view as table.
+
+## Update: metrics belong to their owner (Nov 14)
+
+Replaces the KPI tiles and timeline rules in "Approved: Area screen" and the Outcomes rule in "Approved: Life areas overview". Decided.
+
+- A metric shows only on its owner's screens. Area-owned metrics appear on the area page and the Life areas overview; project-owned metrics appear only on that project's page.
+- Area page: the top card is Metrics, the area's own metrics as the same small tiles used in the overview's Outcomes (five per row; smooth positive or negative line; value with its target in words; one summary line). The six task-statistics tiles (open tasks, completed, on time, rollovers, routine steps done, active projects) are removed.
+- Area page timeline: Projects, Events and Metrics sections. The Metrics section shows the area's own metrics only, one row each: per-period targets as one segment per period (met = full, not met or current = filled to the amount reached, upcoming = outline) and a dashed "No target" line when a metric has none. Section labels are sentence case, 13 px semibold.
+- Area page agenda: tasks and events from the area and from every project inside it, plus project due dates. Target deadlines appear only for the area's own metrics.
+- Life areas overview, Outcomes: area-owned metrics only, grouped by area.
+
+## Approved: Life areas empty states and New area pop-up (Nov 14)
+
+Mock-up: `design/html_mockups/approved-areas-empty.html` (switch states at the bottom left). Decided.
+
+- No areas: the sidebar shows the LIFE AREAS heading with + and one muted line ("No life areas yet. Use + to add one."). The header's period switch and ⋯ are faded; New area stays active. The page shows a centered message ("Set up your first life area"), one explanatory line, a New area button, and quick-start chips (Career, Finance, Health, Personal, Relationships, Home) that open the pop-up with the name and color filled in.
+- Areas but no data: every card keeps its title and place; its body is one muted line saying what will appear there, plus a ghost action where useful (New project, New routine, Add metric). Outcomes shows each area's panel with a dashed placeholder tile.
+- New area pop-up (460 px, 12 px radius, overlay shadow, 32% backdrop): Name (required), Color (the six palette colors with names; a color in use shows the area that uses it; repeats allowed with a hint), Vision (optional), a sidebar-row preview, then Cancel and Create area (brand 700). The area color is stored as its palette name.

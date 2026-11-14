@@ -11,8 +11,11 @@ const PERIOD_NAMES: Record<Period, string> = {
   year: "Year",
 };
 
-/** Week / Month / Quarter / Year, with ‹ › to step through periods and the period's name. */
-export function PeriodSwitch() {
+/**
+ * Week / Month / Quarter / Year, with ‹ › to step through periods and the period's name.
+ * Disabled, it fades, for screens with nothing to show yet.
+ */
+export function PeriodSwitch({ isDisabled = false }: { isDisabled?: boolean }) {
   const { period, date, setPeriod, shift } = usePeriodStore();
   return (
     <div className="flex items-center gap-2">
@@ -20,6 +23,7 @@ export function PeriodSwitch() {
         aria-label="Period"
         selectionMode="single"
         disallowEmptySelection
+        isDisabled={isDisabled}
         selectedKeys={[period]}
         onSelectionChange={(keys) => {
           const [selected] = keys;
@@ -38,13 +42,21 @@ export function PeriodSwitch() {
         ))}
       </ToggleButtonGroup>
       <div className="flex items-center gap-0.5">
-        <IconButton label="Previous period" size="md" onPress={() => shift(-1)}>
+        <IconButton
+          label="Previous period"
+          size="md"
+          isDisabled={isDisabled}
+          onPress={() => shift(-1)}
+        >
           <ChevronLeft />
         </IconButton>
-        <span className="min-w-16 text-center text-[13px] font-semibold" aria-live="polite">
+        <span
+          className={`min-w-16 text-center text-[13px] font-semibold ${isDisabled ? "opacity-40" : ""}`}
+          aria-live="polite"
+        >
           {periodLabel(period, date)}
         </span>
-        <IconButton label="Next period" size="md" onPress={() => shift(1)}>
+        <IconButton label="Next period" size="md" isDisabled={isDisabled} onPress={() => shift(1)}>
           <ChevronRight />
         </IconButton>
       </div>

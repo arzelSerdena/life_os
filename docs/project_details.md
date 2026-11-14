@@ -152,5 +152,6 @@ Summary: a life area contains projects; projects contain sections; tasks, task t
 - **2026-11-14** — A life area's color is a palette key (`blue`, `teal`, `rose`, `plum`, `ochre`, `terracotta`), not a hex value, so every area color role comes from the design tokens. A new area gets the first palette no active area uses. Older hex colors show as neutral until the area is edited.
 - **2026-11-14** — `frontend/src/styles/tokens.css` is generated from `design/tokens/*.json` by `pnpm tokens`, and CI checks it is current. Area ramps and roles come from the token JSON itself.
 - **2026-11-14** — The rail shows every group from the style guide; groups not built yet are disabled. The selected period (Week / Month / Quarter / Year, default Quarter) is kept app-wide in a Zustand store, so it stays the same when moving between the overview and area pages. Queries don't retry, because the API is local.
+- **2026-11-14** — The New area pop-up has Name, Color and Vision only; notes are left out of its requests, so editing an area keeps them. Quick-start chips (Career, Finance, Health, Personal, Relationships, Home) open it filled in. Until the overview API exists, the overview cards show their no-data state, and their ghost actions (New project, New routine, Add metric) wait for those create flows.
 
 ---

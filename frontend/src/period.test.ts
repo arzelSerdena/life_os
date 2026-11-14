@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { periodLabel, periodRange, shiftPeriod } from "./period";
+import { periodInSentence, periodLabel, periodRange, shiftPeriod } from "./period";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -46,5 +46,17 @@ describe("periodLabel", () => {
     expect(periodLabel("month", "2026-11-14")).toBe("Nov 2026");
     expect(periodLabel("quarter", "2026-11-14")).toBe("Q4 2026");
     expect(periodLabel("year", "2026-11-14")).toBe("2026");
+  });
+});
+
+describe("periodInSentence", () => {
+  test("names the period inside a sentence, adding the year only when it isn't this year", () => {
+    vi.useFakeTimers({ now: new Date(2026, 10, 14) });
+    expect(periodInSentence("week", "2026-11-14")).toBe("the week of Nov 9");
+    expect(periodInSentence("month", "2026-11-14")).toBe("November");
+    expect(periodInSentence("quarter", "2026-11-14")).toBe("Q4");
+    expect(periodInSentence("quarter", "2027-01-05")).toBe("Q1 2027");
+    expect(periodInSentence("week", "2027-01-05")).toBe("the week of Jan 4, 2027");
+    expect(periodInSentence("year", "2026-11-14")).toBe("2026");
   });
 });
