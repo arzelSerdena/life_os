@@ -67,7 +67,10 @@
 - Delete in the detail panel's ⋯ menu for every item, last and in red. Metrics, recurring tasks, routines, steps, events, projects and areas ask first in a red confirmation with counts from the delete previews; a repeating event asks This event / This and following / All events; a step or routine that feeds a metric can't be deleted and the dialog names the metric. Projects and areas with items have Delete disabled (`has_items` added to projects).
 - One-off tasks and subtasks delete behind an undo toast (6 s, Undo or Ctrl Z); a recurring occurrence offers Cancel task instead.
 
+- Project Complete, Cancel, Archive, Reopen and Restore in the detail panel's ⋯ menu. Complete, Cancel and Archive confirm with what they do to the project's items (from the cascade preview), and the toast after them has Undo, which restores the whole batch.
+
 **Next**
 
 - Undo-toast deletes for metric entries and targets, once a screen lists them.
-- Card menus, project complete/cancel/archive, and the remaining create forms.
+- Card menus for Effort, Projects, Routine steps done and Wins, and Export as CSV, once their options are designed (only the Outcomes menu is).
+- The remaining create forms (tasks, events, projects, routine steps), the project page and the projects overview.

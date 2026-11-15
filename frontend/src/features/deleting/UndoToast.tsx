@@ -1,7 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { CircleAlert, Trash2, X } from "lucide-react";
+import { CircleAlert, CircleCheck, Trash2, X } from "lucide-react";
 import { useEffect } from "react";
+import { undoBatch } from "../../client/sdk.gen";
 import { errorMessage } from "../../errors";
+import { type AppliedChange, useChangeToast } from "../../stores/changeToastStore";
 import { type PendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 
 /**
@@ -34,28 +36,53 @@ const LINK =
 const CLOSE =
   "grid size-6 place-items-center rounded-(--radius-6) text-(--text-tertiary) outline-none hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
 
-/** The undo toast for the latest delete, and the message when a delete fails. */
+/** Undoes an applied change's batch and refreshes everything it touched. */
+function useUndoChange() {
+  const queryClient = useQueryClient();
+  const dismiss = useChangeToast((state) => state.dismiss);
+  const fail = useChangeToast((state) => state.fail);
+  return async (change: AppliedChange) => {
+    dismiss(change.key);
+    try {
+      await undoBatch({ path: { batch_id: change.batchId }, throwOnError: true });
+    } catch (error) {
+      fail("Couldn't undo.", error);
+    } finally {
+      await queryClient.invalidateQueries();
+    }
+  };
+}
+
+/**
+ * The undo toast: for the latest delete, or else for the latest change (Completed “X”),
+ * and the message when a delete or an undo fails.
+ */
 export function UndoToast() {
   const pending = usePendingDeletes((state) => state.pending);
   const failure = usePendingDeletes((state) => state.failure);
   const undo = usePendingDeletes((state) => state.undo);
   const commit = usePendingDeletes((state) => state.commit);
   const dismissFailure = usePendingDeletes((state) => state.dismissFailure);
+  const change = useChangeToast((state) => state.change);
+  const changeFailure = useChangeToast((state) => state.failure);
+  const dismissChange = useChangeToast((state) => state.dismiss);
+  const undoChange = useUndoChange();
   const latest = pending.findLast((item) => !item.isSent);
 
   useEffect(() => {
-    if (!latest) return;
-    // Ctrl Z undoes the delete, except while typing, where it undoes the typing.
+    if (!latest && !change) return;
+    // Ctrl Z undoes the delete or change, except while typing, where it undoes the typing.
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
         if (isEditable(event.target)) return;
         event.preventDefault();
-        undo(latest.key);
+        if (latest) undo(latest.key);
+        else if (change) void undoChange(change);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [latest, undo]);
+  }, [latest, change, undo, undoChange]);
 
   useEffect(() => {
     // Closing the app sends what is waiting instead of dropping it.
@@ -64,7 +91,7 @@ export function UndoToast() {
     return () => window.removeEventListener("pagehide", onPageHide);
   }, [commit]);
 
-  if (!latest && !failure) return null;
+  if (!latest && !failure && !change && !changeFailure) return null;
   return (
     <div
       role="status"
@@ -91,14 +118,50 @@ export function UndoToast() {
             <X aria-hidden className="size-4" />
           </button>
         </>
+      ) : change ? (
+        <>
+          <CircleCheck aria-hidden className="size-4 shrink-0 text-(--text-tertiary)" />
+          <span className="max-w-80 truncate text-[13px] text-(--text-primary)">
+            {change.message}
+          </span>
+          <button type="button" className={LINK} onClick={() => void undoChange(change)}>
+            Undo
+          </button>
+          <kbd className="rounded-[4px] border border-(--border-default) px-1 text-[11px] font-medium text-(--text-tertiary)">
+            Ctrl Z
+          </kbd>
+          <button
+            type="button"
+            aria-label="Close"
+            className={CLOSE}
+            onClick={() => dismissChange(change.key)}
+          >
+            <X aria-hidden className="size-4" />
+          </button>
+        </>
+      ) : failure ? (
+        <>
+          <CircleAlert aria-hidden className="size-4 shrink-0 text-(--text-danger)" />
+          <span className="max-w-[480px] truncate text-[13px] text-(--text-primary)">
+            Couldn't delete “{failure.label}”. {errorMessage(failure.error)}
+          </span>
+          <button type="button" aria-label="Close" className={CLOSE} onClick={dismissFailure}>
+            <X aria-hidden className="size-4" />
+          </button>
+        </>
       ) : (
-        failure && (
+        changeFailure && (
           <>
             <CircleAlert aria-hidden className="size-4 shrink-0 text-(--text-danger)" />
             <span className="max-w-[480px] truncate text-[13px] text-(--text-primary)">
-              Couldn't delete “{failure.label}”. {errorMessage(failure.error)}
+              {changeFailure.message} {errorMessage(changeFailure.error)}
             </span>
-            <button type="button" aria-label="Close" className={CLOSE} onClick={dismissFailure}>
+            <button
+              type="button"
+              aria-label="Close"
+              className={CLOSE}
+              onClick={() => dismissChange()}
+            >
               <X aria-hidden className="size-4" />
             </button>
           </>
