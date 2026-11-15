@@ -200,8 +200,9 @@ function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () 
 
 const ADD_ICON = "size-4 shrink-0 text-(--text-tertiary)";
 
-/** The Add button in the area's color. Projects and metrics can be added here so far; the
- * other items get their forms with their own screens. */
+/** The Add split button: a neutral primary button with the area's color on its icon only.
+ * Projects and metrics can be added here so far; the other items get their forms with their
+ * own screens. */
 function AddMenu({
   onAddMetric,
   onAddProject,
@@ -211,9 +212,9 @@ function AddMenu({
 }) {
   return (
     <Dropdown>
-      <Button className="gap-0 bg-(--area-solid) px-0 text-white">
+      <Button className="gap-0 px-0">
         <span className="flex items-center gap-1.5 px-2.5">
-          <Plus aria-hidden />
+          <Plus aria-hidden className="text-(--area-solid)" />
           Add
         </span>
         <span aria-hidden className="h-4 w-px bg-white/40" />

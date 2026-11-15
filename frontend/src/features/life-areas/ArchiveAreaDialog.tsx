@@ -4,6 +4,7 @@ import { Info } from "lucide-react";
 import { archiveLifeAreaMutation } from "../../client/@tanstack/react-query.gen";
 import type { ContentsRead, LifeAreaRead } from "../../client/types.gen";
 import { errorMessage } from "../../errors";
+import { useChangeToast } from "../../stores/changeToastStore";
 
 type ArchiveAreaDialogProps = {
   lifeArea: LifeAreaRead;
@@ -12,7 +13,10 @@ type ArchiveAreaDialogProps = {
   onArchived: () => void;
 };
 
-/** Confirms archiving an area and lists what is archived with it. */
+/**
+ * Confirms archiving an area and lists what is archived with it. The archive is one batch,
+ * which the toast's Undo restores.
+ */
 export function ArchiveAreaDialog({
   lifeArea,
   contents,
@@ -20,6 +24,7 @@ export function ArchiveAreaDialog({
   onArchived,
 }: ArchiveAreaDialogProps) {
   const archive = useMutation(archiveLifeAreaMutation());
+  const showChange = useChangeToast((state) => state.show);
   const lines = [
     [contents.active_projects, "active project", "active projects"],
     [contents.open_tasks, "open task", "open tasks"],
@@ -57,7 +62,8 @@ export function ArchiveAreaDialog({
             )}
             <p className="flex gap-2 rounded-(--radius-8) bg-neutral-50 p-3 type-meta text-(--text-secondary)">
               <Info aria-hidden className="mt-px size-3.5 shrink-0" strokeWidth={2} />
-              Nothing is deleted. You can restore {lifeArea.title} any time from Archived areas.
+              Nothing is deleted. You can restore {lifeArea.title} any time from Finished &
+              archived.
             </p>
             {archive.isError && (
               <Alert status="danger">
@@ -82,9 +88,10 @@ export function ArchiveAreaDialog({
                 archive.mutate(
                   { path: { life_area_id: lifeArea.id } },
                   {
-                    onSuccess: () => {
+                    onSuccess: ({ batch_id }) => {
                       onClose();
                       onArchived();
+                      if (batch_id) showChange(`Archived “${lifeArea.title}”`, batch_id);
                     },
                   },
                 )

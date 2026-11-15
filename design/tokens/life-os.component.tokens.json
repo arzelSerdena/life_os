@@ -455,7 +455,7 @@
       },
       "primary-bg": {
         "$type": "color",
-        "$value": "{Semantic.accent.solid}"
+        "$value": "{Primitives.color.neutral.900}"
       },
       "primary-text": {
         "$type": "color",

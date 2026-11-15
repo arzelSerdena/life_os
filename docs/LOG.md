@@ -100,9 +100,10 @@
   15. Settled points: New area pop-up without "optional" or the Vision hint; area archive shows the undo toast; start date edited from the date-range chip; pending deletes hidden everywhere; browser tests for New project and project status actions.
 - Roadmap updated: the new screens are placed in Phases 2–6.
 
+- Small fixes to the built screens: the rail's Areas is now Plan (`LayoutGrid`) and Archived areas is Finished & archived; the New area pop-up lost "optional" and the Vision placeholder; archiving an area shows the undo toast (Archived “Career”); the sidebar collapses to an overlay below 1440 px again (PR #28 reverted) and the app's minimum size is 1280 × 720; the accent is neutral (primary buttons, the area Add button, the toast's Undo, checkboxes in menus and notes), with Low priority neutral in the tokens; no text below 11 px; every control has a 24 × 24 px hit area (`hit-24` utility, 24 px icon buttons, wrapped checkboxes) and a focus ring.
+
 **Next** (code, one branch and PR each, in this order)
 
-- Small fixes to built screens: the New area pop-up loses "optional" and the Vision hint; area archive shows the undo toast; the sidebar collapses to an overlay below 1440 px again (revert of PR #28), minimum window 1280 × 720; the rail's Areas becomes Plan (`LayoutGrid`) and Archived becomes "Finished & archived"; neutral accent and plain priority names; nothing below 11 px; 24 × 24 px hit areas and the focus ring.
 - `GET /api/week` and the task lists follow the placement rule (a task with only a due date sits on that date; Unscheduled = neither date). Unscheduled task filter for the new view.
 - Previews return per-item rows grouped by effect (cascade and delete), then one `ConfirmDialog` replacing `ProjectChangeDialog` and `DeleteDialog`.
 - Playwright tests for New project and the project status actions.

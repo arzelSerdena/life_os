@@ -72,7 +72,7 @@ export function CardMenu({ label, options, onSelect }: CardMenuProps) {
                       {option.check && (
                         <span
                           aria-hidden
-                          className="grid size-3.5 shrink-0 place-items-center rounded-[4px] border-2 border-(--color-neutral-300) text-white group-data-[selected=true]:border-brand-600 group-data-[selected=true]:bg-brand-600"
+                          className="grid size-3.5 shrink-0 place-items-center rounded-[4px] border-2 border-(--color-neutral-300) text-white group-data-[selected=true]:border-(--color-neutral-700) group-data-[selected=true]:bg-(--color-neutral-700)"
                         >
                           <Check
                             className="hidden size-2.5 group-data-[selected=true]:block"

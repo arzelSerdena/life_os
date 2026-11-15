@@ -167,7 +167,7 @@ export function TimelineCard({ page }: { page: AreaPageRead }) {
               className="absolute top-0 bottom-0 w-px bg-(--color-neutral-900)"
               style={{ left: `${today + 50 / scale.total}%` }}
             >
-              <span className="absolute -top-0.5 -translate-x-1/2 rounded-[4px] bg-(--color-neutral-900) px-1 text-[10px] font-semibold text-white">
+              <span className="absolute -top-0.5 -translate-x-1/2 rounded-[4px] bg-(--color-neutral-900) px-1.5 text-[11px] leading-4 font-semibold text-white">
                 Today
               </span>
             </span>

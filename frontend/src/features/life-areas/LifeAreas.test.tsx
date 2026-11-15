@@ -197,7 +197,7 @@ test("notes save on their own, also from the Markdown view", async () => {
   expect(screen.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
 });
 
-test("archives an area, then restores it from the archived areas", async () => {
+test("archives an area with an undo toast, then restores it from Finished & archived", async () => {
   areas = [lifeArea()];
   const user = userEvent.setup();
   renderApp("/areas/1");
@@ -213,7 +213,9 @@ test("archives an area, then restores it from the archived areas", async () => {
     expect(sidebarAreas().queryByRole("link", { name: "Health" })).not.toBeInTheDocument(),
   );
 
-  await user.click(screen.getByRole("link", { name: "Archived areas" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("Archived “Health”");
+
+  await user.click(screen.getByRole("link", { name: "Finished & archived" }));
   await user.click(await screen.findByRole("button", { name: "Restore" }));
 
   expect(await screen.findByText("No archived areas.")).toBeInTheDocument();

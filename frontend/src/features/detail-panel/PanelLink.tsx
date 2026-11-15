@@ -22,10 +22,10 @@ export function PanelLink({
       type="button"
       {...PANEL_OPENER}
       onClick={() => open(target)}
-      className={`min-w-0 cursor-pointer text-left outline-none focus-visible:underline ${
+      className={`min-w-0 cursor-pointer text-left outline-none ${
         stretched
-          ? "after:absolute after:inset-0 after:rounded-[inherit] after:content-['']"
-          : "hover:underline"
+          ? "after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-(--focus-ring)"
+          : "rounded-[4px] hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
       } ${className}`}
     >
       {children}

@@ -29,8 +29,9 @@
   --default: var(--color-neutral-100);
   --default-foreground: var(--text-primary);
 
-  /* Accent = brand purple (filled buttons use 700 so white text stays readable) */
-  --accent: var(--color-brand-700);
+  /* Accent is neutral (Nov 16): primary buttons are near-black with white text. Brand purple
+     is kept for the focus ring, the selected marker, the today marker and the logo. */
+  --accent: var(--button-primary-bg);
   --accent-foreground: var(--text-on-accent);
   --focus: var(--focus-ring);
 
@@ -56,6 +57,16 @@
 
   /* HeroUI's radius scale is based on --radius (lg = 8px, matches card radius) */
   --radius: var(--radius-8);
+}
+
+/* Every clickable thing has a 24 × 24 px hit area, even when it draws smaller (Nov 16).
+   Add `hit-24` with `relative` (or another position) to a control drawn below 24 px. */
+@utility hit-24 {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((100% - 24px) / 2));
+  }
 }
 
 /* App-wide base: compact body text, hidden scrollbars (Decided) */

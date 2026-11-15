@@ -139,7 +139,7 @@ export function LifeAreaFormModal({
                             {usedBy && (
                               <span
                                 aria-hidden
-                                className="-mt-0.5 max-w-full truncate px-1 text-[10px] leading-3 font-normal text-(--text-tertiary)"
+                                className="-mt-0.5 max-w-full truncate px-1 text-[11px] leading-3 font-normal text-(--text-tertiary)"
                               >
                                 {usedBy}
                               </span>
@@ -165,13 +165,9 @@ export function LifeAreaFormModal({
                     isInvalid={fieldState.invalid}
                     className="gap-1.5"
                   >
-                    <Label className={FIELD_LABEL}>
-                      Vision
-                      <span className="ml-1 font-normal text-(--text-tertiary)">optional</span>
-                    </Label>
+                    <Label className={FIELD_LABEL}>Vision</Label>
                     <TextArea
                       rows={2}
-                      placeholder="What does doing well in this area look like?"
                       className="min-h-16 resize-none type-body text-(--text-primary)"
                     />
                     <FieldError>{fieldState.error?.message}</FieldError>

@@ -885,22 +885,22 @@
       "high": {
         "$type": "color",
         "$value": "{Primitives.color.negative.500}",
-        "$description": "High priority (Do first): flag and column dot"
+        "$description": "High priority: flag and column dot"
       },
       "medium": {
         "$type": "color",
         "$value": "{Primitives.color.warning.500}",
-        "$description": "Medium priority (Schedule): flag and column dot"
+        "$description": "Medium priority: flag and column dot"
       },
       "none": {
         "$type": "color",
         "$value": "{Primitives.color.neutral.400}",
-        "$description": "No priority (Eliminate): column dot; no flag on cards"
+        "$description": "No priority: column dot; no flag on cards"
       },
       "low": {
         "$type": "color",
-        "$value": "{Semantic.accent.solid}",
-        "$description": "Low priority (Delegate): column dot; no flag on cards"
+        "$value": "{Primitives.color.neutral.400}",
+        "$description": "Low priority: column dot; no flag on cards"
       }
     },
     "area": {
@@ -1451,7 +1451,7 @@
       },
       "primary-bg": {
         "$type": "color",
-        "$value": "{Semantic.accent.solid}"
+        "$value": "{Primitives.color.neutral.900}"
       },
       "primary-text": {
         "$type": "color",

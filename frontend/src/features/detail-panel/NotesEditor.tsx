@@ -360,7 +360,7 @@ function LinkTool({ editor, isActive }: { editor: Editor; isActive: boolean }) {
               autoFocus
               className="h-8 flex-1 text-[13px]"
             />
-            <Button type="submit" size="sm" className="bg-brand-700 text-white">
+            <Button type="submit" size="sm">
               {href.trim() || !isActive ? "Apply" : "Remove"}
             </Button>
           </form>

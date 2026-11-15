@@ -297,7 +297,7 @@ export function TaskMarker({
       aria-pressed={done}
       title={done ? "Mark not done" : "Mark done"}
       onClick={onToggle}
-      className={`${MARKER} cursor-pointer bg-(--area-tint-active) text-white outline-none hover:bg-(--area-border) focus-visible:ring-2 focus-visible:ring-(--focus-ring)`}
+      className={`${MARKER} hit-24 relative cursor-pointer bg-(--area-tint-active) text-white outline-none hover:bg-(--area-border) focus-visible:ring-2 focus-visible:ring-(--focus-ring)`}
     >
       <span
         className={`grid size-[11px] place-items-center rounded-[3px] border-[1.75px] border-(--area-solid) ${done ? "bg-(--area-solid)" : ""}`}
