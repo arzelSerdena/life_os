@@ -1,5 +1,6 @@
 """Metrics, their entries and their targets."""
 
+import re
 from collections.abc import Sequence
 from datetime import date, timedelta
 
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app import clock
 from app.errors import ConflictError, NotFoundError, UnprocessableError
-from app.models import Metric, MetricEntry, MetricTarget
+from app.models import Metric, MetricEntry, MetricTarget, RoutineStep
 from app.models.base import utc_now
 from app.schemas.metric import (
     EntryCreate,
@@ -20,7 +21,11 @@ from app.schemas.metric import (
     TargetReplace,
 )
 from app.services.history import ChangeRecorder
+from app.services.metric_entries import Entry, entries_of
 from app.services.ownership import ensure_owner_open, resolve_owner
+
+DEFAULT_CURRENCY = "PHP"
+CURRENCY_CODE = re.compile(r"[A-Z]{3}")
 
 # ---------- Metrics ----------
 
@@ -50,6 +55,7 @@ def get_metric(session: Session, metric_id: int) -> Metric:
 
 
 def create_metric(session: Session, data: MetricCreate) -> Metric:
+    """A new metric. A manual one may log its current value as today's first entry."""
     owner = resolve_owner(
         session,
         life_area_id=data.life_area_id,
@@ -58,21 +64,65 @@ def create_metric(session: Session, data: MetricCreate) -> Metric:
         allow_inbox=False,
     )
     assert owner.life_area_id is not None
+    if data.source == "routine_step":
+        step = _source_step(session, data.routine_step_id)
+        if data.current_value is not None:
+            raise UnprocessableError(
+                "A routine-step metric counts the step's days, so it takes no current value."
+            )
+        given = data.model_dump(include={"format", "unit"}, exclude_unset=True)
+        display_format, unit = _step_display(data.aggregation, given)
+        routine_step_id: int | None = step.id
+    else:
+        if data.routine_step_id is not None:
+            raise UnprocessableError("Only a routine-step metric has a routine step.")
+        display_format, unit = _display(data.format, data.unit)
+        routine_step_id = None
+
     last_position = session.scalar(select(func.max(Metric.sort_order)))
     metric = Metric(
-        **data.model_dump(exclude={"life_area_id", "project_id"}),
+        title=data.title,
+        notes=data.notes,
+        format=display_format,
+        unit=unit,
+        aggregation=data.aggregation,
+        direction=data.direction,
+        source=data.source,
+        routine_step_id=routine_step_id,
         life_area_id=owner.life_area_id,
         project_id=owner.project_id,
         sort_order=0 if last_position is None else last_position + 1,
     )
+    if data.current_value is not None:
+        metric.entries.append(MetricEntry(date=clock.today(), value=data.current_value))
     session.add(metric)
     return _save(session, metric)
 
 
 def update_metric(session: Session, metric_id: int, data: MetricUpdate) -> Metric:
-    """Changing aggregation or direction changes how every target is judged, past ones too."""
+    """Changing aggregation or direction changes how every target is judged, past ones too.
+
+    Changing format without a unit resets the unit to the format's default. Stored values
+    are never converted. A routine-step metric's format follows its aggregation.
+    """
     metric = get_metric(session, metric_id)
-    for field, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    display = {field: changes.pop(field) for field in ("format", "unit") if field in changes}
+    aggregation = changes.get("aggregation", metric.aggregation)
+
+    if metric.source == "routine_step":
+        metric.format, metric.unit = _step_display(aggregation, display)
+    elif display:
+        display_format = display.get("format", metric.format)
+        if "unit" in display:
+            unit = display["unit"]
+        elif display_format == metric.format:
+            unit = metric.unit
+        else:
+            unit = None
+        metric.format, metric.unit = _display(display_format, unit)
+
+    for field, value in changes.items():
         setattr(metric, field, value)
     return _save(session, metric)
 
@@ -110,8 +160,14 @@ def unarchive_metric(session: Session, metric_id: int) -> tuple[Metric, str | No
     return _save(session, metric), history.batch_id
 
 
+def delete_preview(session: Session, metric_id: int) -> tuple[int, int]:
+    """How many stored entries and targets deleting the metric removes."""
+    metric = get_metric(session, metric_id)
+    return len(metric.entries), len(metric.targets)
+
+
 def delete_metric(session: Session, metric_id: int) -> None:
-    """Delete the metric with all its entries and targets."""
+    """Delete the metric with all its entries and targets. This can't be undone."""
     session.delete(get_metric(session, metric_id))
     session.commit()
 
@@ -121,18 +177,22 @@ def delete_metric(session: Session, metric_id: int) -> None:
 
 def list_entries(
     session: Session, metric_id: int, first: date | None, last: date | None
-) -> Sequence[MetricEntry]:
-    get_metric(session, metric_id)
-    query = select(MetricEntry).where(MetricEntry.metric_id == metric_id)
-    if first is not None:
-        query = query.where(MetricEntry.date >= first)
-    if last is not None:
-        query = query.where(MetricEntry.date <= last)
-    return session.scalars(query.order_by(MetricEntry.date, MetricEntry.id)).all()
+) -> list[Entry]:
+    """The metric's entries, typed in or, for a routine-step metric, derived."""
+    metric = get_metric(session, metric_id)
+    return [
+        entry
+        for entry in entries_of(metric)
+        if (first is None or entry.date >= first) and (last is None or entry.date <= last)
+    ]
 
 
 def add_entry(session: Session, metric_id: int, data: EntryCreate) -> MetricEntry:
     metric = _get_active(session, metric_id)
+    if metric.source != "manual":
+        raise ConflictError(
+            f"Metric {metric_id} counts its routine step's days. Check off the step instead."
+        )
     day = data.date or clock.today()
     _check_entry_day(day)
     entry = MetricEntry(metric_id=metric.id, date=day, value=data.value, note=data.note)
@@ -221,6 +281,48 @@ def delete_target(session: Session, target_id: int) -> None:
 
 
 # ---------- Helpers ----------
+
+
+def _display(display_format: str, unit: str | None) -> tuple[str, str | None]:
+    """A manual metric's format and unit, checked: a number's unit is an optional suffix,
+    a currency's is an ISO 4217 code (default PHP), and percent and duration have none."""
+    if display_format == "currency":
+        code = (unit or DEFAULT_CURRENCY).upper()
+        if not CURRENCY_CODE.fullmatch(code):
+            raise UnprocessableError("A currency needs a three-letter ISO 4217 code, like PHP.")
+        return display_format, code
+    if display_format in ("percent", "duration") and unit is not None:
+        raise UnprocessableError(f"A {display_format} metric has no unit.")
+    return display_format, unit
+
+
+def _step_display(aggregation: str, given: dict[str, str | None]) -> tuple[str, str | None]:
+    """A routine-step metric counts days done (sum) or its completion rate (average)."""
+    if aggregation == "sum":
+        display_format, unit = "number", "days"
+    elif aggregation == "average":
+        display_format, unit = "percent", None
+    else:
+        raise UnprocessableError(
+            "A routine-step metric adds up days done (sum) or shows its completion rate (average)."
+        )
+    expected = {"format": display_format, "unit": unit}
+    if any(expected[field] != value for field, value in given.items()):
+        raise UnprocessableError(
+            "A routine-step metric's format and unit follow from its aggregation."
+        )
+    return display_format, unit
+
+
+def _source_step(session: Session, step_id: int | None) -> RoutineStep:
+    if step_id is None:
+        raise UnprocessableError("A routine-step metric needs routine_step_id.")
+    step = session.get(RoutineStep, step_id)
+    if step is None:
+        raise UnprocessableError(f"Routine step {step_id} not found")
+    if step.archived_at is not None or step.routine.archived_at is not None:
+        raise ConflictError(f"Routine step {step_id} is archived. Restore it first.")
+    return step
 
 
 def _check_entry_day(day: date) -> None:

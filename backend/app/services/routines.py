@@ -9,7 +9,14 @@ from sqlalchemy.orm import Session, selectinload
 
 from app import clock, rrules
 from app.errors import ConflictError, NotFoundError, UnprocessableError
-from app.models import Routine, RoutineLog, RoutinePause, RoutineSchedule, RoutineStep
+from app.models import (
+    Metric,
+    Routine,
+    RoutineLog,
+    RoutinePause,
+    RoutineSchedule,
+    RoutineStep,
+)
 from app.models.base import utc_now
 from app.schemas.routine import (
     RoutineCreate,
@@ -29,6 +36,17 @@ class StepDay:
     routine: Routine
     day: date
     status: str
+
+
+@dataclass(frozen=True)
+class DeletePreview:
+    """What deleting a routine or a step removes, and the metrics that block it."""
+
+    steps: int
+    schedules: int
+    pauses: int
+    logs: int
+    metrics: list[Metric]
 
 
 @dataclass(frozen=True)
@@ -236,8 +254,25 @@ def unarchive_routine(session: Session, routine_id: int) -> tuple[Routine, str |
     return _save(session, routine), history.batch_id
 
 
+def routine_delete_preview(session: Session, routine_id: int) -> DeletePreview:
+    routine = get_routine(session, routine_id)
+    return DeletePreview(
+        steps=len(routine.steps),
+        schedules=len(routine.schedules),
+        pauses=len(routine.pauses) + sum(len(step.pauses) for step in routine.steps),
+        logs=sum(len(step.logs) for step in routine.steps),
+        metrics=_metrics_using(session, [step.id for step in routine.steps]),
+    )
+
+
 def delete_routine(session: Session, routine_id: int) -> None:
-    session.delete(get_routine(session, routine_id))
+    """Delete the routine with its schedules, pauses, steps and logs. This can't be undone.
+
+    Refused while one of its steps feeds a metric.
+    """
+    routine = get_routine(session, routine_id)
+    _ensure_no_metrics(session, [step.id for step in routine.steps])
+    session.delete(routine)
     session.commit()
 
 
@@ -330,8 +365,22 @@ def unarchive_step(session: Session, step_id: int) -> tuple[RoutineStep, str | N
     return _save_step(session, step), history.batch_id
 
 
+def step_delete_preview(session: Session, step_id: int) -> DeletePreview:
+    step = get_step(session, step_id)
+    return DeletePreview(
+        steps=1,
+        schedules=0,
+        pauses=len(step.pauses),
+        logs=len(step.logs),
+        metrics=_metrics_using(session, [step.id]),
+    )
+
+
 def delete_step(session: Session, step_id: int) -> None:
-    session.delete(get_step(session, step_id))
+    """Delete the step with its logs and pauses. Refused while it feeds a metric."""
+    step = get_step(session, step_id)
+    _ensure_no_metrics(session, [step.id])
+    session.delete(step)
     session.commit()
 
 
@@ -364,6 +413,26 @@ def clear_log(session: Session, step_id: int, day: date) -> StepDay:
 
 
 # ---------- Helpers ----------
+
+
+def _metrics_using(session: Session, step_ids: list[int]) -> list[Metric]:
+    """Metrics fed by these steps, archived ones included: they still need the step."""
+    return list(
+        session.scalars(
+            select(Metric).where(Metric.routine_step_id.in_(step_ids)).order_by(Metric.id)
+        ).all()
+    )
+
+
+def _ensure_no_metrics(session: Session, step_ids: list[int]) -> None:
+    metrics = _metrics_using(session, step_ids)
+    if metrics:
+        names = ", ".join(f'"{metric.title}"' for metric in metrics)
+        raise ConflictError(
+            f"The metric {names} counts this step's days. Delete the metric first."
+            if len(metrics) == 1
+            else f"The metrics {names} count these steps' days. Delete the metrics first."
+        )
 
 
 def _replace_schedules(

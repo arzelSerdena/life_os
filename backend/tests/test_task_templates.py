@@ -6,7 +6,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.services import templates
 from tests.factories import make_life_area, make_project
 
 URL = "/api/task-templates"
@@ -156,18 +155,6 @@ def test_deleting_a_template_keeps_tasks_made_from_it(client: TestClient) -> Non
     assert client.delete(f"{URL}/{template['id']}").status_code == 204
     kept = client.get(f"/api/tasks/{task['id']}").json()
     assert (kept["title"], kept["template_id"]) == ("Pack", None)
-
-
-def test_a_recurring_task_with_occurrences_can_only_be_archived(
-    client: TestClient, session: Session
-) -> None:
-    template = _create(client, rrule="FREQ=DAILY", starts_on="2026-11-16")
-    templates.generate_occurrences(session, TODAY, TODAY)
-
-    response = client.delete(f"{URL}/{template['id']}")
-
-    assert response.status_code == 409
-    assert "Archive it instead" in response.json()["detail"]
 
 
 def test_moving_a_template(client: TestClient, session: Session) -> None:

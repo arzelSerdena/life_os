@@ -5,6 +5,21 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import AUTOINCREMENT, Base, BaseMixin
 from app.models.ownership import project_owner_keys
+from app.models.routine import RoutineStep
+
+# What unit means depends on format: a free-text suffix for a number ("km"), an ISO 4217
+# code for currency, and nothing for percent or duration (stored in minutes).
+UNIT_FOR_FORMAT = (
+    "(format = 'number' AND (unit IS NULL OR length(unit) BETWEEN 1 AND 20))"
+    " OR (format = 'currency' AND unit IS NOT NULL AND unit GLOB '[A-Z][A-Z][A-Z]')"
+    " OR (format IN ('percent', 'duration') AND unit IS NULL)"
+)
+# A routine-step metric counts days done (sum) or its completion rate (average).
+ROUTINE_STEP_DISPLAY = (
+    "source = 'manual'"
+    " OR (aggregation = 'sum' AND format = 'number' AND unit = 'days')"
+    " OR (aggregation = 'average' AND format = 'percent')"
+)
 
 
 class Metric(BaseMixin, Base):
@@ -12,18 +27,30 @@ class Metric(BaseMixin, Base):
 
     aggregation says how a period's entries combine ('sum' for distance, 'average' for
     sleep, 'latest' for body weight); direction says whether higher or lower is better.
+    format and unit say how values are shown; the screen formats them.
+    source 'manual' takes typed entries; 'routine_step' derives one entry per due day
+    from the step's logs and stores none.
     """
 
     __tablename__ = "metrics"
     __table_args__ = (
         CheckConstraint("length(title) BETWEEN 1 AND 200", name="title_length"),
         CheckConstraint("notes IS NULL OR length(notes) <= 50000", name="notes_length"),
-        CheckConstraint("unit IS NULL OR length(unit) BETWEEN 1 AND 20", name="unit_length"),
+        CheckConstraint(
+            "format IN ('number', 'currency', 'percent', 'duration')", name="format_values"
+        ),
+        CheckConstraint(UNIT_FOR_FORMAT, name="unit_for_format"),
         CheckConstraint("aggregation IN ('sum', 'average', 'latest')", name="aggregation_values"),
         CheckConstraint("direction IN ('higher', 'lower')", name="direction_values"),
+        CheckConstraint("source IN ('manual', 'routine_step')", name="source_values"),
+        CheckConstraint(
+            "(source = 'routine_step') = (routine_step_id IS NOT NULL)", name="step_for_source"
+        ),
+        CheckConstraint(ROUTINE_STEP_DISPLAY, name="routine_step_display"),
         *project_owner_keys(),
         Index("idx_metrics_life_area", "life_area_id"),
         Index("idx_metrics_project", "project_id", "life_area_id"),
+        Index("idx_metrics_routine_step", "routine_step_id"),
         AUTOINCREMENT,
     )
 
@@ -31,12 +58,17 @@ class Metric(BaseMixin, Base):
     project_id: Mapped[int | None]
     title: Mapped[str] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
+    format: Mapped[str] = mapped_column(Text, default="number", server_default="number")
     unit: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(Text, default="manual", server_default="manual")
+    # Deleting a step is refused while a metric uses it.
+    routine_step_id: Mapped[int | None] = mapped_column(ForeignKey("routine_steps.id"))
     aggregation: Mapped[str] = mapped_column(Text)
     direction: Mapped[str] = mapped_column(Text, default="higher", server_default="higher")
     sort_order: Mapped[int] = mapped_column(default=0, server_default="0")
     archived_at: Mapped[datetime | None] = mapped_column(DateTime)
 
+    routine_step: Mapped[RoutineStep | None] = relationship()
     entries: Mapped[list[MetricEntry]] = relationship(
         order_by="(MetricEntry.date, MetricEntry.id)",
         cascade="all, delete-orphan",

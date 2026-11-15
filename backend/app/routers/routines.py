@@ -10,6 +10,7 @@ from app.schemas.common import ErrorResponse
 from app.schemas.routine import (
     RoutineChange,
     RoutineCreate,
+    RoutineDeletePreview,
     RoutineLogSet,
     RoutineRead,
     RoutineStepChange,
@@ -145,10 +146,21 @@ def unarchive_routine(session: SessionDep, routine_id: int) -> RoutineChange:
     return RoutineChange(routine=_read(routine), batch_id=batch_id)
 
 
+@router.get("/routines/{routine_id}/delete-preview", responses=NOT_FOUND)
+def preview_routine_delete(session: SessionDep, routine_id: int) -> RoutineDeletePreview:
+    """The counts for the delete confirmation, and the metrics that block it."""
+    preview = service.routine_delete_preview(session, routine_id)
+    return RoutineDeletePreview.model_validate(preview)
+
+
 @router.delete(
-    "/routines/{routine_id}", status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND
+    "/routines/{routine_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={**NOT_FOUND, **CONFLICT},
 )
 def delete_routine(session: SessionDep, routine_id: int) -> None:
+    """Delete the routine with its schedules, pauses, steps and logs. Refused while one of
+    its steps feeds a metric. This can't be undone."""
     service.delete_routine(session, routine_id)
 
 
@@ -200,10 +212,20 @@ def unarchive_routine_step(session: SessionDep, step_id: int) -> RoutineStepChan
     return RoutineStepChange(step=_step(session, step), batch_id=batch_id)
 
 
+@router.get("/routine-steps/{step_id}/delete-preview", responses=NOT_FOUND)
+def preview_routine_step_delete(session: SessionDep, step_id: int) -> RoutineDeletePreview:
+    """The counts for the delete confirmation, and the metrics that block it."""
+    return RoutineDeletePreview.model_validate(service.step_delete_preview(session, step_id))
+
+
 @router.delete(
-    "/routine-steps/{step_id}", status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND
+    "/routine-steps/{step_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={**NOT_FOUND, **CONFLICT},
 )
 def delete_routine_step(session: SessionDep, step_id: int) -> None:
+    """Delete the step with its logs and pauses. Refused while it feeds a metric. This
+    can't be undone."""
     service.delete_step(session, step_id)
 
 

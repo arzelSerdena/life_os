@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import date, time, timedelta
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app import clock, rrules
@@ -200,8 +200,41 @@ def unarchive_event(session: Session, event_id: int) -> EventChange:
 
 
 def delete_event(session: Session, event_id: int) -> None:
+    """Delete the event, or a whole series, with its exceptions. This can't be undone."""
     session.delete(get_event(session, event_id))
     session.commit()
+
+
+def delete_occurrence(session: Session, event_id: int, day: date, scope: str) -> Event | None:
+    """Delete one occurrence of a repeating event, the series from it on, or all of it.
+
+    "this" cancels the occurrence, as cancel_occurrence does. "following" ends the series
+    the day before and drops later one-off changes; from the first occurrence it deletes
+    the series, like "all". Returns the event, or None once it is gone. Deletes aren't
+    recorded for undo.
+    """
+    event = get_event(session, event_id)
+    if event.rrule is None:
+        raise UnprocessableError(f"Event {event_id} doesn't repeat. Delete the event itself.")
+    if rrules.dates_between(event.rrule, event.start_date, event.repeat_ends_on, day, day) != [day]:
+        raise NotFoundError(f"Event {event_id} has no occurrence on {day}.")
+
+    if scope == "this":
+        exception = _exception(event, day) or _add_exception(event, day)
+        exception.is_cancelled = True
+        return _save(session, event)
+    if scope == "following" and day > event.start_date:
+        event.repeat_ends_on = day - timedelta(days=1)
+        session.execute(
+            delete(EventException).where(
+                EventException.event_id == event.id, EventException.occurrence_date >= day
+            )
+        )
+        session.expire(event, ["exceptions"])
+        return _save(session, event)
+    session.delete(event)
+    session.commit()
+    return None
 
 
 # ---------- One occurrence: this / this and following / all ----------

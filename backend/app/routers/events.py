@@ -8,10 +8,12 @@ from app.schemas.common import ErrorResponse
 from app.schemas.event import (
     EventChange,
     EventCreate,
+    EventDeleted,
     EventMove,
     EventRead,
     EventUpdate,
     OccurrenceCancel,
+    OccurrenceDelete,
     OccurrenceEdit,
     OccurrenceRead,
 )
@@ -82,6 +84,7 @@ def update_event(session: SessionDep, event_id: int, data: EventUpdate) -> Event
 
 @router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND)
 def delete_event(session: SessionDep, event_id: int) -> None:
+    """Delete the event with its one-off changes. For a series this deletes all of it."""
     service.delete_event(session, event_id)
 
 
@@ -125,6 +128,16 @@ def cancel_event_occurrence(
 ) -> EventChange:
     event, batch_id = service.cancel_occurrence(session, event_id, day, data.scope)
     return EventChange(event=EventRead.model_validate(event), batch_id=batch_id)
+
+
+@router.post("/{event_id}/occurrences/{day}/delete", responses=NOT_FOUND)
+def delete_event_occurrence(
+    session: SessionDep, event_id: int, day: date, data: OccurrenceDelete
+) -> EventDeleted:
+    """Delete the occurrence on `day` (its original date): this one (cancels it), this
+    and following (ends the series the day before), or all (deletes the series)."""
+    event = service.delete_occurrence(session, event_id, day, data.scope)
+    return EventDeleted(event=None if event is None else EventRead.model_validate(event))
 
 
 @router.delete("/{event_id}/occurrences/{day}", responses=NOT_FOUND)

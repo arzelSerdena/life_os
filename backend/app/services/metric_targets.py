@@ -1,14 +1,18 @@
 """Target state, calculated from entries and never stored.
 
+Entries come from entries_of, so a routine-step metric is judged on its derived entries.
+
 Periods are calendar periods: a day, a Monday-to-Sunday week, or a calendar month.
 """
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
 from statistics import fmean
 
 from app import clock
-from app.models import Metric, MetricEntry, MetricTarget
+from app.models import Metric, MetricTarget
+from app.services.metric_entries import Entry, entries_of
 
 RECENT_PERIODS = 12
 
@@ -50,7 +54,7 @@ def period_end(start: date, period: str) -> date:
     return start
 
 
-def combine(metric: Metric, entries: list[MetricEntry]) -> float | None:
+def combine(metric: Metric, entries: Sequence[Entry]) -> float | None:
     """The entries combined the metric's way. None when there are none."""
     if not entries:
         return None
@@ -76,8 +80,8 @@ def evaluate(metric: Metric, target: MetricTarget) -> TargetState:
     return _per_period(metric, target, today)
 
 
-def _between(metric: Metric, first: date, last: date) -> list[MetricEntry]:
-    return [entry for entry in metric.entries if first <= entry.date <= last]
+def _between(metric: Metric, first: date, last: date) -> list[Entry]:
+    return [entry for entry in entries_of(metric) if first <= entry.date <= last]
 
 
 def _reach_by(metric: Metric, target: MetricTarget, today: date) -> TargetState:

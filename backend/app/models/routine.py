@@ -26,6 +26,7 @@ class Routine(BaseMixin, Base):
         order_by="RoutineSchedule.starts_on", cascade="all, delete-orphan", passive_deletes=True
     )
     steps: Mapped[list[RoutineStep]] = relationship(
+        back_populates="routine",
         order_by="(RoutineStep.sort_order, RoutineStep.id)",
         cascade="all, delete-orphan",
         passive_deletes=True,
@@ -78,6 +79,7 @@ class RoutineStep(BaseMixin, Base):
     sort_order: Mapped[int] = mapped_column(default=0, server_default="0")
     archived_at: Mapped[datetime | None] = mapped_column(DateTime)
 
+    routine: Mapped[Routine] = relationship(back_populates="steps")
     pauses: Mapped[list[RoutinePause]] = relationship(
         cascade="all, delete-orphan", passive_deletes=True
     )

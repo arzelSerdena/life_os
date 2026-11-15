@@ -10,6 +10,7 @@ from app.schemas.task_template import (
     TaskTemplateCreate,
     TaskTemplateRead,
     TaskTemplateUpdate,
+    TemplateDeletePreview,
 )
 from app.services import templates as service
 
@@ -78,12 +79,20 @@ def unarchive_task_template(session: SessionDep, template_id: int) -> TaskTempla
     return _read(service.unarchive_template(session, template_id))
 
 
+@router.get("/{template_id}/delete-preview", responses=NOT_FOUND)
+def preview_task_template_delete(session: SessionDep, template_id: int) -> TemplateDeletePreview:
+    """The counts for the delete confirmation."""
+    return TemplateDeletePreview.model_validate(service.delete_preview(session, template_id))
+
+
 @router.delete(
     "/{template_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={**NOT_FOUND, **CONFLICT},
 )
 def delete_task_template(session: SessionDep, template_id: int) -> None:
+    """Delete the template, its checklist and its open occurrences. Done and cancelled
+    occurrences and tasks made by hand stay, without the link. This can't be undone."""
     service.delete_template(session, template_id)
 
 

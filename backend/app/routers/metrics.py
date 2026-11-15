@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, status
 
 from app.db import SessionDep
-from app.models import Metric, MetricTarget
+from app.models import Metric, MetricEntry, MetricTarget
 from app.schemas.common import ErrorResponse
 from app.schemas.metric import (
     EntryCreate,
@@ -12,6 +12,7 @@ from app.schemas.metric import (
     EntryUpdate,
     MetricChange,
     MetricCreate,
+    MetricDeletePreview,
     MetricMove,
     MetricRead,
     MetricUpdate,
@@ -22,6 +23,7 @@ from app.schemas.metric import (
 )
 from app.services import metric_targets
 from app.services import metrics as service
+from app.services.metric_entries import Entry
 
 router = APIRouter(prefix="/api", tags=["metrics"])
 
@@ -59,6 +61,20 @@ def _target(metric: Metric, target: MetricTarget) -> TargetRead:
     )
 
 
+def _entry(metric_id: int, entry: Entry) -> EntryRead:
+    if isinstance(entry, MetricEntry):
+        return EntryRead.model_validate(entry)
+    return EntryRead(
+        id=None,
+        metric_id=metric_id,
+        date=entry.date,
+        value=entry.value,
+        note=None,
+        created_at=None,
+        updated_at=None,
+    )
+
+
 def _read(metric: Metric) -> MetricRead:
     return MetricRead(
         id=metric.id,
@@ -66,7 +82,10 @@ def _read(metric: Metric) -> MetricRead:
         project_id=metric.project_id,
         title=metric.title,
         notes=metric.notes,
+        format=metric.format,  # type: ignore[arg-type]
         unit=metric.unit,
+        source=metric.source,  # type: ignore[arg-type]
+        routine_step_id=metric.routine_step_id,
         aggregation=metric.aggregation,  # type: ignore[arg-type]
         direction=metric.direction,  # type: ignore[arg-type]
         sort_order=metric.sort_order,
@@ -130,9 +149,16 @@ def unarchive_metric(session: SessionDep, metric_id: int) -> MetricChange:
     return MetricChange(metric=_read(metric), batch_id=batch_id)
 
 
+@router.get("/metrics/{metric_id}/delete-preview", responses=NOT_FOUND)
+def preview_metric_delete(session: SessionDep, metric_id: int) -> MetricDeletePreview:
+    """The counts for the delete confirmation."""
+    entries, targets = service.delete_preview(session, metric_id)
+    return MetricDeletePreview(entries=entries, targets=targets)
+
+
 @router.delete("/metrics/{metric_id}", status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND)
 def delete_metric(session: SessionDep, metric_id: int) -> None:
-    """Delete the metric with all its entries and targets."""
+    """Delete the metric with all its entries and targets. This can't be undone."""
     service.delete_metric(session, metric_id)
 
 
@@ -143,8 +169,9 @@ def delete_metric(session: SessionDep, metric_id: int) -> None:
 def list_metric_entries(
     session: SessionDep, metric_id: int, first: date | None = None, last: date | None = None
 ) -> list[EntryRead]:
+    """Typed-in entries, or a routine-step metric's entries derived from its step."""
     entries = service.list_entries(session, metric_id, first, last)
-    return [EntryRead.model_validate(entry) for entry in entries]
+    return [_entry(metric_id, entry) for entry in entries]
 
 
 @router.post(

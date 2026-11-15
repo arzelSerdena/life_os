@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from app.schemas.event import OccurrenceRead
 from app.schemas.life_area import LifeAreaRead
+from app.schemas.metric import Format
 from app.schemas.overview import DateRangeRead, OutcomeRead, OverviewPeriod
 from app.schemas.project import ProjectStatus
 from app.schemas.task import TaskRead
@@ -48,6 +49,7 @@ class DeadlineRead(BaseModel):
     title: str
     day: dt.date
     target_value: float
+    format: Format
     unit: str | None
 
 
@@ -142,6 +144,7 @@ class AreaPageRead(BaseModel):
                     title=deadline.metric.title,
                     day=deadline.day,
                     target_value=deadline.target_value,
+                    format=deadline.metric.format,  # type: ignore[arg-type]
                     unit=deadline.metric.unit,
                 )
                 for deadline in page.deadlines

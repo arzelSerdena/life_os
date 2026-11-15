@@ -20,7 +20,7 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 | **Event**          | Something happening on a date or date range. All-day when it has no start time. Can repeat.              |
 | **Event exception**| A change to, or cancellation of, one occurrence of a repeating event.                                    |
 | **Metric**         | Something measured over time, such as distance run or hours slept.                                       |
-| **Entry**          | One logged value for a metric on a date.                                                                  |
+| **Entry**          | One value for a metric on a date: typed in, or derived from a routine step's days.                       |
 | **Target**         | What a metric aims for: reach a value by a date, or hit a value every period.                            |
 | **Routine**        | A set of steps due on the days its schedule says (daily by default). Has no owner.                       |
 | **Routine step**   | One action in a routine.                                                                                  |
@@ -68,7 +68,9 @@ Tasks, task templates, events, metrics and routine steps are each owned by **a p
 | metrics         | life area or project                | —                           |
 | routine_steps   | routine, life area or project       | —                           |
 
-These belong to their parent outright and are deleted with it: subtasks, template subtasks, event exceptions, metric entries and targets, routine schedules, pauses and logs.
+These belong to their parent outright and are deleted with it: subtasks, template subtasks, event exceptions, metric entries and targets, routine schedules, pauses and logs. Section 4 has the full delete rules.
+
+A metric can also be fed by a routine step (section 7). That is a link, not ownership: the metric keeps its own owner, which may differ from the step's.
 
 ### Ownership invariants
 
@@ -138,6 +140,28 @@ Undo groups the batch's rows by entity and restores all fields of one entity in 
 
 AI agents may call the same service-layer operations, but cascades always require the user's confirmation.
 
+### Deleting
+
+Deleting is permanent. Deletes are hard deletes and are never recorded in `status_changes`, so undo doesn't cover them; undoing an earlier change to a deleted item is refused (409). Archiving is the reversible way to retire something.
+
+Where the screen shows an undo toast, the frontend waits about 6 seconds before it sends the `DELETE`. Undo in the toast just cancels the request, so the backend needs no undo for deletes.
+
+| Item | Delete rule | Confirmation |
+| --- | --- | --- |
+| Life area, project | Only when nothing belongs to it; otherwise 409. A project's sections go with it. | Red confirmation |
+| Section | Its tasks and templates move to unsectioned first. | Red confirmation |
+| One-off task | Deletes it and its subtasks. | Undo toast |
+| Recurring occurrence | Can't be deleted, only cancelled, or it would be generated again. | — |
+| Task template, recurring task | Deletes the template, its checklist and its open (to-do) occurrences. Done and cancelled occurrences stay as plain tasks: `template_id` and `occurrence_date` are cleared. Tasks made from it by hand stay, without the link. | Red confirmation with counts |
+| Event, one-off | Deletes it and its exceptions. | Red confirmation |
+| Event, repeating | This one: cancels the occurrence (an exception). This and following: ends the series the day before and deletes later exceptions; from the first occurrence it deletes the series. All: deletes the event and its exceptions. | Series dialog |
+| Metric | Deletes it with its entries and targets. | Red confirmation with counts |
+| Metric entry, metric target, subtask | Deletes it. | Undo toast |
+| Routine | Deletes it with its schedules, pauses, steps and logs. Refused (409) while any of its steps feeds a metric. | Red confirmation with counts |
+| Routine step | Deletes it with its logs and pauses. Refused (409) while it feeds a metric; the message names the metric. | Red confirmation with counts |
+
+The counts come from `GET .../delete-preview` on task templates, metrics, routines and routine steps. A routine's or step's preview also lists the metrics that block the delete.
+
 ---
 
 ## 5. Repeating items
@@ -181,7 +205,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - **Repeat rules** use `FREQ` of DAILY, WEEKLY, MONTHLY or YEARLY, without `DTSTART`, `UNTIL` or `COUNT`: the series runs from `starts_on` to `ends_on`. A picker's "ends after N times" is turned into an end date before saving.
 - **Editing a template directly** changes only tasks created from then on, as in Notion. Editing the series from one of its occurrences ("This and following" or "All") also updates unfinished occurrences: their title, notes, priority and due date (unless the due date was changed by hand). Checklist changes apply to occurrences created afterwards.
 - Removing the repeat rule turns a recurring task into a plain template and clears its schedule.
-- **Deleting a template** keeps the tasks created from it by hand, without the link. A recurring task with occurrences can only be archived.
+- **Deleting a template** deletes its checklist and its open occurrences. Done and cancelled occurrences and tasks made from it by hand stay as plain tasks, without the link. See "Deleting" in section 4.
 
 ---
 
@@ -195,6 +219,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - **Changing the schedule**: "following" uses the new rule from a date (today by default) and keeps earlier rows; changing it again on the same date replaces that row. "All" replaces every row, so it also changes which past days were due.
 - **Checking off**: a step can be marked done on a due day up to today, or skipped on any due day, future ones included. Unchecking returns it to to-do, or missed for a day that's over. Skipping a whole day skips every due step not already checked.
 - **Pausing** starts today and resuming ends the pause today, so a day is either paused or due. Resuming a routine also resumes its steps; a step resumed on its own stays not due while its routine is paused.
+- A step can feed a metric (section 7). While it does, neither the step nor its routine can be deleted.
 - **Streaks** are calculated, never stored: done due days in a row. A missed day resets the count; skipped days, paused days and today (still to do) neither count nor break it.
 
 ---
@@ -203,6 +228,25 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 
 - A metric belongs to a life area or a project. Its **aggregation** says how a period's entries combine: `sum` (distance), `average` (sleep) or `latest` (body weight). Its **direction** says whether higher or lower is better.
 - Entries are typed in, for today or an earlier day, never a future one. Several per day are allowed.
+- **Format** says how values are shown: `number` (the default), `currency`, `percent` or `duration`. What `unit` means depends on it:
+  - number: an optional suffix of 1–20 characters ("km", "pages", "times");
+  - currency: an ISO 4217 code, required, `PHP` by default;
+  - percent and duration: no unit. A duration is stored in minutes, a percent from 0 to 100.
+- The API returns raw numbers with the format and unit; the screen formats them (`Intl.NumberFormat`): ₱1,500, ₱100K on tiles, 35%, 1 h 30 m.
+- The New metric form offers presets that only fill in format and unit: Number, Money, Percentage, Time, Distance (km/mi), Weight (kg/lb), Pages, Chapters, Times. Presets aren't stored.
+- Format and unit can change later. Changing the format without a unit resets the unit to that format's default. Stored values are never converted.
+- **Current value**: a new manual metric may come with its current value, which becomes its first entry, dated today, in the same transaction.
+
+### Routine-step metrics
+
+- A metric's **source** is `manual` (typed entries) or `routine_step`. It is set when the metric is created and can't change.
+- A routine-step metric stores no entries. They are derived on read from the step's logs, one per due day: done counts, a missed day counts as nothing, and skipped days, paused days and days that aren't due are left out. Today counts only once it's done. Typing an entry for it is refused (409).
+- Its aggregation is `sum` (days done; format number, unit `days`) or `average` (completion rate; format percent, 0–100). `latest` isn't allowed. A done day is worth 1 for a sum and 100 for an average.
+- Targets work as for any metric: "5 days per week", or "80% per month".
+- The metric has its own owner, which may differ from the step's.
+- Archiving the step (or its routine) keeps the metric's history but adds no new days. The archive day counts only if it was done.
+- Deleting the step, or its routine, is refused (409) while the metric uses it.
+- A habit like "run 3 times a week" is still a metric with a weekly target; it can now be fed by a routine step instead of typed entries.
 - A **reach-by** target has a deadline: "70 kg by June 1". It is in progress, met or missed. The value compared is the metric's entries from the target's start date, combined by its aggregation.
 - A **per-period** target repeats: "20 km per week". It shows progress for the current period and met or missed for past ones. An empty end date means it is ongoing.
 - Periods are calendar periods. Weeks start on Monday.
@@ -277,6 +321,10 @@ The service validates rules the database also enforces, so the API returns a cle
 | One exception per event occurrence                    | unique index                                                   | —                                        |
 | Target kind matches period and deadline               | CHECK                                                          | validates first                          |
 | No overlapping targets of one kind                    | —                                                              | enforced here only                       |
+| A metric's unit fits its format                       | CHECK                                                          | validates first, fills defaults          |
+| Routine-step metric: has a step, sum or average, fixed format | CHECK                                                  | validates first                          |
+| No typed entries on a routine-step metric             | —                                                              | enforced here only                       |
+| A step feeding a metric isn't deleted                 | foreign key from `metrics.routine_step_id`                     | refuses first, naming the metric         |
 | One open pause per routine or step                    | partial unique index                                           | validates first                          |
 | One routine log per step per date                     | unique index                                                   | —                                        |
 | Ids are never reused                                  | `AUTOINCREMENT` on every table                                 | —                                        |

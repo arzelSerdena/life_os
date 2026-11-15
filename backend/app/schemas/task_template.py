@@ -144,3 +144,15 @@ class SeriesCancelResult(BaseModel):
 
     template: TaskTemplateRead
     batch_id: str | None
+
+
+class TemplateDeletePreview(BaseModel):
+    """What deleting the template does: its checklist and open occurrences are deleted;
+    done and cancelled occurrences and tasks made by hand stay, without the link."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    subtasks: int
+    open_occurrences: int
+    finished_occurrences: int
+    tasks_made_by_hand: int

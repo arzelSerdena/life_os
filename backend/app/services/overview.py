@@ -6,16 +6,16 @@ outcomes; a project's metrics belong to the project's page.
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app import clock
+from app.clock import local_date
 from app.models import (
     LifeArea,
     Metric,
-    MetricEntry,
     MetricTarget,
     Project,
     Routine,
@@ -24,6 +24,7 @@ from app.models import (
 )
 from app.services import metric_targets as targets
 from app.services.life_areas import list_life_areas
+from app.services.metric_entries import Entry, entries_of
 from app.services.projects import progress_of
 from app.services.routines import due_days
 
@@ -76,11 +77,6 @@ def buckets(period: str, view: DateRange) -> list[DateRange]:
 def _add_months(day: date, months: int) -> date:
     index = day.month - 1 + months
     return date(day.year + index // 12, index % 12 + 1, 1)
-
-
-def local_date(moment: datetime) -> date:
-    """The local calendar date of a naive UTC timestamp."""
-    return moment.replace(tzinfo=UTC).astimezone().date()
 
 
 # ---------- Results ----------
@@ -154,6 +150,7 @@ class Win:
     project_id: int | None = None
     metric_id: int | None = None
     target_value: float | None = None
+    format: str | None = None
     unit: str | None = None
     direction: str | None = None
     period: str | None = None
@@ -262,8 +259,8 @@ def outcome_for(metric: Metric, period: str, view: DateRange, today: date) -> Ou
     return _untargeted_outcome(metric, period, view, today)
 
 
-def _entries(metric: Metric, first: date, last: date) -> list[MetricEntry]:
-    return [entry for entry in metric.entries if first <= entry.date <= last]
+def _entries(metric: Metric, first: date, last: date) -> list[Entry]:
+    return [entry for entry in entries_of(metric) if first <= entry.date <= last]
 
 
 def _per_period_outcome(
@@ -605,6 +602,7 @@ def _periods_met(metric: Metric, target: MetricTarget, view: DateRange, today: d
         met[-1],
         metric_id=metric.id,
         target_value=target.target_value,
+        format=metric.format,
         unit=metric.unit,
         direction=metric.direction,
         period=target.period,
@@ -629,6 +627,7 @@ def _target_reached(metric: Metric, target: MetricTarget, view: DateRange) -> Wi
                 entry.date,
                 metric_id=metric.id,
                 target_value=target.target_value,
+                format=metric.format,
                 unit=metric.unit,
                 direction=metric.direction,
             )
