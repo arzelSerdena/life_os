@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ChartLine,
   CircleCheck,
+  CircleX,
   Flag,
   Flame,
   Folder,
@@ -44,8 +45,10 @@ import {
   listEventOccurrencesOptions,
   listEventOccurrencesQueryKey,
   listLifeAreasOptions,
+  reopenProjectMutation,
   reopenTaskMutation,
   unarchiveLifeAreaMutation,
+  unarchiveProjectMutation,
   updateEventMutation,
   updateLifeAreaMutation,
   updateMetricMutation,
@@ -96,6 +99,7 @@ import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
 import { formatValue } from "../metrics/format";
 import { DeleteProjectDialog } from "../projects/DeleteProjectDialog";
+import { type ProjectChange, ProjectChangeDialog } from "../projects/ProjectChangeDialog";
 import {
   Chip,
   DateChip,
@@ -360,9 +364,12 @@ function ProjectPanel({ id }: { id: number }) {
   const query = useQuery(getProjectOptions({ path: { project_id: id } }));
   const area = useLifeArea(query.data?.life_area_id);
   const update = useMutation(updateProjectMutation());
+  const reopen = useMutation(reopenProjectMutation());
+  const restore = useMutation(unarchiveProjectMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [change, setChange] = useState<ProjectChange | null>(null);
 
   const project = query.data;
   if (!project) return <Loading error={query.error} />;
@@ -379,6 +386,49 @@ function ProjectPanel({ id }: { id: number }) {
         ? ` · ${plural(-left, "day")} late`
         : ` · ${left}d left`
   }`;
+  const isArchived = project.archived_at !== null;
+
+  // Complete, Cancel and Archive ask first; an archived project can only be restored.
+  const statusActions: PanelAction[] = isArchived
+    ? [
+        {
+          id: "restore",
+          label: "Restore project",
+          icon: ArchiveRestore,
+          onAction: () => restore.mutate({ path }),
+        },
+      ]
+    : [
+        ...(project.status === "active"
+          ? [
+              {
+                id: "complete",
+                label: "Complete project",
+                icon: CircleCheck,
+                onAction: () => setChange("complete"),
+              },
+              {
+                id: "cancel",
+                label: "Cancel project",
+                icon: CircleX,
+                onAction: () => setChange("cancel"),
+              },
+            ]
+          : [
+              {
+                id: "reopen",
+                label: "Reopen project",
+                icon: RotateCcw,
+                onAction: () => reopen.mutate({ path }),
+              },
+            ]),
+        {
+          id: "archive",
+          label: "Archive project",
+          icon: Archive,
+          onAction: () => setChange("archive"),
+        },
+      ];
 
   return (
     <AreaScope color={area?.color}>
@@ -392,6 +442,7 @@ function ProjectPanel({ id }: { id: number }) {
             <Chip icon={project.status === "done" ? CircleCheck : undefined}>
               {PROJECT_STATUS[project.status]}
             </Chip>
+            {isArchived && <Chip icon={Archive}>Archived</Chip>}
             <DateChip
               icon={CalendarDays}
               label="Due date"
@@ -418,14 +469,18 @@ function ProjectPanel({ id }: { id: number }) {
             ),
         }}
         actions={[
+          ...statusActions,
           deleteAction(
             "Delete project",
             () => setIsDeleting(true),
             project.has_items && "Only empty projects can be deleted. Archive it instead.",
           ),
         ]}
-        error={update.error}
+        error={update.error ?? reopen.error ?? restore.error}
       />
+      {change && (
+        <ProjectChangeDialog project={project} change={change} onClose={() => setChange(null)} />
+      )}
       {isDeleting && (
         <DeleteProjectDialog
           project={project}
