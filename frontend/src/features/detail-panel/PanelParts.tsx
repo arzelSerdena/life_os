@@ -1,7 +1,8 @@
-import { Button, Dropdown, Label, Popover } from "@heroui/react";
+import { Button, Dropdown, Label, Popover, Separator } from "@heroui/react";
 import { Check, Code, Ellipsis, type LucideIcon } from "lucide-react";
 import {
   createContext,
+  Fragment,
   type KeyboardEvent,
   type ReactNode,
   useContext,
@@ -20,6 +21,10 @@ export type PanelAction = {
   icon: LucideIcon;
   onAction: () => void;
   isDisabled?: boolean;
+  /** Red, after a separator: Delete. */
+  isDanger?: boolean;
+  /** Says why the action is disabled. */
+  hint?: string;
 };
 
 export type PanelNotes = {
@@ -118,6 +123,7 @@ export function PanelView({
 }
 
 function PanelMenu({ actions }: { actions: PanelAction[] }) {
+  const firstDanger = actions.find((action) => action.isDanger)?.id;
   return (
     <Dropdown>
       <Button
@@ -128,17 +134,39 @@ function PanelMenu({ actions }: { actions: PanelAction[] }) {
       >
         <Ellipsis aria-hidden />
       </Button>
-      <Dropdown.Popover placement="bottom end" className="min-w-[200px]">
+      <Dropdown.Popover placement="bottom end" className="min-w-[200px] max-w-[250px]">
         <Dropdown.Menu
           aria-label="More actions"
           disabledKeys={actions.filter((a) => a.isDisabled).map((a) => a.id)}
           onAction={(key) => actions.find((action) => action.id === key)?.onAction()}
         >
           {actions.map((action) => (
-            <Dropdown.Item key={action.id} id={action.id} textValue={action.label}>
-              <action.icon aria-hidden className="size-4 shrink-0 text-(--text-tertiary)" />
-              <Label>{action.label}</Label>
-            </Dropdown.Item>
+            <Fragment key={action.id}>
+              {action.id === firstDanger && <Separator />}
+              <Dropdown.Item
+                id={action.id}
+                textValue={action.label}
+                variant={action.isDanger ? "danger" : undefined}
+                className={action.hint ? "items-start" : undefined}
+              >
+                <action.icon
+                  aria-hidden
+                  className={`size-4 shrink-0 ${action.hint ? "mt-1" : ""} ${
+                    action.isDanger ? "" : "text-(--text-tertiary)"
+                  }`}
+                />
+                {action.hint ? (
+                  <span className="flex flex-col py-1">
+                    <Label>{action.label}</Label>
+                    <span className="text-[11px] leading-[14px] text-(--text-tertiary)">
+                      {action.hint}
+                    </span>
+                  </span>
+                ) : (
+                  <Label>{action.label}</Label>
+                )}
+              </Dropdown.Item>
+            </Fragment>
           ))}
         </Dropdown.Menu>
       </Dropdown.Popover>

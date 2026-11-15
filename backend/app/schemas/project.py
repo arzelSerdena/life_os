@@ -45,6 +45,8 @@ class ProjectRead(BaseModel):
     updated_at: UtcDatetime
     sections: list[SectionRead]
     progress: ProjectProgress
+    # Only an empty project can be deleted.
+    has_items: bool
 
 
 class ProjectCreate(BaseModel):

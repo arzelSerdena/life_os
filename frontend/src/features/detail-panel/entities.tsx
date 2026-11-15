@@ -16,11 +16,14 @@ import {
   RotateCcw,
   Sun,
   Target,
+  Trash2,
+  X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   archiveTaskMutation,
+  cancelTaskMutation,
   completeTaskMutation,
   createSubtaskMutation,
   getAreaPageOptions,
@@ -54,6 +57,8 @@ import {
   updateTaskTemplateMutation,
 } from "../../client/@tanstack/react-query.gen";
 import {
+  deleteSubtask,
+  deleteTask,
   editEventOccurrence,
   updateEvent,
   updateLifeArea,
@@ -74,12 +79,23 @@ import type {
 import { QueryError } from "../../components/QueryError";
 import { today } from "../../period";
 import { type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore";
+import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
+import {
+  DeleteEventDialog,
+  DeleteMetricDialog,
+  DeleteRoutineDialog,
+  DeleteStepDialog,
+  DeleteTemplateDialog,
+} from "../deleting/deleteDialogs";
+import { useDeleteWithUndo } from "../deleting/UndoToast";
 import { ArchiveAreaDialog } from "../life-areas/ArchiveAreaDialog";
 import { describeRule } from "../life-areas/area/timeScale";
+import { DeleteLifeAreaDialog } from "../life-areas/DeleteLifeAreaDialog";
 import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
 import { formatValue } from "../metrics/format";
+import { DeleteProjectDialog } from "../projects/DeleteProjectDialog";
 import {
   Chip,
   DateChip,
@@ -155,6 +171,23 @@ function useNotesSave() {
   };
 }
 
+/** Delete, last in the ⋯ menu and in red. A hint disables it and says why. */
+function deleteAction(
+  label: string,
+  onAction: () => void,
+  blockedHint?: string | false,
+): PanelAction {
+  return {
+    id: "delete",
+    label,
+    icon: Trash2,
+    isDanger: true,
+    onAction,
+    isDisabled: Boolean(blockedHint),
+    hint: blockedHint || undefined,
+  };
+}
+
 function ownerCrumbs(
   area: LifeAreaRead | undefined,
   project: { title: string } | undefined,
@@ -197,6 +230,7 @@ function AreaPanel({ id }: { id: number }) {
   const restore = useMutation(unarchiveLifeAreaMutation());
   const saveNotes = useNotesSave();
   const [isArchiving, setIsArchiving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const area = query.data;
   if (!area) return <Loading error={query.error} />;
@@ -221,6 +255,15 @@ function AreaPanel({ id }: { id: number }) {
           onAction: () => setIsArchiving(true),
           isDisabled: !contents,
         },
+    {
+      ...deleteAction(
+        "Delete area",
+        () => setIsDeleting(true),
+        contents?.has_items && "Only empty areas can be deleted. Archive it instead.",
+      ),
+      // Until the contents load it isn't known whether the area is empty.
+      isDisabled: !contents || contents.has_items,
+    },
   ];
 
   return (
@@ -295,6 +338,16 @@ function AreaPanel({ id }: { id: number }) {
           }}
         />
       )}
+      {isDeleting && (
+        <DeleteLifeAreaDialog
+          lifeArea={area}
+          onClose={() => setIsDeleting(false)}
+          onDeleted={() => {
+            close();
+            navigate("/areas", { replace: true });
+          }}
+        />
+      )}
     </AreaScope>
   );
 }
@@ -308,6 +361,8 @@ function ProjectPanel({ id }: { id: number }) {
   const area = useLifeArea(query.data?.life_area_id);
   const update = useMutation(updateProjectMutation());
   const saveNotes = useNotesSave();
+  const close = useDetailPanel((state) => state.close);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const project = query.data;
   if (!project) return <Loading error={query.error} />;
@@ -362,8 +417,22 @@ function ProjectPanel({ id }: { id: number }) {
               getProjectQueryKey({ path }),
             ),
         }}
+        actions={[
+          deleteAction(
+            "Delete project",
+            () => setIsDeleting(true),
+            project.has_items && "Only empty projects can be deleted. Archive it instead.",
+          ),
+        ]}
         error={update.error}
       />
+      {isDeleting && (
+        <DeleteProjectDialog
+          project={project}
+          onClose={() => setIsDeleting(false)}
+          onDeleted={close}
+        />
+      )}
     </AreaScope>
   );
 }
@@ -383,7 +452,10 @@ function TaskPanel({ id }: { id: number }) {
   const complete = useMutation(completeTaskMutation());
   const reopen = useMutation(reopenTaskMutation());
   const archive = useMutation(archiveTaskMutation());
+  const cancel = useMutation(cancelTaskMutation());
   const saveNotes = useNotesSave();
+  const close = useDetailPanel((state) => state.close);
+  const deleteWithUndo = useDeleteWithUndo();
 
   if (!task) return <Loading error={query.error} />;
   const path = { task_id: id };
@@ -408,6 +480,21 @@ function TaskPanel({ id }: { id: number }) {
       onAction: () => archive.mutate({ path }),
       isDisabled: task.archived_at !== null,
     },
+    // A recurring occurrence would be generated again, so it can only be cancelled.
+    task.occurrence_date !== null
+      ? {
+          id: "cancel",
+          label: "Cancel task",
+          icon: X,
+          onAction: () => cancel.mutate({ path }),
+          isDisabled: task.status !== "todo",
+        }
+      : deleteAction("Delete task", () => {
+          close();
+          deleteWithUndo({ kind: "task", id, label: task.title }, () =>
+            deleteTask({ path, throwOnError: true, keepalive: true }),
+          );
+        }),
   ];
 
   return (
@@ -435,7 +522,7 @@ function TaskPanel({ id }: { id: number }) {
             ),
         }}
         actions={actions}
-        error={update.error ?? complete.error ?? reopen.error ?? archive.error}
+        error={update.error ?? complete.error ?? reopen.error ?? archive.error ?? cancel.error}
       />
     </AreaScope>
   );
@@ -503,8 +590,11 @@ function TaskChips({
 function Subtasks({ task }: { task: TaskRead }) {
   const create = useMutation(createSubtaskMutation());
   const update = useMutation(updateSubtaskMutation());
+  const deleteWithUndo = useDeleteWithUndo();
+  const pending = usePendingDeletes((state) => state.pending);
   const [draft, setDraft] = useState("");
-  const done = task.subtasks.filter((s) => s.status === "done").length;
+  const subtasks = task.subtasks.filter((s) => !isPendingDelete(pending, "subtask", s.id));
+  const done = subtasks.filter((s) => s.status === "done").length;
   const toggle = (subtask: SubtaskRead) =>
     update.mutate({
       path: { subtask_id: subtask.id },
@@ -522,18 +612,18 @@ function Subtasks({ task }: { task: TaskRead }) {
     <section aria-label="Subtasks" className="mt-1">
       <div className="mb-0.5 flex h-6 items-center gap-1.5">
         <h3 className="type-label text-(--text-tertiary)">Subtasks</h3>
-        {task.subtasks.length > 0 && (
+        {subtasks.length > 0 && (
           <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-200 px-1.5 text-[11px] font-medium text-(--text-secondary)">
-            {done}/{task.subtasks.length}
+            {done}/{subtasks.length}
           </span>
         )}
       </div>
       {(create.error || update.error) && <QueryError error={create.error ?? update.error} />}
       <ul>
-        {task.subtasks.map((subtask) => {
+        {subtasks.map((subtask) => {
           const isDone = subtask.status === "done";
           return (
-            <li key={subtask.id} className="flex h-7 items-center gap-2">
+            <li key={subtask.id} className="group flex h-7 items-center gap-2">
               <input
                 type="checkbox"
                 checked={isDone}
@@ -546,6 +636,23 @@ function Subtasks({ task }: { task: TaskRead }) {
               >
                 {subtask.title}
               </span>
+              <span className="flex-1" />
+              <button
+                type="button"
+                aria-label={`Delete ${subtask.title}`}
+                onClick={() =>
+                  deleteWithUndo({ kind: "subtask", id: subtask.id, label: subtask.title }, () =>
+                    deleteSubtask({
+                      path: { subtask_id: subtask.id },
+                      throwOnError: true,
+                      keepalive: true,
+                    }),
+                  )
+                }
+                className="grid size-6 shrink-0 place-items-center rounded-(--radius-6) text-(--text-tertiary) opacity-0 outline-none group-hover:opacity-100 hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+              >
+                <X aria-hidden className="size-3.5" />
+              </button>
             </li>
           );
         })}
@@ -578,6 +685,8 @@ function TemplatePanel({ id }: { id: number }) {
   const project = useProject(template?.project_id);
   const update = useMutation(updateTaskTemplateMutation());
   const saveNotes = useNotesSave();
+  const close = useDetailPanel((state) => state.close);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!template) return <Loading error={query.error} />;
   const path = { template_id: id };
@@ -641,8 +750,20 @@ function TemplatePanel({ id }: { id: number }) {
               getTaskTemplateQueryKey({ path }),
             ),
         }}
+        actions={[
+          deleteAction(template.rrule ? "Delete recurring task" : "Delete template", () =>
+            setIsDeleting(true),
+          ),
+        ]}
         error={update.error}
       />
+      {isDeleting && (
+        <DeleteTemplateDialog
+          template={template}
+          onClose={() => setIsDeleting(false)}
+          onDeleted={close}
+        />
+      )}
     </AreaScope>
   );
 }
@@ -665,6 +786,8 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
   const update = useMutation(updateEventMutation());
   const saveNotes = useNotesSave();
   const [scope, setScope] = useState<"this" | "all">("this");
+  const close = useDetailPanel((state) => state.close);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!event || (isRepeating && !occurrence)) return <Loading error={query.error} />;
   const path = { event_id: id };
@@ -751,8 +874,17 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
                   getEventQueryKey({ path }),
                 ),
         }}
+        actions={[deleteAction("Delete event", () => setIsDeleting(true))]}
         error={update.error}
       />
+      {isDeleting && (
+        <DeleteEventDialog
+          event={event}
+          day={day}
+          onClose={() => setIsDeleting(false)}
+          onDeleted={close}
+        />
+      )}
     </AreaScope>
   );
 }
@@ -776,6 +908,8 @@ function MetricPanel({ id }: { id: number }) {
   const project = useProject(metric?.project_id);
   const update = useMutation(updateMetricMutation());
   const saveNotes = useNotesSave();
+  const close = useDetailPanel((state) => state.close);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!metric) return <Loading error={query.error} />;
   const path = { metric_id: id };
@@ -818,8 +952,16 @@ function MetricPanel({ id }: { id: number }) {
               getMetricQueryKey({ path }),
             ),
         }}
+        actions={[deleteAction("Delete metric", () => setIsDeleting(true))]}
         error={update.error}
       />
+      {isDeleting && (
+        <DeleteMetricDialog
+          metric={metric}
+          onClose={() => setIsDeleting(false)}
+          onDeleted={close}
+        />
+      )}
     </AreaScope>
   );
 }
@@ -830,6 +972,8 @@ function RoutinePanel({ id }: { id: number }) {
   const query = useQuery(getRoutineOptions({ path: { routine_id: id } }));
   const update = useMutation(updateRoutineMutation());
   const saveNotes = useNotesSave();
+  const close = useDetailPanel((state) => state.close);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const routine = query.data;
   if (!routine) return <Loading error={query.error} />;
@@ -858,8 +1002,16 @@ function RoutinePanel({ id }: { id: number }) {
               getRoutineQueryKey({ path }),
             ),
         }}
+        actions={[deleteAction("Delete routine", () => setIsDeleting(true))]}
         error={update.error}
       />
+      {isDeleting && (
+        <DeleteRoutineDialog
+          routine={routine}
+          onClose={() => setIsDeleting(false)}
+          onDeleted={close}
+        />
+      )}
     </AreaScope>
   );
 }
@@ -871,6 +1023,8 @@ function StepPanel({ id, routineId }: { id: number; routineId: number }) {
   const project = useProject(step?.project_id);
   const update = useMutation(updateRoutineStepMutation());
   const saveNotes = useNotesSave();
+  const close = useDetailPanel((state) => state.close);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const routine = query.data;
   if (!routine || !step) return <Loading error={query.error} />;
@@ -902,8 +1056,12 @@ function StepPanel({ id, routineId }: { id: number; routineId: number }) {
               getRoutineQueryKey({ path: { routine_id: routineId } }),
             ),
         }}
+        actions={[deleteAction("Delete step", () => setIsDeleting(true))]}
         error={update.error}
       />
+      {isDeleting && (
+        <DeleteStepDialog step={step} onClose={() => setIsDeleting(false)} onDeleted={close} />
+      )}
     </AreaScope>
   );
 }

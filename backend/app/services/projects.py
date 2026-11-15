@@ -9,7 +9,16 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError, UnprocessableError
-from app.models import LifeArea, Project, ProjectSection, Task, TaskTemplate
+from app.models import (
+    Event,
+    LifeArea,
+    Metric,
+    Project,
+    ProjectSection,
+    RoutineStep,
+    Task,
+    TaskTemplate,
+)
 from app.schemas.project import (
     ProjectCreate,
     ProjectMove,
@@ -74,6 +83,15 @@ def progress_of(session: Session, project: Project) -> Progress:
         )
     ).one()
     return Progress(done=done, total=total)
+
+
+def has_items(session: Session, project: Project) -> bool:
+    """Whether anything belongs to the project, archived items included. Its sections
+    don't count: they are deleted with it."""
+    return any(
+        session.scalar(select(model.id).where(model.project_id == project.id).limit(1)) is not None
+        for model in (Task, TaskTemplate, Event, Metric, RoutineStep)
+    )
 
 
 def create_project(session: Session, data: ProjectCreate) -> Project:

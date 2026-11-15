@@ -170,6 +170,7 @@ def test_deleting_an_empty_project_removes_its_sections(
     project = _project(client, make_life_area(session).id)
     _section(client, project)
 
+    assert client.get(f"{URL}/{project['id']}").json()["has_items"] is False
     assert client.delete(f"{URL}/{project['id']}").status_code == 204
     assert client.get(f"{URL}/{project['id']}").status_code == 404
     assert session.scalars(select(ProjectSection)).all() == []
@@ -179,6 +180,7 @@ def test_a_project_with_items_cant_be_deleted(client: TestClient, session: Sessi
     project = _project(client, make_life_area(session).id)
     section = _section(client, project)
     _task(client, project_id=project["id"], section_id=section["id"])
+    assert client.get(f"{URL}/{project['id']}").json()["has_items"] is True
 
     response = client.delete(f"{URL}/{project['id']}")
 
