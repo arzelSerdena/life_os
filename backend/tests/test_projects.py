@@ -71,6 +71,28 @@ def test_create_is_validated(
     assert client.post(URL, json=make_body(ids)).status_code == status_code
 
 
+def test_start_date_is_optional_and_comes_before_the_due_date(
+    client: TestClient, session: Session
+) -> None:
+    area = make_life_area(session, "Career")
+    project = _project(client, area.id, start_date="2026-11-20", due_date="2026-12-31")
+    assert (project["start_date"], project["due_date"]) == ("2026-11-20", "2026-12-31")
+    assert _project(client, area.id, "No dates")["start_date"] is None
+
+    too_early = {"life_area_id": area.id, "title": "X", "start_date": "2027-01-02"}
+    response = client.post(URL, json={**too_early, "due_date": "2027-01-01"})
+    assert response.status_code == 422
+    assert response.json()["detail"] == "The due date can't be before the start date."
+
+    # An update is checked against the dates it doesn't change.
+    path = f"{URL}/{project['id']}"
+    assert client.patch(path, json={"due_date": "2026-11-19"}).status_code == 422
+    assert client.patch(path, json={"start_date": "2027-01-01"}).status_code == 422
+    response = client.patch(path, json={"start_date": None, "due_date": "2026-11-19"})
+    assert response.status_code == 200, response.text
+    assert response.json()["start_date"] is None
+
+
 def test_list_filters_by_life_area(client: TestClient, session: Session) -> None:
     health = make_life_area(session, "Health")
     career = make_life_area(session, "Career")

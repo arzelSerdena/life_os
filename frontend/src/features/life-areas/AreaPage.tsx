@@ -26,6 +26,7 @@ import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteSt
 import { usePeriodStore } from "../../stores/periodStore";
 import { ArchiveAreaDialog } from "./ArchiveAreaDialog";
 import { AreaMenu } from "./AreaMenu";
+import { useAreasContext } from "./AreasLayout";
 import { NewMetricModal } from "./area/NewMetricModal";
 import { ProjectsCard, RoutinesCard } from "./area/ProjectsAndRoutines";
 import { AgendaCard, TasksCard } from "./area/TasksAndAgenda";
@@ -43,6 +44,7 @@ export function AreaPage() {
   const { period, date } = usePeriodStore();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingMetric, setIsAddingMetric] = useState(false);
+  const { openNewProject } = useAreasContext();
   const [isArchiving, setIsArchiving] = useState(false);
 
   const lifeArea = useQuery(getLifeAreaOptions({ path: { life_area_id: lifeAreaId } }));
@@ -87,7 +89,12 @@ export function AreaPage() {
               onRestore={() => restore.mutate(path)}
               onDelete={() => setIsDeleting(true)}
             />
-            {!isArchived && <AddMenu onAddMetric={() => setIsAddingMetric(true)} />}
+            {!isArchived && (
+              <AddMenu
+                onAddMetric={() => setIsAddingMetric(true)}
+                onAddProject={() => openNewProject(area.id)}
+              />
+            )}
           </>
         }
       />
@@ -193,9 +200,15 @@ function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () 
 
 const ADD_ICON = "size-4 shrink-0 text-(--text-tertiary)";
 
-/** The Add button in the area's color. Only metrics can be added here so far; the other
- * items get their forms with their own screens. */
-function AddMenu({ onAddMetric }: { onAddMetric: () => void }) {
+/** The Add button in the area's color. Projects and metrics can be added here so far; the
+ * other items get their forms with their own screens. */
+function AddMenu({
+  onAddMetric,
+  onAddProject,
+}: {
+  onAddMetric: () => void;
+  onAddProject: () => void;
+}) {
   return (
     <Dropdown>
       <Button className="gap-0 bg-(--area-solid) px-0 text-white">
@@ -211,8 +224,11 @@ function AddMenu({ onAddMetric }: { onAddMetric: () => void }) {
       <Dropdown.Popover placement="bottom end" className="min-w-[200px]">
         <Dropdown.Menu
           aria-label="Add to this area"
-          disabledKeys={["task", "event", "project", "step"]}
-          onAction={(key) => key === "metric" && onAddMetric()}
+          disabledKeys={["task", "event", "step"]}
+          onAction={(key) => {
+            if (key === "metric") onAddMetric();
+            if (key === "project") onAddProject();
+          }}
         >
           <Dropdown.Item id="task" textValue="Task">
             <ListChecks aria-hidden className={ADD_ICON} />

@@ -35,6 +35,7 @@ class ProjectRead(BaseModel):
     life_area_id: int
     title: str
     notes: str | None
+    start_date: date | None
     due_date: date | None
     status: ProjectStatus
     completed_at: UtcDatetime | None
@@ -55,6 +56,7 @@ class ProjectCreate(BaseModel):
     life_area_id: int
     title: Title
     notes: Notes | None = None
+    start_date: date | None = None
     due_date: date | None = None
 
 
@@ -65,6 +67,7 @@ class ProjectUpdate(BaseModel):
 
     title: Title | None = None
     notes: Notes | None = None
+    start_date: date | None = None
     due_date: date | None = None
     sort_order: Annotated[int, Field(ge=0)] | None = None
 

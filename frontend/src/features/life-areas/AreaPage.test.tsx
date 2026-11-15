@@ -150,6 +150,7 @@ beforeEach(() => {
       if (url.pathname === "/api/routines") return json([morningRoutine]);
       if (url.pathname === "/api/tasks/2" && request.method === "GET") return json(resumeTask);
       if (url.pathname === "/api/projects/7") return json(resumeProject);
+      if (url.pathname === "/api/projects") return json([]);
       return json({}, 200);
     }),
   );

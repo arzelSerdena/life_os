@@ -33,6 +33,7 @@ def _read(session: SessionDep, project: Project) -> ProjectRead:
         life_area_id=project.life_area_id,
         title=project.title,
         notes=project.notes,
+        start_date=project.start_date,
         due_date=project.due_date,
         status=project.status,  # type: ignore[arg-type]
         completed_at=project.completed_at,

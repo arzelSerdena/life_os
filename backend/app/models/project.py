@@ -14,6 +14,10 @@ class Project(BaseMixin, Base):
         CheckConstraint("length(title) BETWEEN 1 AND 200", name="title_length"),
         CheckConstraint("notes IS NULL OR length(notes) <= 50000", name="notes_length"),
         CheckConstraint("status IN ('active', 'done', 'cancelled')", name="status_values"),
+        CheckConstraint(
+            "start_date IS NULL OR due_date IS NULL OR due_date >= start_date",
+            name="due_after_start",
+        ),
         CheckConstraint("(status = 'done') = (completed_at IS NOT NULL)", name="done_timestamp"),
         CheckConstraint(
             "(status = 'cancelled') = (cancelled_at IS NOT NULL)", name="cancelled_timestamp"
@@ -27,6 +31,8 @@ class Project(BaseMixin, Base):
     life_area_id: Mapped[int] = mapped_column(ForeignKey("life_areas.id"))
     title: Mapped[str] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
+    # When work starts; without one, the project counts from the day it was created.
+    start_date: Mapped[date | None] = mapped_column(Date)
     due_date: Mapped[date | None] = mapped_column(Date)
     status: Mapped[str] = mapped_column(Text, default="active", server_default="active")
     completed_at: Mapped[datetime | None] = mapped_column(DateTime)

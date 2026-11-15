@@ -16,8 +16,8 @@ StepDayStatus = Literal["done", "skipped", "missed", "paused", "todo", "upcoming
 
 
 class AreaProjectRead(BaseModel):
-    """An active project, or one finished in the period. start is its created date until
-    projects get a start date."""
+    """An active project, or one finished in the period. start is its start date, or the
+    day it was created if it has none."""
 
     id: int
     title: str

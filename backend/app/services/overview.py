@@ -437,7 +437,7 @@ def _projects(session: Session, area_ids: list[int], today: date) -> list[Projec
             done += progress.done
             total += progress.total
             if project.due_date is not None:
-                start = local_date(project.created_at)
+                start = project.start_date or local_date(project.created_at)
                 length = (project.due_date - start).days
                 if length > 0:
                     planned_days += length
