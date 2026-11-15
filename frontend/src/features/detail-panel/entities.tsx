@@ -679,13 +679,16 @@ function Subtasks({ task }: { task: TaskRead }) {
           const isDone = subtask.status === "done";
           return (
             <li key={subtask.id} className="group flex h-7 items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isDone}
-                onChange={() => toggle(subtask)}
-                aria-label={subtask.title}
-                className="grid size-3.5 shrink-0 cursor-pointer appearance-none place-items-center rounded-[4px] border-2 border-(--area-solid) outline-none checked:bg-(--area-solid) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
-              />
+              {/* The label gives the 14 px box a 24 px hit area. */}
+              <label className="-m-[5px] grid size-6 shrink-0 cursor-pointer place-items-center">
+                <input
+                  type="checkbox"
+                  checked={isDone}
+                  onChange={() => toggle(subtask)}
+                  aria-label={subtask.title}
+                  className="grid size-3.5 shrink-0 cursor-pointer appearance-none place-items-center rounded-[4px] border-2 border-(--area-solid) outline-none checked:bg-(--area-solid) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                />
+              </label>
               <span
                 className={`truncate text-[13px] ${isDone ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
               >

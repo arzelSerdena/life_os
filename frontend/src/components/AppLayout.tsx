@@ -1,4 +1,11 @@
-import { CalendarDays, House, type LucideIcon, Settings, Shapes, SquareKanban } from "lucide-react";
+import {
+  CalendarDays,
+  House,
+  LayoutGrid,
+  type LucideIcon,
+  Settings,
+  SquareKanban,
+} from "lucide-react";
 import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { UndoToast } from "../features/deleting/UndoToast";
@@ -19,7 +26,7 @@ const GROUPS: RailGroup[] = [
   { label: "Home", icon: House },
   { label: "Tasks", icon: SquareKanban },
   { label: "Calendar", icon: CalendarDays },
-  { label: "Areas", icon: Shapes, to: "/areas" },
+  { label: "Plan", icon: LayoutGrid, to: "/areas" },
 ];
 const SETTINGS: RailGroup = { label: "Settings", icon: Settings };
 
@@ -28,7 +35,7 @@ export function AppLayout() {
   useSidebarShortcut();
   const hasPanel = useDetailPanel((state) => state.target !== null);
   return (
-    <div className="relative flex h-screen min-w-[1024px]">
+    <div className="relative flex h-screen min-h-[720px] min-w-[1280px]">
       <nav aria-label="Main" className="flex w-(--rail-width) shrink-0 px-1 py-2">
         <div className="flex flex-1 flex-col items-center gap-1 rounded-(--rail-radius) bg-(--rail-bg) py-1.5">
           <div

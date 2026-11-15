@@ -415,12 +415,15 @@ function TaskItem({
     <Item
       target={{ kind: "task", id: task.id }}
       icon={
-        <input
-          type="checkbox"
-          aria-label={`Mark ${task.title} done`}
-          onChange={onDone}
-          className="relative z-10 size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border-2 border-(--area-solid) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
-        />
+        // The label gives the 16 px box a 24 px hit area, above the row's stretched link.
+        <label className="relative z-10 -m-1 grid size-6 shrink-0 cursor-pointer place-items-center">
+          <input
+            type="checkbox"
+            aria-label={`Mark ${task.title} done`}
+            onChange={onDone}
+            className="size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border-2 border-(--area-solid) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          />
+        </label>
       }
       title={task.title}
       note={

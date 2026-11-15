@@ -86,7 +86,8 @@ export function MetricChart({ outcome, range, today, period, tone }: MetricChart
           <text
             x={index === 0 ? LEFT : x(tick.date) + 3}
             y={60}
-            fontSize={9}
+            // 12.5 of 300 units draws at about 11 px on a tile, the smallest text size.
+            fontSize={12.5}
             fill="var(--text-tertiary)"
           >
             {tick.label}

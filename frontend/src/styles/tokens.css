@@ -222,10 +222,10 @@
   --accent-subtle: var(--color-brand-100); /* Selected tag background */
   --accent-text: var(--color-brand-800); /* Accent text and the active rail icon */
   --focus-ring: var(--color-brand-600); /* 2px focus ring */
-  --priority-high: var(--color-negative-500); /* High priority (Do first): flag and column dot */
-  --priority-medium: var(--color-warning-500); /* Medium priority (Schedule): flag and column dot */
-  --priority-none: var(--color-neutral-400); /* No priority (Eliminate): column dot; no flag on cards */
-  --priority-low: var(--accent-solid); /* Low priority (Delegate): column dot; no flag on cards */
+  --priority-high: var(--color-negative-500); /* High priority: flag and column dot */
+  --priority-medium: var(--color-warning-500); /* Medium priority: flag and column dot */
+  --priority-none: var(--color-neutral-400); /* No priority: column dot; no flag on cards */
+  --priority-low: var(--color-neutral-400); /* Low priority: column dot; no flag on cards */
   --icon-tertiary: var(--color-neutral-500); /* Metadata icons on cards */
   --icon-white: var(--color-white); /* Icons on solid fills */
   --icon-primary: var(--color-neutral-700); /* Default UI icons */
@@ -352,7 +352,7 @@
   --button-height: var(--size-28);
   --button-pad-x: var(--space-12);
   --button-radius: var(--radius-6);
-  --button-primary-bg: var(--accent-solid);
+  --button-primary-bg: var(--color-neutral-900);
   --button-primary-text: var(--text-on-accent);
   --button-secondary-border: var(--border-default);
   --button-secondary-text: var(--text-secondary);

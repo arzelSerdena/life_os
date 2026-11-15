@@ -243,7 +243,7 @@ export function NewMetricModal({
                                     {step.id === stepId && (
                                       <Check
                                         aria-hidden
-                                        className="size-3.5 text-brand-600"
+                                        className="size-3.5 text-(--color-neutral-700)"
                                         strokeWidth={2}
                                       />
                                     )}

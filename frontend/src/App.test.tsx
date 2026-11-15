@@ -5,7 +5,7 @@ import { SIDEBAR_DEFAULT_WIDTH, useSidebarStore } from "./stores/sidebarStore";
 import { renderApp } from "./test-utils";
 
 beforeEach(() => {
-  useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH });
+  useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH, overlayOpen: false });
   vi.stubGlobal(
     "fetch",
     vi.fn(
@@ -24,23 +24,20 @@ test.each(["/", "/not-a-page"])("%s opens the life areas overview", async (path)
 test("the rail and the sidebar mark the current page", async () => {
   renderApp();
 
-  expect(await screen.findByRole("link", { name: "Areas" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  expect(await screen.findByRole("link", { name: "Plan" })).toHaveAttribute("aria-current", "page");
   expect(screen.getByRole("link", { name: "Life areas" })).toHaveAttribute("aria-current", "page");
 });
 
 test("Ctrl + B hides the sidebar, and the open group's rail icon brings it back", async () => {
   const user = userEvent.setup();
   renderApp("/areas");
-  expect(await screen.findByRole("complementary", { name: "Areas" })).toBeInTheDocument();
+  expect(await screen.findByRole("complementary", { name: "Plan" })).toBeInTheDocument();
 
   await user.keyboard("{Control>}b{/Control}");
-  expect(screen.queryByRole("complementary", { name: "Areas" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
 
-  await user.click(screen.getByRole("link", { name: "Areas" }));
-  expect(screen.getByRole("complementary", { name: "Areas" })).toBeInTheDocument();
+  await user.click(screen.getByRole("link", { name: "Plan" }));
+  expect(screen.getByRole("complementary", { name: "Plan" })).toBeInTheDocument();
   expect(useSidebarStore.getState().collapsed).toBe(false);
 });
 
@@ -64,5 +61,29 @@ test("the hide button hides the sidebar", async () => {
 
   await user.click(await screen.findByRole("button", { name: "Hide sidebar" }));
 
-  expect(screen.queryByRole("complementary", { name: "Areas" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
+});
+
+test("below 1440 px the sidebar opens over the page and closes after a choice or Esc", async () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query === "(max-width: 1439px)",
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+  const user = userEvent.setup();
+  renderApp("/areas");
+
+  const plan = await screen.findByRole("link", { name: "Plan" });
+  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
+
+  await user.click(plan);
+  expect(screen.getByRole("complementary", { name: "Plan" })).toBeInTheDocument();
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
+
+  await user.keyboard("{Control>}b{/Control}");
+  await user.click(screen.getByRole("link", { name: "Finished & archived" }));
+  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
+  // The docked sidebar's own setting is left alone.
+  expect(useSidebarStore.getState().collapsed).toBe(false);
 });

@@ -200,7 +200,7 @@ export function ProjectChangeDialog({ project, change, onClose }: ProjectChangeD
             <p className="flex gap-1.5 rounded-(--radius-6) bg-neutral-50 px-2.5 py-2 text-xs leading-4 text-(--text-secondary)">
               <Info aria-hidden className="size-3.5 shrink-0" strokeWidth={2} />
               {change === "archive"
-                ? "Nothing is deleted. You can restore the project any time from Archived."
+                ? "Nothing is deleted. You can restore the project any time from Finished & archived."
                 : "You can reopen the project later. Cancelled tasks stay cancelled."}
             </p>
             {error && (

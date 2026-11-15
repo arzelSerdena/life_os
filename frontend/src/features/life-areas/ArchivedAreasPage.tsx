@@ -24,7 +24,7 @@ export function ArchivedAreasPage() {
   return (
     <>
       <PageHeader
-        title="Archived areas"
+        title="Finished & archived"
         description="Archived areas and everything in them are hidden from the rest of the app."
       />
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">

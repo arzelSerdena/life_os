@@ -25,7 +25,7 @@ export function useAreasContext(): AreasContext {
 
 type FormTarget = { prefill?: LifeAreaPrefill };
 
-/** The Areas group: its sidebar beside the overview, an area's page or the archived areas. */
+/** The Plan group: its sidebar beside the overview, an area's page or Finished & archived. */
 export function AreasLayout() {
   const navigate = useNavigate();
   const [formTarget, setFormTarget] = useState<FormTarget | null>(null);
@@ -54,7 +54,7 @@ export function AreasLayout() {
 
   return (
     <>
-      <Sidebar label="Areas">
+      <Sidebar label="Plan">
         <div className="mb-0.5 flex h-8 items-center gap-2 rounded-(--radius-6) pr-1 has-[a:hover]:bg-(--bg-hover) has-[a[aria-current=page]]:bg-(--bg-hover) has-[a[aria-current=page]]:shadow-[inset_2px_0_0_var(--color-brand-600)]">
           <NavLink
             to="/areas"
@@ -126,7 +126,7 @@ export function AreasLayout() {
         <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
         <SidebarLink to="/areas/archived">
           <Archive aria-hidden className="size-4 shrink-0" strokeWidth={2} />
-          Archived areas
+          Finished & archived
         </SidebarLink>
       </Sidebar>
 

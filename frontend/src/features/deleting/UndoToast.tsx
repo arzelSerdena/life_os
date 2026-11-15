@@ -32,7 +32,7 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 const LINK =
-  "rounded-[4px] px-1.5 py-1 text-xs font-semibold text-brand-700 outline-none hover:bg-brand-100 focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
+  "rounded-[4px] px-1.5 py-1 text-xs font-semibold text-(--text-primary) outline-none hover:bg-(--bg-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
 const CLOSE =
   "grid size-6 place-items-center rounded-(--radius-6) text-(--text-tertiary) outline-none hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
 
@@ -120,7 +120,7 @@ export function UndoToast() {
         </>
       ) : change ? (
         <>
-          <CircleCheck aria-hidden className="size-4 shrink-0 text-(--text-tertiary)" />
+          <CircleCheck aria-hidden className="size-[18px] shrink-0 text-(--color-positive-600)" />
           <span className="max-w-80 truncate text-[13px] text-(--text-primary)">
             {change.message}
           </span>

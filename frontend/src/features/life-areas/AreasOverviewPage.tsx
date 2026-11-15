@@ -57,9 +57,9 @@ export function AreasOverviewPage() {
                     <ArrowDownUp aria-hidden className={MENU_ICON} />
                     <Label>Reorder areas</Label>
                   </Dropdown.Item>
-                  <Dropdown.Item id="archived" textValue="Archived areas">
+                  <Dropdown.Item id="archived" textValue="Finished & archived">
                     <Archive aria-hidden className={MENU_ICON} />
-                    <Label>Archived areas</Label>
+                    <Label>Finished & archived</Label>
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown.Popover>
@@ -92,7 +92,7 @@ function FirstAreaWelcome({
 }) {
   return (
     <div className="m-auto flex max-w-[520px] flex-col items-center gap-3 pb-20 text-center">
-      <div className="grid size-12 place-items-center rounded-(--radius-12) bg-brand-100 text-brand-700">
+      <div className="grid size-12 place-items-center rounded-(--radius-12) bg-(--color-neutral-100) text-(--color-neutral-900)">
         <LayoutGrid aria-hidden className="size-6" strokeWidth={2} />
       </div>
       <h2 className="type-page-title text-(--text-primary)">Set up your first life area</h2>
