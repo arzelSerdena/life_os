@@ -1,7 +1,5 @@
 import type { OutcomeRead } from "../../../client/types.gen";
 
-const CURRENCY = new Set(["₱", "$", "€", "£", "¥"]);
-const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
 const SHORT_MONTHS = [
   "Jan",
   "Feb",
@@ -30,20 +28,6 @@ const MONTHS = [
   "November",
   "December",
 ];
-
-export function formatNumber(value: number): string {
-  return number.format(value);
-}
-
-/** "₱10,500" for a currency, "17 km" for other units, "3" with none. */
-export function formatAmount(value: number, unit: string | null | undefined): string {
-  if (!unit) return formatNumber(value);
-  return CURRENCY.has(unit) ? `${unit}${formatNumber(value)}` : `${formatNumber(value)} ${unit}`;
-}
-
-export function isCurrency(unit: string | null | undefined): boolean {
-  return unit != null && CURRENCY.has(unit);
-}
 
 /** "2026-11-14" -> { year, month (0-based), day } */
 export function parts(date: string): { year: number; month: number; day: number } {

@@ -3,7 +3,8 @@ import { type ReactNode, useState } from "react";
 import type { AreaPageRead, OutcomeRead } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
-import { formatAmount, plural, shortDate } from "../overview/format";
+import { formatValue } from "../../metrics/format";
+import { plural, shortDate } from "../overview/format";
 import { addDays, earlierDate, laterDate, scaleTicks, timeScale } from "./timeScale";
 
 const LABEL_WIDTH = "140px";
@@ -240,7 +241,7 @@ function MetricLane({ outcome, page }: { outcome: OutcomeRead; page: AreaPageRea
         <span
           className="absolute top-1.5 h-4 overflow-hidden rounded-[4px] bg-(--area-tint-active)"
           style={{ left: `${left}%`, width: `${right - left}%` }}
-          title={`${outcome.title}: ${formatAmount(outcome.value ?? 0, outcome.unit)} of ${formatAmount(target.target_value, outcome.unit)}`}
+          title={`${outcome.title}: ${formatValue(outcome.value ?? 0, outcome)} of ${formatValue(target.target_value, outcome)}`}
         >
           <span className="block h-full bg-(--area-border)" style={{ width: `${share * 100}%` }} />
         </span>
@@ -265,7 +266,7 @@ function MetricLane({ outcome, page }: { outcome: OutcomeRead; page: AreaPageRea
           ? 0
           : Math.min(point.value / target.target_value, 1),
     upcoming: false,
-    label: `${shortDate(point.start)}: ${formatAmount(point.value ?? 0, outcome.unit)}${point.status === "met" ? ", met" : ""}`,
+    label: `${shortDate(point.start)}: ${formatValue(point.value ?? 0, outcome)}${point.status === "met" ? ", met" : ""}`,
   }));
   let next = segments.length ? addDays(segments[segments.length - 1].end, 1) : target.start_date;
   while (next <= page.range.end && (!target.end_date || next <= target.end_date)) {

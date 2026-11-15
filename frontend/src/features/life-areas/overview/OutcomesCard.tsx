@@ -4,19 +4,10 @@ import type { LifeAreaRead, OutcomeRead, OverviewRead } from "../../../client/ty
 import { SectionCard } from "../../../components/SectionCard";
 import type { Period } from "../../../period";
 import { PanelLink } from "../../detail-panel/PanelLink";
+import { formatValue, valueParts } from "../../metrics/format";
 import { areaDataAttribute } from "../palette";
 import { CardMenu, type MenuOption } from "./CardMenu";
-import {
-  daysBetween,
-  formatAmount,
-  formatNumber,
-  isCurrency,
-  monthName,
-  outcomeTone,
-  plural,
-  shortDate,
-  targetPeriodName,
-} from "./format";
+import { daysBetween, monthName, outcomeTone, plural, shortDate, targetPeriodName } from "./format";
 import { MetricChart } from "./MetricChart";
 
 type Sort = "area" | "behind" | "name";
@@ -233,12 +224,12 @@ function valueLine(
   outcome: OutcomeRead,
   view: MetricView,
 ): { number: string; unit: string; context: string } {
-  const { value, unit, target } = outcome;
-  const currency = isCurrency(unit);
-  const number =
-    value === null ? "–" : currency ? `${unit}${formatNumber(value)}` : formatNumber(value);
-  const shownUnit = currency || !unit ? "" : unit;
-  const amount = (n: number) => formatAmount(n, unit);
+  const { value, target } = outcome;
+  const parts =
+    value === null ? { number: "–", unit: "" } : valueParts(value, outcome, { compact: true });
+  const { number } = parts;
+  const shownUnit = parts.unit;
+  const amount = (n: number) => formatValue(n, outcome);
 
   if (value === null) return { number, unit: shownUnit, context: "no entries yet" };
   if (target?.kind === "per_period" && target.period) {
@@ -273,7 +264,7 @@ function valueLine(
 
 /** One line under the chart saying how it's going. */
 function summaryLine(outcome: OutcomeRead, view: MetricView): string {
-  const { target, value, unit, direction, status } = outcome;
+  const { target, value, direction, status } = outcome;
   const lower = direction === "lower" ? "Lower is better · " : "";
   if (target?.kind === "per_period" && target.period) {
     if (outcome.finished_periods > 0) {
@@ -292,7 +283,7 @@ function summaryLine(outcome: OutcomeRead, view: MetricView): string {
     const left = Math.max(daysBetween(view.today, target.end_date), 0);
     if (outcome.aggregation === "sum" && direction === "higher" && value !== null) {
       const needed = Math.max(target.target_value - value, 0);
-      return `Needs ${formatAmount(needed, unit)} more in ${plural(left, "day")}`;
+      return `Needs ${formatValue(needed, outcome)} more in ${plural(left, "day")}`;
     }
     return `${lower}${status === "on_track" ? "ahead of pace" : "behind pace"}`;
   }

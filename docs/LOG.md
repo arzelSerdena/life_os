@@ -57,3 +57,14 @@
 - Metric formatting on screen (`Intl.NumberFormat`), the New metric presets and current value, and delete confirmations and undo toasts that use the delete previews.
 - The project page and projects overview, then the Phase 2 screens.
 - The cascade engine, with its preview and confirm screens.
+
+## 2026-11-15
+
+**Done**
+
+- Metric values are shown by the metric's format everywhere (tiles, timeline, agenda, wins and the detail panel): ₱1,500, ₱100K on tiles, 35%, 1 h 30 m.
+- New metric form: Source (Manual entries or Routine step), Measure as presets, Unit or Currency, Current value, and a Create button that stays disabled and names what's missing.
+
+**Next**
+
+- Delete confirmations from the delete previews, and undo toasts that wait ~6 s before sending the DELETE.

@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
-import type { AreaPageRead, TaskRead } from "../../client/types.gen";
+import type { AreaPageRead, RoutineRead, TaskRead } from "../../client/types.gen";
 import { emptyAreaPage, lifeArea, renderApp } from "../../test-utils";
 
 const career = lifeArea({ id: 1, title: "Career", color: "blue", notes: "Aim for a senior role." });
@@ -56,6 +56,36 @@ const resumeProject = {
 
 let page: AreaPageRead;
 let requests: { method: string; path: string; body: unknown }[];
+
+const morningRoutine: RoutineRead = {
+  id: 4,
+  title: "Morning",
+  notes: null,
+  sort_order: 0,
+  is_paused: false,
+  archived_at: null,
+  created_at: "2026-11-01T00:00:00Z",
+  updated_at: "2026-11-01T00:00:00Z",
+  schedules: [],
+  steps: [
+    {
+      id: 1,
+      routine_id: 4,
+      life_area_id: 1,
+      project_id: null,
+      title: "Practice LeetCode",
+      notes: null,
+      starts_on: "2026-11-01",
+      sort_order: 0,
+      is_paused: false,
+      current_streak: 3,
+      best_streak: 5,
+      archived_at: null,
+      created_at: "2026-11-01T00:00:00Z",
+      updated_at: "2026-11-01T00:00:00Z",
+    },
+  ],
+};
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -117,6 +147,7 @@ beforeEach(() => {
       if (url.pathname === "/api/life-areas/1") return json(career);
       if (url.pathname === "/api/life-areas/1/page") return json(page);
       if (url.pathname === "/api/metrics") return json({ id: 9, ...(body as object) }, 201);
+      if (url.pathname === "/api/routines") return json([morningRoutine]);
       if (url.pathname === "/api/tasks/2" && request.method === "GET") return json(resumeTask);
       if (url.pathname === "/api/projects/7") return json(resumeProject);
       return json({}, 200);
@@ -258,6 +289,7 @@ test("New metric creates the metric and its target", async () => {
     path: "/api/metrics",
     body: {
       title: "Job applications",
+      format: "number",
       unit: null,
       aggregation: "sum",
       direction: "higher",
@@ -266,4 +298,89 @@ test("New metric creates the metric and its target", async () => {
   });
   const target = requests.find((r) => r.path === "/api/metrics/9/targets");
   expect(target?.body).toMatchObject({ kind: "per_period", target_value: 5, period: "month" });
+});
+
+test("New metric's presets set the format and unit, and the current value is sent", async () => {
+  const user = userEvent.setup();
+  renderApp("/areas/1");
+  await screen.findByRole("region", { name: "Projects" });
+
+  await user.click(screen.getByRole("button", { name: "Add" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Metric" }));
+  const dialog = await screen.findByRole("dialog");
+  const create = within(dialog).getByRole("button", { name: "Create metric" });
+  expect(create).toBeDisabled();
+  await user.type(within(dialog).getByLabelText("Name"), "Freelance income");
+  expect(create).toBeEnabled();
+
+  await user.click(within(dialog).getByRole("button", { name: "Measure as: Number" }));
+  const money = await screen.findByRole("menuitem", { name: /Money/ });
+  expect(money).toHaveTextContent("₱1,500");
+  expect(screen.getByRole("menuitem", { name: /^Time(?!s)/ })).toHaveTextContent("1 h 30 m");
+  await user.click(money);
+  expect(within(dialog).getByRole("combobox", { name: "Currency" })).toHaveValue("PHP");
+  await user.type(within(dialog).getByLabelText("Current value"), "12,500");
+  await user.click(within(dialog).getByRole("radio", { name: "Reach by a date" }));
+  await user.type(within(dialog).getByLabelText("Target number"), "100000");
+  expect(create).toBeDisabled();
+  await user.type(within(dialog).getByLabelText("Reach by"), "2026-12-31");
+  await user.click(create);
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(requests).toContainEqual({
+    method: "POST",
+    path: "/api/metrics",
+    body: {
+      title: "Freelance income",
+      format: "currency",
+      unit: "PHP",
+      aggregation: "sum",
+      direction: "higher",
+      current_value: 12500,
+      life_area_id: 1,
+    },
+  });
+  const target = requests.find((r) => r.path === "/api/metrics/9/targets");
+  expect(target?.body).toMatchObject({
+    kind: "reach_by",
+    target_value: 100000,
+    end_date: "2026-12-31",
+  });
+});
+
+test("New metric can count a routine step's days, once a step is chosen", async () => {
+  const user = userEvent.setup();
+  renderApp("/areas/1");
+  await screen.findByRole("region", { name: "Projects" });
+
+  await user.click(screen.getByRole("button", { name: "Add" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Metric" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.type(within(dialog).getByLabelText("Name"), "Daily job search");
+  await user.click(within(dialog).getByRole("radio", { name: "Routine step" }));
+  expect(within(dialog).queryByLabelText("Current value")).not.toBeInTheDocument();
+  const create = within(dialog).getByRole("button", { name: "Create metric" });
+  expect(create).toBeDisabled();
+  expect(
+    within(dialog).getByText("Choose a routine step", { selector: ".sr-only" }),
+  ).toBeInTheDocument();
+
+  await user.click(within(dialog).getByRole("button", { name: /Routine step: Choose a step/ }));
+  await user.click(await screen.findByRole("menuitem", { name: "Practice LeetCode" }));
+  await user.click(within(dialog).getByRole("radio", { name: "Completion rate" }));
+  await user.click(create);
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(requests).toContainEqual({
+    method: "POST",
+    path: "/api/metrics",
+    body: {
+      title: "Daily job search",
+      source: "routine_step",
+      routine_step_id: 1,
+      aggregation: "average",
+      direction: "higher",
+      life_area_id: 1,
+    },
+  });
 });

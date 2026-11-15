@@ -12,8 +12,9 @@ import { QueryError } from "../../../components/QueryError";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
 import { usePeriodStore } from "../../../stores/periodStore";
+import { formatValue } from "../../metrics/format";
 import { areaDataAttribute } from "../palette";
-import { formatAmount, monthName, plural, shortDate } from "./format";
+import { monthName, plural, shortDate } from "./format";
 import { OutcomesCard } from "./OutcomesCard";
 
 /** The overview's five cards for the selected period. */
@@ -338,7 +339,7 @@ const PERIOD_ADJECTIVES: Record<string, string> = {
 
 function winNote(win: WinRead): string {
   if (win.kind === "project_finished") return `Project finished ${shortDate(win.day)}`;
-  const amount = formatAmount(win.target_value ?? 0, win.unit);
+  const amount = formatValue(win.target_value ?? 0, win);
   if (win.kind === "target_reached") return `Reached ${amount} on ${shortDate(win.day)}`;
   const adjective = PERIOD_ADJECTIVES[win.period ?? ""] ?? "";
   if (win.direction === "lower") {

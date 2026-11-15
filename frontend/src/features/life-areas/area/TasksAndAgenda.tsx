@@ -6,7 +6,8 @@ import type { AreaPageRead, OccurrenceRead, TaskRead } from "../../../client/typ
 import { QueryError } from "../../../components/QueryError";
 import type { PanelTarget } from "../../../stores/detailPanelStore";
 import { PanelLink } from "../../detail-panel/PanelLink";
-import { daysBetween, formatAmount, outcomeTone, plural, shortDate } from "../overview/format";
+import { formatValue } from "../../metrics/format";
+import { daysBetween, outcomeTone, plural, shortDate } from "../overview/format";
 import { describeRule, eachDay } from "./timeScale";
 
 type Row = {
@@ -72,7 +73,7 @@ export function TasksCard({ page }: { page: AreaPageRead }) {
           title: metric.title,
           note:
             metric.target && metric.value !== null
-              ? `${formatAmount(metric.value, metric.unit)} of ${formatAmount(metric.target.target_value, metric.unit)}`
+              ? `${formatValue(metric.value, metric)} of ${formatValue(metric.target.target_value, metric)}`
               : "Behind",
         }),
       ),
@@ -261,7 +262,7 @@ export function AgendaCard({ page }: { page: AreaPageRead }) {
         kind: "deadline",
         id: deadline.metric_id,
         title: deadline.title,
-        note: `Target ${formatAmount(deadline.target_value, deadline.unit)}`,
+        note: `Target ${formatValue(deadline.target_value, deadline)}`,
       });
     }
   }
