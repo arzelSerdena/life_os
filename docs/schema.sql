@@ -540,3 +540,23 @@ CREATE TABLE IF NOT EXISTS "status_changes" (
 
 CREATE INDEX IF NOT EXISTS "idx_status_changes_batch" ON "status_changes" ("batch_id");
 CREATE INDEX IF NOT EXISTS "idx_status_changes_entity" ON "status_changes" ("entity_type", "entity_id");
+
+
+-- ---------------------------------------------------------------------
+-- SETTINGS
+-- One row (id = 1) holding the app's settings. Window layout (sidebar
+-- width, card sizes) stays in the browser's localStorage instead.
+-- day_ends_at shifts "today" (app.clock.today()) until that hour.
+-- backup_folder NULL means the default folder next to the database.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "settings" (
+	"id" INTEGER PRIMARY KEY AUTOINCREMENT CHECK(id = 1),
+	"open_on_start" TEXT NOT NULL DEFAULT 'home' CHECK(open_on_start IN ('home', 'tasks', 'calendar')),
+	"time_format" TEXT NOT NULL DEFAULT '12h' CHECK(time_format IN ('12h', '24h')),
+	"day_ends_at" INTEGER NOT NULL DEFAULT 0 CHECK(day_ends_at BETWEEN 0 AND 4),
+	"auto_backup" INTEGER NOT NULL DEFAULT 1 CHECK(auto_backup IN (0, 1)),
+	"keep_backups" INTEGER NOT NULL DEFAULT 14 CHECK(keep_backups IN (7, 14, 30)),
+	"backup_folder" TEXT,
+	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
