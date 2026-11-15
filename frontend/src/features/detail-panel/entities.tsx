@@ -77,8 +77,9 @@ import { type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore"
 import { usePeriodStore } from "../../stores/periodStore";
 import { ArchiveAreaDialog } from "../life-areas/ArchiveAreaDialog";
 import { describeRule } from "../life-areas/area/timeScale";
-import { daysBetween, formatAmount, plural, shortDate } from "../life-areas/overview/format";
+import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
+import { formatValue } from "../metrics/format";
 import {
   Chip,
   DateChip,
@@ -779,7 +780,7 @@ function MetricPanel({ id }: { id: number }) {
   if (!metric) return <Loading error={query.error} />;
   const path = { metric_id: id };
   const target = currentTarget(metric);
-  const amount = (value: number) => formatAmount(value, metric.unit);
+  const amount = (value: number) => formatValue(value, metric);
   let progress: string | null = null;
   let goal = "No target";
   if (target?.kind === "per_period" && target.period) {

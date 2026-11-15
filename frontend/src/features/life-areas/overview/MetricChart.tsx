@@ -1,6 +1,7 @@
 import type { DateRangeRead, OutcomeRead } from "../../../client/types.gen";
 import type { Period } from "../../../period";
-import { daysBetween, formatAmount, parts, shortDate, shortMonth, type Tone } from "./format";
+import { formatValue } from "../../metrics/format";
+import { daysBetween, parts, shortDate, shortMonth, type Tone } from "./format";
 
 const WIDTH = 300;
 const LEFT = 4;
@@ -199,11 +200,9 @@ function smoothPath(points: { x: number; y: number }[]): string {
 function chartLabel(outcome: OutcomeRead): string {
   const values = outcome.points
     .filter((point) => point.value !== null)
-    .map(
-      (point) => `${shortDate(point.start)}: ${formatAmount(point.value as number, outcome.unit)}`,
-    );
+    .map((point) => `${shortDate(point.start)}: ${formatValue(point.value as number, outcome)}`);
   const target = outcome.target
-    ? `, target ${formatAmount(outcome.target.target_value, outcome.unit)}`
+    ? `, target ${formatValue(outcome.target.target_value, outcome)}`
     : "";
   return `${outcome.title}${target}. ${values.join(", ") || "No entries yet"}`;
 }
