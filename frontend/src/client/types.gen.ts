@@ -1374,6 +1374,10 @@ export type ProjectRead = {
      */
     sections: Array<SectionRead>;
     progress: ProjectProgress;
+    /**
+     * Has Items
+     */
+    has_items: boolean;
 };
 
 /**

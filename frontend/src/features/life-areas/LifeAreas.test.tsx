@@ -229,7 +229,7 @@ test("deletes an area after confirmation", async () => {
   await user.click(await screen.findByRole("menuitem", { name: /^Delete area/ }));
   const dialog = await screen.findByRole("alertdialog");
   expect(writes()).toEqual([]);
-  await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+  await user.click(within(dialog).getByRole("button", { name: "Delete area" }));
 
   expect(await screen.findByText("Set up your first life area")).toBeInTheDocument();
   expect(writes()).toEqual([{ method: "DELETE", path: "/api/life-areas/1", body: undefined }]);
@@ -243,7 +243,7 @@ test("explains why a delete was refused and keeps the area", async () => {
 
   await user.click(await screen.findByRole("button", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog");
-  await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+  await user.click(within(dialog).getByRole("button", { name: "Delete area" }));
 
   expect(await within(dialog).findByText(deleteError)).toBeInTheDocument();
   expect(areas).toHaveLength(1);

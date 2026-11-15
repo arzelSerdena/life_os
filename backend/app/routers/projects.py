@@ -43,6 +43,7 @@ def _read(session: SessionDep, project: Project) -> ProjectRead:
         updated_at=project.updated_at,
         sections=[SectionRead.model_validate(s) for s in service.sections_of(session, project)],
         progress=ProjectProgress(done=progress.done, total=progress.total),
+        has_items=service.has_items(session, project),
     )
 
 

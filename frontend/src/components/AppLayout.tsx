@@ -1,6 +1,7 @@
 import { CalendarDays, House, type LucideIcon, Settings, Shapes, SquareKanban } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
+import { UndoToast } from "../features/deleting/UndoToast";
 import { useDetailPanel } from "../stores/detailPanelStore";
 import { useSidebarShortcut, useSidebarVisibility } from "./Sidebar";
 
@@ -45,6 +46,7 @@ export function AppLayout() {
       </nav>
       <Outlet />
       <Suspense fallback={null}>{hasPanel && <DetailPanel />}</Suspense>
+      <UndoToast />
     </div>
   );
 }

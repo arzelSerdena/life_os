@@ -64,7 +64,10 @@
 
 - Metric values are shown by the metric's format everywhere (tiles, timeline, agenda, wins and the detail panel): ₱1,500, ₱100K on tiles, 35%, 1 h 30 m.
 - New metric form: Source (Manual entries or Routine step), Measure as presets, Unit or Currency, Current value, and a Create button that stays disabled and names what's missing.
+- Delete in the detail panel's ⋯ menu for every item, last and in red. Metrics, recurring tasks, routines, steps, events, projects and areas ask first in a red confirmation with counts from the delete previews; a repeating event asks This event / This and following / All events; a step or routine that feeds a metric can't be deleted and the dialog names the metric. Projects and areas with items have Delete disabled (`has_items` added to projects).
+- One-off tasks and subtasks delete behind an undo toast (6 s, Undo or Ctrl Z); a recurring occurrence offers Cancel task instead.
 
 **Next**
 
-- Delete confirmations from the delete previews, and undo toasts that wait ~6 s before sending the DELETE.
+- Undo-toast deletes for metric entries and targets, once a screen lists them.
+- Card menus, project complete/cancel/archive, and the remaining create forms.

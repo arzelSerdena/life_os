@@ -9,7 +9,7 @@ import {
   Plus,
   Repeat,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   getAreaPageOptions,
@@ -22,6 +22,7 @@ import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { SectionCard } from "../../components/SectionCard";
 import { useDetailPanel } from "../../stores/detailPanelStore";
+import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
 import { ArchiveAreaDialog } from "./ArchiveAreaDialog";
 import { AreaMenu } from "./AreaMenu";
@@ -51,6 +52,11 @@ export function AreaPage() {
   });
   const restore = useMutation(unarchiveLifeAreaMutation());
   const actionError = restore.error;
+  const pending = usePendingDeletes((state) => state.pending);
+  const shown = useMemo(
+    () => page.data && withoutPending(page.data, pending),
+    [page.data, pending],
+  );
 
   if (lifeArea.isPending) return null;
   if (lifeArea.isError) {
@@ -93,7 +99,7 @@ export function AreaPage() {
         )}
         {actionError && <QueryError error={actionError} />}
         {page.isError && <QueryError error={page.error} onRetry={page.refetch} />}
-        {page.data && <AreaCards page={page.data} onAddMetric={() => setIsAddingMetric(true)} />}
+        {shown && <AreaCards page={shown} onAddMetric={() => setIsAddingMetric(true)} />}
       </div>
       {isDeleting && (
         <DeleteLifeAreaDialog
@@ -115,6 +121,24 @@ export function AreaPage() {
       )}
     </div>
   );
+}
+
+/** Leaves out tasks waiting to be deleted: any change refetches the page, and they'd be back. */
+function withoutPending(
+  page: AreaPageRead,
+  pending: ReturnType<typeof usePendingDeletes.getState>["pending"],
+): AreaPageRead {
+  if (!pending.some((item) => item.kind === "task")) return page;
+  const keep = (tasks: AreaPageRead["agenda_tasks"]) =>
+    tasks.filter((task) => !isPendingDelete(pending, "task", task.id));
+  return {
+    ...page,
+    overdue_tasks: keep(page.overdue_tasks),
+    rolled_over_tasks: keep(page.rolled_over_tasks),
+    unscheduled_tasks: keep(page.unscheduled_tasks),
+    completed_tasks: keep(page.completed_tasks),
+    agenda_tasks: keep(page.agenda_tasks),
+  };
 }
 
 function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () => void }) {
