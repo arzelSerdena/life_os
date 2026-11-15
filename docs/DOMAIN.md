@@ -25,7 +25,13 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 | **Routine**        | A set of steps due on the days its schedule says (daily by default). Has no owner.                       |
 | **Routine step**   | One action in a routine.                                                                                  |
 | **Routine log**    | The record of a step on a given day: done or skipped.                                                     |
-| **Inbox**          | Tasks and task templates with no life area.                                                               |
+| **Full day**       | A day on which every due step of a routine was done (section 6).                                          |
+| **Run**            | A routine's full days in a row: current run, best run, longest run.                                       |
+| **Streak**         | One routine step's done days in a row. Never used for a whole routine.                                    |
+| **Inbox**          | Tasks and task templates with no life area. The Inbox screen lists the open tasks among them.            |
+| **Unscheduled**    | The Tasks view of open tasks that have a life area but no scheduled date.                                 |
+| **Overdue**        | An open task whose due date is before today. Listed in Today.                                             |
+| **Today**          | The local date, shifted by the `day_ends_at` setting (section 8).                                        |
 | **Unlink**         | Clear an item's project link so it falls back to its life area.                                           |
 | **Cascade**        | A change to one item that also changes the items it owns.                                                 |
 | **Batch**          | The set of `status_changes` rows from one operation, sharing a `batch_id`. It is the unit of undo.        |
@@ -132,7 +138,9 @@ Every cascade follows the same steps:
 
 Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/projects/{id}/preview?action=complete|cancel|archive`, which list every affected item and what happens to it (archive, cancel, or end the series from today). Archiving and status changes return the `batch_id` to undo.
 
-**Restoring** an archived life area or project restores it and the items its last archive took with it; items archived on their own before that stay archived. Reopening a finished project only makes it active again; undo is how its cancelled items come back.
+**Confirming.** One confirm dialog serves every cascade and every delete with contents. Previews (cascade and delete) return per-item rows grouped by effect, not only counts: each group is one of cancelled, ends from today, archived, deleted, kept or stops updating, and each row carries the item's name, kind, owner colour and a date or meta line. An archive or status change with nothing going with it applies at once with the undo toast; Delete always asks. Archiving a life area shows the undo toast after the confirmation too.
+
+**Restoring** an archived life area, project or routine restores it and the items its last archive took with it (a routine's steps); items archived on their own before that stay archived, and so does a step whose owning area or project is still inactive. Restore is refused (409) while the parent is archived. Reopening a finished project only makes it active again; undo is how its cancelled items come back.
 
 Undo groups the batch's rows by entity and restores all fields of one entity in a **single UPDATE**. Status and timestamp must change together or the CHECK constraint fails.
 
@@ -144,7 +152,7 @@ AI agents may call the same service-layer operations, but cascades always requir
 
 Deleting is permanent. Deletes are hard deletes and are never recorded in `status_changes`, so undo doesn't cover them; undoing an earlier change to a deleted item is refused (409). Archiving is the reversible way to retire something.
 
-Where the screen shows an undo toast, the frontend waits about 6 seconds before it sends the `DELETE`. Undo in the toast just cancels the request, so the backend needs no undo for deletes.
+Where the screen shows an undo toast, the frontend waits about 6 seconds before it sends the `DELETE`. Undo in the toast just cancels the request, so the backend needs no undo for deletes. A pending delete is hidden from every list, Home included.
 
 | Item | Delete rule | Confirmation |
 | --- | --- | --- |
@@ -220,7 +228,10 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - **Checking off**: a step can be marked done on a due day up to today, or skipped on any due day, future ones included. Unchecking returns it to to-do, or missed for a day that's over. Skipping a whole day skips every due step not already checked.
 - **Pausing** starts today and resuming ends the pause today, so a day is either paused or due. Resuming a routine also resumes its steps; a step resumed on its own stays not due while its routine is paused.
 - A step can feed a metric (section 7). While it does, neither the step nor its routine can be deleted.
-- **Streaks** are calculated, never stored: done due days in a row. A missed day resets the count; skipped days, paused days and today (still to do) neither count nor break it.
+- **Streaks** belong to one step and are calculated, never stored: the step's done due days in a row. A missed day resets the count; skipped days, paused days and today (still to do) neither count nor break it.
+- **Full days and runs** belong to the routine. A full day is a due day on which every due step was done. Skipped steps are left out of the day; a day with every step skipped, a paused day and today are neutral (they neither count nor break a run). A day with a missed step breaks the run. A **run** is full days in a row: the current run, the best run (with its dates) and, across routines, the longest run. When the current run is 0, the best run is shown first. "Streak" is never used for a routine.
+- **Restoring** a routine brings back the steps its archive took (section 4).
+- Routines are ordered by `routines.sort_order`, set by dragging in the Plan sidebar.
 
 ---
 
@@ -258,10 +269,12 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 
 ## 8. Scheduling and derived values
 
-- The week view is an untimed board: Unscheduled plus seven day columns, Monday to Sunday. Tasks have no start time or duration.
-  - One call (`GET /api/week`) returns the whole board, optionally for one life area or project.
-  - **Unscheduled** holds every to-do task with no date, from every life area and the Inbox.
-  - Each day holds its tasks (done ones included, cancelled ones only on request), its event occurrences, and its due routine steps with their status (to-do, done, skipped or missed). A multi-day event appears on every day it covers, with its real start and end dates.
+- **Placement rule**, everywhere (Tasks boards, Calendar, agendas, Home): a task sits on its scheduled date; if it has none, on its due date; if neither, it is Unscheduled. **Overdue** = an open task whose due date is before today; it is listed in Today. Tasks have no start time or duration.
+- **Calendar**: Week and Month are FullCalendar day grids (untimed); Quarter and Year are a linear calendar (one row per month). Projects show as bars from `start_date` (or the day they were created) to `due_date` in Quarter and Year; a project with no due date has no bar.
+- Day columns load from one call:
+  - `GET /api/week` returns Unscheduled plus seven day columns, Monday to Sunday, optionally for one life area or project.
+  - **Unscheduled** holds every to-do task with neither a scheduled nor a due date, from every life area and the Inbox.
+  - Each day holds the tasks the placement rule puts on it (done ones included, cancelled ones only on request), its event occurrences, and its due routine steps with their status (to-do, done, skipped or missed). A multi-day event appears on every day it covers, with its real start and end dates.
   - Loading a week first runs rollover and creates the week's missing recurring tasks. Both are safe to repeat.
   - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones.
 - Due dates are a date plus an optional time, and a due time requires a due date.
@@ -292,10 +305,34 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Agenda**: from today, or the period's start if later, to its end (nothing for a past period): open tasks scheduled or due in it, events, project due dates, and reach-by target deadlines not yet met.
   - **Contents**: the counts an archive would affect, and whether anything still belongs to the area. Deleting is only offered when nothing does.
 
+- A **routine page** (`GET /api/routines/{id}/page?period=&date=`) shows one routine over a calendar period:
+  - **Totals**: completion rate (done ÷ (done + missed)), full days out of due days, the current and best run with their dates, missed and skipped.
+  - **Step days**: each step's status for every day: done, skipped, missed, paused, to do (today), upcoming, not due, or not started (before the step's `starts_on`).
+  - **History**: the schedules and pauses that touch the period, and each step's completion (done of done + missed).
+  - An archived routine reads the same way, read-only, opened on the period that holds its archive date; its current run is the final run.
+- The **Routines overview** (`GET /api/routines/overview?period=&date=`) shows the same totals across all active routines (the longest run names its routine), each routine's daily share of due steps done, the 3 most-missed steps in the period, and **Pick up**: steps whose run of 4 or more done days ended with a miss this week.
+- **Home** (`GET /api/home`) covers today only, with no period:
+  - **Today**: open tasks the placement rule puts on today, plus overdue tasks; events that cover today; project due dates and reach-by target deadlines that fall today; tasks completed today.
+  - **Routines today**: routine steps due today with their status and step streak.
+  - **Log today**: manual metrics, from any owner, with a per-day or per-week target and no entry today, with the period's progress.
+  - **Needs a push**: the Inbox count; projects due within 7 days, stalled (nothing done in 14 or more days) or with no next step (nothing scheduled in the next 7 days); metrics behind target.
+  - **Coming up**: the next 7 days' events, project due dates and target deadlines.
+  - **Header done count**: today's tasks (overdue included) plus today's due routine steps, with skipped steps left out of both counts.
+  - **First run**: the setup message shows until there is a life area and at least one task or routine.
+  - Quick add on Home creates a task scheduled today with no owner (so it is also in the Inbox).
+- **Finished & archived** lists archived life areas, done, cancelled or archived projects, and archived routines. Areas and projects are deleted only when empty; a routine is deleted through the confirm dialog unless one of its steps feeds a metric.
+
+### Today and settings
+
+- Settings live in a single-row `settings` table: `open_on_start` (home, tasks or calendar), `time_format` (12h or 24h), `day_ends_at` (an hour from 0 to 4), `auto_backup`, `keep_backups` (7, 14 or 30) and `backup_folder`. Window layout (sidebar width, card sizes) stays in the browser's `localStorage`.
+- **Day ends at** shifts "today": until that hour, the previous date is still today. It applies to Home, rollover, routine logs (which day a check-off counts for), completed dates and streaks and runs. The backend reads today from `app.clock.today()`, which applies the setting.
+- **Restore from backup** replaces the data with a chosen backup, after a confirmation that shows its date and size; the app backs up the current data first.
+
 ### Time and text
 
 - `scheduled_date`, `due_date` and similar are local calendar dates. Event times are local "floating" times with no time zone.
 - `_at` datetimes are UTC.
+- Times are 12-hour by default (`time_format`); a 12-hour time on the hour drops ":00" (10 AM, 7 – 9 PM). A multi-day event says "Until 3 PM" on its last day.
 - Titles are 1–200 characters.
 - Notes are Markdown, up to 50,000 characters.
 
@@ -328,6 +365,7 @@ The service validates rules the database also enforces, so the API returns a cle
 | One open pause per routine or step                    | partial unique index                                           | validates first                          |
 | One routine log per step per date                     | unique index                                                   | —                                        |
 | Ids are never reused                                  | `AUTOINCREMENT` on every table                                 | —                                        |
+| One settings row                                      | CHECK (`id = 1`)                                               | creates it with defaults on first read   |
 | No new items under an inactive parent                 | —                                                              | enforced here only                       |
 | Cascades, unlinks, undo                               | —                                                              | enforced here only                       |
 | Repeat generation and series edits                    | —                                                              | enforced here only                       |

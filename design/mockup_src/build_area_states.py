@@ -116,6 +116,10 @@ metric = modal('s-metric', 'New metric', f'''
     <span class="hint2 t-meta">Shows as one segment per month on the timeline, and as "1 of 5 this month" on the tile.</span></div>''',
     '<button class="btn">Cancel</button><button class="btn primary">Create metric</button>', 520)
 
+# editing an existing entity opens the detail panel, not a pop-up (Nov 14)
+import build_panel as _bp  # noqa: E402
+edit = _bp.area.replace('class="panel dpanel ', 'class="panel dpanel pnl-sedit ', 1)
+
 CSS = '''
 .st-normal,.st-empty{display:none}
 body.s-normal .st-normal,body.s-add .st-normal,body.s-more .st-normal,body.s-edit .st-normal,body.s-archive .st-normal,body.s-metric .st-normal{display:flex}
@@ -156,7 +160,7 @@ body.s-add .addmenu,body.s-more .moremenu{display:block}
 '''
 
 states = [('s-normal', 'Normal'), ('s-empty', 'New area, no data'), ('s-add', 'Add menu'), ('s-more', '⋯ menu'),
-          ('s-edit', 'Edit area'), ('s-archive', 'Archive area'), ('s-metric', 'New metric')]
+          ('s-edit', 'Edit area (side panel)'), ('s-archive', 'Archive area'), ('s-metric', 'New metric')]
 switch = ('<div class="states"><span>Mock state</span><div class="seg" id="st">'
           + ''.join(f'<span{" class=on" if i == 0 else ""} data-s="{k}">{n}</span>' for i, (k, n) in enumerate(states)) + '</div></div>')
 
@@ -164,7 +168,7 @@ html = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Life OS — Areas · Area screen, all states</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>{head_css}{be.CSS}{CSS}</style></head>
+<style>{head_css}{_bp.PANEL_CSS}body.s-edit .pnl-sedit{{display:flex}}{be.CSS}{CSS}</style></head>
 <body class="s-normal">
 {body}
 {empty_app}

@@ -76,3 +76,36 @@
 - Undo-toast deletes for metric entries and targets, once a screen lists them.
 - Card menus for Effort, Projects, Routine steps done and Wins, and Export as CSV, once their options are designed (only the Outcomes menu is).
 - The remaining create forms (tasks, events, projects, routine steps), the project page and the projects overview.
+
+## 2026-11-16
+
+**Done**
+
+- Finished the UI design phase: every screen is approved (`design/html_mockups/approved-*.html`, 14 screens), with the UX review fixes applied by `review_fixes.py` and `review_fixes2.py`. Removed the leftover drafts.
+- Brought the docs in line with the approved designs (decision log entries dated 2026-11-16 in `project_details.md`):
+  1. Calendar: Week and Month use FullCalendar's day-grid view (no time grid); Quarter and Year are a custom linear calendar. Stack table, roadmap and `CLAUDE.md` updated.
+  2. Placement rule (scheduled date, else due date, else Unscheduled) and Overdue (open, past due date, listed in Today): `DOMAIN.md` sections 1 and 8, `CLAUDE.md`.
+  3. Inbox stays "open tasks with no life area"; new Unscheduled view for tasks with an area but no scheduled date; Inbox hover actions and keys.
+  4. Projects show as bars from start (or creation) to due date in Quarter and Year.
+  5. On-the-hour 12-hour times drop ":00".
+  6. Routines: full day, run (current, best, longest) and streak (one step only) in `DOMAIN.md` sections 1 and 6.
+  7. Navigation: rail Home, Tasks, Calendar, Plan, Settings; the Plan sidebar with LIFE AREAS, PROJECTS, ROUTINES and Finished & archived.
+  8. One destination per entity: projects open their project page, which gets a Board view; the Tasks sidebar drops PROJECTS and Archived.
+  9. Routines and steps never open the detail panel; they are edited on their page.
+  10. Routine page and Routines overview reads: `DOMAIN.md` section 8 (`GET /api/routines/{id}/page`, `GET /api/routines/overview`).
+  11. Home reads, done count, quick add and first run: `DOMAIN.md` section 8 (`GET /api/home`).
+  12. One ConfirmDialog for every cascade and delete with contents; previews return per-item rows grouped by effect: `DOMAIN.md` section 4.
+  13. Settings: single-row `settings` table (added to `schema.sql`), Day ends at shifting "today", Restore from backup: `DOMAIN.md` section 8.
+  14. Finished & archived: tabs, restore and reopen with undo, read-only panels and routine page, delete rules, routine restore brings back its steps: `DOMAIN.md` sections 4 and 8.
+  15. Settled points: New area pop-up without "optional" or the Vision hint; area archive shows the undo toast; start date edited from the date-range chip; pending deletes hidden everywhere; browser tests for New project and project status actions.
+- Roadmap updated: the new screens are placed in Phases 2–6.
+
+**Next** (code, one branch and PR each, in this order)
+
+- Small fixes to built screens: the New area pop-up loses "optional" and the Vision hint; area archive shows the undo toast; the sidebar collapses to an overlay below 1440 px again (revert of PR #28), minimum window 1280 × 720; the rail's Areas becomes Plan (`LayoutGrid`) and Archived becomes "Finished & archived"; neutral accent and plain priority names; nothing below 11 px; 24 × 24 px hit areas and the focus ring.
+- `GET /api/week` and the task lists follow the placement rule (a task with only a due date sits on that date; Unscheduled = neither date). Unscheduled task filter for the new view.
+- Previews return per-item rows grouped by effect (cascade and delete), then one `ConfirmDialog` replacing `ProjectChangeDialog` and `DeleteDialog`.
+- Playwright tests for New project and the project status actions.
+- `settings` table, model, migration and API; `app.clock.today()` applies `day_ends_at`.
+- Phase 2 screens: Tasks group, New task, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
+- Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
