@@ -306,6 +306,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS "uq_event_exceptions_occurrence" ON "event_exc
 -- aggregation: how a period's entries combine ('sum' for distance,
 -- 'average' for sleep, 'latest' for body weight).
 -- direction: whether a higher or lower value is better.
+-- format: how values are shown. The API returns raw numbers; the screen
+-- formats them. unit depends on format:
+--   number: optional suffix, 1-20 chars ("km", "pages")
+--   currency: ISO 4217 code, required (the service defaults to 'PHP')
+--   percent (0-100) and duration (stored in minutes): no unit
+-- Changing format or unit never converts stored values.
+-- source 'manual': entries are typed in. source 'routine_step': no stored
+-- entries; one per due day is derived on read from routine_logs (done = 1,
+-- or 100 for an average; missed = 0; skipped, paused and not-due days and
+-- an unfinished today are left out). Only sum (days done) or average
+-- (completion rate) is allowed. The source never changes after creation.
+-- A step that feeds a metric can't be deleted (NO ACTION FK; the service
+-- answers 409 first, naming the metric).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "metrics" (
 	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -313,26 +326,43 @@ CREATE TABLE IF NOT EXISTS "metrics" (
 	"project_id" INTEGER,
 	"title" TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 200),
 	"notes" TEXT CHECK(notes IS NULL OR length(notes) <= 50000),
-	"unit" TEXT CHECK(unit IS NULL OR length(unit) BETWEEN 1 AND 20),
+	"format" TEXT NOT NULL DEFAULT 'number' CHECK(format IN ('number', 'currency', 'percent', 'duration')),
+	"unit" TEXT,
 	"aggregation" TEXT NOT NULL CHECK(aggregation IN ('sum', 'average', 'latest')),
 	"direction" TEXT NOT NULL DEFAULT 'higher' CHECK(direction IN ('higher', 'lower')),
+	"source" TEXT NOT NULL DEFAULT 'manual' CHECK(source IN ('manual', 'routine_step')),
+	"routine_step_id" INTEGER,
 	"sort_order" INTEGER NOT NULL DEFAULT 0,
 	"archived_at" DATETIME,
 	"created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	-- unit's meaning depends on format
+	CHECK((format = 'number' AND (unit IS NULL OR length(unit) BETWEEN 1 AND 20))
+		OR (format = 'currency' AND unit IS NOT NULL AND unit GLOB '[A-Z][A-Z][A-Z]')
+		OR (format IN ('percent', 'duration') AND unit IS NULL)),
+	-- A routine-step source always names its step
+	CHECK((source = 'routine_step') = (routine_step_id IS NOT NULL)),
+	-- A routine-step metric counts days done or its completion rate
+	CHECK(source = 'manual'
+		OR (aggregation = 'sum' AND format = 'number' AND unit = 'days')
+		OR (aggregation = 'average' AND format = 'percent')),
 	FOREIGN KEY ("life_area_id") REFERENCES "life_areas"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION,
 	FOREIGN KEY ("project_id", "life_area_id") REFERENCES "projects"("id", "life_area_id")
-	ON UPDATE CASCADE ON DELETE NO ACTION
+	ON UPDATE CASCADE ON DELETE NO ACTION,
+	FOREIGN KEY ("routine_step_id") REFERENCES "routine_steps"("id")
+	ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 CREATE INDEX IF NOT EXISTS "idx_metrics_life_area" ON "metrics" ("life_area_id");
 CREATE INDEX IF NOT EXISTS "idx_metrics_project" ON "metrics" ("project_id", "life_area_id");
+CREATE INDEX IF NOT EXISTS "idx_metrics_routine_step" ON "metrics" ("routine_step_id");
 
 
 -- ---------------------------------------------------------------------
 -- METRIC ENTRIES
--- One logged value. Several per day are allowed.
+-- One logged value. Several per day are allowed. Manual metrics only:
+-- a routine-step metric's entries are derived, never stored.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "metric_entries" (
 	"id" INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -166,6 +166,21 @@ class OccurrenceEdit(BaseModel):
     _no_nulls = field_validator("title", "rrule", mode="before")(_reject_null)
 
 
+class OccurrenceDelete(BaseModel):
+    """ "this" cancels the occurrence; "following" ends the series the day before; "all"
+    deletes the series."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    scope: OccurrenceScope
+
+
+class EventDeleted(BaseModel):
+    """The event after the delete, or None when the whole event is gone."""
+
+    event: EventRead | None
+
+
 class OccurrenceCancel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

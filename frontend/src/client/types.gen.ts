@@ -259,6 +259,10 @@ export type DeadlineRead = {
      */
     target_value: number;
     /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration';
+    /**
      * Unit
      */
     unit: string | null;
@@ -306,12 +310,15 @@ export type EntryCreate = {
 
 /**
  * EntryRead
+ *
+ * A routine-step metric's entries are derived from the step's days: they have no
+ * id, note or timestamps, and can't be changed.
  */
 export type EntryRead = {
     /**
      * Id
      */
-    id: number;
+    id: number | null;
     /**
      * Metric Id
      */
@@ -331,11 +338,11 @@ export type EntryRead = {
     /**
      * Created At
      */
-    created_at: string;
+    created_at: string | null;
     /**
      * Updated At
      */
-    updated_at: string;
+    updated_at: string | null;
 };
 
 /**
@@ -433,6 +440,15 @@ export type EventCreate = {
      * Project Id
      */
     project_id?: number | null;
+};
+
+/**
+ * EventDeleted
+ *
+ * The event after the delete, or None when the whole event is gone.
+ */
+export type EventDeleted = {
+    event: EventRead | null;
 };
 
 /**
@@ -718,6 +734,15 @@ export type MetricChange = {
  * MetricCreate
  *
  * A metric in a life area or a project (it inherits the project's life area).
+ *
+ * unit depends on format: an optional suffix for a number ("km"), an ISO 4217 code for
+ * currency (default PHP), and none for percent or duration.
+ *
+ * source 'routine_step' counts a routine step's days instead of typed entries: it needs
+ * routine_step_id and aggregation 'sum' (days done) or 'average' (completion rate), and
+ * its format and unit follow from that. The step's owner may differ from the metric's.
+ *
+ * current_value (manual only) logs the first entry, dated today.
  */
 export type MetricCreate = {
     /**
@@ -728,6 +753,10 @@ export type MetricCreate = {
      * Notes
      */
     notes?: string | null;
+    /**
+     * Format
+     */
+    format?: 'number' | 'currency' | 'percent' | 'duration';
     /**
      * Unit
      */
@@ -741,6 +770,18 @@ export type MetricCreate = {
      */
     direction?: 'higher' | 'lower';
     /**
+     * Source
+     */
+    source?: 'manual' | 'routine_step';
+    /**
+     * Routine Step Id
+     */
+    routine_step_id?: number | null;
+    /**
+     * Current Value
+     */
+    current_value?: number | null;
+    /**
      * Life Area Id
      */
     life_area_id?: number | null;
@@ -748,6 +789,22 @@ export type MetricCreate = {
      * Project Id
      */
     project_id?: number | null;
+};
+
+/**
+ * MetricDeletePreview
+ *
+ * What deleting the metric removes with it.
+ */
+export type MetricDeletePreview = {
+    /**
+     * Entries
+     */
+    entries: number;
+    /**
+     * Targets
+     */
+    targets: number;
 };
 
 /**
@@ -768,6 +825,9 @@ export type MetricMove = {
 
 /**
  * MetricRead
+ *
+ * Values are raw numbers; the screen formats them by format and unit. A duration is
+ * in minutes, a percent from 0 to 100, and a currency's unit is its ISO 4217 code.
  */
 export type MetricRead = {
     /**
@@ -791,9 +851,21 @@ export type MetricRead = {
      */
     notes: string | null;
     /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration';
+    /**
      * Unit
      */
     unit: string | null;
+    /**
+     * Source
+     */
+    source: 'manual' | 'routine_step';
+    /**
+     * Routine Step Id
+     */
+    routine_step_id: number | null;
     /**
      * Aggregation
      */
@@ -825,7 +897,24 @@ export type MetricRead = {
 };
 
 /**
+ * MetricRef
+ */
+export type MetricRef = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
  * MetricUpdate
+ *
+ * Changing format without a unit resets the unit to the new format's default.
+ * Stored values are never converted. The source can't change.
  */
 export type MetricUpdate = {
     /**
@@ -836,6 +925,10 @@ export type MetricUpdate = {
      * Notes
      */
     notes?: string | null;
+    /**
+     * Format
+     */
+    format?: 'number' | 'currency' | 'percent' | 'duration' | null;
     /**
      * Unit
      */
@@ -858,6 +951,19 @@ export type MetricUpdate = {
  * OccurrenceCancel
  */
 export type OccurrenceCancel = {
+    /**
+     * Scope
+     */
+    scope: 'this' | 'following' | 'all';
+};
+
+/**
+ * OccurrenceDelete
+ *
+ * "this" cancels the occurrence; "following" ends the series the day before; "all"
+ * deletes the series.
+ */
+export type OccurrenceDelete = {
     /**
      * Scope
      */
@@ -1005,9 +1111,17 @@ export type OutcomeRead = {
      */
     title: string;
     /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration';
+    /**
      * Unit
      */
     unit: string | null;
+    /**
+     * Source
+     */
+    source: 'manual' | 'routine_step';
     /**
      * Aggregation
      */
@@ -1354,6 +1468,35 @@ export type RoutineCreate = {
      * Starts On
      */
     starts_on?: string | null;
+};
+
+/**
+ * RoutineDeletePreview
+ *
+ * What deleting the routine or step removes with it. Deleting is refused while
+ * metrics is not empty: those metrics count a step's days.
+ */
+export type RoutineDeletePreview = {
+    /**
+     * Steps
+     */
+    steps: number;
+    /**
+     * Schedules
+     */
+    schedules: number;
+    /**
+     * Pauses
+     */
+    pauses: number;
+    /**
+     * Logs
+     */
+    logs: number;
+    /**
+     * Metrics
+     */
+    metrics: Array<MetricRef>;
 };
 
 /**
@@ -2476,6 +2619,31 @@ export type TaskUpdate = {
 };
 
 /**
+ * TemplateDeletePreview
+ *
+ * What deleting the template does: its checklist and open occurrences are deleted;
+ * done and cancelled occurrences and tasks made by hand stay, without the link.
+ */
+export type TemplateDeletePreview = {
+    /**
+     * Subtasks
+     */
+    subtasks: number;
+    /**
+     * Open Occurrences
+     */
+    open_occurrences: number;
+    /**
+     * Finished Occurrences
+     */
+    finished_occurrences: number;
+    /**
+     * Tasks Made By Hand
+     */
+    tasks_made_by_hand: number;
+};
+
+/**
  * TemplateSubtaskRead
  */
 export type TemplateSubtaskRead = {
@@ -2594,6 +2762,10 @@ export type WinRead = {
      * Target Value
      */
     target_value: number | null;
+    /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration' | null;
     /**
      * Unit
      */
@@ -3805,6 +3977,40 @@ export type UnarchiveMetricResponses = {
 };
 
 export type UnarchiveMetricResponse = UnarchiveMetricResponses[keyof UnarchiveMetricResponses];
+
+export type PreviewMetricDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Metric Id
+         */
+        metric_id: number;
+    };
+    query?: never;
+    url: '/api/metrics/{metric_id}/delete-preview';
+};
+
+export type PreviewMetricDeleteErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewMetricDeleteError = PreviewMetricDeleteErrors[keyof PreviewMetricDeleteErrors];
+
+export type PreviewMetricDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricDeletePreview;
+};
+
+export type PreviewMetricDeleteResponse = PreviewMetricDeleteResponses[keyof PreviewMetricDeleteResponses];
 
 export type ListMetricEntriesData = {
     body?: never;
@@ -5048,6 +5254,40 @@ export type UnarchiveTaskTemplateResponses = {
 
 export type UnarchiveTaskTemplateResponse = UnarchiveTaskTemplateResponses[keyof UnarchiveTaskTemplateResponses];
 
+export type PreviewTaskTemplateDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Template Id
+         */
+        template_id: number;
+    };
+    query?: never;
+    url: '/api/task-templates/{template_id}/delete-preview';
+};
+
+export type PreviewTaskTemplateDeleteErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewTaskTemplateDeleteError = PreviewTaskTemplateDeleteErrors[keyof PreviewTaskTemplateDeleteErrors];
+
+export type PreviewTaskTemplateDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: TemplateDeletePreview;
+};
+
+export type PreviewTaskTemplateDeleteResponse = PreviewTaskTemplateDeleteResponses[keyof PreviewTaskTemplateDeleteResponses];
+
 export type CreateTaskFromTemplateData = {
     body: TaskFromTemplate;
     path: {
@@ -5579,6 +5819,44 @@ export type CancelEventOccurrenceResponses = {
 
 export type CancelEventOccurrenceResponse = CancelEventOccurrenceResponses[keyof CancelEventOccurrenceResponses];
 
+export type DeleteEventOccurrenceData = {
+    body: OccurrenceDelete;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}/delete';
+};
+
+export type DeleteEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEventOccurrenceError = DeleteEventOccurrenceErrors[keyof DeleteEventOccurrenceErrors];
+
+export type DeleteEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventDeleted;
+};
+
+export type DeleteEventOccurrenceResponse = DeleteEventOccurrenceResponses[keyof DeleteEventOccurrenceResponses];
+
 export type RestoreEventOccurrenceData = {
     body?: never;
     path: {
@@ -5773,6 +6051,10 @@ export type DeleteRoutineErrors = {
      * Not Found
      */
     404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
     /**
      * Validation Error
      */
@@ -6080,6 +6362,40 @@ export type UnarchiveRoutineResponses = {
 
 export type UnarchiveRoutineResponse = UnarchiveRoutineResponses[keyof UnarchiveRoutineResponses];
 
+export type PreviewRoutineDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/delete-preview';
+};
+
+export type PreviewRoutineDeleteErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewRoutineDeleteError = PreviewRoutineDeleteErrors[keyof PreviewRoutineDeleteErrors];
+
+export type PreviewRoutineDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineDeletePreview;
+};
+
+export type PreviewRoutineDeleteResponse = PreviewRoutineDeleteResponses[keyof PreviewRoutineDeleteResponses];
+
 export type CreateRoutineStepData = {
     body: RoutineStepCreate;
     path: {
@@ -6135,6 +6451,10 @@ export type DeleteRoutineStepErrors = {
      * Not Found
      */
     404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
     /**
      * Validation Error
      */
@@ -6371,6 +6691,40 @@ export type UnarchiveRoutineStepResponses = {
 };
 
 export type UnarchiveRoutineStepResponse = UnarchiveRoutineStepResponses[keyof UnarchiveRoutineStepResponses];
+
+export type PreviewRoutineStepDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Step Id
+         */
+        step_id: number;
+    };
+    query?: never;
+    url: '/api/routine-steps/{step_id}/delete-preview';
+};
+
+export type PreviewRoutineStepDeleteErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewRoutineStepDeleteError = PreviewRoutineStepDeleteErrors[keyof PreviewRoutineStepDeleteErrors];
+
+export type PreviewRoutineStepDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineDeletePreview;
+};
+
+export type PreviewRoutineStepDeleteResponse = PreviewRoutineStepDeleteResponses[keyof PreviewRoutineStepDeleteResponses];
 
 export type ClearRoutineStepDayData = {
     body?: never;

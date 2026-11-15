@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { archiveEvent, archiveLifeArea, archiveMetric, archiveProject, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelProject, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeProject, completeTask, createEvent, createLifeArea, createMetric, createMetricEntry, createMetricTarget, createProject, createRoutine, createRoutineStep, createSection, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteLifeArea, deleteMetric, deleteMetricEntry, deleteMetricTarget, deleteProject, deleteRoutine, deleteRoutineStep, deleteSection, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getAreaPage, getEvent, getLifeArea, getMetric, getOverview, getProject, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listMetricEntries, listMetrics, listProjects, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveMetric, moveProject, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, previewLifeAreaArchive, previewProjectChange, reopenProject, reopenTask, reorderLifeAreas, reorderTasks, replaceMetricTarget, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveMetric, unarchiveProject, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateMetric, updateMetricEntry, updateProject, updateRoutine, updateRoutineStep, updateSection, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
-import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveMetricData, ArchiveMetricError, ArchiveMetricResponse, ArchiveProjectData, ArchiveProjectError, ArchiveProjectResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelProjectData, CancelProjectError, CancelProjectResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteProjectData, CompleteProjectError, CompleteProjectResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateMetricData, CreateMetricEntryData, CreateMetricEntryError, CreateMetricEntryResponse, CreateMetricError, CreateMetricResponse, CreateMetricTargetData, CreateMetricTargetError, CreateMetricTargetResponse, CreateProjectData, CreateProjectError, CreateProjectResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSectionData, CreateSectionError, CreateSectionResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteMetricData, DeleteMetricEntryData, DeleteMetricEntryError, DeleteMetricEntryResponse, DeleteMetricError, DeleteMetricResponse, DeleteMetricTargetData, DeleteMetricTargetError, DeleteMetricTargetResponse, DeleteProjectData, DeleteProjectError, DeleteProjectResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSectionData, DeleteSectionError, DeleteSectionResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetAreaPageData, GetAreaPageError, GetAreaPageResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetMetricData, GetMetricError, GetMetricResponse, GetOverviewData, GetOverviewError, GetOverviewResponse, GetProjectData, GetProjectError, GetProjectResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListMetricEntriesData, ListMetricEntriesError, ListMetricEntriesResponse, ListMetricsData, ListMetricsError, ListMetricsResponse, ListProjectsData, ListProjectsError, ListProjectsResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveMetricData, MoveMetricError, MoveMetricResponse, MoveProjectData, MoveProjectError, MoveProjectResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, PreviewLifeAreaArchiveData, PreviewLifeAreaArchiveError, PreviewLifeAreaArchiveResponse, PreviewProjectChangeData, PreviewProjectChangeError, PreviewProjectChangeResponse, ReopenProjectData, ReopenProjectError, ReopenProjectResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderLifeAreasData, ReorderLifeAreasError, ReorderLifeAreasResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, ReplaceMetricTargetData, ReplaceMetricTargetError, ReplaceMetricTargetResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveMetricData, UnarchiveMetricError, UnarchiveMetricResponse, UnarchiveProjectData, UnarchiveProjectError, UnarchiveProjectResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateMetricData, UpdateMetricEntryData, UpdateMetricEntryError, UpdateMetricEntryResponse, UpdateMetricError, UpdateMetricResponse, UpdateProjectData, UpdateProjectError, UpdateProjectResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSectionData, UpdateSectionError, UpdateSectionResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
+import { archiveEvent, archiveLifeArea, archiveMetric, archiveProject, archiveRoutine, archiveRoutineStep, archiveTask, archiveTaskTemplate, cancelEvent, cancelEventOccurrence, cancelProject, cancelTask, cancelTaskSeries, changeRoutineSchedule, clearRoutineStepDay, completeProject, completeTask, createEvent, createLifeArea, createMetric, createMetricEntry, createMetricTarget, createProject, createRoutine, createRoutineStep, createSection, createSubtask, createTask, createTaskFromTemplate, createTaskTemplate, deleteEvent, deleteEventOccurrence, deleteLifeArea, deleteMetric, deleteMetricEntry, deleteMetricTarget, deleteProject, deleteRoutine, deleteRoutineStep, deleteSection, deleteSubtask, deleteTask, deleteTaskTemplate, editEventOccurrence, editTaskSeries, getAreaPage, getEvent, getLifeArea, getMetric, getOverview, getProject, getRoutine, getTask, getTaskTemplate, getWeek, health, listEventOccurrences, listEvents, listLifeAreas, listMetricEntries, listMetrics, listProjects, listRoutines, listRoutineStepsForDay, listTasks, listTaskTemplates, moveEvent, moveMetric, moveProject, moveRoutineStep, moveTask, moveTaskTemplate, type Options, pauseRoutine, pauseRoutineStep, pauseTaskTemplate, previewLifeAreaArchive, previewMetricDelete, previewProjectChange, previewRoutineDelete, previewRoutineStepDelete, previewTaskTemplateDelete, reopenProject, reopenTask, reorderLifeAreas, reorderTasks, replaceMetricTarget, restoreEventOccurrence, resumeRoutine, resumeRoutineStep, resumeTaskTemplate, setRoutineStepDay, skipRoutineDay, unarchiveEvent, unarchiveLifeArea, unarchiveMetric, unarchiveProject, unarchiveRoutine, unarchiveRoutineStep, unarchiveTask, unarchiveTaskTemplate, uncancelEvent, undoBatch, updateEvent, updateLifeArea, updateMetric, updateMetricEntry, updateProject, updateRoutine, updateRoutineStep, updateSection, updateSubtask, updateTask, updateTaskTemplate } from '../sdk.gen';
+import type { ArchiveEventData, ArchiveEventError, ArchiveEventResponse, ArchiveLifeAreaData, ArchiveLifeAreaError, ArchiveLifeAreaResponse, ArchiveMetricData, ArchiveMetricError, ArchiveMetricResponse, ArchiveProjectData, ArchiveProjectError, ArchiveProjectResponse, ArchiveRoutineData, ArchiveRoutineError, ArchiveRoutineResponse, ArchiveRoutineStepData, ArchiveRoutineStepError, ArchiveRoutineStepResponse, ArchiveTaskData, ArchiveTaskError, ArchiveTaskResponse, ArchiveTaskTemplateData, ArchiveTaskTemplateError, ArchiveTaskTemplateResponse, CancelEventData, CancelEventError, CancelEventOccurrenceData, CancelEventOccurrenceError, CancelEventOccurrenceResponse, CancelEventResponse, CancelProjectData, CancelProjectError, CancelProjectResponse, CancelTaskData, CancelTaskError, CancelTaskResponse, CancelTaskSeriesData, CancelTaskSeriesError, CancelTaskSeriesResponse, ChangeRoutineScheduleData, ChangeRoutineScheduleError, ChangeRoutineScheduleResponse, ClearRoutineStepDayData, ClearRoutineStepDayError, ClearRoutineStepDayResponse, CompleteProjectData, CompleteProjectError, CompleteProjectResponse, CompleteTaskData, CompleteTaskError, CompleteTaskResponse, CreateEventData, CreateEventError, CreateEventResponse, CreateLifeAreaData, CreateLifeAreaError, CreateLifeAreaResponse, CreateMetricData, CreateMetricEntryData, CreateMetricEntryError, CreateMetricEntryResponse, CreateMetricError, CreateMetricResponse, CreateMetricTargetData, CreateMetricTargetError, CreateMetricTargetResponse, CreateProjectData, CreateProjectError, CreateProjectResponse, CreateRoutineData, CreateRoutineError, CreateRoutineResponse, CreateRoutineStepData, CreateRoutineStepError, CreateRoutineStepResponse, CreateSectionData, CreateSectionError, CreateSectionResponse, CreateSubtaskData, CreateSubtaskError, CreateSubtaskResponse, CreateTaskData, CreateTaskError, CreateTaskFromTemplateData, CreateTaskFromTemplateError, CreateTaskFromTemplateResponse, CreateTaskResponse, CreateTaskTemplateData, CreateTaskTemplateError, CreateTaskTemplateResponse, DeleteEventData, DeleteEventError, DeleteEventOccurrenceData, DeleteEventOccurrenceError, DeleteEventOccurrenceResponse, DeleteEventResponse, DeleteLifeAreaData, DeleteLifeAreaError, DeleteLifeAreaResponse, DeleteMetricData, DeleteMetricEntryData, DeleteMetricEntryError, DeleteMetricEntryResponse, DeleteMetricError, DeleteMetricResponse, DeleteMetricTargetData, DeleteMetricTargetError, DeleteMetricTargetResponse, DeleteProjectData, DeleteProjectError, DeleteProjectResponse, DeleteRoutineData, DeleteRoutineError, DeleteRoutineResponse, DeleteRoutineStepData, DeleteRoutineStepError, DeleteRoutineStepResponse, DeleteSectionData, DeleteSectionError, DeleteSectionResponse, DeleteSubtaskData, DeleteSubtaskError, DeleteSubtaskResponse, DeleteTaskData, DeleteTaskError, DeleteTaskResponse, DeleteTaskTemplateData, DeleteTaskTemplateError, DeleteTaskTemplateResponse, EditEventOccurrenceData, EditEventOccurrenceError, EditEventOccurrenceResponse, EditTaskSeriesData, EditTaskSeriesError, EditTaskSeriesResponse, GetAreaPageData, GetAreaPageError, GetAreaPageResponse, GetEventData, GetEventError, GetEventResponse, GetLifeAreaData, GetLifeAreaError, GetLifeAreaResponse, GetMetricData, GetMetricError, GetMetricResponse, GetOverviewData, GetOverviewError, GetOverviewResponse, GetProjectData, GetProjectError, GetProjectResponse, GetRoutineData, GetRoutineError, GetRoutineResponse, GetTaskData, GetTaskError, GetTaskResponse, GetTaskTemplateData, GetTaskTemplateError, GetTaskTemplateResponse, GetWeekData, GetWeekError, GetWeekResponse, HealthData, HealthResponse2, ListEventOccurrencesData, ListEventOccurrencesError, ListEventOccurrencesResponse, ListEventsData, ListEventsError, ListEventsResponse, ListLifeAreasData, ListLifeAreasError, ListLifeAreasResponse, ListMetricEntriesData, ListMetricEntriesError, ListMetricEntriesResponse, ListMetricsData, ListMetricsError, ListMetricsResponse, ListProjectsData, ListProjectsError, ListProjectsResponse, ListRoutinesData, ListRoutinesError, ListRoutinesResponse, ListRoutineStepsForDayData, ListRoutineStepsForDayError, ListRoutineStepsForDayResponse, ListTasksData, ListTasksError, ListTasksResponse, ListTaskTemplatesData, ListTaskTemplatesError, ListTaskTemplatesResponse, MoveEventData, MoveEventError, MoveEventResponse, MoveMetricData, MoveMetricError, MoveMetricResponse, MoveProjectData, MoveProjectError, MoveProjectResponse, MoveRoutineStepData, MoveRoutineStepError, MoveRoutineStepResponse, MoveTaskData, MoveTaskError, MoveTaskResponse, MoveTaskTemplateData, MoveTaskTemplateError, MoveTaskTemplateResponse, PauseRoutineData, PauseRoutineError, PauseRoutineResponse, PauseRoutineStepData, PauseRoutineStepError, PauseRoutineStepResponse, PauseTaskTemplateData, PauseTaskTemplateError, PauseTaskTemplateResponse, PreviewLifeAreaArchiveData, PreviewLifeAreaArchiveError, PreviewLifeAreaArchiveResponse, PreviewMetricDeleteData, PreviewMetricDeleteError, PreviewMetricDeleteResponse, PreviewProjectChangeData, PreviewProjectChangeError, PreviewProjectChangeResponse, PreviewRoutineDeleteData, PreviewRoutineDeleteError, PreviewRoutineDeleteResponse, PreviewRoutineStepDeleteData, PreviewRoutineStepDeleteError, PreviewRoutineStepDeleteResponse, PreviewTaskTemplateDeleteData, PreviewTaskTemplateDeleteError, PreviewTaskTemplateDeleteResponse, ReopenProjectData, ReopenProjectError, ReopenProjectResponse, ReopenTaskData, ReopenTaskError, ReopenTaskResponse, ReorderLifeAreasData, ReorderLifeAreasError, ReorderLifeAreasResponse, ReorderTasksData, ReorderTasksError, ReorderTasksResponse, ReplaceMetricTargetData, ReplaceMetricTargetError, ReplaceMetricTargetResponse, RestoreEventOccurrenceData, RestoreEventOccurrenceError, RestoreEventOccurrenceResponse, ResumeRoutineData, ResumeRoutineError, ResumeRoutineResponse, ResumeRoutineStepData, ResumeRoutineStepError, ResumeRoutineStepResponse, ResumeTaskTemplateData, ResumeTaskTemplateError, ResumeTaskTemplateResponse, SetRoutineStepDayData, SetRoutineStepDayError, SetRoutineStepDayResponse, SkipRoutineDayData, SkipRoutineDayError, SkipRoutineDayResponse, UnarchiveEventData, UnarchiveEventError, UnarchiveEventResponse, UnarchiveLifeAreaData, UnarchiveLifeAreaError, UnarchiveLifeAreaResponse, UnarchiveMetricData, UnarchiveMetricError, UnarchiveMetricResponse, UnarchiveProjectData, UnarchiveProjectError, UnarchiveProjectResponse, UnarchiveRoutineData, UnarchiveRoutineError, UnarchiveRoutineResponse, UnarchiveRoutineStepData, UnarchiveRoutineStepError, UnarchiveRoutineStepResponse, UnarchiveTaskData, UnarchiveTaskError, UnarchiveTaskResponse, UnarchiveTaskTemplateData, UnarchiveTaskTemplateError, UnarchiveTaskTemplateResponse, UncancelEventData, UncancelEventError, UncancelEventResponse, UndoBatchData, UndoBatchError, UndoBatchResponse, UpdateEventData, UpdateEventError, UpdateEventResponse, UpdateLifeAreaData, UpdateLifeAreaError, UpdateLifeAreaResponse, UpdateMetricData, UpdateMetricEntryData, UpdateMetricEntryError, UpdateMetricEntryResponse, UpdateMetricError, UpdateMetricResponse, UpdateProjectData, UpdateProjectError, UpdateProjectResponse, UpdateRoutineData, UpdateRoutineError, UpdateRoutineResponse, UpdateRoutineStepData, UpdateRoutineStepError, UpdateRoutineStepResponse, UpdateSectionData, UpdateSectionError, UpdateSectionResponse, UpdateSubtaskData, UpdateSubtaskError, UpdateSubtaskResponse, UpdateTaskData, UpdateTaskError, UpdateTaskResponse, UpdateTaskTemplateData, UpdateTaskTemplateError, UpdateTaskTemplateResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -560,7 +560,7 @@ export const createMetricMutation = (options?: Partial<Options<CreateMetricData>
 /**
  * Delete Metric
  *
- * Delete the metric with all its entries and targets.
+ * Delete the metric with all its entries and targets. This can't be undone.
  */
 export const deleteMetricMutation = (options?: Partial<Options<DeleteMetricData>>): UseMutationOptions<DeleteMetricResponse, DeleteMetricError, Options<DeleteMetricData>> => {
     const mutationOptions: UseMutationOptions<DeleteMetricResponse, DeleteMetricError, Options<DeleteMetricData>> = {
@@ -662,10 +662,32 @@ export const unarchiveMetricMutation = (options?: Partial<Options<UnarchiveMetri
     return mutationOptions;
 };
 
+export const previewMetricDeleteQueryKey = (options: Options<PreviewMetricDeleteData>) => createQueryKey('previewMetricDelete', options);
+
+/**
+ * Preview Metric Delete
+ *
+ * The counts for the delete confirmation.
+ */
+export const previewMetricDeleteOptions = (options: Options<PreviewMetricDeleteData>) => queryOptions<PreviewMetricDeleteResponse, PreviewMetricDeleteError, PreviewMetricDeleteResponse, ReturnType<typeof previewMetricDeleteQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await previewMetricDelete({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: previewMetricDeleteQueryKey(options)
+});
+
 export const listMetricEntriesQueryKey = (options: Options<ListMetricEntriesData>) => createQueryKey('listMetricEntries', options);
 
 /**
  * List Metric Entries
+ *
+ * Typed-in entries, or a routine-step metric's entries derived from its step.
  */
 export const listMetricEntriesOptions = (options: Options<ListMetricEntriesData>) => queryOptions<ListMetricEntriesResponse, ListMetricEntriesError, ListMetricEntriesResponse, ReturnType<typeof listMetricEntriesQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -1124,6 +1146,9 @@ export const createTaskTemplateMutation = (options?: Partial<Options<CreateTaskT
 
 /**
  * Delete Task Template
+ *
+ * Delete the template, its checklist and its open occurrences. Done and cancelled
+ * occurrences and tasks made by hand stay, without the link. This can't be undone.
  */
 export const deleteTaskTemplateMutation = (options?: Partial<Options<DeleteTaskTemplateData>>): UseMutationOptions<DeleteTaskTemplateResponse, DeleteTaskTemplateError, Options<DeleteTaskTemplateData>> => {
     const mutationOptions: UseMutationOptions<DeleteTaskTemplateResponse, DeleteTaskTemplateError, Options<DeleteTaskTemplateData>> = {
@@ -1259,6 +1284,26 @@ export const unarchiveTaskTemplateMutation = (options?: Partial<Options<Unarchiv
     return mutationOptions;
 };
 
+export const previewTaskTemplateDeleteQueryKey = (options: Options<PreviewTaskTemplateDeleteData>) => createQueryKey('previewTaskTemplateDelete', options);
+
+/**
+ * Preview Task Template Delete
+ *
+ * The counts for the delete confirmation.
+ */
+export const previewTaskTemplateDeleteOptions = (options: Options<PreviewTaskTemplateDeleteData>) => queryOptions<PreviewTaskTemplateDeleteResponse, PreviewTaskTemplateDeleteError, PreviewTaskTemplateDeleteResponse, ReturnType<typeof previewTaskTemplateDeleteQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await previewTaskTemplateDelete({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: previewTaskTemplateDeleteQueryKey(options)
+});
+
 /**
  * Create Task From Template
  *
@@ -1337,6 +1382,8 @@ export const listEventOccurrencesOptions = (options: Options<ListEventOccurrence
 
 /**
  * Delete Event
+ *
+ * Delete the event with its one-off changes. For a series this deletes all of it.
  */
 export const deleteEventMutation = (options?: Partial<Options<DeleteEventData>>): UseMutationOptions<DeleteEventResponse, DeleteEventError, Options<DeleteEventData>> => {
     const mutationOptions: UseMutationOptions<DeleteEventResponse, DeleteEventError, Options<DeleteEventData>> = {
@@ -1499,6 +1546,26 @@ export const cancelEventOccurrenceMutation = (options?: Partial<Options<CancelEv
     const mutationOptions: UseMutationOptions<CancelEventOccurrenceResponse, CancelEventOccurrenceError, Options<CancelEventOccurrenceData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await cancelEventOccurrence({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Event Occurrence
+ *
+ * Delete the occurrence on `day` (its original date): this one (cancels it), this
+ * and following (ends the series the day before), or all (deletes the series).
+ */
+export const deleteEventOccurrenceMutation = (options?: Partial<Options<DeleteEventOccurrenceData>>): UseMutationOptions<DeleteEventOccurrenceResponse, DeleteEventOccurrenceError, Options<DeleteEventOccurrenceData>> => {
+    const mutationOptions: UseMutationOptions<DeleteEventOccurrenceResponse, DeleteEventOccurrenceError, Options<DeleteEventOccurrenceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteEventOccurrence({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -1675,6 +1742,9 @@ export const listRoutineStepsForDayOptions = (options?: Options<ListRoutineSteps
 
 /**
  * Delete Routine
+ *
+ * Delete the routine with its schedules, pauses, steps and logs. Refused while one of
+ * its steps feeds a metric. This can't be undone.
  */
 export const deleteRoutineMutation = (options?: Partial<Options<DeleteRoutineData>>): UseMutationOptions<DeleteRoutineResponse, DeleteRoutineError, Options<DeleteRoutineData>> => {
     const mutationOptions: UseMutationOptions<DeleteRoutineResponse, DeleteRoutineError, Options<DeleteRoutineData>> = {
@@ -1829,6 +1899,26 @@ export const unarchiveRoutineMutation = (options?: Partial<Options<UnarchiveRout
     return mutationOptions;
 };
 
+export const previewRoutineDeleteQueryKey = (options: Options<PreviewRoutineDeleteData>) => createQueryKey('previewRoutineDelete', options);
+
+/**
+ * Preview Routine Delete
+ *
+ * The counts for the delete confirmation, and the metrics that block it.
+ */
+export const previewRoutineDeleteOptions = (options: Options<PreviewRoutineDeleteData>) => queryOptions<PreviewRoutineDeleteResponse, PreviewRoutineDeleteError, PreviewRoutineDeleteResponse, ReturnType<typeof previewRoutineDeleteQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await previewRoutineDelete({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: previewRoutineDeleteQueryKey(options)
+});
+
 /**
  * Create Routine Step
  */
@@ -1848,6 +1938,9 @@ export const createRoutineStepMutation = (options?: Partial<Options<CreateRoutin
 
 /**
  * Delete Routine Step
+ *
+ * Delete the step with its logs and pauses. Refused while it feeds a metric. This
+ * can't be undone.
  */
 export const deleteRoutineStepMutation = (options?: Partial<Options<DeleteRoutineStepData>>): UseMutationOptions<DeleteRoutineStepResponse, DeleteRoutineStepError, Options<DeleteRoutineStepData>> => {
     const mutationOptions: UseMutationOptions<DeleteRoutineStepResponse, DeleteRoutineStepError, Options<DeleteRoutineStepData>> = {
@@ -1964,6 +2057,26 @@ export const unarchiveRoutineStepMutation = (options?: Partial<Options<Unarchive
     };
     return mutationOptions;
 };
+
+export const previewRoutineStepDeleteQueryKey = (options: Options<PreviewRoutineStepDeleteData>) => createQueryKey('previewRoutineStepDelete', options);
+
+/**
+ * Preview Routine Step Delete
+ *
+ * The counts for the delete confirmation, and the metrics that block it.
+ */
+export const previewRoutineStepDeleteOptions = (options: Options<PreviewRoutineStepDeleteData>) => queryOptions<PreviewRoutineStepDeleteResponse, PreviewRoutineStepDeleteError, PreviewRoutineStepDeleteResponse, ReturnType<typeof previewRoutineStepDeleteQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await previewRoutineStepDelete({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: previewRoutineStepDeleteQueryKey(options)
+});
 
 /**
  * Clear Routine Step Day

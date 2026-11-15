@@ -44,6 +44,7 @@
 - Added the cascade engine: archiving an area archives everything in it, and completing, cancelling or archiving a project changes its items, each with a preview and one undo batch. The area page asks before archiving and lists what goes with it.
 - Built the detail panel: one panel for areas, projects, tasks, recurring tasks, events, metrics, routines and routine steps, with an editable title, chips, subtasks and Markdown notes (floating toolbar, "/" menu, View Markdown, notes per event or per series). Edit area opens it; the Edit area pop-up and the area page's Notes tab are gone.
 - Built the life areas overview: `GET /api/life-areas/overview` (effort, outcomes, projects against pace, routine steps done, wins) and its five cards, with the Outcomes sort and filter menu.
+- Updated the data rules from the design chat: metric format and unit, metrics fed by a routine step (entries derived from its days), a current value on create, and delete rules for every item, with delete previews for the confirmation counts. Migration, tests and the regenerated client included.
 
 - Added the UI style guide, the approved mock-ups and the design tokens under `design/`.
 - Finished Phase 1 (PR #5): the app shell from the approved mock-ups (icon rail, Areas sidebar with LIFE AREAS heading and Archived areas), an area page header, archived areas, and the period switch. Area colors are now palette keys, and the token CSS is generated and checked in CI. Added the approved overview states: no areas, areas with no data, the New and Edit area pop-ups, the ⋯ menu and Reorder areas (with a reorder endpoint).
@@ -53,5 +54,6 @@
 - Card menus for Effort, Projects, Routine steps done and Wins, and Export as CSV, once their options are designed.
 - Project complete, cancel and archive in the UI, with previews from the cascade engine.
 - Create forms for tasks, events, projects and routine steps, which turn on the rest of the Add menu.
+- Metric formatting on screen (`Intl.NumberFormat`), the New metric presets and current value, and delete confirmations and undo toasts that use the delete previews.
 - The project page and projects overview, then the Phase 2 screens.
 - The cascade engine, with its preview and confirm screens.

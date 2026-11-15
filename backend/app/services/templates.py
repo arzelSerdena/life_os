@@ -1,10 +1,11 @@
 """Task templates, as in Notion, and recurring tasks (templates with a repeat rule)."""
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app import clock, rrules
@@ -151,24 +152,49 @@ def unarchive_template(session: Session, template_id: int) -> TaskTemplate:
     return _save(session, template)
 
 
-def delete_template(session: Session, template_id: int) -> None:
-    """Delete a template. Tasks created from it by hand stay, without the link.
+@dataclass(frozen=True)
+class TemplateDeletePreview:
+    subtasks: int  # the template's own checklist
+    open_occurrences: int  # deleted
+    finished_occurrences: int  # kept as plain tasks
+    tasks_made_by_hand: int  # kept, without the link
 
-    A recurring task with occurrences can only be archived: its occurrences need it.
+
+def delete_preview(session: Session, template_id: int) -> TemplateDeletePreview:
+    template = get_template(session, template_id)
+    tasks = session.scalars(select(Task).where(Task.template_id == template.id)).all()
+    occurrences = [task for task in tasks if task.occurrence_date is not None]
+    return TemplateDeletePreview(
+        subtasks=len(template.subtasks),
+        open_occurrences=sum(task.status == "todo" for task in occurrences),
+        finished_occurrences=sum(task.status != "todo" for task in occurrences),
+        tasks_made_by_hand=len(tasks) - len(occurrences),
+    )
+
+
+def delete_template(session: Session, template_id: int) -> None:
+    """Delete a template, its checklist and its open occurrences. This can't be undone.
+
+    Done and cancelled occurrences stay as plain tasks: template_id and occurrence_date
+    are both cleared, as the occurrence CHECK requires. Tasks made from it by hand stay,
+    without the link.
     """
     template = get_template(session, template_id)
-    has_occurrences = session.scalar(
-        select(Task.id)
-        .where(Task.template_id == template.id, Task.occurrence_date.is_not(None))
-        .limit(1)
-    )
-    if has_occurrences is not None:
-        raise ConflictError(
-            f"Template {template_id} has occurrences, so it can't be deleted. Archive it instead."
+    session.execute(
+        delete(Task).where(
+            Task.template_id == template.id,
+            Task.occurrence_date.is_not(None),
+            Task.status == "todo",
         )
-    session.execute(update(Task).where(Task.template_id == template.id).values(template_id=None))
+    )
+    session.execute(
+        update(Task)
+        .where(Task.template_id == template.id)
+        .values(template_id=None, occurrence_date=None)
+    )
     session.delete(template)
     session.commit()
+    session.expire_all()
 
 
 def create_task_from_template(session: Session, template_id: int, data: TaskFromTemplate) -> Task:

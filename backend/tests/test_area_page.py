@@ -230,6 +230,7 @@ def test_task_lists_and_the_agenda(client: TestClient, session: Session) -> None
             "title": "Books",
             "day": "2026-12-31",
             "target_value": 12,
+            "format": "number",
             "unit": None,
         }
     ]

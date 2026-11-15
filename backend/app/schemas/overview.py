@@ -4,7 +4,15 @@ from typing import Literal
 from pydantic import BaseModel
 
 from app.schemas.life_area import LifeAreaRead
-from app.schemas.metric import Aggregation, Direction, Period, PeriodStatus, TargetKind
+from app.schemas.metric import (
+    Aggregation,
+    Direction,
+    Format,
+    Period,
+    PeriodStatus,
+    Source,
+    TargetKind,
+)
 from app.services import overview as service
 
 OverviewPeriod = Literal["week", "month", "quarter", "year"]
@@ -50,7 +58,9 @@ class OutcomeRead(BaseModel):
     metric_id: int
     life_area_id: int
     title: str
+    format: Format
     unit: str | None
+    source: Source
     aggregation: Aggregation
     direction: Direction
     target: OutcomeTargetRead | None
@@ -69,7 +79,9 @@ class OutcomeRead(BaseModel):
             metric_id=metric.id,
             life_area_id=metric.life_area_id,
             title=metric.title,
+            format=metric.format,  # type: ignore[arg-type]
             unit=metric.unit,
+            source=metric.source,  # type: ignore[arg-type]
             aggregation=metric.aggregation,  # type: ignore[arg-type]
             direction=metric.direction,  # type: ignore[arg-type]
             target=None
@@ -142,6 +154,7 @@ class WinRead(BaseModel):
     project_id: int | None
     metric_id: int | None
     target_value: float | None
+    format: Format | None
     unit: str | None
     direction: Direction | None
     period: Period | None
