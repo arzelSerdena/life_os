@@ -38,8 +38,7 @@ empty_main = f'''<main class="main career withagenda"><div class="content">
   <div class="areahead"><div>
     <div class="ttl"><span class="pfold">{ic('folder')}</span><h1 class="t-page">Portfolio site</h1></div>
     <div class="phead-sub" style="padding-left:28px"><span class="tag area"><span class="dot"></span>Career</span>
-      <span class="tag neutral">Active</span><span class="t-meta">Started Nov 14 · no due date</span>
-      <span class="hprog"><span class="t-meta hpt">No tasks yet</span></span></div></div>
+      <span class="tag neutral">Active</span><span class="t-meta">Started Nov 14 · no due date</span></div></div>
     <div class="acts">
       <div class="seg"><span>Week</span><span>Month</span><span class="on">Quarter</span><span>Year</span></div>
       <div class="pnav"><span class="icon-btn">{ic('left')}</span><span class="pl">Q4 2026</span><span class="icon-btn">{ic('right')}</span></div>
@@ -112,6 +111,10 @@ metric = modal('s-metric', 'New metric', f'''
     <div class="frow2 tgt-row"><span class="inp num2">4</span><span class="t-body">by</span><span class="inp sel2">Nov 30, 2026{ic('cal')}</span></div></div>''',
     '<button class="btn">Cancel</button><button class="btn primary">Create metric</button>', 520)
 
+# editing an existing entity opens the detail panel, not a pop-up (Nov 14)
+import build_panel as _bp  # noqa: E402
+edit = _bp.proj.replace('class="panel dpanel ', 'class="panel dpanel pnl-sedit ', 1)
+
 CSS = '''
 .st-normal,.st-empty{display:none}
 body.s-normal .st-normal,body.s-add .st-normal,body.s-more .st-normal,body.s-edit .st-normal,body.s-complete .st-normal,
@@ -129,7 +132,7 @@ body.s-complete .pop2.s-complete{display:block}
 '''
 CSS_PROJ = p2.CSS  # header and sidebar styles for the empty state
 states = [('s-normal', 'Normal'), ('s-empty', 'New project, no data'), ('s-add', 'Add menu'), ('s-more', '⋯ menu'),
-          ('s-edit', 'Edit project'), ('s-complete', 'Complete project'), ('s-archive', 'Archive project'), ('s-metric', 'New metric')]
+          ('s-edit', 'Edit project (side panel)'), ('s-complete', 'Complete project'), ('s-archive', 'Archive project'), ('s-metric', 'New metric')]
 switch = ('<div class="states"><span>Mock state</span><div class="seg" id="st">'
           + ''.join(f'<span{" class=on" if i == 0 else ""} data-s="{k}">{n}</span>' for i, (k, n) in enumerate(states)) + '</div></div>')
 
@@ -137,7 +140,7 @@ html = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Life OS — Areas · Project screen, all states</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>{head_css}{be.CSS}{ast.CSS}{CSS_PROJ}{CSS}</style></head>
+<style>{head_css}{_bp.PANEL_CSS}body.s-edit .pnl-sedit{{display:flex}}{be.CSS}{ast.CSS}{CSS_PROJ}{CSS}</style></head>
 <body class="s-normal">
 {body}
 {empty_app}
