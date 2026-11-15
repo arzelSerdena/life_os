@@ -118,8 +118,15 @@ test("creates an area with the first free color, then opens its page", async () 
   await user.type(within(dialog).getByLabelText(/^Vision/), "Feel strong");
   await user.click(within(dialog).getByRole("button", { name: "Create area" }));
 
-  expect(await screen.findByRole("heading", { name: "Health" })).toBeInTheDocument();
-  expect(screen.getByText("Feel strong")).toBeInTheDocument();
+  // The page header re-renders once the page loads, so check the settled page in one
+  // retry rather than holding on to the first heading found.
+  await waitFor(
+    () => {
+      expect(screen.getByRole("heading", { name: "Health" })).toBeInTheDocument();
+      expect(screen.getByText("Feel strong")).toBeInTheDocument();
+    },
+    { timeout: 3000 },
+  );
   expect(await sidebarAreas().findByRole("link", { name: "Health" })).toBeInTheDocument();
   expect(writes()).toEqual([
     {
