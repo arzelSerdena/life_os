@@ -377,7 +377,7 @@ function ProjectPanel({ id }: { id: number }) {
   const { done, total } = project.progress;
   const now = today();
   const left = project.due_date ? daysBetween(now, project.due_date) : null;
-  const dates = `${shortDate(project.created_at.slice(0, 10))} – ${
+  const dates = `${shortDate(project.start_date ?? project.created_at.slice(0, 10))} – ${
     project.due_date ? shortDate(project.due_date) : "No due date"
   }${
     left === null || project.status !== "active"

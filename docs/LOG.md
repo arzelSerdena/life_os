@@ -69,6 +69,7 @@
 
 - Project Complete, Cancel, Archive, Reopen and Restore in the detail panel's ⋯ menu. Complete, Cancel and Archive confirm with what they do to the project's items (from the cascade preview), and the toast after them has Undo, which restores the whole batch.
 - The sidebar stays docked at every window width; it no longer turns into a floating overlay below 1440 px.
+- Projects can be created: the sidebar's new PROJECTS group lists active projects and its + opens New project (name, life area, start, due, notes); the area page's Add → Project opens it too. Projects gained an optional start date (migration included).
 
 **Next**
 

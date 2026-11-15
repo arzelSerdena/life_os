@@ -101,6 +101,17 @@ def test_metrics_are_the_areas_own(client: TestClient, session: Session) -> None
     assert [m["title"] for m in page(client, area)["metrics"]] == ["Applications"]
 
 
+def test_a_project_starts_on_its_start_date_when_it_has_one(
+    client: TestClient, session: Session
+) -> None:
+    area = make_life_area(session, "Career")
+    make_project(
+        session, area, "Resume", created_at=noon(date(2026, 10, 2)), start_date=date(2026, 10, 9)
+    )
+
+    assert page(client, area)["projects"][0]["start"] == "2026-10-09"
+
+
 def test_projects_are_active_ones_and_those_finished_in_the_period(
     client: TestClient, session: Session
 ) -> None:

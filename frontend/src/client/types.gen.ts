@@ -73,8 +73,8 @@ export type AreaPageRead = {
 /**
  * AreaProjectRead
  *
- * An active project, or one finished in the period. start is its created date until
- * projects get a start date.
+ * An active project, or one finished in the period. start is its start date, or the
+ * day it was created if it has none.
  */
 export type AreaProjectRead = {
     /**
@@ -1284,6 +1284,10 @@ export type ProjectCreate = {
      */
     notes?: string | null;
     /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
      * Due Date
      */
     due_date?: string | null;
@@ -1337,6 +1341,10 @@ export type ProjectRead = {
      * Notes
      */
     notes: string | null;
+    /**
+     * Start Date
+     */
+    start_date: string | null;
     /**
      * Due Date
      */
@@ -1394,6 +1402,10 @@ export type ProjectUpdate = {
      * Notes
      */
     notes?: string | null;
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
     /**
      * Due Date
      */

@@ -3,6 +3,7 @@ because they change the project's tasks and events too."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import date
 
 from sqlalchemy import case, delete, func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -96,6 +97,7 @@ def has_items(session: Session, project: Project) -> bool:
 
 def create_project(session: Session, data: ProjectCreate) -> Project:
     _open_life_area(session, data.life_area_id)
+    _check_dates(data.start_date, data.due_date)
     last_position = session.scalar(
         select(func.max(Project.sort_order)).where(Project.life_area_id == data.life_area_id)
     )
@@ -108,9 +110,18 @@ def create_project(session: Session, data: ProjectCreate) -> Project:
 
 def update_project(session: Session, project_id: int, data: ProjectUpdate) -> Project:
     project = get_project(session, project_id)
-    for field, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    _check_dates(
+        changes.get("start_date", project.start_date), changes.get("due_date", project.due_date)
+    )
+    for field, value in changes.items():
         setattr(project, field, value)
     return _save(session, project)
+
+
+def _check_dates(start_date: date | None, due_date: date | None) -> None:
+    if start_date is not None and due_date is not None and due_date < start_date:
+        raise UnprocessableError("The due date can't be before the start date.")
 
 
 def move_project(

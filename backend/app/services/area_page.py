@@ -210,7 +210,7 @@ def _projects(session: Session, life_area_id: int, view: DateRange) -> list[Proj
         if project.status == "done" and (completed_on is None or completed_on not in view):
             continue
         progress = progress_of(session, project)
-        start = local_date(project.created_at)
+        start = project.start_date or local_date(project.created_at)
         items.append(ProjectItem(project, start, progress.done, progress.total, completed_on))
     return items
 
