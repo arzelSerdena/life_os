@@ -68,6 +68,7 @@
 - One-off tasks and subtasks delete behind an undo toast (6 s, Undo or Ctrl Z); a recurring occurrence offers Cancel task instead.
 
 - Project Complete, Cancel, Archive, Reopen and Restore in the detail panel's ⋯ menu. Complete, Cancel and Archive confirm with what they do to the project's items (from the cascade preview), and the toast after them has Undo, which restores the whole batch.
+- The sidebar stays docked at every window width; it no longer turns into a floating overlay below 1440 px.
 
 **Next**
 

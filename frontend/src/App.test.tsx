@@ -5,7 +5,7 @@ import { SIDEBAR_DEFAULT_WIDTH, useSidebarStore } from "./stores/sidebarStore";
 import { renderApp } from "./test-utils";
 
 beforeEach(() => {
-  useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH, overlayOpen: false });
+  useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH });
   vi.stubGlobal(
     "fetch",
     vi.fn(
