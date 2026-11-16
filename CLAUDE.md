@@ -26,6 +26,7 @@ Run these from `frontend/`:
 - Install dependencies: `pnpm install`
 - Run the dev server (the API must also be running): `pnpm dev`
 - Run all tests: `pnpm test`
+- Run the browser tests (Playwright; first run `pnpm exec playwright install chromium`): `pnpm e2e`. They start their own API on 8100, on a fresh temporary database, and Vite on 5180, so they never touch the dev servers or real data. Specs live in `frontend/e2e/`.
 - Run a single test: `pnpm test src/App.test.tsx -t "shows that the API is connected"`
 - Lint and format: `pnpm format`
 - Type-check: `pnpm typecheck`

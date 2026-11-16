@@ -25,3 +25,7 @@ dist-ssr
 
 # Exported from the backend; only used to generate src/client
 openapi.json
+
+# Playwright
+test-results
+playwright-report
