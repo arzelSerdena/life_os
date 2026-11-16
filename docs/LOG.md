@@ -156,6 +156,8 @@
 
 - Cancelling one occurrence of a repeating event (`POST /api/events/{id}/occurrences/{day}/cancel` with scope "this") is now recorded for undo and returns a `batch_id`: undo removes the exception the cancel created, or clears `is_cancelled` on one that held other one-off changes. No screen cancels a single occurrence yet (Delete → This event still cancels it without undo, as deletes aren't undoable). Tests in `test_events.py`.
 
+- Every other pop-up (New task, New event, New area / Edit area, Reorder areas, New metric) now uses `scroll="inside"` too, so none can push its footer off a short window. New task and New event pick the owner from a popover, so they don't grow with the number of areas, but Reorder areas lists every area and New metric every routine step. Browser test in `new-task.spec.ts` (240px-tall window).
+
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

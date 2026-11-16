@@ -60,7 +60,8 @@ export function ReorderAreasModal({ lifeAreas, onClose }: ReorderAreasModalProps
       onOpenChange={(isOpen) => !isOpen && onClose()}
       className="bg-[rgb(17_24_39/0.32)]"
     >
-      <Modal.Container>
+      {/* Long content scrolls in the body, so the footer stays on screen. */}
+      <Modal.Container scroll="inside">
         <Modal.Dialog className="w-[360px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
           <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
             <Modal.Heading className="type-panel-title text-(--text-primary)">

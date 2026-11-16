@@ -202,3 +202,15 @@ test("Ctrl N and N open New task on any screen, with the page's spot", async ({
   await expect(modal).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
 });
+
+test("on a short window the pop-up's body scrolls and its footer stays on screen", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 240 });
+  await page.goto("/areas");
+  await page.keyboard.press("Control+n");
+  const modal = dialog(page);
+
+  await expect(modal.getByRole("button", { name: "Create task" })).toBeInViewport();
+  await expect(modal.getByRole("button", { name: "Cancel" })).toBeInViewport();
+});
