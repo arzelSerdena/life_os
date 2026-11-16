@@ -4681,7 +4681,7 @@ export type UpdateTaskResponses = {
     /**
      * Successful Response
      */
-    200: TaskRead;
+    200: TaskChange;
 };
 
 export type UpdateTaskResponse = UpdateTaskResponses[keyof UpdateTaskResponses];

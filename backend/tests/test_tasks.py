@@ -189,9 +189,44 @@ def test_list_rejects_contradictory_filters(client: TestClient, params: dict[str
 def test_update_changes_only_the_fields_sent(client: TestClient) -> None:
     task = _create(client, "Run", notes="5 km", priority="low")
 
-    body = client.patch(f"{URL}/{task['id']}", json={"title": "Long run"}).json()
+    body = client.patch(f"{URL}/{task['id']}", json={"title": "Long run"}).json()["task"]
 
     assert (body["title"], body["notes"], body["priority"]) == ("Long run", "5 km", "low")
+
+
+def test_undo_puts_a_filed_task_back_where_it_was(client: TestClient) -> None:
+    """Filing from the Inbox (a date, a priority) is one undoable change."""
+    _create(client, "Already there", scheduled_date="2026-11-20")
+    task = _create(client, "Call the bank")
+
+    change = client.patch(
+        f"{URL}/{task['id']}", json={"scheduled_date": "2026-11-20", "priority": "high"}
+    ).json()
+
+    assert change["batch_id"]
+    assert change["task"]["sort_order"] == 1  # the end of Nov 20
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 200
+    restored = client.get(f"{URL}/{task['id']}").json()
+    assert (restored["scheduled_date"], restored["priority"]) == (None, "none")
+    assert restored["sort_order"] == task["sort_order"]
+
+
+def test_notes_edits_and_unchanged_fields_leave_nothing_to_undo(client: TestClient) -> None:
+    task = _create(client, "Run", priority="low")
+
+    notes = client.patch(f"{URL}/{task['id']}", json={"notes": "5 km"}).json()
+    same = client.patch(f"{URL}/{task['id']}", json={"priority": "low"}).json()
+
+    assert notes["task"]["notes"] == "5 km"
+    assert (notes["batch_id"], same["batch_id"]) == (None, None)
+
+
+def test_undoing_a_filed_task_is_refused_once_it_changed_again(client: TestClient) -> None:
+    task = _create(client, "Call the bank")
+    change = client.patch(f"{URL}/{task['id']}", json={"priority": "high"}).json()
+    client.patch(f"{URL}/{task['id']}", json={"priority": "medium"})
+
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 409
 
 
 @pytest.mark.parametrize(

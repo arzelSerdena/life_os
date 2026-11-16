@@ -120,7 +120,9 @@
 
 - Action buttons are never black: primary buttons (the accent) are brand 700 again, matching the approved mock-ups; inside an area they stay the area's 500 colour. Token, theme comment and style guide (doc and `design/STYLE_GUIDE.md`) updated.
 
+- Inbox (`/tasks/inbox`): open tasks with no life area, oldest first, beside a container that files them, with Areas | Calendar | Priority (remembered). Drag a card onto an area or a project, a day in the month grid, or a priority; or use the card's hover actions (Area ▾ with each area's active projects, Today, Date with the date field and Today / Tomorrow / Next week) or the keys `A`, `T`, `D`. Every filing shows the undo toast (Moved “X” · Career, Scheduled “X” · Today, Set “X” · High priority). `PATCH /api/tasks/{id}` now records its changes (all but notes) under an undo batch and returns `TaskChange`, like `/move`. Browser tests in `frontend/e2e/inbox.spec.ts`.
+
 **Next** (code, one branch and PR each, in this order)
 
-- Phase 2 screens: the rest of the Tasks group (Inbox with its hover actions and drop panel, Next 7 days and Routines with drag and drop, the filter-and-sort menu), New task with the column and subgroup +, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
+- Phase 2 screens: the rest of the Tasks group (Next 7 days and Routines with drag and drop, the filter-and-sort menu), New task with the column and subgroup +, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

@@ -75,7 +75,7 @@ export function TasksLayout() {
             </span>
             <SidebarCount value={counts?.all} />
           </SidebarLink>
-          <NotBuiltRow icon={Inbox} label="Inbox" count={counts?.inbox} />
+          <ViewLink to="/tasks/inbox" icon={Inbox} label="Inbox" count={counts?.inbox} />
           <ViewLink to="/tasks/today" icon={Sun} label="Today" count={counts?.today} />
           <ViewLink
             to="/tasks/unscheduled"

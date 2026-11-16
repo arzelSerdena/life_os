@@ -1,6 +1,6 @@
-import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { Navigate, useParams } from "react-router";
 import { QueryError } from "../../components/QueryError";
+import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { type GroupedView, useTaskBoard } from "../../stores/taskBoardStore";
 import { type BoardGroup, buildColumns, isTaskView, type TaskView, tasksForView } from "./board";
 import { Board } from "./TaskBoard";
@@ -45,7 +45,15 @@ export function TasksPage() {
         {grouped && (
           <>
             <span aria-hidden className="h-5 w-px bg-(--border-default)" />
-            <GroupSwitch value={group} onChange={(next) => setGroup(view as GroupedView, next)} />
+            <SegmentSwitch
+              label="Group by"
+              value={group}
+              options={[
+                { key: "priority", label: "Priority" },
+                { key: "area", label: "Area" },
+              ]}
+              onChange={(next) => setGroup(view as GroupedView, next)}
+            />
           </>
         )}
       </header>
@@ -66,37 +74,5 @@ export function TasksPage() {
         </div>
       )}
     </>
-  );
-}
-
-function GroupSwitch({
-  value,
-  onChange,
-}: {
-  value: BoardGroup;
-  onChange: (group: BoardGroup) => void;
-}) {
-  return (
-    <ToggleButtonGroup
-      aria-label="Group by"
-      selectionMode="single"
-      disallowEmptySelection
-      selectedKeys={[value]}
-      onSelectionChange={(keys) => {
-        const [selected] = keys;
-        onChange(selected as BoardGroup);
-      }}
-      className="h-7 gap-0 rounded-(--switch-container-radius) bg-(--switch-container-bg) p-0.5"
-    >
-      {(["priority", "area"] as const).map((key) => (
-        <ToggleButton
-          key={key}
-          id={key}
-          className="h-6 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 text-xs font-medium text-(--switch-default-text) hover:bg-white/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
-        >
-          {key === "priority" ? "Priority" : "Area"}
-        </ToggleButton>
-      ))}
-    </ToggleButtonGroup>
   );
 }

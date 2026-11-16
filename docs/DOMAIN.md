@@ -144,7 +144,7 @@ Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/proj
 
 Undo groups the batch's rows by entity and restores all fields of one entity in a **single UPDATE**. Status and timestamp must change together or the CHECK constraint fails.
 
-`status_changes` records field changes, plus tasks a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks and series cancellations. Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.
+`status_changes` records field changes, plus tasks a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks, series cancellations and task edits other than notes (so filing a task by date or priority can be undone). Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.
 
 AI agents may call the same service-layer operations, but cascades always require the user's confirmation.
 

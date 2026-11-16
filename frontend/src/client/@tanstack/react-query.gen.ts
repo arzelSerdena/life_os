@@ -940,6 +940,8 @@ export const getTaskOptions = (options: Options<GetTaskData>) => queryOptions<Ge
 
 /**
  * Update Task
+ *
+ * Change the fields sent. The batch undoes every change except to notes.
  */
 export const updateTaskMutation = (options?: Partial<Options<UpdateTaskData>>): UseMutationOptions<UpdateTaskResponse, UpdateTaskError, Options<UpdateTaskData>> => {
     const mutationOptions: UseMutationOptions<UpdateTaskResponse, UpdateTaskError, Options<UpdateTaskData>> = {
