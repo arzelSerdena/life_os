@@ -12,10 +12,12 @@ type BoardProps = {
   group: BoardGroup;
   columns: Column[];
   context: BoardContext;
+  /** False where the columns or subgroups already show priority. */
+  showFlag: boolean;
 };
 
 /** Columns one fifth of the board wide (at least 260 px); more columns scroll sideways. */
-export function Board({ view, group, columns, context }: BoardProps) {
+export function Board({ view, group, columns, context, showFlag }: BoardProps) {
   return (
     <div className="@container min-h-0 flex-1 overflow-x-auto px-(--page-gutter) pt-4">
       <div className="flex h-full min-w-min gap-4">
@@ -26,6 +28,7 @@ export function Board({ view, group, columns, context }: BoardProps) {
             group={group}
             column={column}
             context={context}
+            showFlag={showFlag}
           />
         ))}
       </div>
@@ -38,11 +41,13 @@ function BoardColumn({
   group,
   column,
   context,
+  showFlag,
 }: {
   view: TaskView;
   group: BoardGroup;
   column: Column;
   context: BoardContext;
+  showFlag: boolean;
 }) {
   const headingId = `column-${view}-${column.key}`;
   return (
@@ -68,16 +73,10 @@ function BoardColumn({
               collapseKey={`${view}/${group}/${column.key}/${subgroup.key}`}
               subgroup={subgroup}
             >
-              <Cards view={view} group={group} subgroup={subgroup} context={context} />
+              <Cards subgroup={subgroup} context={context} showFlag={showFlag} />
             </SubgroupBlock>
           ) : (
-            <Cards
-              key={subgroup.key}
-              view={view}
-              group={group}
-              subgroup={subgroup}
-              context={context}
-            />
+            <Cards key={subgroup.key} subgroup={subgroup} context={context} showFlag={showFlag} />
           ),
         )}
       </div>
@@ -123,17 +122,14 @@ export function SubgroupBlock({
 }
 
 function Cards({
-  view,
-  group,
   subgroup,
   context,
+  showFlag,
 }: {
-  view: TaskView;
-  group: BoardGroup;
   subgroup: Subgroup;
   context: BoardContext;
+  showFlag: boolean;
 }) {
-  const finished = view === "completed" || view === "cancelled";
   const colorOf = (lifeAreaId: number | null) =>
     context.lifeAreas.find((area) => area.id === lifeAreaId)?.color ?? null;
   return (
@@ -152,7 +148,7 @@ function Cards({
           today={context.today}
           areaColor={colorOf(task.life_area_id)}
           project={context.projects.find((project) => project.id === task.project_id)}
-          showFlag={finished || group !== "priority"}
+          showFlag={showFlag}
           showProject={!subgroup.project}
         />
       ))}

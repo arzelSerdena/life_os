@@ -29,6 +29,8 @@ import { useTaskBoard } from "../../stores/taskBoardStore";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { PRIORITIES } from "./board";
+import { FilterMenu, useClearFilters, useViewFilters } from "./FilterMenu";
+import { sortTasks, taskShown } from "./filters";
 import {
   addDays,
   addMonths,
@@ -59,6 +61,9 @@ export function InboxPage() {
     <>
       <header className="box-content flex h-(--page-header-height) shrink-0 items-center gap-3 px-(--page-gutter) pt-(--page-gutter)">
         <h1 className="truncate type-page-title text-(--page-title)">Inbox</h1>
+        <div className="ml-auto flex items-center gap-2">
+          {data && <FilterMenu view="inbox" layout="area" lifeAreas={data.lifeAreas} />}
+        </div>
       </header>
       {error ? (
         <div className="p-(--page-gutter)">
@@ -78,7 +83,13 @@ function Inbox({ data }: { data: TasksData }) {
   const [dragged, setDragged] = useState<TaskRead | null>(null);
   // A short move starts a drag, so a click still opens the card.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-  const tasks = inboxList(data.tasks);
+  const filters = useViewFilters("inbox", "area");
+  const clearFilters = useClearFilters("inbox");
+  const inbox = inboxList(data.tasks);
+  const tasks = sortTasks(
+    inbox.filter((task) => taskShown(filters, task)),
+    filters.sort,
+  );
 
   const onDragStart = (event: DragStartEvent) =>
     setDragged((event.active.data.current?.task as TaskRead | undefined) ?? null);
@@ -106,8 +117,15 @@ function Inbox({ data }: { data: TasksData }) {
               Couldn't file the task. Try again.
             </p>
           )}
-          {tasks.length === 0 ? (
+          {inbox.length === 0 ? (
             <p className="px-0.5 py-2 type-body text-(--text-tertiary)">Inbox is empty.</p>
+          ) : tasks.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 px-0.5 py-2">
+              <p className="type-body text-(--text-tertiary)">No tasks match the filters.</p>
+              <Button variant="secondary" size="sm" onPress={clearFilters}>
+                Clear filters
+              </Button>
+            </div>
           ) : (
             <ul className="flex min-h-0 flex-col gap-1.5 overflow-y-auto pb-6">
               {tasks.map((task) => (

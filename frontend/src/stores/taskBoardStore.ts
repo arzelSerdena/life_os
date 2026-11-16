@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { BoardGroup } from "../features/tasks/board";
+import type { FilterView, StoredFilters } from "../features/tasks/filters";
 
 /** The views with a Priority | Area switch. */
 export type GroupedView = "all" | "today" | "unscheduled";
@@ -13,18 +14,26 @@ type TaskBoardState = {
   collapsed: string[];
   /** The Inbox's right container: file by area, by date or by priority. */
   inboxPanel: InboxPanel;
+  /** Each view's filter-and-sort choices; missing ones take the view's defaults. */
+  filters: Partial<Record<FilterView, StoredFilters>>;
+  setFilters: (view: FilterView, change: (current: StoredFilters) => StoredFilters) => void;
   setInboxPanel: (panel: InboxPanel) => void;
   setGroup: (view: GroupedView, group: BoardGroup) => void;
   toggleCollapsed: (key: string) => void;
 };
 
-/** Each Tasks view's grouping and collapsed subgroups, remembered in the browser. */
+/** Each Tasks view's grouping, filters, sort and collapsed subgroups, remembered in the browser. */
 export const useTaskBoard = create<TaskBoardState>()(
   persist(
     (set) => ({
       groups: { all: "priority", today: "priority", unscheduled: "priority" },
       collapsed: [],
       inboxPanel: "areas",
+      filters: {},
+      setFilters: (view, change) =>
+        set((state) => ({
+          filters: { ...state.filters, [view]: change(state.filters[view] ?? {}) },
+        })),
       setInboxPanel: (inboxPanel) => set({ inboxPanel }),
       setGroup: (view, group) => set((state) => ({ groups: { ...state.groups, [view]: group } })),
       toggleCollapsed: (key) =>

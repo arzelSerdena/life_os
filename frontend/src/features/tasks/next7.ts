@@ -7,6 +7,7 @@ import type {
 } from "../../client/types.gen";
 import { shortDate } from "../life-areas/overview/format";
 import { isOverdue, placementDate } from "./board";
+import { areaShown, type Filters, resolveFilters, sortTasks, taskShown } from "./filters";
 import { addDays } from "./inbox";
 
 /**
@@ -38,9 +39,9 @@ export type DayColumn = {
   routines: RoutineDay[];
   events: OccurrenceRead[];
   projects: ProjectRead[];
-  /** Open tasks in the day's order; these can be dragged. */
+  /** Open tasks in the chosen order (Manual: the day's order); these can be dragged. */
   open: TaskRead[];
-  /** Done tasks, last, in the order they were done. */
+  /** Done tasks in the order they were done, then cancelled ones; listed last. */
   done: TaskRead[];
 };
 
@@ -65,7 +66,7 @@ function byOrder(a: TaskRead, b: TaskRead): number {
 
 /** Overdue tasks are listed in Today only, whatever day they are placed on. */
 function onColumn(task: TaskRead, day: string | null, today: string): boolean {
-  if (task.status === "cancelled" || isOverdue(task, today)) return false;
+  if (isOverdue(task, today)) return false;
   if (day === null) return task.status === "todo" && placementDate(task) === null;
   return placementDate(task) === day;
 }
@@ -94,32 +95,65 @@ export function routineDays(steps: readonly RoutineStepDay[], day: string): Rout
   return [...routines.values()];
 }
 
-/** No date plus one column per day. */
+/**
+ * No date plus one column per day, after the filter-and-sort menu's choices: Priority and
+ * Life areas filter the tasks (Life areas also the routine steps, events and project due
+ * dates), SHOW turns each kind on or off, and the sort orders the open tasks.
+ */
 export function buildDayColumns(
   tasks: readonly TaskRead[],
   days: readonly DayRead[],
   projects: readonly ProjectRead[],
   today: string,
+  filters: Filters = resolveFilters("next7", "days", undefined),
 ): DayColumn[] {
+  const { show } = filters;
+  const shown = tasks.filter((task) => taskShown(filters, task));
   const column = (day: string | null, titles: { title: string; subtitle: string }) => {
-    const listed = tasks.filter((task) => onColumn(task, day, today));
+    const listed = shown.filter((task) => onColumn(task, day, today));
     const overdue =
-      day === today ? tasks.filter((task) => isOverdue(task, today)).sort(byOrder) : [];
-    const open = listed.filter((task) => task.status === "todo").sort(byOrder);
+      day === today
+        ? sortTasks(shown.filter((task) => isOverdue(task, today)).sort(byOrder), filters.sort)
+        : [];
+    const open = sortTasks(
+      listed.filter((task) => task.status === "todo").sort(byOrder),
+      filters.sort,
+    );
     const found = days.find((item) => item.day === day);
+    const steps =
+      found && show.routines
+        ? found.routine_steps.filter((step) => areaShown(filters, step.life_area_id))
+        : [];
+    const byTimeDone = (a: TaskRead, b: TaskRead) =>
+      (a.completed_at ?? "").localeCompare(b.completed_at ?? "") || a.id - b.id;
+    const byTimeCancelled = (a: TaskRead, b: TaskRead) =>
+      (a.cancelled_at ?? "").localeCompare(b.cancelled_at ?? "") || a.id - b.id;
     return {
       key: day ?? NO_DATE,
       day,
       ...titles,
       count: open.length + overdue.length,
       overdue,
-      routines: found && day ? routineDays(found.routine_steps, day) : [],
-      events: found ? found.events.filter((event) => !event.is_cancelled).sort(byTime) : [],
-      projects: day ? projects.filter((project) => project.due_date === day) : [],
+      routines: day ? routineDays(steps, day) : [],
+      events:
+        found && show.events
+          ? found.events
+              .filter((event) => !event.is_cancelled && areaShown(filters, event.life_area_id))
+              .sort(byTime)
+          : [],
+      projects:
+        day && show.projects
+          ? projects.filter(
+              (project) => project.due_date === day && areaShown(filters, project.life_area_id),
+            )
+          : [],
       open,
-      done: listed
-        .filter((task) => task.status === "done")
-        .sort((a, b) => (a.completed_at ?? "").localeCompare(b.completed_at ?? "") || a.id - b.id),
+      done: [
+        ...(show.completed ? listed.filter((task) => task.status === "done").sort(byTimeDone) : []),
+        ...(show.cancelled
+          ? listed.filter((task) => task.status === "cancelled").sort(byTimeCancelled)
+          : []),
+      ],
     };
   };
   return [

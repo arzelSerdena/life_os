@@ -15,6 +15,7 @@ import {
 import {
   arrayMove,
   SortableContext,
+  type SortingStrategy,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -34,6 +35,9 @@ import { QueryError } from "../../components/QueryError";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { PanelLink } from "../detail-panel/PanelLink";
 import { areaDataAttribute } from "../life-areas/palette";
+import { splitTasks } from "./board";
+import { FilterMenu, useViewFilters } from "./FilterMenu";
+import { type Filters, openFirst, sortTasks } from "./filters";
 import { formatTime, useTimeFormat } from "./format";
 import {
   applyDrop,
@@ -61,6 +65,9 @@ export function Next7Page() {
     <>
       <header className="box-content flex h-(--page-header-height) shrink-0 items-center gap-3 px-(--page-gutter) pt-(--page-gutter)">
         <h1 className="truncate type-page-title text-(--page-title)">Next 7 days</h1>
+        <div className="ml-auto flex items-center gap-2">
+          {data && <FilterMenu view="next7" layout="days" lifeAreas={data.lifeAreas} />}
+        </div>
       </header>
       {error ? (
         <div className="p-(--page-gutter)">
@@ -74,6 +81,9 @@ export function Next7Page() {
     </>
   );
 }
+
+/** Cards keep their places while a task is dragged over them (any sort but Manual). */
+const noShift: SortingStrategy = () => null;
 
 /** Where a dragged task is now: each column's open task ids while the drag lasts. */
 type Drag = { task: TaskRead; from: string; lists: Record<string, number[]> };
@@ -105,7 +115,11 @@ function Next7Board({ data }: { data: TasksData }) {
   // A short move starts a drag, so a click still opens the card.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  const columns = buildDayColumns(data.tasks, data.days, data.projects, data.today);
+  const filters = useViewFilters("next7", "days");
+  const columns = buildDayColumns(data.tasks, data.days, data.projects, data.today, filters);
+  // A day can be reordered by hand only in Manual order with no subgroups; any other sort or
+  // a subgroup decides the order, so a drop then only moves the task to another day.
+  const reorderable = filters.sort === "manual" && filters.subgroup === "none";
   const byId = new Map(data.tasks.map((task) => [task.id, task]));
 
   /** The column holding a task or column droppable id, as the drag has it now. */
@@ -160,7 +174,8 @@ function Next7Board({ data }: { data: TasksData }) {
     }
     const day = to === NO_DATE ? null : to;
     const before = columns.find((column) => column.key === to)?.open.map((item) => item.id);
-    if (to === from && before && before.join() === order.join()) return;
+    if (to === from && (!reorderable || (before && before.join() === order.join()))) return;
+    if (!reorderable) order = [];
 
     // Show the drop at once; the refetch after the save replaces it.
     void queryClient.cancelQueries({ queryKey: TASKS_KEY });
@@ -208,6 +223,7 @@ function Next7Board({ data }: { data: TasksData }) {
         <div className="flex h-full min-w-min gap-4">
           {columns.map((column) => {
             const ids = drag?.lists[column.key] ?? column.open.map((task) => task.id);
+            const listed = ids.flatMap((id) => byId.get(id) ?? []);
             // The target column's counter shows the dragged task (+1), the source's drops it.
             const shift = drag
               ? Number(ids.includes(drag.task.id)) -
@@ -217,10 +233,12 @@ function Next7Board({ data }: { data: TasksData }) {
               <DayColumnView
                 key={column.key}
                 column={column}
-                open={ids.flatMap((id) => byId.get(id) ?? [])}
+                open={reorderable ? listed : sortTasks(listed, filters.sort)}
                 count={column.count + shift}
                 data={data}
                 colorOf={colorOf}
+                filters={filters}
+                reorderable={reorderable}
               />
             );
           })}
@@ -234,7 +252,7 @@ function Next7Board({ data }: { data: TasksData }) {
               today={data.today}
               areaColor={colorOf(drag.task.life_area_id)}
               project={data.projects.find((project) => project.id === drag.task.project_id)}
-              showFlag
+              showFlag={filters.subgroup !== "priority"}
               showProject
             />
           </ul>
@@ -250,12 +268,16 @@ function DayColumnView({
   count,
   data,
   colorOf,
+  filters,
+  reorderable,
 }: {
   column: DayColumn;
   open: TaskRead[];
   count: number;
   data: TasksData;
   colorOf: (lifeAreaId: number | null) => string | null;
+  filters: Filters;
+  reorderable: boolean;
 }) {
   const { setNodeRef } = useDroppable({ id: columnKey(column.key) });
   const headingId = `day-${column.key}`;
@@ -266,11 +288,33 @@ function DayColumnView({
       today={data.today}
       areaColor={colorOf(task.life_area_id)}
       project={data.projects.find((project) => project.id === task.project_id)}
-      showFlag
+      showFlag={filters.subgroup !== "priority"}
       showProject
       containerProps={containerProps}
     />
   );
+  // Open tasks can be dragged; done and cancelled ones can't.
+  const item = (task: TaskRead) =>
+    task.status === "todo" ? (
+      <SortableTask
+        key={task.id}
+        task={task}
+        column={column.key}
+        data={data}
+        renderCard={(containerProps) => card(task, containerProps)}
+      />
+    ) : (
+      card(task)
+    );
+  const subgroups =
+    filters.subgroup === "none"
+      ? []
+      : splitTasks(openFirst([...open, ...column.done]), filters.subgroup, data);
+  // The sortable items in the order they are drawn.
+  const sortable =
+    filters.subgroup === "none"
+      ? open
+      : subgroups.flatMap((subgroup) => subgroup.tasks.filter((task) => task.status === "todo"));
 
   return (
     <section
@@ -336,24 +380,28 @@ function DayColumnView({
         </ul>
         <SortableContext
           id={column.key}
-          items={open.map((task) => taskKey(task.id))}
-          strategy={verticalListSortingStrategy}
+          items={sortable.map((task) => taskKey(task.id))}
+          strategy={reorderable ? verticalListSortingStrategy : noShift}
         >
-          <ul className="flex flex-col gap-1.5">
-            {open.map((task) => (
-              <SortableTask
-                key={task.id}
-                task={task}
-                column={column.key}
-                data={data}
-                renderCard={(containerProps) => card(task, containerProps)}
-              />
-            ))}
-          </ul>
+          {filters.subgroup === "none" ? (
+            <>
+              <ul className="flex flex-col gap-1.5">{open.map(item)}</ul>
+              {column.done.length > 0 && (
+                <ul className="flex flex-col gap-1.5">{column.done.map((task) => card(task))}</ul>
+              )}
+            </>
+          ) : (
+            subgroups.map((subgroup) => (
+              <SubgroupBlock
+                key={subgroup.key}
+                collapseKey={`next7/${filters.subgroup}/${column.key}/${subgroup.key}`}
+                subgroup={subgroup}
+              >
+                <ul className="flex flex-col gap-1.5">{subgroup.tasks.map(item)}</ul>
+              </SubgroupBlock>
+            ))
+          )}
         </SortableContext>
-        {column.done.length > 0 && (
-          <ul className="flex flex-col gap-1.5">{column.done.map((task) => card(task))}</ul>
-        )}
       </div>
     </section>
   );

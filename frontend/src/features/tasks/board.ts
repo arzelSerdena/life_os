@@ -33,27 +33,30 @@ export function isOverdue(task: TaskRead, today: string): boolean {
   return task.status === "todo" && task.due_date !== null && task.due_date < today;
 }
 
-/** The tasks a view lists, in the view's order. */
+/** Which finished tasks a view lists beside its open ones (the menu's SHOW section). */
+export type ShowFinished = { completed?: boolean; cancelled?: boolean };
+
+/** The tasks a view lists, in the view's order; finished ones only when `show` asks. */
 export function tasksForView(
   view: TaskView,
   tasks: readonly TaskRead[],
   today: string,
+  show: ShowFinished = {},
 ): TaskRead[] {
+  const listed = (task: TaskRead) =>
+    task.status === "todo" ||
+    (task.status === "done" && show.completed === true) ||
+    (task.status === "cancelled" && show.cancelled === true);
   switch (view) {
     case "all":
-      return tasks.filter((task) => task.status === "todo").sort(byPlacement);
+      return tasks.filter(listed).sort(byPlacement);
     case "today":
       return tasks
-        .filter(
-          (task) =>
-            task.status === "todo" && (placementDate(task) === today || isOverdue(task, today)),
-        )
+        .filter((task) => listed(task) && (placementDate(task) === today || isOverdue(task, today)))
         .sort(byPlacement);
     case "unscheduled":
       return tasks
-        .filter(
-          (task) => task.status === "todo" && task.life_area_id !== null && !placementDate(task),
-        )
+        .filter((task) => listed(task) && task.life_area_id !== null && !placementDate(task))
         .sort(byPlacement);
     case "completed":
       return tasks
@@ -110,16 +113,22 @@ export type BoardContext = {
   projects: readonly ProjectRead[];
 };
 
+/** How a column splits into subgroups (picked in the filter-and-sort menu). */
+export type SubgroupBy = "area" | "project" | "priority" | "none";
+
 /**
- * The columns for a view. Priority group: High, Medium, Low, No priority, each split by area.
- * Area group: No area plus one per area, each split by project. Completed and Cancelled use
- * area columns with no subgroups. Today puts overdue tasks in a red Overdue subgroup first.
+ * The columns for a view. Priority group: High, Medium, Low, No priority. Area group: No area
+ * plus one per area. Each column splits by `subgroupBy` (by default area in the Priority group,
+ * project in the Area group). Completed and Cancelled use area columns with no subgroups.
+ * Today puts overdue tasks in a red Overdue subgroup first. Counts are open tasks only, except
+ * on Completed and Cancelled.
  */
 export function buildColumns(
   view: TaskView,
   group: BoardGroup,
   tasks: readonly TaskRead[],
   context: BoardContext,
+  subgroupBy: SubgroupBy = group === "area" ? "project" : "area",
 ): Column[] {
   const finished = view === "completed" || view === "cancelled";
   const byArea = finished || group === "area";
@@ -142,18 +151,12 @@ export function buildColumns(
       }
       rest = own.filter((task) => !isOverdue(task, context.today));
     }
-    if (finished) {
-      if (rest.length > 0) {
-        subgroups.push({ key: "all", label: "", marker: { kind: "none" }, tasks: rest });
-      }
-    } else {
-      subgroups.push(...(byArea ? projectSubgroups(rest, context) : areaSubgroups(rest, context)));
-    }
+    subgroups.push(...splitTasks(rest, finished ? "none" : subgroupBy, context));
     return {
       key: column.key,
       title: column.title,
       marker: column.marker,
-      count: own.length,
+      count: finished ? own.length : own.filter((task) => task.status === "todo").length,
       subgroups,
     };
   });
@@ -194,8 +197,41 @@ function areaColumns(view: TaskView, { lifeAreas }: BoardContext): ColumnSpec[] 
   return columns;
 }
 
+/** Tasks split into subgroups; "none" gives one unnamed subgroup (left out when empty). */
+export function splitTasks(
+  tasks: readonly TaskRead[],
+  by: SubgroupBy,
+  context: Pick<BoardContext, "lifeAreas" | "projects">,
+): Subgroup[] {
+  switch (by) {
+    case "area":
+      return areaSubgroups(tasks, context);
+    case "project":
+      return projectSubgroups(tasks, context);
+    case "priority":
+      return prioritySubgroups(tasks);
+    case "none":
+      return tasks.length > 0
+        ? [{ key: "all", label: "", marker: { kind: "none" }, tasks: [...tasks] }]
+        : [];
+  }
+}
+
+/** One subgroup per priority, High first. Empty subgroups are left out. */
+function prioritySubgroups(tasks: readonly TaskRead[]): Subgroup[] {
+  return PRIORITIES.map(({ key, label }) => ({
+    key: `priority-${key}`,
+    label,
+    marker: { kind: "priority" as const, priority: key },
+    tasks: tasks.filter((task) => task.priority === key),
+  })).filter((subgroup) => subgroup.tasks.length > 0);
+}
+
 /** One subgroup per area in area order, then No area. Empty subgroups are left out. */
-function areaSubgroups(tasks: readonly TaskRead[], { lifeAreas }: BoardContext): Subgroup[] {
+function areaSubgroups(
+  tasks: readonly TaskRead[],
+  { lifeAreas }: Pick<BoardContext, "lifeAreas">,
+): Subgroup[] {
   const subgroups: Subgroup[] = lifeAreas.map((area) => ({
     key: `area-${area.id}`,
     label: area.title,
@@ -212,7 +248,10 @@ function areaSubgroups(tasks: readonly TaskRead[], { lifeAreas }: BoardContext):
 }
 
 /** One subgroup per project in project order, then No project. Empty ones are left out. */
-function projectSubgroups(tasks: readonly TaskRead[], { projects, lifeAreas }: BoardContext) {
+function projectSubgroups(
+  tasks: readonly TaskRead[],
+  { projects, lifeAreas }: Pick<BoardContext, "lifeAreas" | "projects">,
+) {
   const colorOf = (lifeAreaId: number) =>
     lifeAreas.find((area) => area.id === lifeAreaId)?.color ?? null;
   const ordered = [...projects].sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
