@@ -45,6 +45,7 @@ import {
   NO_DATE,
   type RoutineDay,
 } from "./next7";
+import { ProgressRing } from "./RoutinesPage";
 import { Counter, ProjectCard, SubgroupBlock } from "./TaskBoard";
 import { TaskCard } from "./TaskCard";
 import type { TasksData } from "./TasksLayout";
@@ -442,29 +443,6 @@ function RoutineCard({
         </ul>
       )}
     </li>
-  );
-}
-
-function ProgressRing({ done, total }: { done: number; total: number }) {
-  const circumference = 2 * Math.PI * 7;
-  const filled = total ? (done / total) * circumference : 0;
-  return (
-    <svg aria-hidden viewBox="0 0 18 18" className="size-[18px] shrink-0">
-      <circle cx="9" cy="9" r="7" fill="none" strokeWidth="2.5" stroke="var(--color-neutral-200)" />
-      {filled > 0 && (
-        <circle
-          cx="9"
-          cy="9"
-          r="7"
-          fill="none"
-          strokeWidth="2.5"
-          stroke="var(--color-brand-600)"
-          strokeLinecap="round"
-          strokeDasharray={`${filled} ${circumference}`}
-          transform="rotate(-90 9 9)"
-        />
-      )}
-    </svg>
   );
 }
 

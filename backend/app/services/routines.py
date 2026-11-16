@@ -19,6 +19,7 @@ from app.models import (
 )
 from app.models.base import utc_now
 from app.schemas.routine import (
+    HistoryState,
     RoutineCreate,
     RoutineStepCreate,
     RoutineStepMove,
@@ -53,6 +54,16 @@ def due_days(routine: Routine, step: RoutineStep, first: date, last: date) -> li
     Each schedule row applies from its starts_on until the next row starts. Nothing is
     due before the step's own start date, or on a day the routine or step was paused.
     """
+    pauses = [*routine.pauses, *step.pauses]
+    return [
+        day
+        for day in _scheduled_days(routine, step, first, last)
+        if not any(pause.covers(day) for pause in pauses)
+    ]
+
+
+def _scheduled_days(routine: Routine, step: RoutineStep, first: date, last: date) -> list[date]:
+    """The days the schedule names from first to last, from the step's start, pauses ignored."""
     first = max(first, step.starts_on)
     rows = routine.schedules
     days: list[date] = []
@@ -63,8 +74,7 @@ def due_days(routine: Routine, step: RoutineStep, first: date, last: date) -> li
         row_first = max(first, row.starts_on)
         if row_first <= row_last:
             days.extend(rrules.dates_between(row.rrule, row.starts_on, None, row_first, row_last))
-    pauses = [*routine.pauses, *step.pauses]
-    return [day for day in days if not any(pause.covers(day) for pause in pauses)]
+    return days
 
 
 def is_due(routine: Routine, step: RoutineStep, day: date) -> bool:
@@ -119,7 +129,112 @@ def steps_for_days(
     project_id: int | None = None,
 ) -> dict[date, list[StepDay]]:
     """Every active step due on each of `days`, loading the routines once."""
-    routines = session.scalars(
+    found: dict[date, list[StepDay]] = {day: [] for day in days}
+    for routine in _active_routines(session):
+        for step in _active_steps(routine):
+            if life_area_id is not None and step.life_area_id != life_area_id:
+                continue
+            if project_id is not None and step.project_id != project_id:
+                continue
+            for day in days:
+                if is_due(routine, step, day):
+                    found[day].append(StepDay(step, routine, day, day_status(step, day)))
+    return found
+
+
+# ---------- History ----------
+
+# How far ahead to look for a step's next due day: a year and a bit covers yearly rules.
+_NEXT_DUE_HORIZON = 400
+
+
+@dataclass(frozen=True)
+class StepHistory:
+    step: RoutineStep
+    # One (day, state) per day of the range. State: done, skipped, missed, todo (today),
+    # upcoming, paused, not_due, or none (before the step started).
+    days: list[tuple[date, HistoryState]]
+    next_due: date | None
+    paused_since: date | None
+
+
+@dataclass(frozen=True)
+class RoutineHistory:
+    routine: Routine
+    rrule: str
+    paused_since: date | None
+    steps: list[StepHistory]
+
+
+def history(session: Session, first: date, last: date) -> list[RoutineHistory]:
+    """Every active routine with its active steps, and each step's state on each day from
+    first to last (the Routines board, the routine page and the Routines overview)."""
+    return [
+        RoutineHistory(
+            routine=routine,
+            rrule=current_rule(routine),
+            paused_since=paused_since(routine),
+            steps=[_step_history(routine, step, first, last) for step in _active_steps(routine)],
+        )
+        for routine in _active_routines(session)
+    ]
+
+
+def current_rule(routine: Routine) -> str:
+    """The rule in force today, or the first one if the routine hasn't started yet."""
+    today = clock.today()
+    rows = routine.schedules
+    started = [row for row in rows if row.starts_on <= today]
+    return (started[-1] if started else rows[0]).rrule
+
+
+def paused_since(item: Routine | RoutineStep) -> date | None:
+    """The start of the open pause, if there is one."""
+    return next((pause.starts_on for pause in item.pauses if pause.ends_on is None), None)
+
+
+def next_due(routine: Routine, step: RoutineStep) -> date | None:
+    """The first due day from today on (today itself when it is due)."""
+    today = clock.today()
+    for offset in range(0, _NEXT_DUE_HORIZON, 31):
+        first = today + timedelta(days=offset)
+        found = due_days(routine, step, first, first + timedelta(days=30))
+        if found:
+            return found[0]
+    return None
+
+
+def _step_history(routine: Routine, step: RoutineStep, first: date, last: date) -> StepHistory:
+    today = clock.today()
+    scheduled = set(_scheduled_days(routine, step, first, last))
+    pauses = [*routine.pauses, *step.pauses]
+    logs = {log.date: log.status for log in step.logs}
+    days: list[tuple[date, HistoryState]] = []
+    day = first
+    while day <= last:
+        state: HistoryState
+        if day < step.starts_on or day < routine.schedules[0].starts_on:
+            state = "none"
+        elif day not in scheduled:
+            state = "not_due"
+        elif any(pause.covers(day) for pause in pauses):
+            state = "paused"
+        elif day in logs:
+            state = "done" if logs[day] == "done" else "skipped"
+        else:
+            state = "missed" if day < today else "todo" if day == today else "upcoming"
+        days.append((day, state))
+        day += timedelta(days=1)
+    return StepHistory(
+        step=step,
+        days=days,
+        next_due=next_due(routine, step),
+        paused_since=paused_since(step),
+    )
+
+
+def _active_routines(session: Session) -> Sequence[Routine]:
+    return session.scalars(
         select(Routine)
         .options(
             selectinload(Routine.schedules),
@@ -130,19 +245,10 @@ def steps_for_days(
         .where(Routine.archived_at.is_(None))
         .order_by(Routine.sort_order, Routine.id)
     ).all()
-    found: dict[date, list[StepDay]] = {day: [] for day in days}
-    for routine in routines:
-        for step in routine.steps:
-            if step.archived_at is not None:
-                continue
-            if life_area_id is not None and step.life_area_id != life_area_id:
-                continue
-            if project_id is not None and step.project_id != project_id:
-                continue
-            for day in days:
-                if is_due(routine, step, day):
-                    found[day].append(StepDay(step, routine, day, day_status(step, day)))
-    return found
+
+
+def _active_steps(routine: Routine) -> list[RoutineStep]:
+    return [step for step in routine.steps if step.archived_at is None]
 
 
 # ---------- Routines ----------

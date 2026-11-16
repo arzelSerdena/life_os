@@ -1,7 +1,7 @@
-from datetime import date
-from typing import Any
+from datetime import date, timedelta
+from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from app import clock
 from app.db import SessionDep
@@ -11,8 +11,10 @@ from app.schemas.preview import RoutineDeletePreview
 from app.schemas.routine import (
     RoutineChange,
     RoutineCreate,
+    RoutineHistoryRead,
     RoutineLogSet,
     RoutineRead,
+    RoutinesHistoryRead,
     RoutineStepChange,
     RoutineStepCreate,
     RoutineStepDay,
@@ -22,6 +24,8 @@ from app.schemas.routine import (
     RoutineUpdate,
     ScheduleChange,
     ScheduleRead,
+    StepDayState,
+    StepHistoryRead,
 )
 from app.services import previews
 from app.services import routines as service
@@ -93,6 +97,44 @@ def list_routine_steps_for_day(
         session, day or clock.today(), life_area_id=life_area_id, project_id=project_id
     )
     return [RoutineStepDay.from_step_day(item) for item in found]
+
+
+@router.get("/routines/history")
+def get_routines_history(
+    session: SessionDep,
+    end: date | None = None,
+    count: Annotated[int, Query(ge=1, le=371)] = 7,
+) -> RoutinesHistoryRead:
+    """Every active routine and its active steps, with each step's state on each of the
+    `count` days up to `end` (default: the last 7 days, today included)."""
+    last = end or clock.today()
+    first = last - timedelta(days=count - 1)
+    return RoutinesHistoryRead(
+        start=first,
+        end=last,
+        today=clock.today(),
+        routines=[
+            RoutineHistoryRead(
+                id=found.routine.id,
+                title=found.routine.title,
+                rrule=found.rrule,
+                paused_since=found.paused_since,
+                steps=[
+                    StepHistoryRead(
+                        id=item.step.id,
+                        title=item.step.title,
+                        life_area_id=item.step.life_area_id,
+                        project_id=item.step.project_id,
+                        next_due=item.next_due,
+                        paused_since=item.paused_since,
+                        days=[StepDayState(day=day, state=state) for day, state in item.days],
+                    )
+                    for item in found.steps
+                ],
+            )
+            for found in service.history(session, first, last)
+        ],
+    )
 
 
 @router.post("/routines", status_code=status.HTTP_201_CREATED)

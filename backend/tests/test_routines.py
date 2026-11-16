@@ -354,3 +354,95 @@ def test_one_log_per_step_per_day(client: TestClient, session: Session, area: in
 
     with pytest.raises(IntegrityError):
         session.commit()
+
+
+# ---------- History (the Routines board) ----------
+
+
+def _history(client: TestClient, **params: Any) -> dict[str, Any]:
+    response = client.get("/api/routines/history", params=params)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def _states(step: dict[str, Any]) -> list[str]:
+    return [item["state"] for item in step["days"]]
+
+
+def test_history_shows_the_last_seven_days_of_each_step(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-10")
+    step = _step(client, routine, area, starts_on="2026-11-13")
+    _check(client, step, "2026-11-13")
+    _check(client, step, "2026-11-15", "skipped")
+    _check(client, step, "2026-11-17")
+
+    body = _history(client)
+
+    assert (body["start"], body["end"], body["today"]) == ("2026-11-12", "2026-11-18", "2026-11-18")
+    [found] = body["routines"]
+    assert (found["title"], found["rrule"], found["paused_since"]) == (
+        "Morning",
+        "FREQ=DAILY",
+        None,
+    )
+    [row] = found["steps"]
+    assert row["days"][0] == {"day": "2026-11-12", "state": "none"}  # before the step started
+    assert _states(row) == ["none", "done", "missed", "skipped", "missed", "done", "todo"]
+    assert row["next_due"] == "2026-11-18"
+
+
+def test_history_marks_days_not_due_and_the_next_due_day(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-01", rrule="FREQ=WEEKLY;BYDAY=SU")
+    step = _step(client, routine, area, starts_on="2026-11-01")
+    _check(client, step, "2026-11-15")
+
+    [row] = _history(client)["routines"][0]["steps"]
+
+    # Thursday the 12th to Wednesday the 18th; only Sunday the 15th is due.
+    assert _states(row) == [
+        "not_due",
+        "not_due",
+        "not_due",
+        "done",
+        "not_due",
+        "not_due",
+        "not_due",
+    ]
+    assert row["next_due"] == "2026-11-22"
+
+
+def test_history_shows_paused_days_and_upcoming_days(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    _step(client, routine, area, starts_on="2026-11-16")
+    client.post(f"/api/routines/{routine['id']}/pause")  # from today, the 18th
+
+    found = _history(client, end="2026-11-19", count=4)["routines"][0]
+    [row] = found["steps"]
+    assert _states(row) == ["missed", "missed", "paused", "paused"]
+    assert found["paused_since"] == "2026-11-18"
+    assert row["next_due"] is None
+
+    client.post(f"/api/routines/{routine['id']}/resume")
+    [row] = _history(client, end="2026-11-20", count=3)["routines"][0]["steps"]
+    assert _states(row) == ["todo", "upcoming", "upcoming"]
+    assert row["next_due"] == "2026-11-18"
+
+
+def test_history_leaves_out_archived_routines_and_steps(client: TestClient, area: int) -> None:
+    kept = _routine(client, "Evening")
+    _step(client, kept, area, "Read")
+    archived_step = _step(client, kept, area, "Stretch")
+    client.post(f"/api/routine-steps/{archived_step['id']}/archive")
+    gone = _routine(client, "Morning")
+    client.post(f"/api/routines/{gone['id']}/archive")
+
+    routines = _history(client)["routines"]
+
+    assert [(r["title"], [s["title"] for s in r["steps"]]) for r in routines] == [
+        ("Evening", ["Read"])
+    ]
+
+
+@pytest.mark.parametrize("count", [0, 372])
+def test_history_range_is_limited(client: TestClient, count: int) -> None:
+    assert client.get("/api/routines/history", params={"count": count}).status_code == 422

@@ -253,7 +253,7 @@ function MarkerSquare({ marker, size }: { marker: Marker; size: "column" | "subg
 }
 
 /** The grey counter pill used everywhere on the board. */
-export function Counter({ count }: { count: number }) {
+export function Counter({ count }: { count: number | string }) {
   return (
     <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-neutral-200) px-1.5 text-[11px] leading-4 font-medium tracking-normal text-(--text-secondary) normal-case">
       {count}

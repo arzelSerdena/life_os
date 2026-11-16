@@ -1641,6 +1641,32 @@ export type RoutineGroupRead = {
 };
 
 /**
+ * RoutineHistoryRead
+ */
+export type RoutineHistoryRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Paused Since
+     */
+    paused_since: string | null;
+    /**
+     * Steps
+     */
+    steps: Array<StepHistoryRead>;
+};
+
+/**
  * RoutineLogSet
  */
 export type RoutineLogSet = {
@@ -1956,6 +1982,30 @@ export type RoutinesAreaRead = {
 };
 
 /**
+ * RoutinesHistoryRead
+ *
+ * Every active routine and how its active steps went on each day from start to end.
+ */
+export type RoutinesHistoryRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Today
+     */
+    today: string;
+    /**
+     * Routines
+     */
+    routines: Array<RoutineHistoryRead>;
+};
+
+/**
  * ScheduleChange
  *
  * Change which days the routine is due.
@@ -2168,6 +2218,57 @@ export type SettingsUpdate = {
      * Backup Folder
      */
     backup_folder?: string | null;
+};
+
+/**
+ * StepDayState
+ *
+ * How one day went for a step. todo is today still open; upcoming is a later due day;
+ * not_due is a day the schedule leaves out; none is a day before the step started.
+ */
+export type StepDayState = {
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * State
+     */
+    state: 'done' | 'skipped' | 'missed' | 'todo' | 'upcoming' | 'paused' | 'not_due' | 'none';
+};
+
+/**
+ * StepHistoryRead
+ */
+export type StepHistoryRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Next Due
+     */
+    next_due: string | null;
+    /**
+     * Paused Since
+     */
+    paused_since: string | null;
+    /**
+     * Days
+     */
+    days: Array<StepDayState>;
 };
 
 /**
@@ -6334,6 +6435,40 @@ export type ListRoutineStepsForDayResponses = {
 };
 
 export type ListRoutineStepsForDayResponse = ListRoutineStepsForDayResponses[keyof ListRoutineStepsForDayResponses];
+
+export type GetRoutinesHistoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * End
+         */
+        end?: string | null;
+        /**
+         * Count
+         */
+        count?: number;
+    };
+    url: '/api/routines/history';
+};
+
+export type GetRoutinesHistoryErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRoutinesHistoryError = GetRoutinesHistoryErrors[keyof GetRoutinesHistoryErrors];
+
+export type GetRoutinesHistoryResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinesHistoryRead;
+};
+
+export type GetRoutinesHistoryResponse = GetRoutinesHistoryResponses[keyof GetRoutinesHistoryResponses];
 
 export type DeleteRoutineData = {
     body?: never;
