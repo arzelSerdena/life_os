@@ -2391,15 +2391,16 @@ export type TaskRead = {
 /**
  * TaskReorder
  *
- * The new order of a day's tasks, or of the unscheduled list (scheduled_date null).
+ * The new order of a day's tasks, or of Unscheduled (day null).
  *
+ * A task is on a day by the placement rule: its scheduled date, else its due date.
  * Tasks of that day not listed keep their order, after the listed ones.
  */
 export type TaskReorder = {
     /**
-     * Scheduled Date
+     * Day
      */
-    scheduled_date: string | null;
+    day: string | null;
     /**
      * Task Ids
      */
@@ -2718,7 +2719,8 @@ export type ValidationError = {
 /**
  * WeekRead
  *
- * Monday to Sunday. Unscheduled holds every to-do task with no date.
+ * Monday to Sunday. A task sits on its scheduled date, else its due date; Unscheduled
+ * holds every to-do task with neither.
  */
 export type WeekRead = {
     /**
@@ -4310,17 +4312,29 @@ export type ListTasksData = {
          */
         inbox?: boolean;
         /**
-         * Scheduled From
+         * With Life Area
          */
-        scheduled_from?: string | null;
+        with_life_area?: boolean;
         /**
-         * Scheduled To
+         * Status
          */
-        scheduled_to?: string | null;
+        status?: 'todo' | 'done' | 'cancelled' | null;
+        /**
+         * Date From
+         */
+        date_from?: string | null;
+        /**
+         * Date To
+         */
+        date_to?: string | null;
         /**
          * Unscheduled
          */
         unscheduled?: boolean;
+        /**
+         * Overdue
+         */
+        overdue?: boolean;
         /**
          * Include Cancelled
          */

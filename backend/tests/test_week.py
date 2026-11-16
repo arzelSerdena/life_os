@@ -83,6 +83,28 @@ def test_tasks_land_on_their_days_and_unscheduled(client: TestClient) -> None:
     assert all("Next week" not in titles for titles in board.values())
 
 
+def test_a_task_with_only_a_due_date_sits_on_its_due_date(client: TestClient) -> None:
+    _task(client, "Due Friday", due_date="2026-11-20")
+    _task(
+        client, "Scheduled Thursday, due Friday", scheduled_date="2026-11-19", due_date="2026-11-20"
+    )
+    _task(client, "Due next week", due_date="2026-11-24")
+
+    board = _board(_week(client))
+
+    assert board["2026-11-19"] == ["Scheduled Thursday, due Friday"]
+    assert board["2026-11-20"] == ["Due Friday"]
+    assert board["unscheduled"] == []
+
+
+def test_an_overdue_task_with_only_a_due_date_stays_on_its_due_date(client: TestClient) -> None:
+    _task(client, "Due Monday", due_date=MONDAY)
+
+    board = _board(_week(client))
+
+    assert board[MONDAY] == ["Due Monday"]  # due dates never roll over
+
+
 def test_cancelled_tasks_show_only_when_asked(client: TestClient) -> None:
     cancelled = _task(client, "Cancelled", scheduled_date="2026-11-19")
     client.post(f"/api/tasks/{cancelled['id']}/cancel")
@@ -226,9 +248,7 @@ def _ids(client: TestClient, day: str | None) -> list[int]:
 def test_reorder_sets_a_days_order(client: TestClient) -> None:
     a, b, c = (_task(client, title, scheduled_date="2026-11-19")["id"] for title in "ABC")
 
-    response = client.post(
-        "/api/tasks/reorder", json={"scheduled_date": "2026-11-19", "task_ids": [c, a, b]}
-    )
+    response = client.post("/api/tasks/reorder", json={"day": "2026-11-19", "task_ids": [c, a, b]})
 
     assert response.status_code == 200
     assert _ids(client, "2026-11-19") == [c, a, b]
@@ -237,18 +257,38 @@ def test_reorder_sets_a_days_order(client: TestClient) -> None:
 def test_reorder_keeps_unlisted_tasks_after_the_listed_ones(client: TestClient) -> None:
     a, b, c = (_task(client, title)["id"] for title in "ABC")
 
-    client.post("/api/tasks/reorder", json={"scheduled_date": None, "task_ids": [c]})
+    client.post("/api/tasks/reorder", json={"day": None, "task_ids": [c]})
 
     assert _ids(client, None) == [c, a, b]
+
+
+def test_reorder_works_on_a_day_of_due_only_tasks(client: TestClient) -> None:
+    scheduled = _task(client, "Scheduled", scheduled_date="2026-11-19")["id"]
+    due = _task(client, "Due", due_date="2026-11-19")["id"]
+
+    response = client.post("/api/tasks/reorder", json={"day": "2026-11-19", "task_ids": [due]})
+
+    assert response.status_code == 200, response.text
+    assert _ids(client, "2026-11-19") == [due, scheduled]
+
+
+def test_a_task_moved_to_another_day_goes_to_its_end(client: TestClient) -> None:
+    first = _task(client, "First", scheduled_date="2026-11-19")["id"]
+    moved = _task(client, "Moved", scheduled_date="2026-11-20")["id"]
+    client.post("/api/tasks/reorder", json={"day": "2026-11-20", "task_ids": [moved]})
+
+    client.patch(f"/api/tasks/{moved}", json={"scheduled_date": None, "due_date": "2026-11-19"})
+
+    assert _ids(client, "2026-11-19") == [first, moved]
 
 
 @pytest.mark.parametrize(
     ("make_body", "status_code"),
     [
-        (lambda ids: {"scheduled_date": "2026-11-19", "task_ids": [ids["a"], ids["a"]]}, 422),
-        (lambda ids: {"scheduled_date": "2026-11-19", "task_ids": [ids["a"], ids["friday"]]}, 422),
-        (lambda ids: {"scheduled_date": "2026-11-19", "task_ids": [999]}, 404),
-        (lambda ids: {"scheduled_date": "2026-11-19", "task_ids": []}, 422),
+        (lambda ids: {"day": "2026-11-19", "task_ids": [ids["a"], ids["a"]]}, 422),
+        (lambda ids: {"day": "2026-11-19", "task_ids": [ids["a"], ids["friday"]]}, 422),
+        (lambda ids: {"day": "2026-11-19", "task_ids": [999]}, 404),
+        (lambda ids: {"day": "2026-11-19", "task_ids": []}, 422),
     ],
 )
 def test_reorder_is_validated(client: TestClient, make_body: Any, status_code: int) -> None:

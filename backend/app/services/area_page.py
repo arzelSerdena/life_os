@@ -129,7 +129,7 @@ def get_area_page(session: Session, life_area_id: int, period: str, day: date) -
         ).order_by(Task.rollover_count.desc(), Task.id)
     ).all()
     page.unscheduled_tasks = session.scalars(
-        open_tasks.where(Task.scheduled_date.is_(None)).order_by(Task.sort_order, Task.id)
+        open_tasks.where(Task.placement_date.is_(None)).order_by(Task.sort_order, Task.id)
     ).all()
     page.recurring = session.scalars(
         select(TaskTemplate)
@@ -147,12 +147,9 @@ def get_area_page(session: Session, life_area_id: int, period: str, day: date) -
     if first <= view.end:
         page.agenda_range = DateRange(first, view.end)
         page.agenda_tasks = session.scalars(
-            open_tasks.where(
-                or_(
-                    Task.scheduled_date.between(first, view.end),
-                    Task.due_date.between(first, view.end),
-                )
-            ).order_by(Task.sort_order, Task.id)
+            open_tasks.where(Task.placement_date.between(first, view.end)).order_by(
+                Task.placement_date, Task.sort_order, Task.id
+            )
         ).all()
         page.deadlines = [
             Deadline(outcome.metric, outcome.target.end_date, outcome.target.target_value)

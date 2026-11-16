@@ -5,6 +5,7 @@ from datetime import date
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session, selectinload
 
+from app import clock
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import Subtask, Task
 from app.models.base import utc_now
@@ -14,12 +15,13 @@ from app.schemas.task import (
     TaskCreate,
     TaskMove,
     TaskReorder,
+    TaskStatus,
     TaskUpdate,
 )
 from app.services import templates
 from app.services.history import ChangeRecorder
 from app.services.ownership import ensure_owner_open, resolve_owner
-from app.services.task_rules import cancel_open_subtasks, next_position
+from app.services.task_rules import cancel_open_subtasks, next_position, on_day
 
 PRIORITY_RANK = case({"high": 0, "medium": 1, "low": 2, "none": 3}, value=Task.priority, else_=3)
 
@@ -29,9 +31,12 @@ class TaskFilters:
     life_area_id: int | None = None
     project_id: int | None = None
     inbox: bool = False
-    scheduled_from: date | None = None
-    scheduled_to: date | None = None
+    with_life_area: bool = False
+    status: TaskStatus | None = None
+    date_from: date | None = None
+    date_to: date | None = None
     unscheduled: bool = False
+    overdue: bool = False
     include_cancelled: bool = False
     include_archived: bool = False
 
@@ -43,30 +48,42 @@ class TaskChange:
 
 
 def list_tasks(session: Session, filters: TaskFilters) -> Sequence[Task]:
-    if filters.inbox and (filters.life_area_id is not None or filters.project_id is not None):
+    """Tasks, filtered and dated by the placement rule: a task sits on its scheduled date,
+    else on its due date, else it is Unscheduled. Overdue means open with a past due date."""
+    if filters.inbox and (
+        filters.life_area_id is not None or filters.project_id is not None or filters.with_life_area
+    ):
         raise UnprocessableError("The Inbox has no life area or project to filter by.")
-    if filters.unscheduled and (filters.scheduled_from or filters.scheduled_to):
-        raise UnprocessableError("Unscheduled tasks have no date range.")
+    if filters.unscheduled and (filters.date_from or filters.date_to or filters.overdue):
+        raise UnprocessableError("Unscheduled tasks have no date.")
+    if filters.overdue and filters.status not in (None, "todo"):
+        raise UnprocessableError("Only to-do tasks can be overdue.")
 
     query = select(Task).options(selectinload(Task.subtasks))
     if filters.inbox:
         query = query.where(Task.life_area_id.is_(None))
+    if filters.with_life_area:
+        query = query.where(Task.life_area_id.is_not(None))
     if filters.life_area_id is not None:
         query = query.where(Task.life_area_id == filters.life_area_id)
     if filters.project_id is not None:
         query = query.where(Task.project_id == filters.project_id)
+    if filters.status is not None:
+        query = query.where(Task.status == filters.status)
     if filters.unscheduled:
-        query = query.where(Task.scheduled_date.is_(None))
-    if filters.scheduled_from is not None:
-        query = query.where(Task.scheduled_date >= filters.scheduled_from)
-    if filters.scheduled_to is not None:
-        query = query.where(Task.scheduled_date <= filters.scheduled_to)
+        query = query.where(on_day(None))
+    if filters.date_from is not None:
+        query = query.where(Task.placement_date >= filters.date_from)
+    if filters.date_to is not None:
+        query = query.where(Task.placement_date <= filters.date_to)
+    if filters.overdue:
+        query = query.where(Task.status == "todo", Task.due_date < clock.today())
     if not filters.include_cancelled:
         query = query.where(Task.status != "cancelled")
     if not filters.include_archived:
         query = query.where(Task.archived_at.is_(None))
 
-    query = query.order_by(Task.scheduled_date, Task.sort_order, PRIORITY_RANK, Task.id)
+    query = query.order_by(Task.placement_date, Task.sort_order, PRIORITY_RANK, Task.id)
     return session.scalars(query).all()
 
 
@@ -90,7 +107,7 @@ def create_task(session: Session, data: TaskCreate) -> Task:
         life_area_id=owner.life_area_id,
         project_id=owner.project_id,
         section_id=owner.section_id,
-        sort_order=next_position(session, data.scheduled_date),
+        sort_order=next_position(session, data.scheduled_date or data.due_date),
         subtasks=[
             Subtask(title=title, sort_order=position)
             for position, title in enumerate(data.subtasks)
@@ -107,28 +124,27 @@ def update_task(session: Session, task_id: int, data: TaskUpdate) -> Task:
     due_date = changes.get("due_date", task.due_date)
     if changes.get("due_time", task.due_time) is not None and due_date is None:
         raise UnprocessableError("A due time needs a due date.")
+    day_before = task.placement_date
     for field, value in changes.items():
         setattr(task, field, value)
+    if task.placement_date != day_before:
+        # A task that lands on another day (or in Unscheduled) goes to the end of it.
+        task.sort_order = next_position(session, task.placement_date)
     return _save(session, task)
 
 
 def reorder_tasks(session: Session, data: TaskReorder) -> list[Task]:
-    """Set the order of a day's tasks, or of the unscheduled list, in one step."""
+    """Set the order of a day's tasks (by the placement rule), or of Unscheduled, in one step."""
     if len(set(data.task_ids)) != len(data.task_ids):
         raise UnprocessableError("A task can only appear once in the new order.")
     listed = [get_task(session, task_id) for task_id in data.task_ids]
     for task in listed:
-        if task.scheduled_date != data.scheduled_date:
-            where = data.scheduled_date or "the unscheduled list"
+        if task.placement_date != data.day:
+            where = data.day or "Unscheduled"
             raise UnprocessableError(f"Task {task.id} isn't on {where}.")
-    same_day = (
-        Task.scheduled_date.is_(None)
-        if data.scheduled_date is None
-        else Task.scheduled_date == data.scheduled_date
-    )
     others = session.scalars(
         select(Task)
-        .where(same_day, Task.id.not_in(data.task_ids))
+        .where(on_day(data.day), Task.id.not_in(data.task_ids))
         .order_by(Task.sort_order, Task.id)
     ).all()
     for position, task in enumerate([*listed, *others]):

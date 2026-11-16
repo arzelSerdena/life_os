@@ -1,7 +1,7 @@
 from datetime import date
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from app.db import SessionDep
 from app.schemas.common import ErrorResponse
@@ -14,6 +14,7 @@ from app.schemas.task import (
     TaskMove,
     TaskRead,
     TaskReorder,
+    TaskStatus,
     TaskUpdate,
 )
 from app.schemas.task_template import SeriesCancel, SeriesCancelResult, SeriesEdit, TaskTemplateRead
@@ -36,19 +37,30 @@ def list_tasks(
     life_area_id: int | None = None,
     project_id: int | None = None,
     inbox: bool = False,
-    scheduled_from: date | None = None,
-    scheduled_to: date | None = None,
+    with_life_area: bool = False,
+    task_status: Annotated[TaskStatus | None, Query(alias="status")] = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
     unscheduled: bool = False,
+    overdue: bool = False,
     include_cancelled: bool = False,
     include_archived: bool = False,
 ) -> list[TaskRead]:
+    """Tasks by the placement rule: each sits on its scheduled date, else its due date.
+
+    `date_from`/`date_to` bound that date; `unscheduled` means neither date; `overdue` means
+    to-do with a due date before today; `with_life_area` leaves the Inbox out (the
+    Unscheduled view is `unscheduled` + `with_life_area` + `status=todo`)."""
     filters = service.TaskFilters(
         life_area_id=life_area_id,
         project_id=project_id,
         inbox=inbox,
-        scheduled_from=scheduled_from,
-        scheduled_to=scheduled_to,
+        with_life_area=with_life_area,
+        status=task_status,
+        date_from=date_from,
+        date_to=date_to,
         unscheduled=unscheduled,
+        overdue=overdue,
         include_cancelled=include_cancelled,
         include_archived=include_archived,
     )
@@ -62,7 +74,7 @@ def create_task(session: SessionDep, data: TaskCreate) -> TaskRead:
 
 @router.post("/tasks/reorder", responses=NOT_FOUND)
 def reorder_tasks(session: SessionDep, data: TaskReorder) -> list[TaskRead]:
-    """Set the order of a day's tasks, or of the unscheduled list. Returns the listed tasks."""
+    """Set the order of a day's tasks, or of Unscheduled. Returns the listed tasks."""
     return [TaskRead.model_validate(task) for task in service.reorder_tasks(session, data)]
 
 

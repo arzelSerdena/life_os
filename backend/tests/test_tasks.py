@@ -5,6 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.models import Task, TaskTemplate
 from app.models.base import utc_now
 from tests.factories import make_life_area, make_project, make_section
@@ -115,11 +116,45 @@ def test_list_filters(client: TestClient, session: Session) -> None:
     assert _titles(client, inbox=True) == ["Inbox"]
     assert _titles(client, life_area_id=life_area.id) == ["Area", "Project", "Later"]
     assert _titles(client, project_id=project.id) == ["Project"]
-    assert _titles(client, scheduled_from="2026-11-16", scheduled_to="2026-11-22") == [
+    assert _titles(client, date_from="2026-11-16", date_to="2026-11-22") == [
         "Area",
         "Project",
     ]
     assert _titles(client, unscheduled=True) == ["Inbox"]
+
+
+def test_lists_follow_the_placement_rule(
+    client: TestClient, session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(clock, "today", lambda: date(2026, 11, 18))
+    life_area = make_life_area(session)
+    area = {"life_area_id": life_area.id}
+    _create(client, "Inbox, no date")
+    _create(client, "Area, no date", **area)
+    _create(client, "Due Thursday", due_date="2026-11-19", **area)
+    _create(client, "Scheduled Tuesday", scheduled_date="2026-11-17", due_date="2026-11-30", **area)
+    _create(client, "Overdue", due_date="2026-11-10", **area)
+    done = _create(client, "Done, no date", **area)
+    _action(client, done["id"], "complete")
+
+    assert _titles(client, date_from="2026-11-16", date_to="2026-11-22") == [
+        "Scheduled Tuesday",
+        "Due Thursday",
+    ]
+    assert _titles(client, unscheduled=True) == ["Inbox, no date", "Area, no date", "Done, no date"]
+    # The Unscheduled view: open tasks with a life area and neither date.
+    assert _titles(client, unscheduled=True, with_life_area=True, status="todo") == [
+        "Area, no date"
+    ]
+    assert _titles(client, overdue=True) == ["Overdue"]
+    assert _titles(client, status="done") == ["Done, no date"]
+
+
+def test_new_tasks_with_only_a_due_date_go_to_the_end_of_that_day(client: TestClient) -> None:
+    _create(client, "A", scheduled_date="2026-11-16")
+    due = _create(client, "B", due_date="2026-11-16")
+
+    assert due["sort_order"] == 1
 
 
 def test_cancelled_and_archived_tasks_are_hidden_unless_asked_for(client: TestClient) -> None:
@@ -136,7 +171,13 @@ def test_cancelled_and_archived_tasks_are_hidden_unless_asked_for(client: TestCl
 
 @pytest.mark.parametrize(
     "params",
-    [{"inbox": True, "life_area_id": 1}, {"unscheduled": True, "scheduled_from": "2026-11-16"}],
+    [
+        {"inbox": True, "life_area_id": 1},
+        {"inbox": True, "with_life_area": True},
+        {"unscheduled": True, "date_from": "2026-11-16"},
+        {"unscheduled": True, "overdue": True},
+        {"overdue": True, "status": "done"},
+    ],
 )
 def test_list_rejects_contradictory_filters(client: TestClient, params: dict[str, Any]) -> None:
     assert client.get(URL, params=params).status_code == 422
