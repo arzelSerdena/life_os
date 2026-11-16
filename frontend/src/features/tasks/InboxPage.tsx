@@ -43,6 +43,7 @@ import {
   targetId,
 } from "./inbox";
 import { NewTaskButton } from "./NewTaskModal";
+import { usePageSpot } from "./newTaskShortcut";
 import { PRIORITY_COLOR } from "./TaskBoard";
 import { TaskCard } from "./TaskCard";
 import type { TasksData } from "./TasksLayout";
@@ -58,6 +59,7 @@ type File = (task: TaskRead, target: FileTarget) => void;
  */
 export function InboxPage() {
   const { data, error } = useTasksContext();
+  usePageSpot({}, data?.today);
   return (
     <>
       <header className="box-content flex h-(--page-header-height) shrink-0 items-center gap-3 px-(--page-gutter) pt-(--page-gutter)">

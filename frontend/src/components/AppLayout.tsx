@@ -10,6 +10,7 @@ import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { UndoToast } from "../features/deleting/UndoToast";
 import { NewTaskHost } from "../features/tasks/NewTaskModal";
+import { useNewTaskShortcut } from "../features/tasks/newTaskShortcut";
 import { useDetailPanel } from "../stores/detailPanelStore";
 import { useSidebarShortcut, useSidebarVisibility } from "./Sidebar";
 
@@ -34,6 +35,7 @@ const SETTINGS: RailGroup = { label: "Settings", icon: Settings };
 /** The icon rail. Each group renders its own sidebar and page inside the outlet. */
 export function AppLayout() {
   useSidebarShortcut();
+  useNewTaskShortcut();
   const hasPanel = useDetailPanel((state) => state.target !== null);
   return (
     <div className="relative flex h-screen min-h-[720px] min-w-[1280px]">

@@ -42,6 +42,7 @@ import { type Filters, openFirst, sortTasks } from "./filters";
 import { formatTime, useTimeFormat } from "./format";
 import { NewTaskButton } from "./NewTaskModal";
 import { spotFor } from "./newTask";
+import { usePageSpot } from "./newTaskShortcut";
 import {
   applyDrop,
   buildDayColumns,
@@ -64,6 +65,7 @@ const TASKS_KEY = listTasksQueryKey({ query: { include_cancelled: true } });
 /** Tasks › Next 7 days: No date plus today and the six days after it. */
 export function Next7Page() {
   const { data, error } = useTasksContext();
+  usePageSpot({}, data?.today);
   return (
     <>
       <header className="box-content flex h-(--page-header-height) shrink-0 items-center gap-3 px-(--page-gutter) pt-(--page-gutter)">

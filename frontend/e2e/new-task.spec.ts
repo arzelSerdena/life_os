@@ -174,3 +174,31 @@ test("a custom repeat makes a recurring task whose end comes from After n times"
   await page.goto("/tasks/today");
   await expect(page.getByRole("button", { name: title })).toBeVisible();
 });
+
+test("Ctrl N and N open New task on any screen, with the page's spot", async ({
+  page,
+  request,
+}) => {
+  const title = unique("Call the bank");
+
+  // Plan has no New task button: Ctrl N opens a blank one, and the task lands in the Inbox.
+  await page.goto("/areas");
+  await page.keyboard.press("Control+n");
+  const modal = dialog(page);
+  await expect(modal.getByRole("button", { name: "Scheduled" })).toHaveText("Scheduled");
+  // Typing N in the title doesn't reopen anything.
+  await modal.getByRole("textbox", { name: "Title" }).fill(title);
+  await modal.getByRole("textbox", { name: "Title" }).press("Enter");
+  await expect(modal).toHaveCount(0);
+  const created = (await listTasks(request)).find((task) => task.title === title);
+  expect(created).toMatchObject({ life_area_id: null, project_id: null, scheduled_date: null });
+
+  // On Today, N opens it scheduled today, as the header's New task does.
+  await page.goto("/tasks/today");
+  await expect(page.getByRole("button", { name: "New task", exact: true })).toBeVisible();
+  await page.keyboard.press("n");
+  await expect(modal.getByRole("button", { name: "Scheduled" })).not.toHaveText("Scheduled");
+  await page.keyboard.press("Escape");
+  await expect(modal).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
+});
