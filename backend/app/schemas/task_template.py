@@ -54,6 +54,13 @@ class TaskTemplateRead(BaseModel):
     subtasks: list[TemplateSubtaskRead]
 
 
+class TaskTemplateChange(BaseModel):
+    """The template after the change, and the batch to pass to undo (None if nothing changed)."""
+
+    template: TaskTemplateRead
+    batch_id: str | None
+
+
 class TaskTemplateCreate(BaseModel):
     """A template. Add rrule and starts_on to make it a recurring task.
 

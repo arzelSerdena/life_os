@@ -144,6 +144,16 @@
 
 - Fixed a flaky browser test: `e2e/next7.spec.ts` "reorders the day" listed every task in Tomorrow whose title matched "Water the plants" or "Clean the oven", so tasks left by earlier runs in the shared test database (`--repeat-each`) broke it. It now checks only its own two tasks. Test change only.
 
+## 2026-11-17
+
+**Done**
+
+- Applied migration `e5f6a7b8c9d0` (event exceptions for undo) to the real database (backup kept in the session scratchpad).
+
+- Moving a recurring task or a routine step is now recorded for undo: `POST /api/task-templates/{id}/move` returns `TaskTemplateChange` (template and `batch_id`) and `POST /api/routine-steps/{id}/move` returns `RoutineStepChange`, both null when nothing changed. The detail panel's breadcrumb toast now offers Undo for them too. Tests in `test_task_templates.py` and `test_routines.py`; browser test in `frontend/e2e/panel-owner.spec.ts`.
+
+- Fixed New project's footer going off screen when there are many life areas (the chips wrap with no limit): the pop-up now uses HeroUI's `scroll="inside"`, so it stays within the window and its body scrolls. Found when the new browser test added two areas and `projects.spec.ts` timed out clicking Create project.
+
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

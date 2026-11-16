@@ -401,7 +401,10 @@ def update_step(session: Session, step_id: int, data: RoutineStepUpdate) -> Rout
     return _save_step(session, step)
 
 
-def move_step(session: Session, step_id: int, data: RoutineStepMove) -> RoutineStep:
+def move_step(
+    session: Session, step_id: int, data: RoutineStepMove
+) -> tuple[RoutineStep, str | None]:
+    """Give the step a new owner, recorded for undo."""
     step = get_step(session, step_id)
     owner = resolve_owner(
         session,
@@ -411,9 +414,10 @@ def move_step(session: Session, step_id: int, data: RoutineStepMove) -> RoutineS
         allow_inbox=False,
     )
     assert owner.life_area_id is not None
-    step.life_area_id = owner.life_area_id
-    step.project_id = owner.project_id
-    return _save_step(session, step)
+    history = ChangeRecorder(session)
+    history.set(step, "life_area_id", owner.life_area_id)
+    history.set(step, "project_id", owner.project_id)
+    return _save_step(session, step), history.batch_id
 
 
 def pause_step(session: Session, step_id: int) -> RoutineStep:

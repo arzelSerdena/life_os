@@ -84,6 +84,15 @@ export const listTasks = (request: APIRequestContext) =>
 export const listTemplates = (request: APIRequestContext) =>
   send<Record<string, unknown>[]>(request, "get", "/api/task-templates");
 
+export type Template = { id: number; title: string; life_area_id: number | null };
+
+/** A template; add rrule and starts_on to make it a recurring task. */
+export const postTemplate = (request: APIRequestContext, body: Record<string, unknown>) =>
+  send<Template>(request, "post", "/api/task-templates", body);
+
+export const getTemplate = (request: APIRequestContext, id: number) =>
+  send<Template>(request, "get", `/api/task-templates/${id}`);
+
 export type CalendarEvent = {
   id: number;
   title: string;

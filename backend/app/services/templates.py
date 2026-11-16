@@ -103,8 +103,10 @@ def update_template(session: Session, template_id: int, data: TaskTemplateUpdate
     return _save(session, template)
 
 
-def move_template(session: Session, template_id: int, data: TaskMove) -> TaskTemplate:
-    """Give the template a new owner. Tasks already created keep theirs."""
+def move_template(
+    session: Session, template_id: int, data: TaskMove
+) -> tuple[TaskTemplate, str | None]:
+    """Give the template a new owner, recorded for undo. Tasks already created keep theirs."""
     template = get_template(session, template_id)
     owner = resolve_owner(
         session,
@@ -113,10 +115,11 @@ def move_template(session: Session, template_id: int, data: TaskMove) -> TaskTem
         section_id=data.section_id,
         allow_inbox=True,
     )
-    template.life_area_id = owner.life_area_id
-    template.project_id = owner.project_id
-    template.section_id = owner.section_id
-    return _save(session, template)
+    history = ChangeRecorder(session)
+    history.set(template, "life_area_id", owner.life_area_id)
+    history.set(template, "project_id", owner.project_id)
+    history.set(template, "section_id", owner.section_id)
+    return _save(session, template), history.batch_id
 
 
 def pause_template(session: Session, template_id: int) -> TaskTemplate:

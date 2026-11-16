@@ -2692,6 +2692,19 @@ export type TaskReorder = {
 };
 
 /**
+ * TaskTemplateChange
+ *
+ * The template after the change, and the batch to pass to undo (None if nothing changed).
+ */
+export type TaskTemplateChange = {
+    template: TaskTemplateRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
  * TaskTemplateCreate
  *
  * A template. Add rrule and starts_on to make it a recurring task.
@@ -5439,7 +5452,7 @@ export type MoveTaskTemplateResponses = {
     /**
      * Successful Response
      */
-    200: TaskTemplateRead;
+    200: TaskTemplateChange;
 };
 
 export type MoveTaskTemplateResponse = MoveTaskTemplateResponses[keyof MoveTaskTemplateResponses];
@@ -7030,7 +7043,7 @@ export type MoveRoutineStepResponses = {
     /**
      * Successful Response
      */
-    200: RoutineStepRead;
+    200: RoutineStepChange;
 };
 
 export type MoveRoutineStepResponse = MoveRoutineStepResponses[keyof MoveRoutineStepResponses];

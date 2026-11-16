@@ -228,8 +228,11 @@ def update_routine_step(
 
 
 @router.post("/routine-steps/{step_id}/move", responses={**NOT_FOUND, **CONFLICT})
-def move_routine_step(session: SessionDep, step_id: int, data: RoutineStepMove) -> RoutineStepRead:
-    return _step(session, service.move_step(session, step_id, data))
+def move_routine_step(
+    session: SessionDep, step_id: int, data: RoutineStepMove
+) -> RoutineStepChange:
+    step, batch_id = service.move_step(session, step_id, data)
+    return RoutineStepChange(step=_step(session, step), batch_id=batch_id)
 
 
 @router.post("/routine-steps/{step_id}/pause", responses={**NOT_FOUND, **CONFLICT})

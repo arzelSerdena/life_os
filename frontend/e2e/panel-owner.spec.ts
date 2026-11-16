@@ -1,5 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { createArea, createProject, createSection, getTask, postTask, unique } from "./api.ts";
+import {
+  createArea,
+  createProject,
+  createSection,
+  getTask,
+  getTemplate,
+  postTask,
+  postTemplate,
+  serverToday,
+  unique,
+} from "./api.ts";
 
 // The detail panel's breadcrumb: the owner and section open the shared pickers, and each move
 // is one undoable change.
@@ -49,4 +59,41 @@ test("the breadcrumb's owner and section pickers move a task, with Undo", async 
 
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(async () => getTask(request, task.id)).toMatchObject({ section_id: null });
+});
+
+test("the breadcrumb moves a recurring task to another area, with Undo", async ({
+  page,
+  request,
+}) => {
+  const home = await createArea(request, unique("Home"));
+  const garden = await createArea(request, unique("Garden"));
+  const template = await postTemplate(request, {
+    title: unique("Water plants"),
+    life_area_id: home.id,
+    rrule: "FREQ=WEEKLY;BYDAY=SA",
+    starts_on: await serverToday(request),
+  });
+
+  await page.goto(`/areas/${home.id}`);
+  await page.getByRole("tab", { name: /Recurring/ }).click();
+  await page.getByRole("tabpanel").getByRole("button", { name: template.title }).click();
+  const crumbs = page
+    .getByRole("complementary", { name: "Details" })
+    .getByRole("navigation", { name: "Breadcrumb" });
+
+  await crumbs.getByRole("button", { name: "Owner" }).click();
+  await page.getByRole("textbox", { name: "Search" }).fill(garden.title.slice(0, 10));
+  await page
+    .getByRole("dialog", { name: "Owner" })
+    .getByRole("button", { name: garden.title })
+    .click();
+  await expect(page.getByText(`Moved “${template.title}” · ${garden.title}`)).toBeVisible();
+  await expect
+    .poll(async () => getTemplate(request, template.id))
+    .toMatchObject({ life_area_id: garden.id });
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect
+    .poll(async () => getTemplate(request, template.id))
+    .toMatchObject({ life_area_id: home.id });
 });
