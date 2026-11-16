@@ -404,3 +404,65 @@ def test_one_off_changes_after_a_split_move_to_the_new_series(
         (new["id"], "2026-12-07", "Legs", False),
         (new["id"], "2026-12-14", "Gym", True),
     ]
+
+
+# ---------- Rescheduling (dragging or resizing on the calendar) ----------
+
+
+def test_rescheduling_a_one_off_event_keeps_its_times_and_can_be_undone(
+    client: TestClient, area: int
+) -> None:
+    event = _create(client, area, start_time="10:00", end_time="11:00")
+
+    change = _post(client, f"/{event['id']}/reschedule", {"start_date": "2026-11-19"})
+
+    moved = change["event"]
+    assert (moved["start_date"], moved["end_date"]) == ("2026-11-19", None)
+    assert (moved["start_time"], moved["end_time"]) == ("10:00:00", "11:00:00")
+    assert _days(client) == ["2026-11-19"]
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 200
+    assert _days(client) == ["2026-11-16"]
+
+
+def test_resizing_an_event_over_several_days(client: TestClient, area: int) -> None:
+    event = _create(client, area, start_date="2026-11-20", end_date="2026-11-22")
+
+    longer = _post(
+        client, f"/{event['id']}/reschedule", {"start_date": "2026-11-20", "end_date": "2026-11-24"}
+    )
+    one_day = _post(
+        client, f"/{event['id']}/reschedule", {"start_date": "2026-11-20", "end_date": "2026-11-20"}
+    )
+
+    assert longer["event"]["end_date"] == "2026-11-24"
+    assert one_day["event"]["end_date"] is None  # a one-day event stores no end date
+
+
+@pytest.mark.parametrize(
+    ("fields", "body"),
+    [
+        ({}, {"start_date": "2026-11-20", "end_date": "2026-11-19"}),
+        # Squeezing an overnight event into one day would end it before it starts
+        (
+            {"end_date": "2026-11-17", "start_time": "22:00", "end_time": "02:00"},
+            {"start_date": "2026-11-16", "end_date": "2026-11-16"},
+        ),
+    ],
+)
+def test_rescheduling_checks_the_timing(
+    client: TestClient, area: int, fields: dict[str, Any], body: dict[str, Any]
+) -> None:
+    event = _create(client, area, **fields)
+
+    response = client.post(f"{URL}/{event['id']}/reschedule", json=body)
+
+    assert response.status_code == 422
+
+
+def test_a_repeating_event_is_not_rescheduled_as_a_whole(client: TestClient, area: int) -> None:
+    event = _weekly(client, area)
+
+    response = client.post(f"{URL}/{event['id']}/reschedule", json={"start_date": "2026-11-18"})
+
+    assert response.status_code == 422
+    assert _days(client)[0] == "2026-11-16"

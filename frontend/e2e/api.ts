@@ -83,3 +83,20 @@ export const listTasks = (request: APIRequestContext) =>
 
 export const listTemplates = (request: APIRequestContext) =>
   send<Record<string, unknown>[]>(request, "get", "/api/task-templates");
+
+export type CalendarEvent = {
+  id: number;
+  title: string;
+  start_date: string;
+  end_date: string | null;
+};
+
+export const postEvent = (request: APIRequestContext, body: Record<string, unknown>) =>
+  send<CalendarEvent>(request, "post", "/api/events", body);
+
+export const getEvent = (request: APIRequestContext, id: number) =>
+  send<CalendarEvent>(request, "get", `/api/events/${id}`);
+
+/** The Monday of the week holding `day` (weeks start on Monday). */
+export const mondayOf = (day: string) =>
+  addDays(day, -((new Date(`${day}T00:00:00Z`).getUTCDay() + 6) % 7));

@@ -217,7 +217,7 @@ export function TaskCard({
   );
 }
 
-function SubtaskRow({ subtask, readOnly }: { subtask: SubtaskRead; readOnly: boolean }) {
+export function SubtaskRow({ subtask, readOnly }: { subtask: SubtaskRead; readOnly: boolean }) {
   const update = useMutation(updateSubtaskMutation());
   const done = subtask.status === "done";
   return (

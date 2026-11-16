@@ -12,7 +12,13 @@ from app import clock, rrules
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import Event, EventException
 from app.models.base import utc_now
-from app.schemas.event import EventCreate, EventMove, EventUpdate, OccurrenceEdit
+from app.schemas.event import (
+    EventCreate,
+    EventMove,
+    EventReschedule,
+    EventUpdate,
+    OccurrenceEdit,
+)
 from app.services.history import ChangeRecorder
 from app.services.ownership import ensure_owner_open, resolve_owner
 
@@ -145,6 +151,23 @@ def update_event(session: Session, event_id: int, data: EventUpdate) -> Event:
     event = get_event(session, event_id)
     _change_series(event, data.model_dump(exclude_unset=True))
     return _save(session, event)
+
+
+def reschedule_event(session: Session, event_id: int, data: EventReschedule) -> EventChange:
+    """Give a one-off event new dates, keeping its times. Recorded, so it can be undone.
+
+    A repeating event's occurrences are moved one at a time (`edit_occurrence`), since moving
+    the series would drop its one-off changes, which undo can't bring back."""
+    event = _get_unarchived(session, event_id)
+    if event.rrule is not None:
+        raise UnprocessableError("A repeating event moves one occurrence at a time.")
+    end_date = None if data.end_date == data.start_date else data.end_date
+    current = {field: getattr(event, field) for field in (*TIMING_FIELDS, "repeat_ends_on")}
+    _check_timing(current | {"start_date": data.start_date, "end_date": end_date})
+    history = ChangeRecorder(session)
+    history.set(event, "start_date", data.start_date)
+    history.set(event, "end_date", end_date)
+    return EventChange(_save(session, event), history.batch_id)
 
 
 def move_event(session: Session, event_id: int, data: EventMove) -> EventChange:

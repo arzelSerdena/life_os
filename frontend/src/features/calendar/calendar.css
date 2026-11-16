@@ -1,0 +1,155 @@
+/*
+ * The Calendar's day grid (Approved: Calendar). FullCalendar's skeleton.css lays it out; these
+ * rules give it the approved look through the class hooks set in CalendarGrid.tsx.
+ */
+
+.calendar-table {
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+/*
+ * FullCalendar strips the borders at the grid's edges, so each cell draws its start border
+ * and each week row its top border; the first ones come out. Cells keep no padding, so the
+ * spacing lives on the content inside them.
+ */
+.is-week .calendar-head {
+  border-bottom: 1px solid var(--border-default);
+}
+.is-week .calendar-day-header {
+  border-inline-start: 1px solid var(--border-default);
+}
+.calendar-week-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 8px 0 10px;
+}
+.is-month .calendar-day-header > :last-child {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+}
+.calendar-weekday {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+.calendar-date {
+  min-width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  padding: 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.is-month .calendar-date {
+  font-size: 13px;
+}
+.is-past .calendar-date {
+  color: var(--text-tertiary);
+}
+.is-today .calendar-weekday {
+  color: var(--color-brand-700);
+}
+.is-today .calendar-date {
+  background: var(--color-brand-600);
+  color: var(--color-white);
+}
+.calendar-cell-top.is-other .calendar-date {
+  color: var(--text-disabled);
+}
+
+/* Day cells: column lines, and a line between Month's week rows. */
+.calendar-day {
+  border-inline-start: 1px solid var(--border-default);
+  cursor: pointer;
+}
+.is-month .calendar-week {
+  border-top: 1px solid var(--border-default);
+}
+.is-week .calendar-cell-top-slot {
+  height: 6px;
+  min-height: 0;
+  overflow: hidden;
+}
+.calendar-cell-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px 0 6px;
+}
+.calendar-ring {
+  margin-left: auto;
+  display: grid;
+  border-radius: 9999px;
+  cursor: pointer;
+  outline: none;
+}
+.calendar-ring svg {
+  width: 14px;
+  height: 14px;
+}
+.calendar-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+/* Entries: 24 px rows 3 px apart, inset 6 px from the column lines (bars run across them). */
+.calendar-entry {
+  padding: 0 6px 3px;
+  cursor: pointer;
+}
+.calendar-entry.calendar-mirror {
+  opacity: 0.9;
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.14));
+}
+
+/* A bar's end can be dragged to make it longer or shorter: an 8 px handle, a grip on hover. */
+.calendar-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 3px;
+  right: 4px;
+  width: 8px;
+  cursor: ew-resize;
+}
+.calendar-resizer::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  right: 2px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-brand-600);
+  opacity: 0;
+}
+.calendar-entry:hover .calendar-resizer::after {
+  opacity: 1;
+}
+
+/* "+3 more" closes a full Month cell. */
+.calendar-more {
+  margin: 0 6px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.calendar-more:hover {
+  background: var(--color-neutral-100);
+  color: var(--text-primary);
+}

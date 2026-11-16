@@ -94,6 +94,16 @@ class EventMove(BaseModel):
     project_id: int | None = None
 
 
+class EventReschedule(BaseModel):
+    """New dates for a one-off event, as when it is dragged or its bar resized on the
+    calendar. Its times stay; leave `end_date` out (or None) for a one-day event."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    start_date: date
+    end_date: date | None = None
+
+
 class EventChange(BaseModel):
     """The event after the change, and the batch to pass to undo (None if nothing changed)."""
 

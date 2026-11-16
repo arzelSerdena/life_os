@@ -27,7 +27,7 @@ type RailGroup = { label: string; icon: LucideIcon; to?: string };
 const GROUPS: RailGroup[] = [
   { label: "Home", icon: House },
   { label: "Tasks", icon: SquareKanban, to: "/tasks" },
-  { label: "Calendar", icon: CalendarDays },
+  { label: "Calendar", icon: CalendarDays, to: "/calendar" },
   { label: "Plan", icon: LayoutGrid, to: "/areas" },
 ];
 const SETTINGS: RailGroup = { label: "Settings", icon: Settings };

@@ -11,6 +11,7 @@ from app.schemas.event import (
     EventDeleted,
     EventMove,
     EventRead,
+    EventReschedule,
     EventUpdate,
     OccurrenceCancel,
     OccurrenceDelete,
@@ -106,6 +107,13 @@ def preview_event_delete(
 @router.post("/{event_id}/move", responses={**NOT_FOUND, **CONFLICT})
 def move_event(session: SessionDep, event_id: int, data: EventMove) -> EventChange:
     return _change(service.move_event(session, event_id, data))
+
+
+@router.post("/{event_id}/reschedule", responses={**NOT_FOUND, **CONFLICT})
+def reschedule_event(session: SessionDep, event_id: int, data: EventReschedule) -> EventChange:
+    """New dates for a one-off event (dragged or resized on the calendar), with an undo batch.
+    A repeating event is refused: move one occurrence with `.../occurrences/{day}/edit`."""
+    return _change(service.reschedule_event(session, event_id, data))
 
 
 @router.post("/{event_id}/cancel", responses={**NOT_FOUND, **CONFLICT})
