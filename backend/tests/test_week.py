@@ -334,3 +334,65 @@ def test_each_day_lists_its_due_routine_steps(client: TestClient, session: Sessi
     assert steps["2026-11-20"] == {"Stretch": "todo", "Plan day": "todo"}
     health_only = _week(client, life_area_id=health.id)
     assert [s["title"] for s in health_only["days"][2]["routine_steps"]] == ["Stretch"]
+
+
+# ---------- Next 7 days (/api/days) ----------
+
+
+def _days(client: TestClient, **params: Any) -> dict[str, Any]:
+    response = client.get("/api/days", params=params)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_days_run_seven_days_from_today_by_default(client: TestClient) -> None:
+    found = _days(client)
+
+    assert (found["start"], found["end"], found["today"]) == (
+        "2026-11-18",
+        "2026-11-24",
+        "2026-11-18",
+    )
+    assert [day["day"] for day in found["days"]] == [f"2026-11-{n}" for n in range(18, 25)]
+
+
+def test_days_take_a_start_and_a_count(client: TestClient) -> None:
+    found = _days(client, start="2026-11-20", count=3)
+
+    assert [day["day"] for day in found["days"]] == ["2026-11-20", "2026-11-21", "2026-11-22"]
+
+
+@pytest.mark.parametrize("count", [0, 43])
+def test_days_refuse_a_count_out_of_range(client: TestClient, count: int) -> None:
+    assert client.get("/api/days", params={"count": count}).status_code == 422
+
+
+def test_days_place_tasks_like_the_week_board(client: TestClient) -> None:
+    _task(client, "Scheduled", scheduled_date="2026-11-23")
+    _task(client, "Due only", due_date="2026-11-24")
+    _task(client, "Later", scheduled_date="2026-11-30")
+    _task(client, "Someday")
+
+    board = _board(_days(client))
+
+    assert board["2026-11-23"] == ["Scheduled"]
+    assert board["2026-11-24"] == ["Due only"]
+    assert "Later" not in [title for titles in board.values() for title in titles]
+    assert board["unscheduled"] == ["Someday"]
+
+
+def test_days_create_recurring_tasks_past_the_end_of_the_week(
+    client: TestClient, session: Session
+) -> None:
+    client.post(
+        "/api/task-templates",
+        json={"title": "Water plants", "rrule": "FREQ=DAILY", "starts_on": "2026-11-01"},
+    )
+
+    first = _board(_days(client))
+    second = _board(_days(client))
+
+    assert first == second
+    # Today to next Tuesday: seven occurrences, two of them in next week
+    assert all(first[f"2026-11-{n}"] == ["Water plants"] for n in range(18, 25))
+    assert session.query(Task).count() == 7

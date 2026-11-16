@@ -23,3 +23,14 @@ class WeekRead(BaseModel):
     today: date
     unscheduled: list[TaskRead]
     days: list[DayRead]
+
+
+class DaysRead(BaseModel):
+    """A run of days from `start` to `end` (Next 7 days: today and the six after it), placed
+    as on the week board, plus Unscheduled."""
+
+    start: date
+    end: date
+    today: date
+    unscheduled: list[TaskRead]
+    days: list[DayRead]
