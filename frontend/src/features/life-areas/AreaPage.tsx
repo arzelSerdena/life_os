@@ -22,6 +22,8 @@ import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { SectionCard } from "../../components/SectionCard";
 import { useDetailPanel } from "../../stores/detailPanelStore";
+import { useNewEvent } from "../../stores/newEventStore";
+import { useNewTask } from "../../stores/newTaskStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
 import { ArchiveAreaDialog } from "./ArchiveAreaDialog";
@@ -45,6 +47,8 @@ export function AreaPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingMetric, setIsAddingMetric] = useState(false);
   const { openNewProject } = useAreasContext();
+  const openNewTask = useNewTask((state) => state.open);
+  const openNewEvent = useNewEvent((state) => state.open);
   const [isArchiving, setIsArchiving] = useState(false);
 
   const lifeArea = useQuery(getLifeAreaOptions({ path: { life_area_id: lifeAreaId } }));
@@ -91,6 +95,8 @@ export function AreaPage() {
             />
             {!isArchived && (
               <AddMenu
+                onAddTask={() => openNewTask({ lifeAreaId: area.id })}
+                onAddEvent={() => openNewEvent({ lifeAreaId: area.id })}
                 onAddMetric={() => setIsAddingMetric(true)}
                 onAddProject={() => openNewProject(area.id)}
               />
@@ -197,13 +203,16 @@ const ADD_ICON = "size-4 shrink-0 text-(--text-tertiary)";
 /** Action buttons are solid: the area's color inside an area, the accent everywhere else. */
 const AREA_BUTTON = "button--area";
 
-/** The Add split button, in the area's solid color.
- * Projects and metrics can be added here so far; the other items get their forms with their
- * own screens. */
+/** The Add split button, in the area's solid color, opening each form with this area.
+ * Routine steps get their form with the routine page. */
 function AddMenu({
+  onAddTask,
+  onAddEvent,
   onAddMetric,
   onAddProject,
 }: {
+  onAddTask: () => void;
+  onAddEvent: () => void;
   onAddMetric: () => void;
   onAddProject: () => void;
 }) {
@@ -222,8 +231,10 @@ function AddMenu({
       <Dropdown.Popover placement="bottom end" className="min-w-[200px]">
         <Dropdown.Menu
           aria-label="Add to this area"
-          disabledKeys={["task", "event", "step"]}
+          disabledKeys={["step"]}
           onAction={(key) => {
+            if (key === "task") onAddTask();
+            if (key === "event") onAddEvent();
             if (key === "metric") onAddMetric();
             if (key === "project") onAddProject();
           }}

@@ -97,6 +97,10 @@ export const postEvent = (request: APIRequestContext, body: Record<string, unkno
 export const getEvent = (request: APIRequestContext, id: number) =>
   send<CalendarEvent>(request, "get", `/api/events/${id}`);
 
+/** Every event, with its fields, for checking what a screen created. */
+export const listEvents = (request: APIRequestContext) =>
+  send<Record<string, unknown>[]>(request, "get", "/api/events?include_cancelled=true");
+
 /** The Monday of the week holding `day` (weeks start on Monday). */
 export const mondayOf = (day: string) =>
   addDays(day, -((new Date(`${day}T00:00:00Z`).getUTCDay() + 6) % 7));

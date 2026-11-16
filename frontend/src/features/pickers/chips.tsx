@@ -1,5 +1,5 @@
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
-import type { LucideIcon } from "lucide-react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
@@ -156,6 +156,61 @@ export function PopoverChip({
       </Popover.Trigger>
       <Popover.Content
         placement="bottom start"
+        style={{ width }}
+        className="rounded-[10px] border border-(--border-default) p-0"
+      >
+        <Popover.Dialog aria-label={label} className="flex flex-col p-1.5 outline-none">
+          {children}
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
+  );
+}
+
+/**
+ * A form field that opens a picker, such as New event's Owner, dates and times: a 32 px
+ * input with the value and a chevron, which gets the focus ring while its picker is open.
+ */
+export function PopoverField({
+  icon: Icon,
+  leading,
+  label,
+  isOpen,
+  onOpenChange,
+  width = 252,
+  placement = "bottom start",
+  isPlaceholder = false,
+  value,
+  children,
+}: {
+  icon?: LucideIcon;
+  leading?: ReactNode;
+  label: string;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  width?: number;
+  /** Lists open aligned to the field's right edge (the event time list). */
+  placement?: "bottom start" | "bottom end";
+  /** The value is a prompt ("Pick an area or project"), shown in the placeholder colour. */
+  isPlaceholder?: boolean;
+  value: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Popover isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Popover.Trigger
+        aria-label={label}
+        data-open={isOpen}
+        className={`flex h-8 w-full min-w-0 cursor-pointer items-center gap-1.5 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-left text-[13px] whitespace-nowrap outline-none hover:border-(--color-neutral-300) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:border-(--color-brand-600) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)] [&_svg]:shrink-0 ${
+          isPlaceholder ? "text-(--text-tertiary)" : "text-(--text-primary)"
+        }`}
+      >
+        {leading ?? (Icon && <Icon aria-hidden className="size-3.5 text-(--text-tertiary)" />)}
+        <span className="min-w-0 flex-1 truncate">{value}</span>
+        <ChevronDown aria-hidden className="size-3 text-(--text-tertiary)" />
+      </Popover.Trigger>
+      <Popover.Content
+        placement={placement}
         style={{ width }}
         className="rounded-[10px] border border-(--border-default) p-0"
       >
