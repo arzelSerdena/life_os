@@ -301,15 +301,21 @@ def cancel_occurrence(
 ) -> tuple[Event, str | None]:
     """Cancel one occurrence, the series from it on, or all of it.
 
-    Cancelling the series ("following" or "all") is one undoable batch. A single
-    cancelled occurrence comes back with restore_occurrence instead.
+    Each is one undoable batch: undoing "this" removes an exception the cancel created, or
+    clears is_cancelled on one that held other one-off changes. restore_occurrence still
+    removes every one-off change at once.
     """
     event = _repeating_event(session, event_id, day)
     history = ChangeRecorder(session)
 
     if scope == "this":
-        exception = _exception(event, day) or _add_exception(event, day)
-        exception.is_cancelled = True
+        exception = _exception(event, day)
+        if exception is None:
+            exception = _add_exception(event, day)
+            exception.is_cancelled = True
+            history.created(exception)
+        else:
+            history.set(exception, "is_cancelled", True)
     elif scope == "following" and day > event.start_date:
         new_end = day - timedelta(days=1)
         if event.repeat_ends_on is None or event.repeat_ends_on > new_end:
