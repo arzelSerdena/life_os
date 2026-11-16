@@ -132,9 +132,11 @@
 
 - New task and the pickers (`features/tasks/NewTaskModal.tsx`, rules in `newTask.ts`; shared pickers in `features/pickers/`). New task (brand 700) on All, Today, Unscheduled, Inbox and Next 7 days, and in "No tasks yet."; the column + (always shown) and the subgroup + (on hover) open it pre-filled with their priority, area, project or day (Today also schedules it today). The pop-up has Title, then the Owner (search, Inbox, areas with their projects), Section (when the project has sections), Priority (flags, Do / Schedule / Delegate / Eliminate), Scheduled, Due and Repeat chips, and Add subtask rows; Enter creates, Esc cancels. The date picker types dates ("fri", "nov 20", "+3d") with the match as one row and outlined on the grid, has Today / Tomorrow / Next week icon buttons and the month, and now also serves the detail panel's due and scheduled chips. Repeat offers the presets from the task's date and Custom (every n days/weeks/months/years, weekdays, from schedule or completion, ends never / on a date / after n times). A repeat rule creates a recurring task (`POST /api/task-templates`). No backend changes. Browser tests in `frontend/e2e/new-task.spec.ts`.
 
+- `Ctrl N` quick add (`features/tasks/newTaskShortcut.ts`): Ctrl N (⌘ N) opens New task on every screen, even while typing, and `N` on its own does too outside a text field, since browser tabs keep Ctrl N for a new window. It opens with what the page's New task button would (Today schedules today; elsewhere a blank task, which lands in the Inbox), and waits while another pop-up, picker or menu is open. Browser test in `frontend/e2e/new-task.spec.ts`.
+
 **Next** (code, one branch and PR each, in this order)
 
-- Phase 2 screens: Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add (opens New task through `useNewTask().open()`; the pop-up is already rendered by the app shell).
+- Phase 2 screens: Calendar Week and Month (FullCalendar day grid).
 - The owner and section pickers in the detail panel's breadcrumb, and the date picker in the Inbox's Date hover action, which still use the older controls.
 - `e2e/next7.spec.ts` "dragging a task onto another in the same day reorders the day" fails when repeated against one database (`--repeat-each=3`, also on `main`); a single run passes. Worth a look.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

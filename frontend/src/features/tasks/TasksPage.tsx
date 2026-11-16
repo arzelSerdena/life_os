@@ -9,6 +9,7 @@ import { FilterMenu, useClearFilters, useViewFilters } from "./FilterMenu";
 import { areaShown, openFirst, sortTasks, taskShown } from "./filters";
 import { NewTaskButton } from "./NewTaskModal";
 import { spotFor, type TaskSpot } from "./newTask";
+import { usePageSpot } from "./newTaskShortcut";
 import { Board } from "./TaskBoard";
 import { useTasksContext } from "./TasksLayout";
 
@@ -42,6 +43,9 @@ export function TasksPage() {
   const filters = useViewFilters(filterView, group);
   const clearFilters = useClearFilters(filterView);
   const openNewTask = useNewTask((state) => state.open);
+  // A task added in Today is scheduled today, so it shows up where it was added.
+  const base: TaskSpot = view === "today" && data ? { scheduledDate: data.today } : {};
+  usePageSpot(base, data?.today);
 
   if (!valid) return <Navigate to="/tasks/all" replace />;
 
@@ -68,8 +72,6 @@ export function TasksPage() {
       )
     : [];
   const showFlag = finished || (group !== "priority" && filters.subgroup !== "priority");
-  // A task added in Today is scheduled today, so it shows up where it was added.
-  const base: TaskSpot = view === "today" && data ? { scheduledDate: data.today } : {};
   const onAdd = (columnKey: string, subgroupKey: string | null) =>
     data && openNewTask(spotFor(columnKey, subgroupKey, data.projects, base), data.today);
 
