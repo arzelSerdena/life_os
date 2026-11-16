@@ -566,6 +566,23 @@ export type EventRead = {
 };
 
 /**
+ * EventReschedule
+ *
+ * New dates for a one-off event, as when it is dragged or its bar resized on the
+ * calendar. Its times stay; leave `end_date` out (or None) for a one-day event.
+ */
+export type EventReschedule = {
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+};
+
+/**
  * EventUpdate
  *
  * Only the fields sent are changed. On a repeating event this changes the whole
@@ -5942,6 +5959,44 @@ export type MoveEventResponses = {
 };
 
 export type MoveEventResponse = MoveEventResponses[keyof MoveEventResponses];
+
+export type RescheduleEventData = {
+    body: EventReschedule;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/reschedule';
+};
+
+export type RescheduleEventErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RescheduleEventError = RescheduleEventErrors[keyof RescheduleEventErrors];
+
+export type RescheduleEventResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventChange;
+};
+
+export type RescheduleEventResponse = RescheduleEventResponses[keyof RescheduleEventResponses];
 
 export type CancelEventData = {
     body?: never;

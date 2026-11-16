@@ -140,6 +140,7 @@ export function MonthGrid({
   today,
   selected,
   outlined,
+  highlight,
   onMonth,
   onPick,
 }: {
@@ -148,6 +149,8 @@ export function MonthGrid({
   selected: string | null;
   /** The day a typed date matches. */
   outlined?: string | null;
+  /** Days shaded as one range, such as the Calendar's shown week. */
+  highlight?: { start: string; end: string };
   onMonth: (month: string) => void;
   onPick: (date: string) => void;
 }) {
@@ -182,12 +185,13 @@ export function MonthGrid({
               const isSelected = date === selected;
               const isToday = date === today;
               const inMonth = date.slice(0, 7) === month;
+              const inRange = !!highlight && highlight.start <= date && date <= highlight.end;
               return (
                 <span key={date} className="grid h-[30px] place-items-center">
                   <button
                     type="button"
                     aria-label={longDate(date)}
-                    aria-pressed={isSelected}
+                    aria-pressed={isSelected || inRange}
                     aria-current={isToday ? "date" : undefined}
                     onClick={() => onPick(date)}
                     className={`grid size-7 place-items-center rounded-(--radius-6) text-xs outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) ${
@@ -195,11 +199,13 @@ export function MonthGrid({
                         ? "bg-(--color-brand-600) font-semibold text-white"
                         : date === outlined
                           ? "bg-(--color-brand-100) text-(--text-primary) shadow-[inset_0_0_0_1px_var(--color-brand-600)]"
-                          : isToday
-                            ? "font-semibold text-(--color-brand-700) shadow-[inset_0_0_0_1px_var(--color-brand-500)] hover:bg-(--color-neutral-100)"
-                            : `hover:bg-(--color-neutral-100) ${
-                                inMonth ? "text-(--text-primary)" : "text-(--text-disabled)"
-                              }`
+                          : inRange
+                            ? `bg-(--color-brand-100) font-semibold text-(--color-brand-700) ${isToday ? "shadow-[inset_0_0_0_1px_var(--color-brand-500)]" : ""}`
+                            : isToday
+                              ? "font-semibold text-(--color-brand-700) shadow-[inset_0_0_0_1px_var(--color-brand-500)] hover:bg-(--color-neutral-100)"
+                              : `hover:bg-(--color-neutral-100) ${
+                                  inMonth ? "text-(--text-primary)" : "text-(--text-disabled)"
+                                }`
                     }`}
                   >
                     {Number(date.slice(8))}

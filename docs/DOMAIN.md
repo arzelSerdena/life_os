@@ -279,6 +279,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones. A day's order covers every task the placement rule puts on it, so a task with only a due date is ordered with that day's scheduled tasks; a task whose edit moves it to another day (or to Unscheduled) goes to the end of it.
 - Due dates are a date plus an optional time, and a due time requires a due date.
 - Events are all-day when they have no start time. An end time requires a start time, and the end date (the last day, inclusive) can't be before the start date. Upcoming/past is calculated from dates.
+- Dragging a one-off event on the Calendar, or its bar's end, gives it new dates through `POST /api/events/{id}/reschedule` (start date, end date): its times stay, a one-day event stores no end date, the timing rules above apply, and the change is recorded so it can be undone. A repeating event is refused (422); its occurrences move one at a time with the occurrence edit.
 - Unfinished one-off tasks roll over. A task qualifies if it is `todo`, not archived, not a recurring occurrence, and its `scheduled_date` is before today.
   - Rollover runs whenever the board loads a week, which happens on app launch and when the local date changes while the app is open.
   - Rolled-over tasks go to the end of today's list, keeping their order.
