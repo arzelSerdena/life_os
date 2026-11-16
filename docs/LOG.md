@@ -112,8 +112,9 @@
 
 - The sidebar is docked and shown by default at every window width again; it no longer floats as an overlay below 1440 px (the overlay from PR #31 is removed). Hiding with Ctrl B or the hide button and resizing still work. Style guide updated (Current rules and the Nov 16 Components section).
 
+- Settings backend: the single-row `settings` table (model `AppSettings`, migration), `GET /api/settings` (creates the defaults on first read) and `PATCH /api/settings`. `app.clock.today()` and `clock.local_date()` apply `day_ends_at`: every request reads the stored hour first, so Home, rollover, routine logs, completed dates and streaks all follow it.
+
 **Next** (code, one branch and PR each, in this order)
 
-- `settings` table, model, migration and API; `app.clock.today()` applies `day_ends_at`.
 - Phase 2 screens: Tasks group, New task, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

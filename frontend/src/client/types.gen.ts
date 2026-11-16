@@ -2075,6 +2075,73 @@ export type SeriesEdit = {
 };
 
 /**
+ * SettingsRead
+ */
+export type SettingsRead = {
+    /**
+     * Open On Start
+     */
+    open_on_start: 'home' | 'tasks' | 'calendar';
+    /**
+     * Time Format
+     */
+    time_format: '12h' | '24h';
+    /**
+     * Day Ends At
+     */
+    day_ends_at: number;
+    /**
+     * Auto Backup
+     */
+    auto_backup: boolean;
+    /**
+     * Keep Backups
+     */
+    keep_backups: 7 | 14 | 30;
+    /**
+     * Backup Folder
+     */
+    backup_folder: string | null;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * SettingsUpdate
+ *
+ * Only the fields sent are changed. Sending null for backup_folder means the default
+ * folder next to the database.
+ */
+export type SettingsUpdate = {
+    /**
+     * Open On Start
+     */
+    open_on_start?: 'home' | 'tasks' | 'calendar' | null;
+    /**
+     * Time Format
+     */
+    time_format?: '12h' | '24h' | null;
+    /**
+     * Day Ends At
+     */
+    day_ends_at?: number | null;
+    /**
+     * Auto Backup
+     */
+    auto_backup?: boolean | null;
+    /**
+     * Keep Backups
+     */
+    keep_backups?: 7 | 14 | 30 | null;
+    /**
+     * Backup Folder
+     */
+    backup_folder?: string | null;
+};
+
+/**
  * StepRowRead
  */
 export type StepRowRead = {
@@ -2846,6 +2913,47 @@ export type WinRead = {
      */
     times: number;
 };
+
+export type GetSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/settings';
+};
+
+export type GetSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: SettingsRead;
+};
+
+export type GetSettingsResponse = GetSettingsResponses[keyof GetSettingsResponses];
+
+export type UpdateSettingsData = {
+    body: SettingsUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/settings';
+};
+
+export type UpdateSettingsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSettingsError = UpdateSettingsErrors[keyof UpdateSettingsErrors];
+
+export type UpdateSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: SettingsRead;
+};
+
+export type UpdateSettingsResponse = UpdateSettingsResponses[keyof UpdateSettingsResponses];
 
 export type ListLifeAreasData = {
     body?: never;

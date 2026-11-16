@@ -6,9 +6,17 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.db import create_db_engine, get_session
 from app.main import app
 from app.models import Base
+
+
+@pytest.fixture(autouse=True)
+def reset_day_ends_at() -> Iterator[None]:
+    """The setting lives in the clock module, so keep one test's value out of the next."""
+    yield
+    clock.set_day_ends_at(0)
 
 
 @pytest.fixture

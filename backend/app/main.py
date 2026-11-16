@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import FastAPI, Request, status
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import BaseModel
@@ -9,6 +9,7 @@ from sqlalchemy import text
 from app.db import SessionDep
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.routers import (
+    app_settings,
     events,
     life_areas,
     metrics,
@@ -19,6 +20,7 @@ from app.routers import (
     undo,
     week,
 )
+from app.services.app_settings import apply_day_ends_at
 
 
 def _operation_id(route: APIRoute) -> str:
@@ -26,7 +28,17 @@ def _operation_id(route: APIRoute) -> str:
     return route.name
 
 
-app = FastAPI(title="Life OS API", generate_unique_id_function=_operation_id)
+def _apply_settings(session: SessionDep) -> None:
+    """Every request sees today as the `day_ends_at` setting defines it."""
+    apply_day_ends_at(session)
+
+
+app = FastAPI(
+    title="Life OS API",
+    generate_unique_id_function=_operation_id,
+    dependencies=[Depends(_apply_settings)],
+)
+app.include_router(app_settings.router)
 app.include_router(life_areas.router)
 app.include_router(projects.router)
 app.include_router(metrics.router)
