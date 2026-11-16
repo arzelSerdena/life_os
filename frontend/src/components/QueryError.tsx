@@ -17,7 +17,7 @@ export function QueryError({ error, onRetry }: QueryErrorProps) {
         </Alert.Content>
       </Alert>
       {onRetry && (
-        <Button variant="secondary" size="sm" onPress={() => void onRetry()}>
+        <Button size="sm" onPress={() => void onRetry()}>
           Try again
         </Button>
       )}

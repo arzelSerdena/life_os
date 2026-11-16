@@ -16,7 +16,7 @@ This section sums up the rules in force as of Nov 16. Where it and an older sect
 
 - **Shell:** a 48 px rail (Home, Tasks, Calendar, Plan, then Settings at the bottom) and a 240 px context sidebar (200–320, collapses to an overlay below 1440 px). No top bar; each page has its own 32 px header row. Detail panel 400 px (360–560), floating, with ×, Esc and click-outside to close.
 - **Clicking an existing entity opens the detail panel; pop-ups are only for creating and confirming.** Exception: routines and routine steps are edited on their own page. A project always opens its project page.
-- **Colour means life area.** Status is shown with neutral chips, icons and text. The accent is neutral (near-black buttons); brand purple only for focus, selection, the today marker and the logo. Text never takes area colours. Red only for overdue and for behind or missed targets.
+- **Colour means life area.** Status is shown with neutral chips, icons and text. The accent is neutral (near-black). Action buttons are solid with white text: the accent, or the area's 500 colour inside an area (area and project pages); brand purple only for focus, selection, the today marker and the logo. Text never takes area colours. Red only for overdue and for behind or missed targets.
 - **Type:** 20 page title, 16 card and column titles, 14 card titles, 13 body, 12 metadata, 11 labels and tags (caps, +0.04em). Nothing below 11 px. Text colours: primary #111827, secondary #4b5563, tertiary #6b7280 (lightest text), disabled #9ca3af for controls only.
 - **Spacing:** 4 px grid (2 and 6 for small inner gaps), 24 px page gutter, 16 px between cards.
 - **Show data, not guidance:** data-only subtitles, no hints or info icons, one legend only (the routine key). Status messages that explain why an action is unavailable stay. One chart style per card.
@@ -1029,7 +1029,7 @@ Decided. Arzel accepted the recommendations of the UX review (Claude doc "Life O
 ### Colour
 
 - The accent is neutral: primary buttons neutral-900 with white text; checkboxes in menus and filters neutral-700. Brand purple is kept only for the focus ring, the selected marker, the today marker (brand 700) and the logo.
-- The Add split button on area and project pages is a neutral primary button; the area colour stays on its icon only.
+- Action buttons are solid with white text: the accent (neutral-900), or the area's 500 colour on area and project pages, the Add split button included. No ghost, tinted or outlined action buttons (this replaces the Projects overview's brand-50 quick action buttons). Cancel, ⋯ menus and switches stay neutral; delete confirmations keep the red button.
 - Personal gets a new colour that is clearly apart from brand purple (two options to be shown in Phase 3).
 - The Effort bar uses the area's 400 shade with white percentages (700 was too dark; Arzel chose white text knowing it is below 4.5:1 on the lighter areas).
 - Red is only for overdue items and targets the user set that are behind or missed. Trend lines are neutral grey with an up or down arrow.
