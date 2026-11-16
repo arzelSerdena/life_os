@@ -102,9 +102,10 @@
 
 - Small fixes to the built screens: the rail's Areas is now Plan (`LayoutGrid`) and Archived areas is Finished & archived; the New area pop-up lost "optional" and the Vision placeholder; archiving an area shows the undo toast (Archived “Career”); the sidebar collapses to an overlay below 1440 px again (PR #28 reverted) and the app's minimum size is 1280 × 720; the accent is neutral (primary buttons, the area Add button, the toast's Undo, checkboxes in menus and notes), with Low priority neutral in the tokens; no text below 11 px; every control has a 24 × 24 px hit area (`hit-24` utility, 24 px icon buttons, wrapped checkboxes) and a focus ring.
 
+- The placement rule in the backend: the week board, task lists, the area page's Unscheduled tab and agenda, new-task positions and reordering use `Task.placement_date` (scheduled date, else due date). New `/api/tasks` filters: `date_from`/`date_to` (renamed), `unscheduled` (neither date), `overdue`, `status`, `with_life_area`; reorder takes `day`.
+
 **Next** (code, one branch and PR each, in this order)
 
-- `GET /api/week` and the task lists follow the placement rule (a task with only a due date sits on that date; Unscheduled = neither date). Unscheduled task filter for the new view.
 - Previews return per-item rows grouped by effect (cascade and delete), then one `ConfirmDialog` replacing `ProjectChangeDialog` and `DeleteDialog`.
 - Playwright tests for New project and the project status actions.
 - `settings` table, model, migration and API; `app.clock.today()` applies `day_ends_at`.

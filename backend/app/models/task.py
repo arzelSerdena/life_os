@@ -1,6 +1,17 @@
 from datetime import date, datetime, time
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Text, Time
+from sqlalchemy import (
+    CheckConstraint,
+    ColumnElement,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Text,
+    Time,
+    func,
+)
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import AUTOINCREMENT, Base, BaseMixin
@@ -62,6 +73,16 @@ class Task(BaseMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    @hybrid_property
+    def placement_date(self) -> date | None:  # pyright: ignore[reportRedeclaration]
+        """The day the task sits on: its scheduled date, else its due date (never stored)."""
+        return self.scheduled_date or self.due_date
+
+    @placement_date.inplace.expression
+    @classmethod
+    def _placement_date_expression(cls) -> ColumnElement[date | None]:
+        return func.coalesce(cls.scheduled_date, cls.due_date)
 
 
 class Subtask(BaseMixin, Base):

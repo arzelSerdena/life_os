@@ -376,6 +376,12 @@ export const deleteMetricTarget = <ThrowOnError extends boolean = false>(options
 
 /**
  * List Tasks
+ *
+ * Tasks by the placement rule: each sits on its scheduled date, else its due date.
+ *
+ * `date_from`/`date_to` bound that date; `unscheduled` means neither date; `overdue` means
+ * to-do with a due date before today; `with_life_area` leaves the Inbox out (the
+ * Unscheduled view is `unscheduled` + `with_life_area` + `status=todo`).
  */
 export const listTasks = <ThrowOnError extends boolean = false>(options?: Options<ListTasksData, ThrowOnError>): RequestResult<ListTasksResponses, ListTasksErrors, ThrowOnError> => (options?.client ?? client).get<ListTasksResponses, ListTasksErrors, ThrowOnError>({ url: '/api/tasks', ...options });
 
@@ -394,7 +400,7 @@ export const createTask = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Reorder Tasks
  *
- * Set the order of a day's tasks, or of the unscheduled list. Returns the listed tasks.
+ * Set the order of a day's tasks, or of Unscheduled. Returns the listed tasks.
  */
 export const reorderTasks = <ThrowOnError extends boolean = false>(options: Options<ReorderTasksData, ThrowOnError>): RequestResult<ReorderTasksResponses, ReorderTasksErrors, ThrowOnError> => (options.client ?? client).post<ReorderTasksResponses, ReorderTasksErrors, ThrowOnError>({
     url: '/api/tasks/reorder',

@@ -810,6 +810,12 @@ export const listTasksQueryKey = (options?: Options<ListTasksData>) => createQue
 
 /**
  * List Tasks
+ *
+ * Tasks by the placement rule: each sits on its scheduled date, else its due date.
+ *
+ * `date_from`/`date_to` bound that date; `unscheduled` means neither date; `overdue` means
+ * to-do with a due date before today; `with_life_area` leaves the Inbox out (the
+ * Unscheduled view is `unscheduled` + `with_life_area` + `status=todo`).
  */
 export const listTasksOptions = (options?: Options<ListTasksData>) => queryOptions<ListTasksResponse, ListTasksError, ListTasksResponse, ReturnType<typeof listTasksQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -844,7 +850,7 @@ export const createTaskMutation = (options?: Partial<Options<CreateTaskData>>): 
 /**
  * Reorder Tasks
  *
- * Set the order of a day's tasks, or of the unscheduled list. Returns the listed tasks.
+ * Set the order of a day's tasks, or of Unscheduled. Returns the listed tasks.
  */
 export const reorderTasksMutation = (options?: Partial<Options<ReorderTasksData>>): UseMutationOptions<ReorderTasksResponse, ReorderTasksError, Options<ReorderTasksData>> => {
     const mutationOptions: UseMutationOptions<ReorderTasksResponse, ReorderTasksError, Options<ReorderTasksData>> = {

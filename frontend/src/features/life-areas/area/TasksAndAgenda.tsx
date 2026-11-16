@@ -88,7 +88,8 @@ export function TasksCard({ page }: { page: AreaPageRead }) {
           key: `u${task.id}`,
           target: { kind: "task", id: task.id },
           title: task.title,
-          note: withProject(task, task.due_date ? `Due ${shortDate(task.due_date)}` : ""),
+          // Unscheduled tasks have neither a scheduled nor a due date (the placement rule).
+          note: withProject(task, ""),
         }),
       ),
     },

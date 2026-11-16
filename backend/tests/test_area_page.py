@@ -231,7 +231,7 @@ def test_task_lists_and_the_agenda(client: TestClient, session: Session) -> None
 
     assert titles("overdue_tasks") == ["Late"]
     assert titles("rolled_over_tasks") == ["Slipping"]
-    assert titles("unscheduled_tasks") == ["Late", "Someday", "Due"]
+    assert titles("unscheduled_tasks") == ["Someday"]  # neither a scheduled nor a due date
     assert titles("recurring") == ["Weekly review"]
     assert titles("completed_tasks") == ["Shipped"]
     assert sorted(titles("agenda_tasks")) == ["Due", "Friday", "Slipping"]

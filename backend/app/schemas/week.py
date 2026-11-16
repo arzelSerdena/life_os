@@ -15,7 +15,8 @@ class DayRead(BaseModel):
 
 
 class WeekRead(BaseModel):
-    """Monday to Sunday. Unscheduled holds every to-do task with no date."""
+    """Monday to Sunday. A task sits on its scheduled date, else its due date; Unscheduled
+    holds every to-do task with neither."""
 
     week_start: date
     week_end: date

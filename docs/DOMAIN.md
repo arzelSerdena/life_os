@@ -29,7 +29,7 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 | **Run**            | A routine's full days in a row: current run, best run, longest run.                                       |
 | **Streak**         | One routine step's done days in a row. Never used for a whole routine.                                    |
 | **Inbox**          | Tasks and task templates with no life area. The Inbox screen lists the open tasks among them.            |
-| **Unscheduled**    | The Tasks view of open tasks that have a life area but no scheduled date.                                 |
+| **Unscheduled**    | The Tasks view of open tasks that have a life area and neither a scheduled nor a due date.                |
 | **Overdue**        | An open task whose due date is before today. Listed in Today.                                             |
 | **Today**          | The local date, shifted by the `day_ends_at` setting (section 8).                                        |
 | **Unlink**         | Clear an item's project link so it falls back to its life area.                                           |
@@ -276,7 +276,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Unscheduled** holds every to-do task with neither a scheduled nor a due date, from every life area and the Inbox.
   - Each day holds the tasks the placement rule puts on it (done ones included, cancelled ones only on request), its event occurrences, and its due routine steps with their status (to-do, done, skipped or missed). A multi-day event appears on every day it covers, with its real start and end dates.
   - Loading a week first runs rollover and creates the week's missing recurring tasks. Both are safe to repeat.
-  - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones.
+  - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones. A day's order covers every task the placement rule puts on it, so a task with only a due date is ordered with that day's scheduled tasks; a task whose edit moves it to another day (or to Unscheduled) goes to the end of it.
 - Due dates are a date plus an optional time, and a due time requires a due date.
 - Events are all-day when they have no start time. An end time requires a start time, and the end date (the last day, inclusive) can't be before the start date. Upcoming/past is calculated from dates.
 - Unfinished one-off tasks roll over. A task qualifies if it is `todo`, not archived, not a recurring occurrence, and its `scheduled_date` is before today.

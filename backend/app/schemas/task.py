@@ -125,13 +125,14 @@ class TaskMove(BaseModel):
 
 
 class TaskReorder(BaseModel):
-    """The new order of a day's tasks, or of the unscheduled list (scheduled_date null).
+    """The new order of a day's tasks, or of Unscheduled (day null).
 
+    A task is on a day by the placement rule: its scheduled date, else its due date.
     Tasks of that day not listed keep their order, after the listed ones."""
 
     model_config = ConfigDict(extra="forbid")
 
-    scheduled_date: date | None
+    day: date | None
     task_ids: Annotated[list[int], Field(min_length=1, max_length=500)]
 
 

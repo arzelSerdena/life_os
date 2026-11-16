@@ -208,8 +208,10 @@ def create_task_from_template(session: Session, template_id: int, data: TaskFrom
         scheduled_date=data.scheduled_date,
         occurrence_date=None,
         base_date=clock.today(),
-        sort_order=next_position(session, data.scheduled_date),
+        sort_order=0,
     )
+    # The due-date offset can place a task with no scheduled date on its due date.
+    task.sort_order = next_position(session, task.placement_date)
     session.add(task)
     session.commit()
     session.refresh(task)

@@ -2,7 +2,7 @@
 
 from datetime import date, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.orm import Session
 
 from app.models import Subtask, Task, TaskTemplate
@@ -10,14 +10,14 @@ from app.models.base import utc_now
 from app.services.history import ChangeRecorder
 
 
-def next_position(session: Session, scheduled_date: date | None) -> int:
-    """New tasks go to the end of their day, or of the unscheduled list."""
-    same_day = (
-        Task.scheduled_date.is_(None)
-        if scheduled_date is None
-        else Task.scheduled_date == scheduled_date
-    )
-    last_position = session.scalar(select(func.max(Task.sort_order)).where(same_day))
+def on_day(day: date | None) -> ColumnElement[bool]:
+    """Tasks the placement rule puts on `day`, or in Unscheduled when `day` is None."""
+    return Task.placement_date.is_(None) if day is None else Task.placement_date == day
+
+
+def next_position(session: Session, day: date | None) -> int:
+    """New tasks go to the end of their day (by the placement rule), or of Unscheduled."""
+    last_position = session.scalar(select(func.max(Task.sort_order)).where(on_day(day)))
     return 0 if last_position is None else last_position + 1
 
 
