@@ -110,6 +110,8 @@
 
 - Browser tests (Playwright, `pnpm e2e`, a new `e2e` CI job): `frontend/e2e/projects.spec.ts` covers New project (create and open, due before start) and the project status actions (complete with Undo, cancel with Go back, reopen, archive and restore) against a real API on a fresh temporary database (`e2e/start-api.mjs`, ports 8100 and 5180).
 
+- The sidebar is docked and shown by default at every window width again; it no longer floats as an overlay below 1440 px (the overlay from PR #31 is removed). Hiding with Ctrl B or the hide button and resizing still work. Style guide updated (Current rules and the Nov 16 Components section).
+
 **Next** (code, one branch and PR each, in this order)
 
 - `settings` table, model, migration and API; `app.clock.today()` applies `day_ends_at`.

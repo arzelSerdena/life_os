@@ -5,7 +5,7 @@ import { SIDEBAR_DEFAULT_WIDTH, useSidebarStore } from "./stores/sidebarStore";
 import { renderApp } from "./test-utils";
 
 beforeEach(() => {
-  useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH, overlayOpen: false });
+  useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH });
   vi.stubGlobal(
     "fetch",
     vi.fn(
@@ -64,26 +64,20 @@ test("the hide button hides the sidebar", async () => {
   expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
 });
 
-test("below 1440 px the sidebar opens over the page and closes after a choice or Esc", async () => {
+test("in a narrow window the sidebar is shown and docked, not floating", async () => {
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: query === "(max-width: 1439px)",
+    matches: query.includes("max-width"),
     addEventListener: () => {},
     removeEventListener: () => {},
   }));
   const user = userEvent.setup();
   renderApp("/areas");
 
-  const plan = await screen.findByRole("link", { name: "Plan" });
-  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
+  const sidebar = await screen.findByRole("complementary", { name: "Plan" });
+  expect(sidebar).not.toHaveClass("absolute");
+  expect(screen.getByRole("separator", { name: "Resize sidebar" })).toBeInTheDocument();
 
-  await user.click(plan);
-  expect(screen.getByRole("complementary", { name: "Plan" })).toBeInTheDocument();
-  await user.keyboard("{Escape}");
-  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
-
-  await user.keyboard("{Control>}b{/Control}");
+  // A choice in the sidebar keeps it open.
   await user.click(screen.getByRole("link", { name: "Finished & archived" }));
-  expect(screen.queryByRole("complementary", { name: "Plan" })).not.toBeInTheDocument();
-  // The docked sidebar's own setting is left alone.
-  expect(useSidebarStore.getState().collapsed).toBe(false);
+  expect(screen.getByRole("complementary", { name: "Plan" })).toBeInTheDocument();
 });
