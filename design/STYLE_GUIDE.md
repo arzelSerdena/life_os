@@ -14,7 +14,7 @@ Nov 10, 2026 · @Arzel
 
 This section sums up the rules in force as of Nov 16. Where it and an older section below disagree, this section wins; the dated sections below are kept as history and detail. The newest dated section is "Update: UX review decisions (Nov 16)" at the end.
 
-- **Shell:** a 48 px rail (Home, Tasks, Calendar, Plan, then Settings at the bottom) and a 240 px context sidebar (200–320, collapses to an overlay below 1440 px). No top bar; each page has its own 32 px header row. Detail panel 400 px (360–560), floating, with ×, Esc and click-outside to close.
+- **Shell:** a 48 px rail (Home, Tasks, Calendar, Plan, then Settings at the bottom) and a 240 px context sidebar (200–320; docked and shown by default at every window width, never an overlay; Ctrl B or its hide button hides it). No top bar; each page has its own 32 px header row. Detail panel 400 px (360–560), floating, with ×, Esc and click-outside to close.
 - **Clicking an existing entity opens the detail panel; pop-ups are only for creating and confirming.** Exception: routines and routine steps are edited on their own page. A project always opens its project page.
 - **Colour means life area.** Status is shown with neutral chips, icons and text. The accent is neutral (near-black). Action buttons are solid with white text: the accent, or the area's 500 colour inside an area (area and project pages); brand purple only for focus, selection, the today marker and the logo. Text never takes area colours. Red only for overdue and for behind or missed targets.
 - **Type:** 20 page title, 16 card and column titles, 14 card titles, 13 body, 12 metadata, 11 labels and tags (caps, +0.04em). Nothing below 11 px. Text colours: primary #111827, secondary #4b5563, tertiary #6b7280 (lightest text), disabled #9ca3af for controls only.
@@ -1056,7 +1056,7 @@ Decided. Arzel accepted the recommendations of the UX review (Claude doc "Life O
 - Every routine heatmap shows the routine key (Done, Skipped, Missed, Paused, Today, Upcoming, Not due), including the routine page and the Routines overview.
 - The agenda opens scrolled to today in every Calendar view.
 - The Calendar's right panel opens on Inbox by default; Agenda stays available.
-- The sidebar collapses to an overlay below 1440 px (the Nov 14 rule stands; the build's always-docked change is reverted). Minimum window: 1280 × 720.
+- The sidebar stays docked and shown by default at every window width; it never floats as an overlay (changed Nov 16 after review: this replaces the Nov 14 responsive rule). Hiding it with Ctrl B or its button still works and is remembered. Minimum window: 1280 × 720.
 - Settings › Data gets Restore from backup: pick a backup, confirm with its date and size; the app backs up the current data first.
 - Keyboard: `1`–`4` switch Week / Month / Quarter / Year, `T` goes to today, `←` `→` move the period, `?` lists the shortcuts.
 
