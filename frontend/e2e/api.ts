@@ -97,6 +97,12 @@ export const postEvent = (request: APIRequestContext, body: Record<string, unkno
 export const getEvent = (request: APIRequestContext, id: number) =>
   send<CalendarEvent>(request, "get", `/api/events/${id}`);
 
+export type Occurrence = { event_id: number; occurrence_date: string; start_date: string };
+
+/** Event occurrences overlapping first..last (inclusive). */
+export const listOccurrences = (request: APIRequestContext, first: string, last: string) =>
+  send<Occurrence[]>(request, "get", `/api/events/occurrences?first=${first}&last=${last}`);
+
 /** Every event, with its fields, for checking what a screen created. */
 export const listEvents = (request: APIRequestContext) =>
   send<Record<string, unknown>[]>(request, "get", "/api/events?include_cancelled=true");

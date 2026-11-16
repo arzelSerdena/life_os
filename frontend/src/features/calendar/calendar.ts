@@ -356,10 +356,13 @@ export function spanLabel(start: string, end: string): string {
   return `${shortDate(start)} – ${endText}`;
 }
 
-/** Whether an entry can be dragged: open tasks, and one-off events (not repeating ones). */
+/**
+ * Whether an entry can be dragged: open tasks, and events that aren't cancelled (a repeating
+ * event's occurrence moves on its own, "this one").
+ */
 export function canMove(entry: Entry): boolean {
   if (entry.kind === "task") return entry.task.status === "todo";
-  if (entry.kind === "event") return !entry.event.is_repeating && !entry.event.is_cancelled;
+  if (entry.kind === "event") return !entry.event.is_cancelled;
   return false;
 }
 

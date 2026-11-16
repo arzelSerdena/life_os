@@ -759,6 +759,7 @@ export const unarchiveEvent = <ThrowOnError extends boolean = false>(options: Op
  *
  * Change the occurrence on `day` (its original date): this one, this and following,
  * or all. Returns the event holding the change, which is a new series after a split.
+ * Changing this one (but only its notes) has an undo batch; series edits have none.
  */
 export const editEventOccurrence = <ThrowOnError extends boolean = false>(options: Options<EditEventOccurrenceData, ThrowOnError>): RequestResult<EditEventOccurrenceResponses, EditEventOccurrenceErrors, ThrowOnError> => (options.client ?? client).post<EditEventOccurrenceResponses, EditEventOccurrenceErrors, ThrowOnError>({
     url: '/api/events/{event_id}/occurrences/{day}/edit',

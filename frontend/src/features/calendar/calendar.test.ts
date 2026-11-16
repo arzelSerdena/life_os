@@ -301,27 +301,32 @@ test("the Inbox panel lists open tasks with no scheduled date, or no due date, o
 
 // ---------------------------------------------------------------- moving things
 
-test("open tasks and one-off events can be dragged; repeating events and routines can't", () => {
-  const [taskEntry, done, oneOff, repeating, routine] = buildEntries(
+test("open tasks and events can be dragged; cancelled events and routines can't", () => {
+  const [taskEntry, done, oneOff, repeating, cancelled, routine] = buildEntries(
     [
       day(TODAY, {
         tasks: [
           task({ id: 1, scheduled_date: TODAY }),
           task({ id: 2, status: "done", scheduled_date: TODAY }),
         ],
-        events: [event({ event_id: 1 }), event({ event_id: 2, is_repeating: true })],
+        events: [
+          event({ event_id: 1 }),
+          event({ event_id: 2, is_repeating: true }),
+          event({ event_id: 3, is_cancelled: true }),
+        ],
         routine_steps: [step({})],
       }),
     ],
     [],
-    filters(),
+    filters({}, { cancelled: true }),
   ).sort(
     (a, b) => (a.kind === "task" ? -1 : 0) - (b.kind === "task" ? -1 : 0) || a.order - b.order,
   );
 
-  expect([taskEntry, done, oneOff, repeating, routine].map(canMove)).toEqual([
+  expect([taskEntry, done, oneOff, repeating, cancelled, routine].map(canMove)).toEqual([
     true,
     false,
+    true,
     true,
     false,
     false,

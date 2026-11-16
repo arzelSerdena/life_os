@@ -12,6 +12,7 @@ ENTITY_TYPES = (
     "task",
     "subtask",
     "event",
+    "event_exception",
     "metric",
     "routine",
     "routine_step",

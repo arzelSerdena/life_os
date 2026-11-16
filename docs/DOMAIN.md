@@ -144,7 +144,7 @@ Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/proj
 
 Undo groups the batch's rows by entity and restores all fields of one entity in a **single UPDATE**. Status and timestamp must change together or the CHECK constraint fails.
 
-`status_changes` records field changes, plus tasks a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks, series cancellations and task edits other than notes (so filing a task by date or priority can be undone). Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.
+`status_changes` records field changes, plus tasks and event exceptions a change created: finishing a "repeat from completion" task creates the next occurrence in the same batch, and undo removes it again if it is unchanged since. Its scope is status changes, cascades, unlinks, series cancellations, task edits other than notes (so filing a task by date or priority can be undone), and changes to one occurrence of a repeating event other than its notes. Series edits, which split series and regenerate occurrences, ask for confirmation instead and can't be undone.
 
 AI agents may call the same service-layer operations, but cascades always require the user's confirmation.
 
@@ -191,7 +191,7 @@ As in Google Calendar, changing or cancelling one occurrence of a repeating item
 - A repeating event is one row with an `rrule`, running from `start_date` until `repeat_ends_on` if set. The rule follows the same limits as task templates: no `DTSTART`, `UNTIL` or `COUNT`. Occurrences are calculated when a range is viewed, never stored. A range covers at most 366 days, and includes multi-day occurrences that started earlier and single occurrences moved into it.
 - An exception is keyed by the date the occurrence would normally fall on. It either cancels the occurrence or replaces some of its values. There is at most one exception per occurrence.
 - Each occurrence keeps the series' length in days.
-- **This one** can change any of an occurrence's values, including moving it to other dates. A one-off change or cancellation is undone by restoring the occurrence, which removes its exception.
+- **This one** can change any of an occurrence's values, including moving it to other dates. Its changes (all but notes) are recorded, so Undo brings back the values before them, and removes the exception when the change created it. A cancellation is undone by restoring the occurrence, which removes its exception.
 - **This and following** and **All** change the series' title, notes, location, times or rule. They can't move dates; edit the event itself to move a whole series. Splitting moves later exceptions to the new series. Cancelling the series ("following" ends it, "all" cancels it) is one undoable batch.
 - Cancelling a whole event, or every occurrence of a series, sets `cancelled_at`; uncancelling clears it.
 - Changing **All**: changing the timing or the rule removes one-off changes, with a warning first, because their dates no longer line up. Cancelled occurrences stay cancelled. Changing other values (title, notes, location) keeps one-off changes. Removing the rule turns the series into a one-off event.
@@ -279,7 +279,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - Reordering sets a day's (or Unscheduled's) whole order in one step; tasks not listed keep their order after the listed ones. A day's order covers every task the placement rule puts on it, so a task with only a due date is ordered with that day's scheduled tasks; a task whose edit moves it to another day (or to Unscheduled) goes to the end of it.
 - Due dates are a date plus an optional time, and a due time requires a due date.
 - Events are all-day when they have no start time. An end time requires a start time, and the end date (the last day, inclusive) can't be before the start date. Upcoming/past is calculated from dates.
-- Dragging a one-off event on the Calendar, or its bar's end, gives it new dates through `POST /api/events/{id}/reschedule` (start date, end date): its times stay, a one-day event stores no end date, the timing rules above apply, and the change is recorded so it can be undone. A repeating event is refused (422); its occurrences move one at a time with the occurrence edit.
+- Dragging a one-off event on the Calendar, or its bar's end, gives it new dates through `POST /api/events/{id}/reschedule` (start date, end date): its times stay, a one-day event stores no end date, the timing rules above apply, and the change is recorded so it can be undone. A repeating event is refused (422); dragging or resizing one of its occurrences moves only that occurrence ("this one", `POST /api/events/{id}/occurrences/{day}/edit`), also recorded for undo.
 - Unfinished one-off tasks roll over. A task qualifies if it is `todo`, not archived, not a recurring occurrence, and its `scheduled_date` is before today.
   - Rollover runs whenever the board loads a week, which happens on app launch and when the local date changes while the app is open.
   - Rolled-over tasks go to the end of today's list, keeping their order.

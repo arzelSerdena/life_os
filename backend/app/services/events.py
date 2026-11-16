@@ -263,10 +263,13 @@ def delete_occurrence(session: Session, event_id: int, day: date, scope: str) ->
 # ---------- One occurrence: this / this and following / all ----------
 
 
-def edit_occurrence(session: Session, event_id: int, day: date, data: OccurrenceEdit) -> Event:
+def edit_occurrence(
+    session: Session, event_id: int, day: date, data: OccurrenceEdit
+) -> EventChange:
     """Change one occurrence ("this"), the series from it on ("following"), or all of it.
 
-    Returns the event that now holds the change: the new series after a split.
+    Returns the event that now holds the change: the new series after a split. Changing one
+    occurrence is recorded (all but its notes), so it can be undone; series edits aren't.
     """
     event = _repeating_event(session, event_id, day)
     changes = data.model_dump(exclude_unset=True, exclude={"scope"})
@@ -276,8 +279,9 @@ def edit_occurrence(session: Session, event_id: int, day: date, data: Occurrence
             raise UnprocessableError(
                 f"{', '.join(sorted(series_only))} can only change for the series."
             )
-        _change_one(session, event, day, changes)
-        return _save(session, event)
+        history = ChangeRecorder(session)
+        _change_one(event, day, changes, history)
+        return EventChange(_save(session, event), history.batch_id)
 
     if moved := DATE_FIELDS & changes.keys():
         raise UnprocessableError(
@@ -287,9 +291,9 @@ def edit_occurrence(session: Session, event_id: int, day: date, data: Occurrence
     if data.scope == "following" and day > event.start_date:
         target = _split(session, event, day)
         _change_series(target, changes)
-        return _save(session, target)
+        return EventChange(_save(session, target), None)
     _change_series(event, changes)
-    return _save(session, event)
+    return EventChange(_save(session, event), None)
 
 
 def cancel_occurrence(
@@ -424,7 +428,9 @@ def _change_series(event: Event, changes: dict[str, Any]) -> None:
                 setattr(exception, field, None)
 
 
-def _change_one(session: Session, event: Event, day: date, changes: dict[str, Any]) -> None:
+def _change_one(event: Event, day: date, changes: dict[str, Any], history: ChangeRecorder) -> None:
+    """Apply one occurrence's changes to its exception. Notes aren't recorded, as for tasks;
+    an exception the change creates is recorded as created, so undo removes it again."""
     exception = _exception(event, day)
     current = _build(event, day, exception)
     effective = {
@@ -435,13 +441,22 @@ def _change_one(session: Session, event: Event, day: date, changes: dict[str, An
     } | {field: value for field, value in changes.items() if field in TIMING_FIELDS}
     if "start_date" in changes and "end_date" not in changes:
         effective["end_date"] = changes["start_date"] + _length(event)  # keep its length
+        if event.end_date is not None:
+            changes = {**changes, "end_date": effective["end_date"]}
     _check_timing(effective)
 
-    exception = exception or _add_exception(event, day)
-    for field, value in changes.items():
-        setattr(exception, field, value)
-    if "start_date" in changes and "end_date" not in changes and event.end_date is not None:
-        exception.end_date = effective["end_date"]
+    recorded = {field: value for field, value in changes.items() if field != "notes"}
+    if exception is None:
+        exception = _add_exception(event, day)
+        for field, value in changes.items():
+            setattr(exception, field, value)
+        if any(value is not None for value in recorded.values()):
+            history.created(exception)
+        return
+    if "notes" in changes:
+        exception.notes = changes["notes"]
+    for field, value in recorded.items():
+        history.set(exception, field, value)
 
 
 def _split(session: Session, event: Event, day: date) -> Event:

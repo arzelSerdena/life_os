@@ -13,6 +13,7 @@ from app.errors import ConflictError, NotFoundError
 from app.models import (
     Base,
     Event,
+    EventException,
     LifeArea,
     Metric,
     Project,
@@ -31,14 +32,16 @@ ENTITY_MODELS: dict[str, type[Base]] = {
     "task": Task,
     "subtask": Subtask,
     "event": Event,
+    "event_exception": EventException,
     "metric": Metric,
     "routine": Routine,
     "routine_step": RoutineStep,
 }
 ENTITY_TYPES = {model: name for name, model in ENTITY_MODELS.items()}
 
-# A status_changes row with this field means "the batch created this task". Its new_value
-# holds a snapshot, so undo only removes the task if nobody has changed it since.
+# A status_changes row with this field means "the batch created this row" (a task, or an
+# event exception). Its new_value holds a snapshot, so undo only removes the row if nobody
+# has changed it since.
 CREATED = "_created"
 SNAPSHOT_SKIP = {"id", "created_at", "updated_at"}
 
@@ -60,18 +63,21 @@ def _load(text: str | None, python_type: type) -> Any:
         return date.fromisoformat(text)
     if python_type is time:
         return time.fromisoformat(text)
+    if python_type is bool:
+        return text == "True"
     if python_type is int:
         return int(text)
     return text
 
 
-def _snapshot(task: Task) -> str:
-    fields = {
-        column.key: _dump(getattr(task, column.key))
-        for column in Task.__table__.columns
+def _snapshot(entity: Base) -> str:
+    fields: dict[str, Any] = {
+        column.key: _dump(getattr(entity, column.key))
+        for column in type(entity).__table__.columns  # type: ignore[attr-defined]
         if column.key not in SNAPSHOT_SKIP
     }
-    fields["subtasks"] = [[subtask.title, subtask.status] for subtask in task.subtasks]  # type: ignore[assignment]
+    if isinstance(entity, Task):
+        fields["subtasks"] = [[subtask.title, subtask.status] for subtask in entity.subtasks]
     return json.dumps(fields, sort_keys=True)
 
 
@@ -99,10 +105,10 @@ class ChangeRecorder:
         self._record(entity, field, _dump(old_value), _dump(value))
         setattr(entity, field, value)
 
-    def created(self, task: Task) -> None:
-        """Record a task the change created, so undo can remove it again."""
+    def created(self, entity: Task | EventException) -> None:
+        """Record a task or event exception the change created, so undo can remove it."""
         self._session.flush()  # assigns the id
-        self._record(task, CREATED, None, _snapshot(task))
+        self._record(entity, CREATED, None, _snapshot(entity))
 
     def _record(self, entity: Base, field: str, old: str | None, new: str | None) -> None:
         self._session.add(
@@ -123,7 +129,7 @@ POSITION_FIELDS = frozenset({"sort_order"})
 
 
 def undo_batch(session: Session, batch_id: str) -> int:
-    """Restore every field the batch changed and remove the tasks it created.
+    """Restore every field the batch changed and remove the rows it created.
 
     Returns how many items were restored or removed. Refused when an item has been
     deleted or changed since, so undo never overwrites newer work.
@@ -160,23 +166,23 @@ def undo_batch(session: Session, batch_id: str) -> int:
                 raise ConflictError("This was changed again since, so it can't be undone.")
         entities.append((entity, fields))
 
-    to_remove: list[Task] = []
+    to_remove: list[Base] = []
     for row in created:
-        task = session.get(Task, row.entity_id)
-        if task is None:
+        made = session.get(ENTITY_MODELS[row.entity_type], row.entity_id)
+        if made is None:
             continue  # already gone
-        if _snapshot(task) != row.new_value:
+        if _snapshot(made) != row.new_value:
             raise ConflictError(
-                "A task this change created was changed since, so it can't be undone."
+                "Something this change created was changed since, so it can't be undone."
             )
-        to_remove.append(task)
+        to_remove.append(made)
 
     for entity, fields in entities:
         columns = type(entity).__table__.columns  # type: ignore[attr-defined]
         for field, (before, _) in fields.items():
             setattr(entity, field, _load(before, columns[field].type.python_type))
-    for task in to_remove:
-        session.delete(task)
+    for made in to_remove:
+        session.delete(made)
     for row in rows:
         session.delete(row)
     session.commit()
