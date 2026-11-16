@@ -167,6 +167,47 @@ export function PopoverChip({
   );
 }
 
+/**
+ * A breadcrumb item that opens a picker, such as the detail panel's owner and section
+ * (Approved: Pickers): quiet text that gets a grey fill and the focus ring while open.
+ */
+export function CrumbPicker({
+  label,
+  isOpen,
+  onOpenChange,
+  width = 252,
+  crumb,
+  children,
+}: {
+  label: string;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  width?: number;
+  crumb: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Popover isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Popover.Trigger
+        aria-label={label}
+        data-open={isOpen}
+        className="-mx-1 min-w-0 cursor-pointer truncate rounded-(--radius-6) px-1 outline-none hover:bg-(--color-neutral-100) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:bg-(--color-neutral-100) data-[open=true]:text-(--text-primary) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)]"
+      >
+        {crumb}
+      </Popover.Trigger>
+      <Popover.Content
+        placement="bottom start"
+        style={{ width }}
+        className="rounded-[10px] border border-(--border-default) p-0"
+      >
+        <Popover.Dialog aria-label={label} className="flex flex-col p-1.5 outline-none">
+          {children}
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
+  );
+}
+
 /** A picker row: 30 px, 13 px text, a value at the right in 12 px tertiary, a check if chosen. */
 export function PickerRow({
   leading,

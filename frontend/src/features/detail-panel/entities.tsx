@@ -45,6 +45,7 @@ import {
   listEventOccurrencesOptions,
   listEventOccurrencesQueryKey,
   listLifeAreasOptions,
+  listProjectsOptions,
   reopenProjectMutation,
   reopenTaskMutation,
   unarchiveLifeAreaMutation,
@@ -63,6 +64,11 @@ import {
   deleteSubtask,
   deleteTask,
   editEventOccurrence,
+  moveEvent,
+  moveMetric,
+  moveRoutineStep,
+  moveTask,
+  moveTaskTemplate,
   updateEvent,
   updateLifeArea,
   updateMetric,
@@ -72,15 +78,10 @@ import {
   updateTask,
   updateTaskTemplate,
 } from "../../client/sdk.gen";
-import type {
-  LifeAreaRead,
-  MetricRead,
-  SubtaskRead,
-  TaskRead,
-  TaskTemplateRead,
-} from "../../client/types.gen";
+import type { MetricRead, SubtaskRead, TaskRead, TaskTemplateRead } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
 import { today } from "../../period";
+import { useChangeToast } from "../../stores/changeToastStore";
 import { type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
@@ -98,6 +99,7 @@ import { DeleteLifeAreaDialog } from "../life-areas/DeleteLifeAreaDialog";
 import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
 import { formatValue } from "../metrics/format";
+import { OwnerCrumb, SectionCrumb } from "../pickers/OwnerPicker";
 import { DeleteProjectDialog } from "../projects/DeleteProjectDialog";
 import { type ProjectChange, ProjectChangeDialog } from "../projects/ProjectChangeDialog";
 import {
@@ -192,11 +194,115 @@ function deleteAction(
   };
 }
 
-function ownerCrumbs(
-  area: LifeAreaRead | undefined,
-  project: { title: string } | undefined,
-): string[] {
-  return [area?.title ?? "Inbox", ...(project ? [project.title] : [])];
+type Movable = "task" | "template" | "event" | "metric" | "step";
+type MoveBody = { life_area_id?: number; project_id?: number; section_id?: number };
+
+/**
+ * Sends the item to another owner (or section) with its `/move` endpoint, and returns the
+ * batch to undo. Recurring tasks and routine steps aren't recorded, so they return none.
+ */
+async function sendMove(kind: Movable, id: number, body: MoveBody): Promise<string | null> {
+  const options = { body, throwOnError: true } as const;
+  switch (kind) {
+    case "task":
+      return (await moveTask({ ...options, path: { task_id: id } })).data.batch_id;
+    case "template":
+      await moveTaskTemplate({ ...options, path: { template_id: id } });
+      return null;
+    case "event":
+      return (await moveEvent({ ...options, path: { event_id: id } })).data.batch_id;
+    case "metric":
+      return (await moveMetric({ ...options, path: { metric_id: id } })).data.batch_id;
+    case "step":
+      await moveRoutineStep({ ...options, path: { step_id: id } });
+      return null;
+  }
+}
+
+type OwnerItem = {
+  id: number;
+  title: string;
+  life_area_id: number | null;
+  project_id: number | null;
+  section_id?: number | null;
+};
+
+/**
+ * The breadcrumb's owner (Area / Project) and, for tasks and recurring tasks in a project with
+ * sections, its section: each opens its picker (Approved: Pickers). Each move is reported in
+ * the change toast, with Undo when the backend recorded it.
+ */
+function useOwnerCrumbs(kind: Movable, item: OwnerItem | undefined) {
+  const showToast = useChangeToast((state) => state.show);
+  const lifeAreas = (useQuery(listLifeAreasOptions()).data ?? []).filter(
+    (area) => area.archived_at === null,
+  );
+  const projects = (useQuery(listProjectsOptions()).data ?? []).filter(
+    (project) => project.status === "active" && project.archived_at === null,
+  );
+  const move = useMutation({
+    mutationFn: ({ body }: { body: MoveBody; message: string }) =>
+      sendMove(kind, item?.id ?? 0, body),
+    onSuccess: (batchId, { message }) => {
+      showToast(`Moved “${item?.title ?? ""}” · ${message}`, batchId);
+    },
+  });
+  const area = useLifeArea(item?.life_area_id);
+  const project = useProject(item?.project_id);
+
+  const crumbs = (): ReactNode[] => {
+    if (!item) return [];
+    const value = { lifeAreaId: item.life_area_id, projectId: item.project_id };
+    const owner = (text: string, label: string) => (
+      <OwnerCrumb
+        value={value}
+        lifeAreas={lifeAreas}
+        projects={projects}
+        allowInbox={kind === "task" || kind === "template"}
+        label={label}
+        onChange={(next) => {
+          const target = projects.find((p) => p.id === next.projectId);
+          const targetArea = lifeAreas.find((a) => a.id === next.lifeAreaId);
+          move.mutate({
+            body: target
+              ? { project_id: target.id }
+              : targetArea
+                ? { life_area_id: targetArea.id }
+                : {},
+            message: target?.title ?? targetArea?.title ?? "Inbox",
+          });
+        }}
+      >
+        {text}
+      </OwnerCrumb>
+    );
+    const result: ReactNode[] = [owner(area?.title ?? "Inbox", "Owner")];
+    if (project) result.push(owner(project.title, "Project"));
+    const sections = project?.sections ?? [];
+    if (project && item.section_id !== undefined && sections.length > 0) {
+      const section = sections.find((s) => s.id === item.section_id);
+      result.push(
+        <SectionCrumb
+          value={section?.id ?? null}
+          sections={sections}
+          onChange={(sectionId) =>
+            move.mutate({
+              body:
+                sectionId === null
+                  ? { project_id: project.id }
+                  : { project_id: project.id, section_id: sectionId },
+              message: sections.find((s) => s.id === sectionId)?.title ?? "No section",
+            })
+          }
+        >
+          {section?.title ?? "No section"}
+        </SectionCrumb>,
+      );
+    }
+    return result;
+  };
+
+  return { area, crumbs, error: move.error };
 }
 
 const PRIORITIES = [
@@ -496,8 +602,8 @@ function ProjectPanel({ id }: { id: number }) {
 function TaskPanel({ id }: { id: number }) {
   const query = useQuery(getTaskOptions({ path: { task_id: id } }));
   const task = query.data;
-  const area = useLifeArea(task?.life_area_id);
-  const project = useProject(task?.project_id);
+  const owner = useOwnerCrumbs("task", task);
+  const area = owner.area;
   const template = useQuery({
     ...getTaskTemplateOptions({ path: { template_id: task?.template_id ?? 0 } }),
     enabled: task?.template_id != null,
@@ -515,7 +621,6 @@ function TaskPanel({ id }: { id: number }) {
   const path = { task_id: id };
   const isDone = task.status === "done";
   const toggleDone = () => (isDone ? reopen : complete).mutate({ path });
-  const section = project?.sections.find((s) => s.id === task.section_id);
 
   const actions: PanelAction[] = [
     isDone
@@ -554,7 +659,7 @@ function TaskPanel({ id }: { id: number }) {
   return (
     <AreaScope color={area?.color}>
       <PanelView
-        crumbs={[...ownerCrumbs(area, project), ...(section ? [section.title] : [])]}
+        crumbs={owner.crumbs()}
         marker={<TaskMarker done={isDone} title={task.title} onToggle={toggleDone} />}
         title={task.title}
         onRename={(title) => update.mutateAsync({ path, body: { title } })}
@@ -576,7 +681,14 @@ function TaskPanel({ id }: { id: number }) {
             ),
         }}
         actions={actions}
-        error={update.error ?? complete.error ?? reopen.error ?? archive.error ?? cancel.error}
+        error={
+          owner.error ??
+          update.error ??
+          complete.error ??
+          reopen.error ??
+          archive.error ??
+          cancel.error
+        }
       />
     </AreaScope>
   );
@@ -738,8 +850,8 @@ function Subtasks({ task }: { task: TaskRead }) {
 function TemplatePanel({ id }: { id: number }) {
   const query = useQuery(getTaskTemplateOptions({ path: { template_id: id } }));
   const template = query.data;
-  const area = useLifeArea(template?.life_area_id);
-  const project = useProject(template?.project_id);
+  const owner = useOwnerCrumbs("template", template);
+  const area = owner.area;
   const update = useMutation(updateTaskTemplateMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
@@ -751,7 +863,7 @@ function TemplatePanel({ id }: { id: number }) {
   return (
     <AreaScope color={area?.color}>
       <PanelView
-        crumbs={ownerCrumbs(area, project)}
+        crumbs={owner.crumbs()}
         marker={<Marker icon={Repeat} />}
         title={template.title}
         onRename={(title) => update.mutateAsync({ path, body: { title } })}
@@ -812,7 +924,7 @@ function TemplatePanel({ id }: { id: number }) {
             setIsDeleting(true),
           ),
         ]}
-        error={update.error}
+        error={owner.error ?? update.error}
       />
       {isDeleting && (
         <DeleteTemplateDialog
@@ -838,8 +950,8 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
     ...listEventOccurrencesOptions(occurrenceQuery),
     enabled: isRepeating,
   }).data?.find((o) => o.event_id === id && o.occurrence_date === day);
-  const area = useLifeArea(event?.life_area_id);
-  const project = useProject(event?.project_id);
+  const owner = useOwnerCrumbs("event", event);
+  const area = owner.area;
   const update = useMutation(updateEventMutation());
   const saveNotes = useNotesSave();
   const [scope, setScope] = useState<"this" | "all">("this");
@@ -863,7 +975,7 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
   return (
     <AreaScope color={area?.color}>
       <PanelView
-        crumbs={ownerCrumbs(area, project)}
+        crumbs={owner.crumbs()}
         marker={<Marker icon={CalendarDays} solid />}
         title={shown.title}
         // A repeating event's title changes for this one, the following or all: that
@@ -932,7 +1044,7 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
                 ),
         }}
         actions={[deleteAction("Delete event", () => setIsDeleting(true))]}
-        error={update.error}
+        error={owner.error ?? update.error}
       />
       {isDeleting && (
         <DeleteEventDialog
@@ -961,8 +1073,8 @@ function currentTarget(metric: MetricRead) {
 function MetricPanel({ id }: { id: number }) {
   const query = useQuery(getMetricOptions({ path: { metric_id: id } }));
   const metric = query.data;
-  const area = useLifeArea(metric?.life_area_id);
-  const project = useProject(metric?.project_id);
+  const owner = useOwnerCrumbs("metric", metric);
+  const area = owner.area;
   const update = useMutation(updateMetricMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
@@ -988,7 +1100,7 @@ function MetricPanel({ id }: { id: number }) {
   return (
     <AreaScope color={area?.color}>
       <PanelView
-        crumbs={ownerCrumbs(area, project)}
+        crumbs={owner.crumbs()}
         marker={<Marker icon={ChartLine} />}
         title={metric.title}
         onRename={(title) => update.mutateAsync({ path, body: { title } })}
@@ -1010,7 +1122,7 @@ function MetricPanel({ id }: { id: number }) {
             ),
         }}
         actions={[deleteAction("Delete metric", () => setIsDeleting(true))]}
-        error={update.error}
+        error={owner.error ?? update.error}
       />
       {isDeleting && (
         <DeleteMetricDialog
@@ -1076,8 +1188,8 @@ function RoutinePanel({ id }: { id: number }) {
 function StepPanel({ id, routineId }: { id: number; routineId: number }) {
   const query = useQuery(getRoutineOptions({ path: { routine_id: routineId } }));
   const step = query.data?.steps.find((s) => s.id === id);
-  const area = useLifeArea(step?.life_area_id);
-  const project = useProject(step?.project_id);
+  const owner = useOwnerCrumbs("step", step);
+  const area = owner.area;
   const update = useMutation(updateRoutineStepMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
@@ -1090,7 +1202,7 @@ function StepPanel({ id, routineId }: { id: number; routineId: number }) {
   return (
     <AreaScope color={area?.color}>
       <PanelView
-        crumbs={[...ownerCrumbs(area, project), routine.title]}
+        crumbs={[...owner.crumbs(), routine.title]}
         marker={<Marker icon={Repeat} />}
         title={step.title}
         onRename={(title) => update.mutateAsync({ path, body: { title } })}
@@ -1114,7 +1226,7 @@ function StepPanel({ id, routineId }: { id: number; routineId: number }) {
             ),
         }}
         actions={[deleteAction("Delete step", () => setIsDeleting(true))]}
-        error={update.error}
+        error={owner.error ?? update.error}
       />
       {isDeleting && (
         <DeleteStepDialog step={step} onClose={() => setIsDeleting(false)} onDeleted={close} />
