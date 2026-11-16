@@ -118,6 +118,8 @@
 
 - Tasks group, first part: the rail's Tasks opens it, with its sidebar (ALL, Inbox, Today, Unscheduled, Next 7 days, Routines; Completed and Cancelled at the bottom; open-task counts) and the All, Today, Unscheduled, Completed and Cancelled boards. Priority | Area switch, columns one fifth of the board wide, collapsible subgroups, Today's red Overdue subgroup, project cards leading their subgroup, and task cards (area checkbox, flags for High and Medium, repeat, notes, rollovers, due date and time, project, subtask toggle with checkable subtasks). Checking off shows the undo toast; clicking a card opens the detail panel. Browser tests in `frontend/e2e/tasks.spec.ts`.
 
+- Action buttons are never black: primary buttons (the accent) are brand 700 again, matching the approved mock-ups; inside an area they stay the area's 500 colour. Token, theme comment and style guide (doc and `design/STYLE_GUIDE.md`) updated.
+
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 2 screens: the rest of the Tasks group (Inbox with its hover actions and drop panel, Next 7 days and Routines with drag and drop, the filter-and-sort menu), New task with the column and subgroup +, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.

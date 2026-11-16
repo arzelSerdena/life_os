@@ -1451,7 +1451,7 @@
       },
       "primary-bg": {
         "$type": "color",
-        "$value": "{Primitives.color.neutral.900}"
+        "$value": "{Primitives.color.brand.700}"
       },
       "primary-text": {
         "$type": "color",

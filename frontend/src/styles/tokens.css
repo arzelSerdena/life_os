@@ -352,7 +352,7 @@
   --button-height: var(--size-28);
   --button-pad-x: var(--space-12);
   --button-radius: var(--radius-6);
-  --button-primary-bg: var(--color-neutral-900);
+  --button-primary-bg: var(--color-brand-700);
   --button-primary-text: var(--text-on-accent);
   --button-secondary-border: var(--border-default);
   --button-secondary-text: var(--text-secondary);

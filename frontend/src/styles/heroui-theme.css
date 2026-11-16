@@ -29,8 +29,8 @@
   --default: var(--color-neutral-100);
   --default-foreground: var(--text-primary);
 
-  /* Accent is neutral (Nov 16): primary buttons are near-black with white text. Brand purple
-     is kept for the focus ring, the selected marker, the today marker and the logo. */
+  /* Action buttons are solid accent (brand 700) or solid area colour, never black (Nov 16).
+     Brand purple is also the focus ring, the selected marker, the today marker and the logo. */
   --accent: var(--button-primary-bg);
   --accent-foreground: var(--text-on-accent);
   --focus: var(--focus-ring);
