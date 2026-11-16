@@ -186,13 +186,57 @@ def test_cancelling_and_restoring_one_occurrence(client: TestClient, area: int) 
 
     cancel = _post(client, f"/{event['id']}/occurrences/2026-11-23/cancel", {"scope": "this"})
 
-    assert cancel["batch_id"] is None  # restored by removing the change, not by undo
+    assert cancel["batch_id"] is not None
     assert _days(client, last="2026-11-30") == ["2026-11-16", "2026-11-30"]
     shown = _occurrences(client, last="2026-11-30", include_cancelled=True)
     assert [o["is_cancelled"] for o in shown] == [False, True, False]
 
     assert client.delete(f"{URL}/{event['id']}/occurrences/2026-11-23").status_code == 200
     assert _days(client, last="2026-11-30") == ["2026-11-16", "2026-11-23", "2026-11-30"]
+
+
+def test_cancelling_one_occurrence_can_be_undone(client: TestClient, area: int) -> None:
+    event = _weekly(client, area)
+
+    cancel = _post(client, f"/{event['id']}/occurrences/2026-11-23/cancel", {"scope": "this"})
+
+    assert client.post(f"/api/undo/{cancel['batch_id']}").status_code == 200
+    restored = _occurrences(client, last="2026-11-30", include_cancelled=True)
+    assert [(o["is_cancelled"], o["is_changed"]) for o in restored] == [(False, False)] * 3
+
+
+def test_undoing_a_cancel_keeps_the_occurrences_other_changes(
+    client: TestClient, area: int
+) -> None:
+    event = _weekly(client, area)
+    path = f"/{event['id']}/occurrences/2026-11-23"
+    _post(client, f"{path}/edit", {"scope": "this", "title": "Legs"})
+
+    cancel = _post(client, f"{path}/cancel", {"scope": "this"})
+    client.post(f"/api/undo/{cancel['batch_id']}")
+
+    back = _occurrences(client, first="2026-11-23", last="2026-11-23", include_cancelled=True)
+    assert [(o["title"], o["is_cancelled"]) for o in back] == [("Legs", False)]
+
+
+def test_cancelling_a_cancelled_occurrence_records_nothing(client: TestClient, area: int) -> None:
+    event = _weekly(client, area)
+    path = f"/{event['id']}/occurrences/2026-11-23/cancel"
+    _post(client, path, {"scope": "this"})
+
+    assert _post(client, path, {"scope": "this"})["batch_id"] is None
+
+
+def test_undoing_a_cancel_is_refused_after_the_occurrence_changed_again(
+    client: TestClient, area: int
+) -> None:
+    event = _weekly(client, area)
+    path = f"/{event['id']}/occurrences/2026-11-23"
+    cancel = _post(client, f"{path}/cancel", {"scope": "this"})
+
+    _post(client, f"{path}/edit", {"scope": "this", "title": "Legs"})
+
+    assert client.post(f"/api/undo/{cancel['batch_id']}").status_code == 409
 
 
 def test_moving_one_occurrence_can_be_undone(client: TestClient, area: int) -> None:
