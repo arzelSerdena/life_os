@@ -1,4 +1,5 @@
-import { ChevronDown, Folder } from "lucide-react";
+import { Button } from "@heroui/react";
+import { ChevronDown, Folder, Plus } from "lucide-react";
 import type { ProjectRead } from "../../client/types.gen";
 import { useTaskBoard } from "../../stores/taskBoardStore";
 import { PanelLink } from "../detail-panel/PanelLink";
@@ -14,10 +15,12 @@ type BoardProps = {
   context: BoardContext;
   /** False where the columns or subgroups already show priority. */
   showFlag: boolean;
+  /** The column and subgroup +: New task pre-filled with that spot. */
+  onAdd?: (columnKey: string, subgroupKey: string | null) => void;
 };
 
 /** Columns one fifth of the board wide (at least 260 px); more columns scroll sideways. */
-export function Board({ view, group, columns, context, showFlag }: BoardProps) {
+export function Board({ view, group, columns, context, showFlag, onAdd }: BoardProps) {
   return (
     <div className="@container min-h-0 flex-1 overflow-x-auto px-(--page-gutter) pt-4">
       <div className="flex h-full min-w-min gap-4">
@@ -29,6 +32,7 @@ export function Board({ view, group, columns, context, showFlag }: BoardProps) {
             column={column}
             context={context}
             showFlag={showFlag}
+            onAdd={onAdd}
           />
         ))}
       </div>
@@ -42,12 +46,14 @@ function BoardColumn({
   column,
   context,
   showFlag,
+  onAdd,
 }: {
   view: TaskView;
   group: BoardGroup;
   column: Column;
   context: BoardContext;
   showFlag: boolean;
+  onAdd?: (columnKey: string, subgroupKey: string | null) => void;
 }) {
   const headingId = `column-${view}-${column.key}`;
   return (
@@ -64,6 +70,12 @@ function BoardColumn({
           {column.title}
         </h2>
         <Counter count={column.count} />
+        {onAdd && (
+          <AddButton
+            label={`New task in ${column.title}`}
+            onPress={() => onAdd(column.key, null)}
+          />
+        )}
       </header>
       <div className="mt-3.5 flex min-h-0 flex-col gap-1.5 overflow-y-auto pb-6">
         {column.subgroups.map((subgroup) =>
@@ -72,6 +84,7 @@ function BoardColumn({
               key={subgroup.key}
               collapseKey={`${view}/${group}/${column.key}/${subgroup.key}`}
               subgroup={subgroup}
+              onAdd={onAdd && (() => onAdd(column.key, subgroup.key))}
             >
               <Cards subgroup={subgroup} context={context} showFlag={showFlag} />
             </SubgroupBlock>
@@ -87,17 +100,20 @@ function BoardColumn({
 export function SubgroupBlock({
   collapseKey,
   subgroup,
+  onAdd,
   children,
 }: {
   collapseKey: string;
   subgroup: Subgroup;
+  /** The subgroup's +, shown on hover. */
+  onAdd?: () => void;
   children: React.ReactNode;
 }) {
   const collapsed = useTaskBoard((state) => state.collapsed.includes(collapseKey));
   const toggle = useTaskBoard((state) => state.toggleCollapsed);
   return (
     <div className="flex shrink-0 flex-col gap-1.5">
-      <h3>
+      <h3 className="group/subgroup relative flex items-center">
         <button
           type="button"
           aria-expanded={!collapsed}
@@ -115,6 +131,11 @@ export function SubgroupBlock({
           <span className="truncate">{subgroup.label}</span>
           <Counter count={subgroup.tasks.length} />
         </button>
+        {onAdd && (
+          <span className="absolute right-0.5 opacity-0 group-hover/subgroup:opacity-100 has-[:focus-visible]:opacity-100">
+            <AddButton label={`New task in ${subgroup.label}`} small onPress={onAdd} />
+          </span>
+        )}
       </h3>
       {!collapsed && children}
     </div>
@@ -245,6 +266,29 @@ function MarkerSquare({ marker, size }: { marker: Marker; size: "column" | "subg
       data-area={areaDataAttribute(marker.color)}
       className={`${square} shrink-0 bg-(--area-solid)`}
     />
+  );
+}
+
+/** The + of a column (always shown) or a subgroup (on hover). */
+export function AddButton({
+  label,
+  small = false,
+  onPress,
+}: {
+  label: string;
+  small?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Button
+      isIconOnly
+      variant="ghost"
+      aria-label={label}
+      onPress={onPress}
+      className={`${small ? "size-5 [&_svg]:size-3.5" : "ml-auto size-6 [&_svg]:size-4"} min-w-0 shrink-0 rounded-(--radius-6) text-(--text-tertiary) hover:bg-(--color-neutral-200) hover:text-(--text-primary)`}
+    >
+      <Plus aria-hidden strokeWidth={2} />
+    </Button>
   );
 }
 

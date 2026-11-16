@@ -9,6 +9,7 @@ import {
 import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { UndoToast } from "../features/deleting/UndoToast";
+import { NewTaskHost } from "../features/tasks/NewTaskModal";
 import { useDetailPanel } from "../stores/detailPanelStore";
 import { useSidebarShortcut, useSidebarVisibility } from "./Sidebar";
 
@@ -54,6 +55,7 @@ export function AppLayout() {
       <Outlet />
       <Suspense fallback={null}>{hasPanel && <DetailPanel />}</Suspense>
       <UndoToast />
+      <NewTaskHost />
     </div>
   );
 }

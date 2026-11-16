@@ -51,48 +51,5 @@ export function fileCounts(tasks: readonly TaskRead[]) {
   return { areas, projects, dates, priorities };
 }
 
-/** A local calendar date ("YYYY-MM-DD") `days` after `day`. */
-export function addDays(day: string, days: number): string {
-  const date = new Date(`${day}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
-
-/** The Monday after `day` (weeks start on Monday), for the Date picker's Next week. */
-export function nextMonday(day: string): string {
-  const weekday = new Date(`${day}T00:00:00Z`).getUTCDay(); // 0 = Sunday
-  return addDays(day, (8 - weekday) % 7 || 7);
-}
-
-/** "2026-11" → the month's grid: whole Monday-to-Sunday weeks, as dates. */
-export function monthGrid(month: string): string[][] {
-  const first = `${month}-01`;
-  const weekday = (new Date(`${first}T00:00:00Z`).getUTCDay() + 6) % 7; // 0 = Monday
-  let day = addDays(first, -weekday);
-  const weeks: string[][] = [];
-  do {
-    const week: string[] = [];
-    for (let i = 0; i < 7; i++) {
-      week.push(day);
-      day = addDays(day, 1);
-    }
-    weeks.push(week);
-  } while (day.slice(0, 7) === month);
-  return weeks;
-}
-
-/** "2026-11" moved by `months`. */
-export function addMonths(month: string, months: number): string {
-  const [year, index] = month.split("-").map(Number);
-  const date = new Date(Date.UTC(year, index - 1 + months, 1));
-  return date.toISOString().slice(0, 7);
-}
-
-/** "2026-11" → "November 2026". */
-export function monthTitle(month: string): string {
-  return new Date(`${month}-01T00:00:00Z`).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
+// The date helpers moved to the shared pickers; these names stay for the Inbox.
+export { addDays, addMonths, monthGrid, monthTitle, nextMonday } from "../pickers/dates";

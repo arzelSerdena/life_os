@@ -130,7 +130,11 @@
 
 - Fixed Undo after dragging a task to a day that already has tasks in Next 7 days: the reorder that follows the move changed `sort_order`, and Undo refused with 409. Undo now ignores later position changes and still restores the old position.
 
+- New task and the pickers (`features/tasks/NewTaskModal.tsx`, rules in `newTask.ts`; shared pickers in `features/pickers/`). New task (brand 700) on All, Today, Unscheduled, Inbox and Next 7 days, and in "No tasks yet."; the column + (always shown) and the subgroup + (on hover) open it pre-filled with their priority, area, project or day (Today also schedules it today). The pop-up has Title, then the Owner (search, Inbox, areas with their projects), Section (when the project has sections), Priority (flags, Do / Schedule / Delegate / Eliminate), Scheduled, Due and Repeat chips, and Add subtask rows; Enter creates, Esc cancels. The date picker types dates ("fri", "nov 20", "+3d") with the match as one row and outlined on the grid, has Today / Tomorrow / Next week icon buttons and the month, and now also serves the detail panel's due and scheduled chips. Repeat offers the presets from the task's date and Custom (every n days/weeks/months/years, weekdays, from schedule or completion, ends never / on a date / after n times). A repeat rule creates a recurring task (`POST /api/task-templates`). No backend changes. Browser tests in `frontend/e2e/new-task.spec.ts`.
+
 **Next** (code, one branch and PR each, in this order)
 
-- Phase 2 screens: New task with the column and subgroup +, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
+- Phase 2 screens: Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add (opens New task through `useNewTask().open()`; the pop-up is already rendered by the app shell).
+- The owner and section pickers in the detail panel's breadcrumb, and the date picker in the Inbox's Date hover action, which still use the older controls.
+- The Next 7 days drag tests are flaky on `main` too (`--repeat-each=3` fails about 2 in 6); worth a look.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
