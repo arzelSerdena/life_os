@@ -229,6 +229,25 @@ def test_undoing_a_filed_task_is_refused_once_it_changed_again(client: TestClien
     assert client.post(f"/api/undo/{change['batch_id']}").status_code == 409
 
 
+def test_a_reorder_after_a_move_does_not_block_its_undo(client: TestClient) -> None:
+    """Next 7 days moves a task to a day, then reorders the day; Undo still moves it back.
+    A day's order is only position, so a later reorder isn't newer work to protect."""
+    first = _create(client, "Already there", scheduled_date="2026-11-20")
+    second = _create(client, "Also there", scheduled_date="2026-11-20")
+    task = _create(client, "Call the bank", scheduled_date="2026-11-19")
+    change = client.patch(f"{URL}/{task['id']}", json={"scheduled_date": "2026-11-20"}).json()
+    reorder = client.post(
+        f"{URL}/reorder",
+        json={"day": "2026-11-20", "task_ids": [task["id"], first["id"], second["id"]]},
+    )
+    assert reorder.status_code == 200, reorder.text
+
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 200
+    restored = client.get(f"{URL}/{task['id']}").json()
+    assert restored["scheduled_date"] == "2026-11-19"
+    assert restored["sort_order"] == task["sort_order"]
+
+
 @pytest.mark.parametrize(
     "payload",
     [{"title": None}, {"priority": None}, {"due_time": "09:00"}, {"status": "done"}],

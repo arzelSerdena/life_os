@@ -118,6 +118,10 @@ class ChangeRecorder:
         self._count += 1
 
 
+# Fields that a later change may alter without blocking undo.
+POSITION_FIELDS = frozenset({"sort_order"})
+
+
 def undo_batch(session: Session, batch_id: str) -> int:
     """Restore every field the batch changed and remove the tasks it created.
 
@@ -148,6 +152,10 @@ def undo_batch(session: Session, batch_id: str) -> int:
         if entity is None:
             raise ConflictError("An item in this change was deleted, so it can't be undone.")
         for field, (_, left_behind) in fields.items():
+            # A day's order is only position: reordering after a move isn't newer work, so it
+            # doesn't block undoing the move (the old position is still restored).
+            if field in POSITION_FIELDS:
+                continue
             if _dump(getattr(entity, field)) != left_behind:
                 raise ConflictError("This was changed again since, so it can't be undone.")
         entities.append((entity, fields))

@@ -128,6 +128,8 @@
 
 - Filter-and-sort menu on the Tasks boards (`features/tasks/FilterMenu.tsx`, rules in `filters.ts`): the header's sliders icon, with an accent dot while filters hide something, opens Subgroup and Sort by, then PRIORITY, LIFE AREAS and SHOW checkboxes and Clear filters. All, Today and Unscheduled subgroup by Area or None (Priority group) or Project, Priority or None (Area group) and sort by Manual, Priority, Date, Due date or Created; hidden priorities and areas take their columns with them; Show completed / cancelled lists finished tasks last. Next 7 days adds Area or Priority subgroups and Show events, routine steps, project due dates, completed and cancelled. The Inbox sorts by Created, Priority or Due date and filters by priority; Completed and Cancelled filter by priority and area. Choices are remembered per view; "No tasks match the filters." with Clear filters when they hide everything. Browser tests in `frontend/e2e/filters.spec.ts`.
 
+- Fixed Undo after dragging a task to a day that already has tasks in Next 7 days: the reorder that follows the move changed `sort_order`, and Undo refused with 409. Undo now ignores later position changes and still restores the old position.
+
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 2 screens: New task with the column and subgroup +, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
