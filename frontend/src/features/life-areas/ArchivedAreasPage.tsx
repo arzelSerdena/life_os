@@ -54,7 +54,6 @@ export function ArchivedAreasPage() {
                 <div className="ml-auto flex gap-2">
                   <Button
                     size="sm"
-                    variant="secondary"
                     isDisabled={restore.isPending}
                     onPress={() => restore.mutate({ path: { life_area_id: area.id } })}
                   >

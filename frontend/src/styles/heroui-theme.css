@@ -109,6 +109,16 @@
     height: 16px;
   }
 
+  /* Action buttons are solid (Nov 16): the accent everywhere, the area's colour inside an
+     area. Put `button--area` on a primary Button under a `data-area` element. Hover and
+     pressed mix in white the way HeroUI's own accent hover does. */
+  .button--area {
+    --button-bg: var(--area-solid);
+    --button-bg-hover: color-mix(in oklab, var(--area-solid) 90%, var(--color-white) 10%);
+    --button-bg-pressed: color-mix(in oklab, var(--area-solid) 90%, var(--color-white) 10%);
+    --button-fg: var(--color-white);
+  }
+
   /* Compact menus (mock-ups): 28 px rows, 13 px text, 8 px gap, control radius. */
   .dropdown__popover {
     border-radius: var(--radius-8);

@@ -166,12 +166,7 @@ function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () 
         {page.metrics.length === 0 ? (
           <div className="flex min-h-10 items-center gap-3 type-meta text-(--text-tertiary)">
             No metrics yet.
-            <Button
-              variant="ghost"
-              size="sm"
-              onPress={onAddMetric}
-              className="text-(--text-secondary)"
-            >
+            <Button size="sm" onPress={onAddMetric} className={AREA_BUTTON}>
               <Plus aria-hidden />
               Add metric
             </Button>
@@ -199,7 +194,10 @@ function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () 
 
 const ADD_ICON = "size-4 shrink-0 text-(--text-tertiary)";
 
-/** The Add split button: a neutral primary button with the area's color on its icon only.
+/** Action buttons are solid: the area's color inside an area, the accent everywhere else. */
+const AREA_BUTTON = "button--area";
+
+/** The Add split button, in the area's solid color.
  * Projects and metrics can be added here so far; the other items get their forms with their
  * own screens. */
 function AddMenu({
@@ -211,9 +209,9 @@ function AddMenu({
 }) {
   return (
     <Dropdown>
-      <Button className="gap-0 px-0">
+      <Button className={`gap-0 px-0 ${AREA_BUTTON}`}>
         <span className="flex items-center gap-1.5 px-2.5">
-          <Plus aria-hidden className="text-(--area-solid)" />
+          <Plus aria-hidden />
           Add
         </span>
         <span aria-hidden className="h-4 w-px bg-white/40" />
