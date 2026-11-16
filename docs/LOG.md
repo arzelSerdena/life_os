@@ -154,6 +154,8 @@
 
 - Fixed New project's footer going off screen when there are many life areas (the chips wrap with no limit): the pop-up now uses HeroUI's `scroll="inside"`, so it stays within the window and its body scrolls. Found when the new browser test added two areas and `projects.spec.ts` timed out clicking Create project.
 
+- Cancelling one occurrence of a repeating event (`POST /api/events/{id}/occurrences/{day}/cancel` with scope "this") is now recorded for undo and returns a `batch_id`: undo removes the exception the cancel created, or clears `is_cancelled` on one that held other one-off changes. No screen cancels a single occurrence yet (Delete → This event still cancels it without undo, as deletes aren't undoable). Tests in `test_events.py`.
+
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
