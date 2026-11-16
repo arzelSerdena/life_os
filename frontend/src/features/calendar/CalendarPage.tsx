@@ -1,8 +1,11 @@
+import { Button } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import {
   getDaysOptions,
   getDaysQueryKey,
+  listEventsOptions,
   listLifeAreasOptions,
   listProjectsOptions,
   listTasksOptions,
@@ -14,6 +17,7 @@ import { QueryError } from "../../components/QueryError";
 import { today as localToday } from "../../period";
 import { useCalendarStore } from "../../stores/calendarStore";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useNewEvent } from "../../stores/newEventStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { shortDate } from "../life-areas/overview/format";
@@ -65,6 +69,7 @@ export function CalendarPage() {
   } = useCalendarStore();
   const showToast = useChangeToast((state) => state.show);
   const openNewTask = useNewTask((state) => state.open);
+  const openNewEvent = useNewEvent((state) => state.open);
   const pending = usePendingDeletes((state) => state.pending);
   const [open, setOpen] = useState<Open | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
@@ -84,6 +89,9 @@ export function CalendarPage() {
   const lifeAreas = useQuery(listLifeAreasOptions());
   const projects = useQuery(listProjectsOptions());
   const openTasks = useQuery(listTasksOptions({ query: { status: "todo" } }));
+  // "Nothing created yet": no events and no tasks at all, not just none in this range.
+  const anyEvents = useQuery(listEventsOptions({ query: { include_cancelled: true } }));
+  const anyTasks = useQuery(listTasksOptions({ query: { include_cancelled: true } }));
   usePageSpot({}, days.data?.today);
 
   const update = useMutation(updateTaskMutation());
@@ -203,6 +211,12 @@ export function CalendarPage() {
     close();
     openNewTask({ scheduledDate: day }, today);
   };
+  const newEventOn = (day: string) => {
+    close();
+    openNewEvent({ day }, today);
+  };
+  const nothingYet =
+    anyEvents.data?.length === 0 && anyTasks.data?.length === 0 && entries.length === 0;
 
   const popover = (() => {
     if (!open || !ready) return null;
@@ -215,7 +229,11 @@ export function CalendarPage() {
             width={180}
             onClose={close}
           >
-            <AddMenu day={open.day} onTask={() => newTaskOn(open.day)} />
+            <AddMenu
+              day={open.day}
+              onEvent={() => newEventOn(open.day)}
+              onTask={() => newTaskOn(open.day)}
+            />
           </AnchoredPopover>
         )
       );
@@ -266,7 +284,19 @@ export function CalendarPage() {
               {failed}
             </p>
           )}
-          <div className={`min-h-0 flex-1 pb-6 pl-6 ${panel ? "pr-3" : "pr-6"}`}>
+          <div className={`relative min-h-0 flex-1 pb-6 pl-6 ${panel ? "pr-3" : "pr-6"}`}>
+            {ready && !error && nothingYet && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3">
+                <p className="type-body text-(--text-secondary)">No events or tasks yet.</p>
+                <Button
+                  className="pointer-events-auto"
+                  onPress={() => openNewEvent({ day: anchor }, today)}
+                >
+                  <Plus aria-hidden strokeWidth={2} />
+                  New event
+                </Button>
+              </div>
+            )}
             {error ? (
               <QueryError error={error} />
             ) : !ready ? (

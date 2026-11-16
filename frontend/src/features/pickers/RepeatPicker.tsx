@@ -2,7 +2,7 @@ import { Button } from "@heroui/react";
 import { ChevronRight, Repeat } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
-import { PickerRow, PickerSeparator, PopoverChip } from "./chips";
+import { PickerRow, PickerSeparator, PopoverChip, PopoverField } from "./chips";
 import { addDays, longDate, parseDate, WEEKDAY_NAMES } from "./dates";
 import {
   describeRepeat,
@@ -33,11 +33,6 @@ export function RepeatChip({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [custom, setCustom] = useState(false);
-  const current = value ? presetOf(value, anchor) : null;
-  const pick = (rule: RepeatRule | null) => {
-    setIsOpen(false);
-    onChange(rule);
-  };
   return (
     <PopoverChip
       icon={Repeat}
@@ -51,41 +46,117 @@ export function RepeatChip({
       }}
       chip={<span className="truncate">{value ? describeRepeat(value, anchor) : "Repeat"}</span>}
     >
-      {custom ? (
-        <CustomRepeat
-          initial={value ?? simpleRule("weekly", anchor)}
-          anchor={anchor}
-          allowCompletion={allowCompletion}
-          onCancel={() => setIsOpen(false)}
-          onDone={pick}
-        />
-      ) : (
-        <>
-          <PickerRow selected={value === null} onPress={() => pick(null)}>
-            Does not repeat
-          </PickerRow>
-          <PickerSeparator />
-          {presets(anchor).map((preset) => (
-            <PickerRow
-              key={preset.id}
-              note={preset.note || undefined}
-              selected={current === preset.id}
-              onPress={() => pick(preset.rule)}
-            >
-              {preset.label}
-            </PickerRow>
-          ))}
-          <PickerSeparator />
-          <PickerRow
-            selected={value !== null && current === null}
-            note={<ChevronRight aria-hidden className="size-3.5" />}
-            onPress={() => setCustom(true)}
-          >
-            Custom
-          </PickerRow>
-        </>
-      )}
+      <RepeatPanel
+        value={value}
+        anchor={anchor}
+        allowCompletion={allowCompletion}
+        custom={custom}
+        onCustom={() => setCustom(true)}
+        onCancel={() => setIsOpen(false)}
+        onPick={(rule) => {
+          setIsOpen(false);
+          onChange(rule);
+        }}
+      />
     </PopoverChip>
+  );
+}
+
+/** The Repeat field, as in New event: the same picker under a form field. */
+export function RepeatField({
+  value,
+  anchor,
+  onChange,
+}: {
+  value: RepeatRule | null;
+  anchor: string;
+  onChange: (rule: RepeatRule | null) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [custom, setCustom] = useState(false);
+  return (
+    <PopoverField
+      icon={Repeat}
+      label="Repeat"
+      width={custom ? 320 : 260}
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (open) setCustom(false);
+        setIsOpen(open);
+      }}
+      value={value ? describeRepeat(value, anchor) : "Does not repeat"}
+    >
+      <RepeatPanel
+        value={value}
+        anchor={anchor}
+        allowCompletion={false}
+        custom={custom}
+        onCustom={() => setCustom(true)}
+        onCancel={() => setIsOpen(false)}
+        onPick={(rule) => {
+          setIsOpen(false);
+          onChange(rule);
+        }}
+      />
+    </PopoverField>
+  );
+}
+
+/** The Repeat picker's body: the presets, or Custom once it is opened. */
+function RepeatPanel({
+  value,
+  anchor,
+  allowCompletion,
+  custom,
+  onCustom,
+  onCancel,
+  onPick,
+}: {
+  value: RepeatRule | null;
+  anchor: string;
+  allowCompletion: boolean;
+  custom: boolean;
+  onCustom: () => void;
+  onCancel: () => void;
+  onPick: (rule: RepeatRule | null) => void;
+}) {
+  const current = value ? presetOf(value, anchor) : null;
+  if (custom) {
+    return (
+      <CustomRepeat
+        initial={value ?? simpleRule("weekly", anchor)}
+        anchor={anchor}
+        allowCompletion={allowCompletion}
+        onCancel={onCancel}
+        onDone={onPick}
+      />
+    );
+  }
+  return (
+    <>
+      <PickerRow selected={value === null} onPress={() => onPick(null)}>
+        Does not repeat
+      </PickerRow>
+      <PickerSeparator />
+      {presets(anchor).map((preset) => (
+        <PickerRow
+          key={preset.id}
+          note={preset.note || undefined}
+          selected={current === preset.id}
+          onPress={() => onPick(preset.rule)}
+        >
+          {preset.label}
+        </PickerRow>
+      ))}
+      <PickerSeparator />
+      <PickerRow
+        selected={value !== null && current === null}
+        note={<ChevronRight aria-hidden className="size-3.5" />}
+        onPress={onCustom}
+      >
+        Custom
+      </PickerRow>
+    </>
   );
 }
 

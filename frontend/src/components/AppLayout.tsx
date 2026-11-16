@@ -9,6 +9,7 @@ import {
 import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { UndoToast } from "../features/deleting/UndoToast";
+import { NewEventHost } from "../features/events/NewEventModal";
 import { NewTaskHost } from "../features/tasks/NewTaskModal";
 import { useNewTaskShortcut } from "../features/tasks/newTaskShortcut";
 import { useDetailPanel } from "../stores/detailPanelStore";
@@ -58,6 +59,7 @@ export function AppLayout() {
       <Suspense fallback={null}>{hasPanel && <DetailPanel />}</Suspense>
       <UndoToast />
       <NewTaskHost />
+      <NewEventHost />
     </div>
   );
 }

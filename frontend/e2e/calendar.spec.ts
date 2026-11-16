@@ -188,7 +188,6 @@ test("clicking a day offers a new task on that day", async ({ page, request }) =
 
   const day = await box(cell(page, tuesday));
   await page.mouse.click(day.x + day.width / 2, day.y + day.height - 60);
-  await expect(page.getByRole("button", { name: "Event" })).toBeDisabled();
   await page.getByRole("button", { name: "Task", exact: true }).click();
 
   const modal = page.getByRole("dialog", { name: "New task" });

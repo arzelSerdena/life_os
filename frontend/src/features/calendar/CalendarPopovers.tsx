@@ -196,29 +196,28 @@ export function DayPopover({
   );
 }
 
-/** Clicking a day: add an Event (not built yet) or a Task on that day. */
-export function AddMenu({ day, onTask }: { day: string; onTask: () => void }) {
+/** Clicking a day: add an Event or a Task on that day. */
+export function AddMenu({
+  day,
+  onEvent,
+  onTask,
+}: {
+  day: string;
+  onEvent: () => void;
+  onTask: () => void;
+}) {
   const row =
-    "flex h-[30px] items-center gap-2 rounded-(--radius-6) px-2 text-left text-[13px] outline-none [&_svg]:size-[15px] [&_svg]:text-(--text-tertiary)";
+    "flex h-[30px] items-center gap-2 rounded-(--radius-6) px-2 text-left text-[13px] text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-[15px] [&_svg]:text-(--text-tertiary)";
   return (
     <>
       <span className="px-2 pt-2 pb-1 text-[11px] leading-[14px] font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase">
         {dayDate(day)}
       </span>
-      <button
-        type="button"
-        disabled
-        title="New event isn't built yet"
-        className={`${row} text-(--text-disabled)`}
-      >
+      <button type="button" onClick={onEvent} className={row}>
         <CalendarDays aria-hidden strokeWidth={2} />
         Event
       </button>
-      <button
-        type="button"
-        onClick={onTask}
-        className={`${row} text-(--text-primary) hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)`}
-      >
+      <button type="button" onClick={onTask} className={row}>
         <SquareCheck aria-hidden strokeWidth={2} />
         Task
       </button>
