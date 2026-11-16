@@ -1,5 +1,6 @@
 import { PanelLeftClose } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
+import { NavLink } from "react-router";
 import {
   SIDEBAR_COLLAPSE_WIDTH,
   SIDEBAR_DEFAULT_WIDTH,
@@ -95,5 +96,33 @@ export function Sidebar({ label, children }: SidebarProps) {
         className="absolute inset-y-0 -right-[3px] w-1.5 cursor-col-resize outline-none hover:bg-brand-200 focus-visible:bg-brand-300"
       />
     </aside>
+  );
+}
+
+export const SIDEBAR_ROW =
+  "flex h-(--sidebar-item-height) items-center gap-2 rounded-(--radius-6) px-2 type-sidebar-item outline-none hover:bg-(--sidebar-item-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
+export const SIDEBAR_ROW_ACTIVE =
+  "bg-(--sidebar-item-active-bg) text-(--sidebar-item-text-active) shadow-[inset_2px_0_0_var(--color-brand-600)]";
+
+/** A sidebar row that goes to a page, marked while that page is open. */
+export function SidebarLink({
+  to,
+  end,
+  children,
+}: {
+  to: string;
+  end?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `${SIDEBAR_ROW} ${isActive ? SIDEBAR_ROW_ACTIVE : "text-(--sidebar-item-text)"}`
+      }
+    >
+      {children}
+    </NavLink>
   );
 }

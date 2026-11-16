@@ -4,6 +4,8 @@ import { ArchivedAreasPage } from "./features/life-areas/ArchivedAreasPage";
 import { AreaPage } from "./features/life-areas/AreaPage";
 import { AreasLayout } from "./features/life-areas/AreasLayout";
 import { AreasOverviewPage } from "./features/life-areas/AreasOverviewPage";
+import { TasksLayout } from "./features/tasks/TasksLayout";
+import { TasksPage } from "./features/tasks/TasksPage";
 
 export function App() {
   return (
@@ -13,6 +15,10 @@ export function App() {
           <Route index element={<AreasOverviewPage />} />
           <Route path="archived" element={<ArchivedAreasPage />} />
           <Route path=":areaId" element={<AreaPage />} />
+        </Route>
+        <Route path="tasks" element={<TasksLayout />}>
+          <Route index element={<Navigate to="all" replace />} />
+          <Route path=":view" element={<TasksPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/areas" replace />} />
       </Route>
