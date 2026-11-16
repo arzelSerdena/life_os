@@ -139,10 +139,11 @@ def unarchive_event(session: SessionDep, event_id: int) -> EventChange:
 @router.post("/{event_id}/occurrences/{day}/edit", responses={**NOT_FOUND, **CONFLICT})
 def edit_event_occurrence(
     session: SessionDep, event_id: int, day: date, data: OccurrenceEdit
-) -> EventRead:
+) -> EventChange:
     """Change the occurrence on `day` (its original date): this one, this and following,
-    or all. Returns the event holding the change, which is a new series after a split."""
-    return EventRead.model_validate(service.edit_occurrence(session, event_id, day, data))
+    or all. Returns the event holding the change, which is a new series after a split.
+    Changing this one (but only its notes) has an undo batch; series edits have none."""
+    return _change(service.edit_occurrence(session, event_id, day, data))
 
 
 @router.post("/{event_id}/occurrences/{day}/cancel", responses={**NOT_FOUND, **CONFLICT})

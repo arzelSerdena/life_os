@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import {
+  editEventOccurrenceMutation,
   getDaysOptions,
   getDaysQueryKey,
   listEventsOptions,
@@ -12,7 +13,7 @@ import {
   rescheduleEventMutation,
   updateTaskMutation,
 } from "../../client/@tanstack/react-query.gen";
-import type { DaysRead } from "../../client/types.gen";
+import type { DaysRead, EventChange } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
 import { today as localToday } from "../../period";
 import { useCalendarStore } from "../../stores/calendarStore";
@@ -96,6 +97,7 @@ export function CalendarPage() {
 
   const update = useMutation(updateTaskMutation());
   const reschedule = useMutation(rescheduleEventMutation());
+  const editOccurrence = useMutation(editEventOccurrenceMutation());
 
   const areas = (lifeAreas.data ?? []).filter((area) => area.archived_at === null);
   const activeProjects = (projects.data ?? []).filter(
@@ -161,22 +163,35 @@ export function CalendarPage() {
         },
       );
     } else if (entry.kind === "event") {
+      const { event } = entry;
       const dates =
-        entry.event.start_date === start
+        event.start_date === start
           ? { start_date: start, end_date: end === start ? null : end }
-          : shiftEvent(entry.event, start);
-      reschedule.mutate(
-        { path: { event_id: entry.event.event_id }, body: dates },
-        {
-          onSuccess: (change) =>
-            change.batch_id &&
-            showToast(
-              `${how === "resize" ? "Changed" : "Moved"} “${entry.event.title}” · ${spanLabel(dates.start_date, dates.end_date ?? dates.start_date)}`,
-              change.batch_id,
-            ),
-          onError: fail,
-        },
-      );
+          : shiftEvent(event, start);
+      const handlers = {
+        onSuccess: (change: EventChange) =>
+          change.batch_id &&
+          showToast(
+            `${how === "resize" ? "Changed" : "Moved"} “${event.title}” · ${spanLabel(dates.start_date, dates.end_date ?? dates.start_date)}`,
+            change.batch_id,
+          ),
+        onError: fail,
+      };
+      if (event.is_repeating)
+        // Only this occurrence moves ("this one"). Its end date is always sent, so an
+        // occurrence resized to one day doesn't keep the series' length.
+        editOccurrence.mutate(
+          {
+            path: { event_id: event.event_id, day: event.occurrence_date },
+            body: {
+              scope: "this",
+              start_date: dates.start_date,
+              end_date: dates.end_date ?? dates.start_date,
+            },
+          },
+          handlers,
+        );
+      else reschedule.mutate({ path: { event_id: event.event_id }, body: dates }, handlers);
     } else {
       revert();
     }

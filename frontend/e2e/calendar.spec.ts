@@ -6,6 +6,7 @@ import {
   createRoutineStep,
   getEvent,
   getTask,
+  listOccurrences,
   mondayOf,
   postEvent,
   postTask,
@@ -13,7 +14,8 @@ import {
   unique,
 } from "./api.ts";
 
-// The Calendar's Week and Month against a real API: dragging tasks and events to other days
+// The Calendar's Week and Month against a real API: dragging tasks, events and one occurrence
+// of a repeating event to other days
 // (with Undo), resizing a bar, dropping an Inbox task on a day, a routine's steps, the add
 // menu and "+n more". The tests share one database, so most work three weeks ahead, where
 // the other specs put nothing.
@@ -128,6 +130,47 @@ test("dragging an event keeps its length, its end can be dragged, and Undo resto
   await expect
     .poll(async () => getEvent(request, event.id))
     .toMatchObject({ end_date: addDays(monday, 4) });
+});
+
+test("dragging a repeating event moves only that occurrence, and Undo puts it back", async ({
+  page,
+  request,
+}) => {
+  const today = await serverToday(request);
+  const monday = futureMonday(today);
+  const wednesday = addDays(monday, 2);
+  const area = await createArea(request, unique("Health"), "teal");
+  const event = await postEvent(request, {
+    life_area_id: area.id,
+    title: unique("Gym"),
+    start_date: monday,
+    start_time: "18:00",
+    rrule: "FREQ=WEEKLY",
+  });
+  const occurrences = async () =>
+    (await listOccurrences(request, monday, addDays(monday, 13)))
+      .filter((occurrence) => occurrence.event_id === event.id)
+      .map((occurrence) => [occurrence.occurrence_date, occurrence.start_date]);
+  await openFutureWeek(page, today);
+
+  const from = await box(entry(page, event.title));
+  const to = await box(cell(page, wednesday));
+  await dragTo(page, { x: from.x + 40, y: from.y + 12 }, { x: to.x + to.width / 2, y: to.y + 200 });
+
+  await expect(page.getByText(`Moved “${event.title}” · ${short(wednesday)}`)).toBeVisible();
+  await expect(cell(page, wednesday).getByText(event.title)).toBeVisible();
+  const nextMonday = addDays(monday, 7);
+  await expect.poll(occurrences).toEqual([
+    [monday, wednesday],
+    [nextMonday, nextMonday], // the rest of the series stays
+  ]);
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(cell(page, monday).getByText(event.title)).toBeVisible();
+  await expect.poll(occurrences).toEqual([
+    [monday, monday],
+    [nextMonday, nextMonday],
+  ]);
 });
 
 test("dropping a task from the Inbox panel on a day schedules it", async ({ page, request }) => {

@@ -6183,7 +6183,7 @@ export type EditEventOccurrenceResponses = {
     /**
      * Successful Response
      */
-    200: EventRead;
+    200: EventChange;
 };
 
 export type EditEventOccurrenceResponse = EditEventOccurrenceResponses[keyof EditEventOccurrenceResponses];

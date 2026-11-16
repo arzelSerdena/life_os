@@ -195,6 +195,66 @@ def test_cancelling_and_restoring_one_occurrence(client: TestClient, area: int) 
     assert _days(client, last="2026-11-30") == ["2026-11-16", "2026-11-23", "2026-11-30"]
 
 
+def test_moving_one_occurrence_can_be_undone(client: TestClient, area: int) -> None:
+    event = _weekly(client, area)
+
+    change = _post(
+        client,
+        f"/{event['id']}/occurrences/2026-11-23/edit",
+        {"scope": "this", "start_date": "2026-11-25"},
+    )
+
+    assert change["event"]["id"] == event["id"]
+    assert _days(client, last="2026-11-30") == ["2026-11-16", "2026-11-25", "2026-11-30"]
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 200
+    restored = _occurrences(client, last="2026-11-30")
+    assert [(o["start_date"], o["is_changed"]) for o in restored] == [
+        ("2026-11-16", False),
+        ("2026-11-23", False),  # its one-off change is gone again
+        ("2026-11-30", False),
+    ]
+
+
+def test_moving_a_changed_occurrence_again_undoes_to_the_first_move(
+    client: TestClient, area: int
+) -> None:
+    event = _weekly(client, area, end_date="2026-11-17")  # two days long
+    path = f"/{event['id']}/occurrences/2026-11-23/edit"
+    _post(client, path, {"scope": "this", "title": "Legs", "start_date": "2026-11-24"})
+
+    change = _post(client, path, {"scope": "this", "start_date": "2026-11-26"})
+    moved = _occurrences(client, first="2026-11-26", last="2026-11-26")
+    client.post(f"/api/undo/{change['batch_id']}")
+    back = _occurrences(client, first="2026-11-24", last="2026-11-24")
+
+    assert [(o["start_date"], o["end_date"]) for o in moved] == [("2026-11-26", "2026-11-27")]
+    assert [(o["title"], o["start_date"], o["end_date"]) for o in back] == [
+        ("Legs", "2026-11-24", "2026-11-25")
+    ]
+
+
+def test_undoing_a_move_is_refused_after_the_occurrence_changed_again(
+    client: TestClient, area: int
+) -> None:
+    event = _weekly(client, area)
+    path = f"/{event['id']}/occurrences/2026-11-23/edit"
+    change = _post(client, path, {"scope": "this", "start_date": "2026-11-25"})
+
+    _post(client, path, {"scope": "this", "title": "Legs"})
+
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 409
+
+
+def test_an_occurrences_notes_are_not_recorded(client: TestClient, area: int) -> None:
+    event = _weekly(client, area)
+
+    change = _post(
+        client, f"/{event['id']}/occurrences/2026-11-23/edit", {"scope": "this", "notes": "Hi"}
+    )
+
+    assert change["batch_id"] is None
+
+
 @pytest.mark.parametrize(
     ("body", "status_code"),
     [
@@ -236,12 +296,14 @@ def test_editing_following_splits_the_series(
     event = _weekly(client, area)
     _post(client, f"/{event['id']}/occurrences/2026-12-07/edit", {"scope": "this", "title": "Legs"})
 
-    new = _post(
+    change = _post(
         client,
         f"/{event['id']}/occurrences/2026-11-30/edit",
         {"scope": "following", "start_time": "07:00"},
     )
 
+    new = change["event"]
+    assert change["batch_id"] is None  # series edits can't be undone
     assert (new["start_date"], new["start_time"]) == ("2026-11-30", "07:00:00")
     original = session.get(Event, event["id"])
     assert original is not None and str(original.repeat_ends_on) == "2026-11-29"
@@ -265,7 +327,7 @@ def test_editing_following_from_the_first_occurrence_is_edit_all(
         {"scope": "following", "title": "Run"},
     )
 
-    assert body["id"] == event["id"]
+    assert body["event"]["id"] == event["id"]
 
 
 def test_editing_all_keeps_one_off_changes_unless_the_timing_changes(
@@ -395,7 +457,7 @@ def test_one_off_changes_after_a_split_move_to_the_new_series(
         client,
         f"/{event['id']}/occurrences/2026-11-30/edit",
         {"scope": "following", "location": "Gym B"},
-    )
+    )["event"]
 
     shown = _occurrences(client, last="2026-12-14", include_cancelled=True)
     later = [(o["event_id"], o["start_date"], o["title"], o["is_cancelled"]) for o in shown[2:]]

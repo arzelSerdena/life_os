@@ -1610,6 +1610,7 @@ export const unarchiveEventMutation = (options?: Partial<Options<UnarchiveEventD
  *
  * Change the occurrence on `day` (its original date): this one, this and following,
  * or all. Returns the event holding the change, which is a new series after a split.
+ * Changing this one (but only its notes) has an undo batch; series edits have none.
  */
 export const editEventOccurrenceMutation = (options?: Partial<Options<EditEventOccurrenceData>>): UseMutationOptions<EditEventOccurrenceResponse, EditEventOccurrenceError, Options<EditEventOccurrenceData>> => {
     const mutationOptions: UseMutationOptions<EditEventOccurrenceResponse, EditEventOccurrenceError, Options<EditEventOccurrenceData>> = {
