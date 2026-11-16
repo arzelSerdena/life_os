@@ -16,8 +16,11 @@ from app.schemas.event import (
     OccurrenceDelete,
     OccurrenceEdit,
     OccurrenceRead,
+    OccurrenceScope,
 )
+from app.schemas.preview import EventDeletePreview
 from app.services import events as service
+from app.services import previews
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -86,6 +89,18 @@ def update_event(session: SessionDep, event_id: int, data: EventUpdate) -> Event
 def delete_event(session: SessionDep, event_id: int) -> None:
     """Delete the event with its one-off changes. For a series this deletes all of it."""
     service.delete_event(session, event_id)
+
+
+@router.get("/{event_id}/delete-preview", responses=NOT_FOUND)
+def preview_event_delete(
+    session: SessionDep,
+    event_id: int,
+    day: date | None = None,
+    scope: OccurrenceScope = "all",
+) -> EventDeletePreview:
+    """What deleting the event removes, for its confirmation. For one occurrence of a
+    repeating event, pass its original date as `day` and the scope you'd delete with."""
+    return previews.event_delete(session, service.get_event(session, event_id), day, scope)
 
 
 @router.post("/{event_id}/move", responses={**NOT_FOUND, **CONFLICT})

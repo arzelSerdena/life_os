@@ -139,7 +139,10 @@ def test_the_delete_preview_counts_entries_and_targets(client: TestClient, area:
 
     preview = client.get(f"/api/metrics/{metric['id']}/delete-preview").json()
 
-    assert preview == {"entries": 2, "targets": 1}
+    assert [(row["kind"], row["counts"]) for row in preview["groups"][0]["rows"]] == [
+        ("entries", [{"of": "entries", "count": 2}]),
+        ("targets", [{"of": "targets", "count": 1}]),
+    ]
 
 
 @pytest.mark.parametrize(

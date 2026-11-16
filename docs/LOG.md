@@ -104,9 +104,10 @@
 
 - The placement rule in the backend: the week board, task lists, the area page's Unscheduled tab and agenda, new-task positions and reordering use `Task.placement_date` (scheduled date, else due date). New `/api/tasks` filters: `date_from`/`date_to` (renamed), `unscheduled` (neither date), `overdue`, `status`, `with_life_area`; reorder takes `day`.
 
+- One confirm dialog: every preview (area archive; project complete, cancel and archive; template, metric, routine and step deletes; the new `GET /api/events/{id}/delete-preview`) returns `groups` of per-item rows by effect (cancelled, ends from today, archived, deleted, kept), each with its kind, title, owner colour and its data as fields (dates, times, rule, counts, routine or owner). `features/confirming/ConfirmDialog.tsx` replaces `DeleteDialog` and the old looks of `ProjectChangeDialog` and `ArchiveAreaDialog`: 480 px, a group folds after 3 rows with "+n more", the list scrolls at 360 px with shadows, a skeleton while loading, and a footer line (restore, undo, or Can't be undone in red). An archive or status change with nothing listed applies at once with the undo toast. Confirmed deletes show a toast without Undo ("Deleted “X” · Can't be undone"); complete and cancel add "· 2 tasks cancelled".
+
 **Next** (code, one branch and PR each, in this order)
 
-- Previews return per-item rows grouped by effect (cascade and delete), then one `ConfirmDialog` replacing `ProjectChangeDialog` and `DeleteDialog`.
 - Playwright tests for New project and the project status actions.
 - `settings` table, model, migration and API; `app.clock.today()` applies `day_ends_at`.
 - Phase 2 screens: Tasks group, New task, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.

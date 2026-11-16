@@ -1,7 +1,7 @@
-import { Label, Radio, RadioGroup } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
+  previewEventDeleteOptions,
   previewMetricDeleteOptions,
   previewRoutineDeleteOptions,
   previewRoutineStepDeleteOptions,
@@ -23,9 +23,18 @@ import type {
   RoutineStepRead,
   TaskTemplateRead,
 } from "../../client/types.gen";
-import { DeleteDialog } from "./DeleteDialog";
+import { useChangeToast } from "../../stores/changeToastStore";
+import { ConfirmDialog } from "../confirming/ConfirmDialog";
+import { weekdayDate } from "../confirming/previewText";
+import { shortDate } from "../life-areas/overview/format";
 
 type Callbacks = { onClose: () => void; onDeleted?: () => void };
+
+/** Deletes can't be undone, so their toast only reports them. */
+export function useDeletedToast() {
+  const show = useChangeToast((state) => state.show);
+  return (message: string) => show(`${message} · Can’t be undone`, null);
+}
 
 function metricNames(metrics: MetricRef[]): string {
   const names = metrics.map((metric) => metric.title);
@@ -34,113 +43,161 @@ function metricNames(metrics: MetricRef[]): string {
     : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
 
-export function DeleteMetricDialog({ metric, ...callbacks }: { metric: MetricRead } & Callbacks) {
+export function DeleteMetricDialog({
+  metric,
+  onClose,
+  onDeleted,
+}: { metric: MetricRead } & Callbacks) {
   const path = { metric_id: metric.id };
-  const preview = useQuery(previewMetricDeleteOptions({ path })).data;
+  const preview = useQuery(previewMetricDeleteOptions({ path }));
+  const toast = useDeletedToast();
   return (
-    <DeleteDialog
-      {...callbacks}
-      name={metric.title}
+    <ConfirmDialog
+      title={`Delete “${metric.title}”?`}
       action="Delete metric"
-      isLoading={!preview}
-      deleted={[
-        [preview?.entries ?? 0, "entry", "entries"],
-        [preview?.targets ?? 0, "target", "targets"],
-      ]}
-      onConfirm={() => deleteMetric({ path, throwOnError: true })}
+      tone="delete"
+      groups={preview.data?.groups}
+      previewError={preview.error}
+      onConfirm={async () => {
+        await deleteMetric({ path, throwOnError: true });
+        toast(`Deleted “${metric.title}”`);
+      }}
+      onClose={onClose}
+      onDone={onDeleted}
     />
   );
 }
 
 export function DeleteTemplateDialog({
   template,
-  ...callbacks
+  onClose,
+  onDeleted,
 }: { template: TaskTemplateRead } & Callbacks) {
   const path = { template_id: template.id };
-  const preview = useQuery(previewTaskTemplateDeleteOptions({ path })).data;
+  const preview = useQuery(previewTaskTemplateDeleteOptions({ path }));
+  const toast = useDeletedToast();
   return (
-    <DeleteDialog
-      {...callbacks}
-      name={template.title}
+    <ConfirmDialog
+      title={`Delete “${template.title}”?`}
       action={template.rrule ? "Delete recurring task" : "Delete template"}
-      isLoading={!preview}
-      deleted={[
-        [preview?.subtasks ?? 0, "subtask", "subtasks"],
-        [preview?.open_occurrences ?? 0, "open task from it", "open tasks from it"],
-      ]}
-      kept={{
-        intro: "Kept as plain tasks:",
-        lines: [
-          [preview?.finished_occurrences ?? 0, "done or cancelled task", "done or cancelled tasks"],
-          [preview?.tasks_made_by_hand ?? 0, "task made from it", "tasks made from it"],
-        ],
+      tone="delete"
+      groups={preview.data?.groups}
+      previewError={preview.error}
+      onConfirm={async () => {
+        await deleteTaskTemplate({ path, throwOnError: true });
+        toast(`Deleted “${template.title}”`);
       }}
-      onConfirm={() => deleteTaskTemplate({ path, throwOnError: true })}
+      onClose={onClose}
+      onDone={onDeleted}
     />
   );
 }
 
 export function DeleteRoutineDialog({
   routine,
-  ...callbacks
+  onClose,
+  onDeleted,
 }: { routine: RoutineRead } & Callbacks) {
   const path = { routine_id: routine.id };
-  const preview = useQuery(previewRoutineDeleteOptions({ path })).data;
-  const blockers = preview?.metrics ?? [];
+  const preview = useQuery(previewRoutineDeleteOptions({ path }));
+  const toast = useDeletedToast();
+  const blockers = preview.data?.metrics ?? [];
   return (
-    <DeleteDialog
-      {...callbacks}
-      name={routine.title}
+    <ConfirmDialog
+      title={`Delete “${routine.title}”?`}
       action="Delete routine"
-      isLoading={!preview}
+      tone="delete"
+      groups={preview.data?.groups}
+      previewError={preview.error}
       blocked={
         blockers.length > 0 &&
-        `Its steps feed ${blockers.length === 1 ? "a metric" : "metrics"}: ${metricNames(blockers)}. Delete ${
-          blockers.length === 1 ? "that metric" : "those metrics"
-        } first, or archive the routine instead.`
+        `${blockers.length === 1 ? "A step feeds" : "Steps feed"} ${metricNames(blockers)}. Archive it instead.`
       }
-      deleted={[
-        [preview?.steps ?? 0, "step", "steps"],
-        [preview?.logs ?? 0, "logged day", "logged days"],
-        [preview?.pauses ?? 0, "pause", "pauses"],
-      ]}
-      onConfirm={() => deleteRoutine({ path, throwOnError: true })}
+      onConfirm={async () => {
+        await deleteRoutine({ path, throwOnError: true });
+        toast(`Deleted “${routine.title}”`);
+      }}
+      onClose={onClose}
+      onDone={onDeleted}
     />
   );
 }
 
-export function DeleteStepDialog({ step, ...callbacks }: { step: RoutineStepRead } & Callbacks) {
+export function DeleteStepDialog({
+  step,
+  onClose,
+  onDeleted,
+}: { step: RoutineStepRead } & Callbacks) {
   const path = { step_id: step.id };
-  const preview = useQuery(previewRoutineStepDeleteOptions({ path })).data;
-  const blockers = preview?.metrics ?? [];
+  const preview = useQuery(previewRoutineStepDeleteOptions({ path }));
+  const toast = useDeletedToast();
+  const blockers = preview.data?.metrics ?? [];
   return (
-    <DeleteDialog
-      {...callbacks}
-      name={step.title}
+    <ConfirmDialog
+      title={`Delete “${step.title}”?`}
       action="Delete step"
-      isLoading={!preview}
-      blocked={
-        blockers.length > 0 &&
-        `It feeds ${blockers.length === 1 ? "a metric" : "metrics"}: ${metricNames(blockers)}. Delete ${
-          blockers.length === 1 ? "that metric" : "those metrics"
-        } first, or archive the step instead.`
-      }
-      deleted={[
-        [preview?.logs ?? 0, "logged day", "logged days"],
-        [preview?.pauses ?? 0, "pause", "pauses"],
-      ]}
-      onConfirm={() => deleteRoutineStep({ path, throwOnError: true })}
+      tone="delete"
+      groups={preview.data?.groups}
+      previewError={preview.error}
+      blocked={blockers.length > 0 && `It feeds ${metricNames(blockers)}. Archive it instead.`}
+      onConfirm={async () => {
+        await deleteRoutineStep({ path, throwOnError: true });
+        toast(`Deleted “${step.title}”`);
+      }}
+      onClose={onClose}
+      onDone={onDeleted}
     />
   );
 }
 
 type Scope = "this" | "following" | "all";
 
-const SCOPES: { id: Scope; label: string }[] = [
-  { id: "this", label: "This event" },
-  { id: "following", label: "This and following" },
-  { id: "all", label: "All events" },
-];
+/** The choice rows: 36 px, the selected one in the accent, each with its date on the right. */
+function ScopeChoice({
+  value,
+  onChange,
+  options,
+}: {
+  value: Scope;
+  onChange: (scope: Scope) => void;
+  options: { id: Scope; label: string; meta: string }[];
+}) {
+  return (
+    <fieldset className="flex flex-col gap-1">
+      <legend className="sr-only">Delete which events</legend>
+      {options.map((option) => (
+        <label
+          key={option.id}
+          className={`flex h-9 cursor-pointer items-center gap-2.5 rounded-(--radius-8) border px-3 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring) ${
+            value === option.id
+              ? "border-brand-600 bg-(--accent-subtle)"
+              : "border-(--border-default) hover:bg-neutral-50"
+          }`}
+        >
+          <input
+            type="radio"
+            name="delete-scope"
+            className="sr-only"
+            checked={value === option.id}
+            onChange={() => onChange(option.id)}
+          />
+          <span
+            aria-hidden
+            className={`grid size-3.5 shrink-0 place-items-center rounded-full border-[1.5px] ${
+              value === option.id ? "border-brand-700" : "border-neutral-400"
+            }`}
+          >
+            {value === option.id && <span className="size-1.5 rounded-full bg-brand-700" />}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[13px] text-(--text-primary)">
+            {option.label}
+          </span>
+          <span className="text-xs whitespace-nowrap text-(--text-secondary)">{option.meta}</span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
 
 /**
  * Deletes an event. A repeating one opened on an occurrence asks which: this one (cancels
@@ -149,40 +206,65 @@ const SCOPES: { id: Scope; label: string }[] = [
 export function DeleteEventDialog({
   event,
   day,
-  ...callbacks
+  onClose,
+  onDeleted,
 }: { event: EventRead; day: string | null } & Callbacks) {
   const [scope, setScope] = useState<Scope>("this");
   const asksScope = event.rrule !== null && day !== null;
+  const path = { event_id: event.id };
+  const toast = useDeletedToast();
+  const preview = useQuery(
+    previewEventDeleteOptions({
+      path,
+      query: asksScope ? { day, scope } : {},
+    }),
+  );
+  // The All events row's data comes from the whole series, whatever is chosen.
+  const series = preview.data;
+  const past = series ? `${series.past_occurrences} past` : "";
+  const allMeta = [past, series?.has_upcoming ? "upcoming" : ""].filter(Boolean).join(" · ");
+
+  const message =
+    asksScope && scope === "this"
+      ? `Deleted “${event.title}” on ${shortDate(day)}`
+      : asksScope && scope === "following" && day !== event.start_date
+        ? `Deleted “${event.title}” from ${shortDate(day)}`
+        : `Deleted “${event.title}”`;
+
   return (
-    <DeleteDialog
-      {...callbacks}
-      name={event.title}
+    <ConfirmDialog
+      title={`Delete “${event.title}”?`}
       action="Delete event"
-      onConfirm={() =>
-        asksScope
-          ? deleteEventOccurrence({
-              path: { event_id: event.id, day },
-              body: { scope },
-              throwOnError: true,
-            })
-          : deleteEvent({ path: { event_id: event.id }, throwOnError: true })
+      tone="delete"
+      groups={asksScope && scope === "this" ? [] : preview.data?.groups}
+      previewError={preview.error}
+      choice={
+        asksScope && (
+          <ScopeChoice
+            value={scope}
+            onChange={setScope}
+            options={[
+              { id: "this", label: "This event", meta: weekdayDate(day) },
+              { id: "following", label: "This and following", meta: `From ${weekdayDate(day)}` },
+              { id: "all", label: "All events", meta: allMeta },
+            ]}
+          />
+        )
       }
-    >
-      {asksScope && (
-        <RadioGroup value={scope} onChange={(value) => setScope(value as Scope)}>
-          <Label className="sr-only">Delete which events</Label>
-          {SCOPES.map((option) => (
-            <Radio key={option.id} value={option.id}>
-              <Radio.Content>
-                <Radio.Control>
-                  <Radio.Indicator />
-                </Radio.Control>
-                {option.label}
-              </Radio.Content>
-            </Radio>
-          ))}
-        </RadioGroup>
-      )}
-    </DeleteDialog>
+      onConfirm={async () => {
+        if (asksScope) {
+          await deleteEventOccurrence({
+            path: { ...path, day },
+            body: { scope },
+            throwOnError: true,
+          });
+        } else {
+          await deleteEvent({ path, throwOnError: true });
+        }
+        toast(message);
+      }}
+      onClose={onClose}
+      onDone={onDeleted}
+    />
   );
 }

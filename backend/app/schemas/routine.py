@@ -180,16 +180,3 @@ class MetricRef(BaseModel):
 
     id: int
     title: str
-
-
-class RoutineDeletePreview(BaseModel):
-    """What deleting the routine or step removes with it. Deleting is refused while
-    metrics is not empty: those metrics count a step's days."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    steps: int
-    schedules: int
-    pauses: int
-    logs: int
-    metrics: list[MetricRef]

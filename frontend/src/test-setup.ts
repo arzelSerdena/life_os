@@ -8,6 +8,13 @@ import { useDetailPanel } from "./stores/detailPanelStore";
 // Node's fetch can't use the relative URLs that the browser accepts.
 client.setConfig({ baseUrl: "http://localhost" });
 
+// jsdom has no layout, so nothing ever resizes.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 afterEach(() => {
   cleanup();
   useDetailPanel.setState({ target: null });

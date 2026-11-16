@@ -1,18 +1,21 @@
 import { create } from "zustand";
 
-/** A change that was applied and recorded as one batch, which Undo restores. */
+/**
+ * A change that was applied. With a batch, Undo restores it; without one (a confirmed
+ * delete) the toast only reports it.
+ */
 export type AppliedChange = {
   key: number;
   /** Shown in the toast: Completed “Resume & portfolio”. */
   message: string;
-  batchId: string;
+  batchId: string | null;
 };
 
 type ChangeToastState = {
   change: AppliedChange | null;
   /** Undo failed: the message to show instead. */
   failure: { message: string; error: unknown } | null;
-  show: (message: string, batchId: string) => void;
+  show: (message: string, batchId: string | null) => void;
   /** Hides the toast; with a key, only if that change is still the one shown. */
   dismiss: (key?: number) => void;
   fail: (message: string, error: unknown) => void;

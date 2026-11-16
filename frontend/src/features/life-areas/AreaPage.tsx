@@ -115,10 +115,9 @@ export function AreaPage() {
           onDeleted={() => navigate("/areas", { replace: true })}
         />
       )}
-      {isArchiving && page.data && (
+      {isArchiving && (
         <ArchiveAreaDialog
           lifeArea={area}
-          contents={page.data.contents}
           onClose={() => setIsArchiving(false)}
           onArchived={() => navigate("/areas")}
         />

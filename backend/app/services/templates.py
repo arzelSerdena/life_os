@@ -1,7 +1,6 @@
 """Task templates, as in Notion, and recurring tasks (templates with a repeat rule)."""
 
 from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any
 
@@ -150,26 +149,6 @@ def unarchive_template(session: Session, template_id: int) -> TaskTemplate:
         template.archived_at = None
         _ensure_open_occurrence(session, template)
     return _save(session, template)
-
-
-@dataclass(frozen=True)
-class TemplateDeletePreview:
-    subtasks: int  # the template's own checklist
-    open_occurrences: int  # deleted
-    finished_occurrences: int  # kept as plain tasks
-    tasks_made_by_hand: int  # kept, without the link
-
-
-def delete_preview(session: Session, template_id: int) -> TemplateDeletePreview:
-    template = get_template(session, template_id)
-    tasks = session.scalars(select(Task).where(Task.template_id == template.id)).all()
-    occurrences = [task for task in tasks if task.occurrence_date is not None]
-    return TemplateDeletePreview(
-        subtasks=len(template.subtasks),
-        open_occurrences=sum(task.status == "todo" for task in occurrences),
-        finished_occurrences=sum(task.status != "todo" for task in occurrences),
-        tasks_made_by_hand=len(tasks) - len(occurrences),
-    )
 
 
 def delete_template(session: Session, template_id: int) -> None:

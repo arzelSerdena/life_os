@@ -331,10 +331,9 @@ function AreaPanel({ id }: { id: number }) {
         actions={actions}
         error={update.error ?? restore.error}
       />
-      {isArchiving && contents && (
+      {isArchiving && (
         <ArchiveAreaDialog
           lifeArea={area}
-          contents={contents}
           onClose={() => setIsArchiving(false)}
           onArchived={() => {
             close();

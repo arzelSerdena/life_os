@@ -39,17 +39,6 @@ class StepDay:
 
 
 @dataclass(frozen=True)
-class DeletePreview:
-    """What deleting a routine or a step removes, and the metrics that block it."""
-
-    steps: int
-    schedules: int
-    pauses: int
-    logs: int
-    metrics: list[Metric]
-
-
-@dataclass(frozen=True)
 class Streaks:
     current: int
     best: int
@@ -254,17 +243,6 @@ def unarchive_routine(session: Session, routine_id: int) -> tuple[Routine, str |
     return _save(session, routine), history.batch_id
 
 
-def routine_delete_preview(session: Session, routine_id: int) -> DeletePreview:
-    routine = get_routine(session, routine_id)
-    return DeletePreview(
-        steps=len(routine.steps),
-        schedules=len(routine.schedules),
-        pauses=len(routine.pauses) + sum(len(step.pauses) for step in routine.steps),
-        logs=sum(len(step.logs) for step in routine.steps),
-        metrics=_metrics_using(session, [step.id for step in routine.steps]),
-    )
-
-
 def delete_routine(session: Session, routine_id: int) -> None:
     """Delete the routine with its schedules, pauses, steps and logs. This can't be undone.
 
@@ -365,17 +343,6 @@ def unarchive_step(session: Session, step_id: int) -> tuple[RoutineStep, str | N
     return _save_step(session, step), history.batch_id
 
 
-def step_delete_preview(session: Session, step_id: int) -> DeletePreview:
-    step = get_step(session, step_id)
-    return DeletePreview(
-        steps=1,
-        schedules=0,
-        pauses=len(step.pauses),
-        logs=len(step.logs),
-        metrics=_metrics_using(session, [step.id]),
-    )
-
-
 def delete_step(session: Session, step_id: int) -> None:
     """Delete the step with its logs and pauses. Refused while it feeds a metric."""
     step = get_step(session, step_id)
@@ -415,7 +382,7 @@ def clear_log(session: Session, step_id: int, day: date) -> StepDay:
 # ---------- Helpers ----------
 
 
-def _metrics_using(session: Session, step_ids: list[int]) -> list[Metric]:
+def metrics_using(session: Session, step_ids: list[int]) -> list[Metric]:
     """Metrics fed by these steps, archived ones included: they still need the step."""
     return list(
         session.scalars(
@@ -425,7 +392,7 @@ def _metrics_using(session: Session, step_ids: list[int]) -> list[Metric]:
 
 
 def _ensure_no_metrics(session: Session, step_ids: list[int]) -> None:
-    metrics = _metrics_using(session, step_ids)
+    metrics = metrics_using(session, step_ids)
     if metrics:
         names = ", ".join(f'"{metric.title}"' for metric in metrics)
         raise ConflictError(

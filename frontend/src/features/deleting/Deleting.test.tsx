@@ -8,6 +8,7 @@ import type {
   RoutineRead,
   TaskRead,
 } from "../../client/types.gen";
+import { useChangeToast } from "../../stores/changeToastStore";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { lifeArea, renderApp } from "../../test-utils";
@@ -126,7 +127,17 @@ beforeEach(() => {
         case "/api/metrics/9":
           return json(metric);
         case "/api/metrics/9/delete-preview":
-          return json({ entries: 9, targets: 1 });
+          return json({
+            groups: [
+              {
+                effect: "deleted",
+                rows: [
+                  { kind: "entries", counts: [{ of: "entries", count: 9 }] },
+                  { kind: "targets", counts: [{ of: "targets", count: 1 }] },
+                ],
+              },
+            ],
+          });
         case "/api/projects/7":
           return json(project);
         case "/api/tasks/2":
@@ -135,12 +146,40 @@ beforeEach(() => {
           return json(routine);
         case "/api/routine-steps/1/delete-preview":
           return json({
-            steps: 1,
-            schedules: 1,
-            pauses: 0,
-            logs: 12,
+            groups: [
+              {
+                effect: "deleted",
+                rows: [
+                  {
+                    kind: "history",
+                    counts: [
+                      { of: "logs", count: 12 },
+                      { of: "days", count: 12 },
+                    ],
+                  },
+                ],
+              },
+            ],
             metrics: [{ id: 9, title: "Networking chats" }],
           });
+        case "/api/events/3/delete-preview": {
+          const scope = url.searchParams.get("scope");
+          const row =
+            scope === "following"
+              ? { kind: "event", id: 3, title: "Standup", date: "2026-11-16", and_later: true }
+              : {
+                  kind: "event",
+                  id: 3,
+                  title: "Standup",
+                  rrule: "FREQ=DAILY",
+                  from_date: "2026-10-01",
+                };
+          return json({
+            groups: scope === "this" ? [] : [{ effect: "deleted", rows: [row] }],
+            past_occurrences: 7,
+            has_upcoming: true,
+          });
+        }
         case "/api/events/3":
           return json(standup);
         case "/api/events/occurrences":
@@ -158,6 +197,7 @@ afterEach(() => {
       usePendingDeletes.getState().undo(item.key);
     usePendingDeletes.setState({ pending: [], failure: null });
     useDetailPanel.getState().close();
+    useChangeToast.getState().dismiss();
   });
 });
 
@@ -182,10 +222,11 @@ test("deleting a metric asks first and lists what goes with it", async () => {
   await user.click(item);
 
   const dialog = await screen.findByRole("alertdialog");
-  expect(dialog).toHaveTextContent("Delete Networking chats?");
-  await waitFor(() => expect(dialog).toHaveTextContent("9 entries"));
-  expect(dialog).toHaveTextContent("1 target");
-  expect(dialog).toHaveTextContent("This can't be undone.");
+  expect(dialog).toHaveTextContent("Delete “Networking chats”?");
+  const deleted = await within(dialog).findByRole("region", { name: "Deleted" });
+  expect(deleted).toHaveTextContent("Entries9");
+  expect(deleted).toHaveTextContent("Targets1");
+  expect(dialog).toHaveTextContent("Can’t be undone");
   expect(writes()).toEqual([]);
   await user.click(within(dialog).getByRole("button", { name: "Delete metric" }));
 
@@ -193,6 +234,10 @@ test("deleting a metric asks first and lists what goes with it", async () => {
     expect(screen.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument(),
   );
   expect(writes()).toEqual([{ method: "DELETE", path: "/api/metrics/9", body: undefined }]);
+  const toast = screen.getByText("Deleted “Networking chats” · Can’t be undone");
+  expect(
+    within(toast.closest("[role=status]") as HTMLElement).queryByRole("button", { name: "Undo" }),
+  ).not.toBeInTheDocument();
 });
 
 test("a step that feeds a metric can't be deleted, and the dialog names the metric", async () => {
@@ -202,7 +247,9 @@ test("a step that feeds a metric can't be deleted, and the dialog names the metr
   await user.click(item);
 
   const dialog = await screen.findByRole("alertdialog");
-  await waitFor(() => expect(dialog).toHaveTextContent("It feeds a metric: Networking chats."));
+  await waitFor(() =>
+    expect(dialog).toHaveTextContent("It feeds Networking chats. Archive it instead."),
+  );
   expect(within(dialog).getByRole("button", { name: "Delete step" })).toBeDisabled();
 });
 
@@ -213,7 +260,11 @@ test("a repeating event asks which events to delete", async () => {
   await user.click(item);
 
   const dialog = await screen.findByRole("alertdialog");
-  await user.click(within(dialog).getByRole("radio", { name: "This and following" }));
+  expect(dialog).not.toHaveTextContent("Deleted");
+  await waitFor(() => expect(dialog).toHaveTextContent("All events7 past · upcoming"));
+  await user.click(within(dialog).getByRole("radio", { name: /This and following/ }));
+  const deleted = await within(dialog).findByRole("region", { name: "Deleted" });
+  expect(deleted).toHaveTextContent("StandupMon, Nov 16 and later");
   await user.click(within(dialog).getByRole("button", { name: "Delete event" }));
 
   await waitFor(() =>

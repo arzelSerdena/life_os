@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app import clock
 from app.models import EventException, Subtask, Task
 from app.services import templates
-from tests.factories import make_life_area
+from tests.factories import make_life_area, preview_rows
 
 TODAY = date(2026, 11, 16)
 
@@ -78,12 +78,18 @@ def test_the_template_delete_preview_counts_what_goes(
 ) -> None:
     preview = _ok(client.get(f"/api/task-templates/{series['id']}/delete-preview"))
 
-    assert preview == {
-        "subtasks": 2,
-        "open_occurrences": 2,
-        "finished_occurrences": 2,
-        "tasks_made_by_hand": 1,
+    assert preview_rows(preview) == {
+        "deleted": [
+            ("subtask", "Hips"),
+            ("subtask", "Back"),
+            ("task", "Stretch"),
+            ("task", "Stretch"),
+        ],
+        "kept": [("task", "Stretch"), ("task", "Stretch")],
     }
+    finished = preview["groups"][1]["rows"][0]
+    assert finished["finished"] is True
+    assert finished["counts"] == [{"of": "done", "count": 1}, {"of": "cancelled", "count": 1}]
 
 
 def test_deleting_a_recurring_task_keeps_finished_occurrences_as_plain_tasks(
@@ -187,6 +193,40 @@ def test_deleting_the_whole_series(client: TestClient, area: int, day: str, scop
     assert client.get(f"/api/events/{event['id']}").status_code == 404
 
 
+def _preview(client: TestClient, event: dict[str, Any], **params: str) -> Any:
+    return _ok(client.get(f"/api/events/{event['id']}/delete-preview", params=params))
+
+
+def test_the_event_delete_preview_follows_the_scope(client: TestClient, area: int) -> None:
+    event = _weekly(client, area)
+    base = f"/api/events/{event['id']}/occurrences"
+    _ok(client.post(f"{base}/2026-11-23/cancel", json={"scope": "this"}))
+    _ok(client.post(f"{base}/2026-12-07/edit", json={"scope": "this", "start_date": "2026-12-08"}))
+
+    this = _preview(client, event, day="2026-11-30", scope="this")
+    following = _preview(client, event, day="2026-11-30", scope="following")
+    everything = _preview(client, event)
+
+    assert this["groups"] == []
+    assert preview_rows(following) == {"deleted": [("event", "Gym"), ("moved_occurrence", None)]}
+    cut = following["groups"][0]["rows"][0]
+    assert (cut["date"], cut["and_later"], cut["rrule"]) == ("2026-11-30", True, None)
+    moved = following["groups"][0]["rows"][1]
+    assert (moved["date"], moved["moved_to"]) == ("2026-12-07", "2026-12-08")
+    assert preview_rows(everything) == {
+        "deleted": [("event", "Gym"), ("skipped_occurrence", None), ("moved_occurrence", None)]
+    }
+    whole = everything["groups"][0]["rows"][0]
+    assert (whole["rrule"], whole["from_date"]) == ("FREQ=WEEKLY", "2026-11-16")
+    assert (everything["past_occurrences"], everything["has_upcoming"]) == (0, True)
+    assert (
+        client.get(
+            f"/api/events/{event['id']}/delete-preview", params={"day": "2026-11-24"}
+        ).status_code
+        == 404
+    )
+
+
 def test_deleting_an_occurrence_needs_a_real_one(client: TestClient, area: int) -> None:
     event = _weekly(client, area)
     one_off = _ok(
@@ -222,13 +262,19 @@ def test_the_routine_delete_preview_counts_what_goes(client: TestClient, area: i
     routine_preview = _ok(client.get(f"/api/routines/{routine['id']}/delete-preview"))
     step_preview = _ok(client.get(f"{url}/delete-preview"))
 
-    assert routine_preview == {
-        "steps": 2,
-        "schedules": 1,
-        "pauses": 1,
-        "logs": 1,
-        "metrics": [],
+    assert preview_rows(routine_preview) == {
+        "deleted": [
+            ("routine_step", "Stretch"),
+            ("routine_step", "Read"),
+            ("history", None),
+            ("pauses", None),
+            ("schedules", None),
+        ]
     }
-    assert step_preview == {"steps": 1, "schedules": 0, "pauses": 1, "logs": 1, "metrics": []}
+    rows = routine_preview["groups"][0]["rows"]
+    assert rows[0]["context"] == "Health"
+    assert rows[2]["counts"] == [{"of": "logs", "count": 1}, {"of": "days", "count": 1}]
+    assert routine_preview["metrics"] == []
+    assert preview_rows(step_preview) == {"deleted": [("history", None), ("pauses", None)]}
     _ok(client.delete(f"/api/routines/{routine['id']}"), 204)
     assert client.get(f"{url}/delete-preview").status_code == 404

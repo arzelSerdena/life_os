@@ -147,13 +147,6 @@ class EntryRead(BaseModel):
     updated_at: UtcDatetime | None
 
 
-class MetricDeletePreview(BaseModel):
-    """What deleting the metric removes with it."""
-
-    entries: int
-    targets: int
-
-
 class EntryCreate(BaseModel):
     """A value for a day up to today (default: today)."""
 
