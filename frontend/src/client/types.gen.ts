@@ -112,41 +112,6 @@ export type AreaProjectRead = {
 };
 
 /**
- * CascadeItemRead
- */
-export type CascadeItemRead = {
-    /**
-     * Kind
-     */
-    kind: 'project' | 'task' | 'task_template' | 'event' | 'metric' | 'routine_step';
-    /**
-     * Id
-     */
-    id: number;
-    /**
-     * Title
-     */
-    title: string;
-    /**
-     * Effect
-     */
-    effect: 'archive' | 'cancel' | 'end_series';
-};
-
-/**
- * CascadePreview
- *
- * Everything a change would also do to the items inside, for the user to confirm.
- * Applying it records one batch, which undo restores in one step.
- */
-export type CascadePreview = {
-    /**
-     * Items
-     */
-    items: Array<CascadeItemRead>;
-};
-
-/**
  * ChartPointRead
  */
 export type ChartPointRead = {
@@ -170,6 +135,19 @@ export type ChartPointRead = {
      * Is Current
      */
     is_current: boolean;
+};
+
+/**
+ * ConfirmPreview
+ *
+ * What the change also does, grouped by effect, for the user to confirm. Empty groups
+ * are left out; no groups means nothing goes with it.
+ */
+export type ConfirmPreview = {
+    /**
+     * Groups
+     */
+    groups: Array<PreviewGroup>;
 };
 
 /**
@@ -440,6 +418,27 @@ export type EventCreate = {
      * Project Id
      */
     project_id?: number | null;
+};
+
+/**
+ * EventDeletePreview
+ *
+ * For a repeating event's choice: how many occurrences are past, and whether any are
+ * still to come.
+ */
+export type EventDeletePreview = {
+    /**
+     * Groups
+     */
+    groups: Array<PreviewGroup>;
+    /**
+     * Past Occurrences
+     */
+    past_occurrences: number;
+    /**
+     * Has Upcoming
+     */
+    has_upcoming: boolean;
 };
 
 /**
@@ -789,22 +788,6 @@ export type MetricCreate = {
      * Project Id
      */
     project_id?: number | null;
-};
-
-/**
- * MetricDeletePreview
- *
- * What deleting the metric removes with it.
- */
-export type MetricDeletePreview = {
-    /**
-     * Entries
-     */
-    entries: number;
-    /**
-     * Targets
-     */
-    targets: number;
 };
 
 /**
@@ -1257,6 +1240,106 @@ export type PeriodRead = {
 };
 
 /**
+ * PreviewCount
+ */
+export type PreviewCount = {
+    /**
+     * Of
+     */
+    of: 'tasks' | 'events' | 'recurring_tasks' | 'templates' | 'routine_steps' | 'metrics' | 'entries' | 'targets' | 'logs' | 'days' | 'schedules' | 'pauses' | 'done' | 'cancelled';
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
+ * PreviewGroup
+ */
+export type PreviewGroup = {
+    /**
+     * Effect
+     */
+    effect: 'cancelled' | 'ends_from_today' | 'archived' | 'deleted' | 'kept';
+    /**
+     * Rows
+     */
+    rows: Array<PreviewRow>;
+};
+
+/**
+ * PreviewRow
+ *
+ * One item. Only the fields that apply to its kind are set.
+ */
+export type PreviewRow = {
+    /**
+     * Kind
+     */
+    kind: 'project' | 'section' | 'task' | 'subtask' | 'task_template' | 'event' | 'metric' | 'routine_step' | 'moved_occurrence' | 'skipped_occurrence' | 'changed_occurrence' | 'history' | 'schedules' | 'pauses' | 'entries' | 'targets';
+    /**
+     * Id
+     */
+    id?: number | null;
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Color
+     */
+    color?: string | null;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Moved To
+     */
+    moved_to?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Rrule
+     */
+    rrule?: string | null;
+    /**
+     * From Date
+     */
+    from_date?: string | null;
+    /**
+     * And Later
+     */
+    and_later?: boolean;
+    /**
+     * Last Date
+     */
+    last_date?: string | null;
+    /**
+     * Overdue
+     */
+    overdue?: boolean;
+    /**
+     * Finished
+     */
+    finished?: boolean;
+    /**
+     * Context
+     */
+    context?: string | null;
+    /**
+     * Counts
+     */
+    counts?: Array<PreviewCount>;
+};
+
+/**
  * ProjectChange
  */
 export type ProjectChange = {
@@ -1489,26 +1572,13 @@ export type RoutineCreate = {
 /**
  * RoutineDeletePreview
  *
- * What deleting the routine or step removes with it. Deleting is refused while
- * metrics is not empty: those metrics count a step's days.
+ * Deleting is refused while `metrics` is not empty: those metrics count a step's days.
  */
 export type RoutineDeletePreview = {
     /**
-     * Steps
+     * Groups
      */
-    steps: number;
-    /**
-     * Schedules
-     */
-    schedules: number;
-    /**
-     * Pauses
-     */
-    pauses: number;
-    /**
-     * Logs
-     */
-    logs: number;
+    groups: Array<PreviewGroup>;
     /**
      * Metrics
      */
@@ -2636,31 +2706,6 @@ export type TaskUpdate = {
 };
 
 /**
- * TemplateDeletePreview
- *
- * What deleting the template does: its checklist and open occurrences are deleted;
- * done and cancelled occurrences and tasks made by hand stay, without the link.
- */
-export type TemplateDeletePreview = {
-    /**
-     * Subtasks
-     */
-    subtasks: number;
-    /**
-     * Open Occurrences
-     */
-    open_occurrences: number;
-    /**
-     * Finished Occurrences
-     */
-    finished_occurrences: number;
-    /**
-     * Tasks Made By Hand
-     */
-    tasks_made_by_hand: number;
-};
-
-/**
  * TemplateSubtaskRead
  */
 export type TemplateSubtaskRead = {
@@ -3102,7 +3147,7 @@ export type PreviewLifeAreaArchiveResponses = {
     /**
      * Successful Response
      */
-    200: CascadePreview;
+    200: ConfirmPreview;
 };
 
 export type PreviewLifeAreaArchiveResponse = PreviewLifeAreaArchiveResponses[keyof PreviewLifeAreaArchiveResponses];
@@ -3524,7 +3569,7 @@ export type PreviewProjectChangeResponses = {
     /**
      * Successful Response
      */
-    200: CascadePreview;
+    200: ConfirmPreview;
 };
 
 export type PreviewProjectChangeResponse = PreviewProjectChangeResponses[keyof PreviewProjectChangeResponses];
@@ -4025,7 +4070,7 @@ export type PreviewMetricDeleteResponses = {
     /**
      * Successful Response
      */
-    200: MetricDeletePreview;
+    200: ConfirmPreview;
 };
 
 export type PreviewMetricDeleteResponse = PreviewMetricDeleteResponses[keyof PreviewMetricDeleteResponses];
@@ -5313,7 +5358,7 @@ export type PreviewTaskTemplateDeleteResponses = {
     /**
      * Successful Response
      */
-    200: TemplateDeletePreview;
+    200: ConfirmPreview;
 };
 
 export type PreviewTaskTemplateDeleteResponse = PreviewTaskTemplateDeleteResponses[keyof PreviewTaskTemplateDeleteResponses];
@@ -5578,6 +5623,49 @@ export type UpdateEventResponses = {
 };
 
 export type UpdateEventResponse = UpdateEventResponses[keyof UpdateEventResponses];
+
+export type PreviewEventDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: {
+        /**
+         * Day
+         */
+        day?: string | null;
+        /**
+         * Scope
+         */
+        scope?: 'this' | 'following' | 'all';
+    };
+    url: '/api/events/{event_id}/delete-preview';
+};
+
+export type PreviewEventDeleteErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewEventDeleteError = PreviewEventDeleteErrors[keyof PreviewEventDeleteErrors];
+
+export type PreviewEventDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventDeletePreview;
+};
+
+export type PreviewEventDeleteResponse = PreviewEventDeleteResponses[keyof PreviewEventDeleteResponses];
 
 export type MoveEventData = {
     body: EventMove;

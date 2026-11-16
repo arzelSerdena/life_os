@@ -4,14 +4,15 @@ from fastapi import APIRouter, status
 
 from app.db import SessionDep
 from app.schemas.common import ErrorResponse
+from app.schemas.preview import ConfirmPreview
 from app.schemas.task import TaskMove, TaskRead
 from app.schemas.task_template import (
     TaskFromTemplate,
     TaskTemplateCreate,
     TaskTemplateRead,
     TaskTemplateUpdate,
-    TemplateDeletePreview,
 )
+from app.services import previews
 from app.services import templates as service
 
 router = APIRouter(prefix="/api/task-templates", tags=["task-templates"])
@@ -80,9 +81,10 @@ def unarchive_task_template(session: SessionDep, template_id: int) -> TaskTempla
 
 
 @router.get("/{template_id}/delete-preview", responses=NOT_FOUND)
-def preview_task_template_delete(session: SessionDep, template_id: int) -> TemplateDeletePreview:
-    """The counts for the delete confirmation."""
-    return TemplateDeletePreview.model_validate(service.delete_preview(session, template_id))
+def preview_task_template_delete(session: SessionDep, template_id: int) -> ConfirmPreview:
+    """What the delete removes and keeps, for its confirmation."""
+    template = service.get_template(session, template_id)
+    return ConfirmPreview(groups=previews.template_delete(session, template))
 
 
 @router.delete(

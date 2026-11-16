@@ -12,7 +12,6 @@ from app.schemas.metric import (
     EntryUpdate,
     MetricChange,
     MetricCreate,
-    MetricDeletePreview,
     MetricMove,
     MetricRead,
     MetricUpdate,
@@ -21,7 +20,8 @@ from app.schemas.metric import (
     TargetRead,
     TargetReplace,
 )
-from app.services import metric_targets
+from app.schemas.preview import ConfirmPreview
+from app.services import metric_targets, previews
 from app.services import metrics as service
 from app.services.metric_entries import Entry
 
@@ -150,10 +150,9 @@ def unarchive_metric(session: SessionDep, metric_id: int) -> MetricChange:
 
 
 @router.get("/metrics/{metric_id}/delete-preview", responses=NOT_FOUND)
-def preview_metric_delete(session: SessionDep, metric_id: int) -> MetricDeletePreview:
-    """The counts for the delete confirmation."""
-    entries, targets = service.delete_preview(session, metric_id)
-    return MetricDeletePreview(entries=entries, targets=targets)
+def preview_metric_delete(session: SessionDep, metric_id: int) -> ConfirmPreview:
+    """What the delete removes, for its confirmation."""
+    return ConfirmPreview(groups=previews.metric_delete(service.get_metric(session, metric_id)))
 
 
 @router.delete("/metrics/{metric_id}", status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND)

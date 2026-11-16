@@ -136,7 +136,7 @@ Every cascade follows the same steps:
 
 **Exception: tasks.** When the user checks off, cancels or archives a task, it applies immediately with no preview or confirmation. The task and its subtask cascade are still applied in one transaction and recorded under one `batch_id`, so the change can be undone. This exception covers only the user's own actions.
 
-Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/projects/{id}/preview?action=complete|cancel|archive`, which list every affected item and what happens to it (archive, cancel, or end the series from today). Archiving and status changes return the `batch_id` to undo.
+Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/projects/{id}/preview?action=complete|cancel|archive`, which return every affected item grouped by what happens to it (archived, cancelled, or ends from today). An area's archive lists each project as one row with its contents as counts, then the items the area owns directly. Archiving and status changes return the `batch_id` to undo.
 
 **Confirming.** One confirm dialog serves every cascade and every delete with contents. Previews (cascade and delete) return per-item rows grouped by effect, not only counts: each group is one of cancelled, ends from today, archived, deleted, kept or stops updating, and each row carries the item's name, kind, owner colour and a date or meta line. An archive or status change with nothing going with it applies at once with the undo toast; Delete always asks. Archiving a life area shows the undo toast after the confirmation too.
 
@@ -168,7 +168,7 @@ Where the screen shows an undo toast, the frontend waits about 6 seconds before 
 | Routine | Deletes it with its schedules, pauses, steps and logs. Refused (409) while any of its steps feeds a metric. | Red confirmation with counts |
 | Routine step | Deletes it with its logs and pauses. Refused (409) while it feeds a metric; the message names the metric. | Red confirmation with counts |
 
-The counts come from `GET .../delete-preview` on task templates, metrics, routines and routine steps. A routine's or step's preview also lists the metrics that block the delete.
+The rows come from `GET .../delete-preview` on task templates, metrics, routines, routine steps and events (an event takes the occurrence's `day` and the `scope`; it also returns how many occurrences are past and whether any are to come). A routine's or step's preview also lists the metrics that block the delete. Areas and projects need no preview: only empty ones can be deleted, and a project's sections are on the project.
 
 ---
 

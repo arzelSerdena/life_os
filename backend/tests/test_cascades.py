@@ -18,7 +18,7 @@ from app.models import (
     Task,
     TaskTemplate,
 )
-from tests.factories import make_life_area, make_project
+from tests.factories import make_life_area, make_project, preview_rows
 
 TODAY = date(2026, 11, 14)
 STAMP = datetime(2026, 11, 1, 12)
@@ -79,20 +79,41 @@ def test_archive_preview_lists_everything_the_area_owns(
     response = client.get(f"/api/life-areas/{area.id}/archive/preview")
 
     assert response.status_code == 200
-    items = response.json()["items"]
-    assert {item["effect"] for item in items} == {"archive"}
-    assert {(item["kind"], item["title"]) for item in items} == {
-        ("project", project.title),
-        ("task", "Write"),
-        ("task", "Shipped"),
-        ("task_template", "Weekly review"),
-        ("event", "Demo"),
-        ("event", "Kickoff"),
-        ("event", "Standup"),
-        ("event", "Retro"),
-        ("metric", "Hours"),
-        ("routine_step", "Stretch"),
+    assert preview_rows(response.json()) == {
+        "archived": [
+            ("project", project.title),
+            ("task", "Write"),
+            ("task", "Shipped"),
+            ("event", "Demo"),
+            ("event", "Kickoff"),
+            ("event", "Standup"),
+            ("event", "Retro"),
+            ("task_template", "Weekly review"),
+            ("routine_step", "Stretch"),
+            ("metric", "Hours"),
+        ]
     }
+
+
+def test_an_area_archive_lists_each_project_once_with_its_contents(
+    client: TestClient, session: Session
+) -> None:
+    area = make_life_area(session, "Career", color="teal")
+    project = make_project(session, area, "Resume")
+    fill(session, area, project)
+
+    preview = client.get(f"/api/life-areas/{area.id}/archive/preview").json()
+
+    [group] = preview["groups"]
+    [row] = group["rows"]
+    assert (row["kind"], row["title"], row["color"]) == ("project", "Resume", "teal")
+    assert [(count["of"], count["count"]) for count in row["counts"]] == [
+        ("tasks", 2),
+        ("events", 4),
+        ("metrics", 1),
+        ("templates", 1),
+        ("routine_steps", 1),
+    ]
 
 
 def test_archiving_an_area_archives_its_items_and_undo_restores_them(
@@ -145,15 +166,21 @@ def test_completing_a_project_previews_and_applies_its_cascade(
     items = fill(session, area, project)
 
     preview = client.get(f"/api/projects/{project.id}/preview", params={"action": "complete"})
-    assert {(i["title"], i["effect"]) for i in preview.json()["items"]} == {
-        ("Write", "cancel"),
-        ("Demo", "cancel"),
-        ("Retro", "cancel"),
-        ("Standup", "end_series"),
-        ("Weekly review", "archive"),
-        ("Hours", "archive"),
-        ("Stretch", "archive"),
+    assert preview_rows(preview.json()) == {
+        "cancelled": [("task", "Write"), ("event", "Demo"), ("event", "Retro")],
+        "ends_from_today": [("event", "Standup")],
+        "archived": [
+            ("task_template", "Weekly review"),
+            ("routine_step", "Stretch"),
+            ("metric", "Hours"),
+        ],
     }
+    rows = {row["title"]: row for group in preview.json()["groups"] for row in group["rows"]}
+    assert rows["Standup"]["rrule"] == "FREQ=WEEKLY"
+    assert rows["Standup"]["last_date"] == "2026-11-12"
+    assert rows["Demo"]["date"] == "2026-11-17"
+    assert rows["Retro"]["from_date"] == "2026-11-21"
+    assert rows["Stretch"]["context"] == "Morning"
 
     body = client.post(f"/api/projects/{project.id}/complete").json()
 
@@ -205,7 +232,7 @@ def test_archiving_and_restoring_a_project(client: TestClient, session: Session)
     items = fill(session, area, project)
 
     preview = client.get(f"/api/projects/{project.id}/preview", params={"action": "archive"})
-    assert {i["effect"] for i in preview.json()["items"]} == {"archive"}
+    assert [group["effect"] for group in preview.json()["groups"]] == ["archived"]
     client.post(f"/api/projects/{project.id}/archive")
     assert fresh(session, items["metric"]).archived_at is not None
 

@@ -1,6 +1,7 @@
 import { deleteLifeArea } from "../../client/sdk.gen";
 import type { LifeAreaRead } from "../../client/types.gen";
-import { DeleteDialog } from "../deleting/DeleteDialog";
+import { ConfirmDialog } from "../confirming/ConfirmDialog";
+import { useDeletedToast } from "../deleting/deleteDialogs";
 
 type DeleteLifeAreaDialogProps = {
   lifeArea: LifeAreaRead;
@@ -10,13 +11,19 @@ type DeleteLifeAreaDialogProps = {
 
 /** Only an empty area can be deleted, so nothing goes with it; the API refuses the others. */
 export function DeleteLifeAreaDialog({ lifeArea, onClose, onDeleted }: DeleteLifeAreaDialogProps) {
+  const toast = useDeletedToast();
   return (
-    <DeleteDialog
-      name={lifeArea.title}
+    <ConfirmDialog
+      title={`Delete “${lifeArea.title}”?`}
       action="Delete area"
-      onConfirm={() => deleteLifeArea({ path: { life_area_id: lifeArea.id }, throwOnError: true })}
+      tone="delete"
+      groups={[]}
+      onConfirm={async () => {
+        await deleteLifeArea({ path: { life_area_id: lifeArea.id }, throwOnError: true });
+        toast(`Deleted “${lifeArea.title}”`);
+      }}
       onClose={onClose}
-      onDeleted={onDeleted}
+      onDone={onDeleted}
     />
   );
 }

@@ -7,10 +7,10 @@ from app import clock
 from app.db import SessionDep
 from app.models import Routine, RoutineStep
 from app.schemas.common import ErrorResponse
+from app.schemas.preview import RoutineDeletePreview
 from app.schemas.routine import (
     RoutineChange,
     RoutineCreate,
-    RoutineDeletePreview,
     RoutineLogSet,
     RoutineRead,
     RoutineStepChange,
@@ -23,6 +23,7 @@ from app.schemas.routine import (
     ScheduleChange,
     ScheduleRead,
 )
+from app.services import previews
 from app.services import routines as service
 
 router = APIRouter(prefix="/api", tags=["routines"])
@@ -148,9 +149,8 @@ def unarchive_routine(session: SessionDep, routine_id: int) -> RoutineChange:
 
 @router.get("/routines/{routine_id}/delete-preview", responses=NOT_FOUND)
 def preview_routine_delete(session: SessionDep, routine_id: int) -> RoutineDeletePreview:
-    """The counts for the delete confirmation, and the metrics that block it."""
-    preview = service.routine_delete_preview(session, routine_id)
-    return RoutineDeletePreview.model_validate(preview)
+    """What the delete removes, for its confirmation, and the metrics that block it."""
+    return previews.routine_delete(session, service.get_routine(session, routine_id))
 
 
 @router.delete(
@@ -214,8 +214,8 @@ def unarchive_routine_step(session: SessionDep, step_id: int) -> RoutineStepChan
 
 @router.get("/routine-steps/{step_id}/delete-preview", responses=NOT_FOUND)
 def preview_routine_step_delete(session: SessionDep, step_id: int) -> RoutineDeletePreview:
-    """The counts for the delete confirmation, and the metrics that block it."""
-    return RoutineDeletePreview.model_validate(service.step_delete_preview(session, step_id))
+    """What the delete removes, for its confirmation, and the metrics that block it."""
+    return previews.step_delete(session, service.get_step(session, step_id))
 
 
 @router.delete(

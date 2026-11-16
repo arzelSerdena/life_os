@@ -228,7 +228,7 @@ def test_entries_cant_be_typed_in(client: TestClient, area: int, step: dict[str,
     response = client.post(f"/api/metrics/{metric['id']}/entries", json={"value": 1})
 
     assert response.status_code == 409
-    assert client.get(f"/api/metrics/{metric['id']}/delete-preview").json()["entries"] == 0
+    assert client.get(f"/api/metrics/{metric['id']}/delete-preview").json()["groups"] == []
 
 
 def test_archiving_the_step_keeps_the_history_and_stops_new_days(

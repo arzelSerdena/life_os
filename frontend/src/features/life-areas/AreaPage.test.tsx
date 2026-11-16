@@ -146,6 +146,7 @@ beforeEach(() => {
       if (url.pathname === "/api/life-areas") return json([career]);
       if (url.pathname === "/api/life-areas/1") return json(career);
       if (url.pathname === "/api/life-areas/1/page") return json(page);
+      if (url.pathname === "/api/life-areas/1/archive/preview") return json(archivePreview);
       if (url.pathname === "/api/metrics") return json({ id: 9, ...(body as object) }, 201);
       if (url.pathname === "/api/routines") return json([morningRoutine]);
       if (url.pathname === "/api/tasks/2" && request.method === "GET") return json(resumeTask);
@@ -247,6 +248,28 @@ test("an area with items can't be deleted", async () => {
   ).toBeInTheDocument();
 });
 
+const archivePreview = {
+  groups: [
+    {
+      effect: "archived",
+      rows: [
+        {
+          kind: "project",
+          id: 7,
+          title: "Resume & portfolio",
+          color: "blue",
+          counts: [
+            { of: "tasks", count: 5 },
+            { of: "events", count: 2 },
+            { of: "metrics", count: 2 },
+          ],
+        },
+        { kind: "routine_step", id: 1, title: "Study 30 minutes", context: "Morning routine" },
+      ],
+    },
+  ],
+};
+
 test("archiving asks first and lists what is archived with the area", async () => {
   const user = userEvent.setup();
   renderApp("/areas/1");
@@ -256,10 +279,11 @@ test("archiving asks first and lists what is archived with the area", async () =
   await user.click(await screen.findByRole("menuitem", { name: "Archive area" }));
   const dialog = await screen.findByRole("alertdialog");
 
-  expect(dialog).toHaveTextContent("1 active project");
-  expect(dialog).toHaveTextContent("2 open tasks");
-  expect(dialog).toHaveTextContent("1 routine step");
-  expect(dialog).not.toHaveTextContent("upcoming event");
+  expect(dialog).toHaveTextContent("Archive “Career”?");
+  const archived = await within(dialog).findByRole("region", { name: "Archived" });
+  expect(archived).toHaveTextContent("Resume & portfolio5 tasks · 2 events · 2 metrics");
+  expect(archived).toHaveTextContent("Study 30 minutesMorning routine");
+  expect(dialog).toHaveTextContent("You can restore it from Finished & archived");
   await user.click(within(dialog).getByRole("button", { name: "Archive area" }));
 
   await waitFor(() =>

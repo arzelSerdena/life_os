@@ -36,6 +36,10 @@ async function fakeApi(request: Request): Promise<Response> {
       ? json({ detail: "Life area not found." }, 404)
       : json(emptyAreaPage(areas[index]));
   }
+  if (request.method === "GET" && action === "archive") {
+    // An empty area: nothing is archived with it.
+    return json({ groups: [] });
+  }
   if (request.method === "GET" && idText) {
     return index === -1 ? json({ detail: "Life area not found." }, 404) : json(areas[index]);
   }
@@ -197,16 +201,13 @@ test("notes save on their own, also from the Markdown view", async () => {
   expect(screen.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
 });
 
-test("archives an area with an undo toast, then restores it from Finished & archived", async () => {
+test("archives an empty area at once with an undo toast, then restores it", async () => {
   areas = [lifeArea()];
   const user = userEvent.setup();
   renderApp("/areas/1");
 
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
   await user.click(await screen.findByRole("menuitem", { name: "Archive area" }));
-  const dialog = await screen.findByRole("alertdialog");
-  expect(dialog).toHaveTextContent("Nothing is deleted.");
-  await user.click(within(dialog).getByRole("button", { name: "Archive area" }));
 
   expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
   await waitFor(() =>

@@ -160,12 +160,6 @@ def unarchive_metric(session: Session, metric_id: int) -> tuple[Metric, str | No
     return _save(session, metric), history.batch_id
 
 
-def delete_preview(session: Session, metric_id: int) -> tuple[int, int]:
-    """How many stored entries and targets deleting the metric removes."""
-    metric = get_metric(session, metric_id)
-    return len(metric.entries), len(metric.targets)
-
-
 def delete_metric(session: Session, metric_id: int) -> None:
     """Delete the metric with all its entries and targets. This can't be undone."""
     session.delete(get_metric(session, metric_id))

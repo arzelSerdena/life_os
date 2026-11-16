@@ -28,3 +28,11 @@ def make_section(session: Session, project: Project, title: str = "Training") ->
     session.add(section)
     session.commit()
     return section
+
+
+def preview_rows(preview: dict[str, Any]) -> dict[str, list[tuple[str, str | None]]]:
+    """A confirm preview as {effect: [(kind, title), ...]}, in the order it lists them."""
+    return {
+        group["effect"]: [(row["kind"], row["title"]) for row in group["rows"]]
+        for group in preview["groups"]
+    }

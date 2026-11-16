@@ -4,7 +4,7 @@ The start and end of a series live in their own columns (starts_on, ends_on), so
 may not carry DTSTART, UNTIL or COUNT. That keeps "this and following" a simple split.
 """
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from typing import cast
 
 from dateutil.rrule import rrule, rrulestr
@@ -60,6 +60,25 @@ def next_after(rule: str, day: date, ends_on: date | None) -> date | None:
         return None
     next_day = following.date()
     return None if ends_on is not None and next_day > ends_on else next_day
+
+
+def last_before(rule: str, starts_on: date, ends_on: date | None, day: date) -> date | None:
+    """The series' last date before `day`, or None if it has none."""
+    limit = day - timedelta(days=1)
+    if ends_on is not None:
+        limit = min(limit, ends_on)
+    if limit < starts_on:
+        return None
+    found = _rule(rule, starts_on).before(_midnight(limit), inc=True)
+    return None if found is None else found.date()
+
+
+def first_from(rule: str, starts_on: date, ends_on: date | None, day: date) -> date | None:
+    """The series' first date on or after `day`, or None if it has ended by then."""
+    found = _rule(rule, starts_on).after(_midnight(max(day, starts_on)), inc=True)
+    if found is None or (ends_on is not None and found.date() > ends_on):
+        return None
+    return found.date()
 
 
 def _rule(rule: str, start: date) -> rrule:

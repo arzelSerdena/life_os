@@ -1,6 +1,7 @@
 import { deleteProject } from "../../client/sdk.gen";
-import type { ProjectRead } from "../../client/types.gen";
-import { DeleteDialog } from "../deleting/DeleteDialog";
+import type { PreviewGroup, ProjectRead } from "../../client/types.gen";
+import { ConfirmDialog } from "../confirming/ConfirmDialog";
+import { useDeletedToast } from "../deleting/deleteDialogs";
 
 type DeleteProjectDialogProps = {
   project: ProjectRead;
@@ -10,14 +11,32 @@ type DeleteProjectDialogProps = {
 
 /** Only an empty project can be deleted; its sections go with it. */
 export function DeleteProjectDialog({ project, onClose, onDeleted }: DeleteProjectDialogProps) {
+  const toast = useDeletedToast();
+  const groups: PreviewGroup[] =
+    project.sections.length > 0
+      ? [
+          {
+            effect: "deleted",
+            rows: project.sections.map((section) => ({
+              kind: "section",
+              id: section.id,
+              title: section.title,
+            })),
+          },
+        ]
+      : [];
   return (
-    <DeleteDialog
-      name={project.title}
+    <ConfirmDialog
+      title={`Delete “${project.title}”?`}
       action="Delete project"
-      deleted={[[project.sections.length, "section", "sections"]]}
-      onConfirm={() => deleteProject({ path: { project_id: project.id }, throwOnError: true })}
+      tone="delete"
+      groups={groups}
+      onConfirm={async () => {
+        await deleteProject({ path: { project_id: project.id }, throwOnError: true });
+        toast(`Deleted “${project.title}”`);
+      }}
       onClose={onClose}
-      onDeleted={onDeleted}
+      onDone={onDeleted}
     />
   );
 }

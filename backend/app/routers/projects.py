@@ -4,8 +4,8 @@ from fastapi import APIRouter, status
 
 from app.db import SessionDep
 from app.models import Project
-from app.schemas.cascade import CascadePreview
 from app.schemas.common import ErrorResponse
+from app.schemas.preview import ConfirmPreview
 from app.schemas.project import (
     ProjectChange,
     ProjectCreate,
@@ -17,7 +17,7 @@ from app.schemas.project import (
     SectionRead,
     SectionUpdate,
 )
-from app.services import cascades
+from app.services import cascades, previews
 from app.services import projects as service
 
 router = APIRouter(prefix="/api", tags=["projects"])
@@ -118,9 +118,10 @@ def delete_section(session: SessionDep, section_id: int) -> None:
 @router.get("/projects/{project_id}/preview", responses=NOT_FOUND)
 def preview_project_change(
     session: SessionDep, project_id: int, action: Literal["complete", "cancel", "archive"]
-) -> CascadePreview:
+) -> ConfirmPreview:
     """What completing, cancelling or archiving the project would do to its items."""
-    return CascadePreview.from_plan(cascades.plan_project(session, project_id, action))
+    plan = cascades.plan_project(session, project_id, action)
+    return ConfirmPreview(groups=previews.cascade(session, plan))
 
 
 def _change(session: SessionDep, result: cascades.CascadeResult) -> ProjectChange:

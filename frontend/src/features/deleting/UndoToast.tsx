@@ -43,6 +43,7 @@ function useUndoChange() {
   const fail = useChangeToast((state) => state.fail);
   return async (change: AppliedChange) => {
     dismiss(change.key);
+    if (!change.batchId) return;
     try {
       await undoBatch({ path: { batch_id: change.batchId }, throwOnError: true });
     } catch (error) {
@@ -68,21 +69,22 @@ export function UndoToast() {
   const dismissChange = useChangeToast((state) => state.dismiss);
   const undoChange = useUndoChange();
   const latest = pending.findLast((item) => !item.isSent);
+  const undoable = change?.batchId ? change : null;
 
   useEffect(() => {
-    if (!latest && !change) return;
+    if (!latest && !undoable) return;
     // Ctrl Z undoes the delete or change, except while typing, where it undoes the typing.
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
         if (isEditable(event.target)) return;
         event.preventDefault();
         if (latest) undo(latest.key);
-        else if (change) void undoChange(change);
+        else if (undoable) void undoChange(undoable);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [latest, change, undo, undoChange]);
+  }, [latest, undoable, undo, undoChange]);
 
   useEffect(() => {
     // Closing the app sends what is waiting instead of dropping it.
@@ -124,12 +126,16 @@ export function UndoToast() {
           <span className="max-w-80 truncate text-[13px] text-(--text-primary)">
             {change.message}
           </span>
-          <button type="button" className={LINK} onClick={() => void undoChange(change)}>
-            Undo
-          </button>
-          <kbd className="rounded-[4px] border border-(--border-default) px-1 text-[11px] font-medium text-(--text-tertiary)">
-            Ctrl Z
-          </kbd>
+          {change.batchId && (
+            <>
+              <button type="button" className={LINK} onClick={() => void undoChange(change)}>
+                Undo
+              </button>
+              <kbd className="rounded-[4px] border border-(--border-default) px-1 text-[11px] font-medium text-(--text-tertiary)">
+                Ctrl Z
+              </kbd>
+            </>
+          )}
           <button
             type="button"
             aria-label="Close"
