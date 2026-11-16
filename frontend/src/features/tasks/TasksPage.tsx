@@ -2,10 +2,13 @@ import { Button } from "@heroui/react";
 import { Navigate, useParams } from "react-router";
 import { QueryError } from "../../components/QueryError";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
+import { useNewTask } from "../../stores/newTaskStore";
 import { type GroupedView, useTaskBoard } from "../../stores/taskBoardStore";
 import { type BoardGroup, buildColumns, isTaskView, type TaskView, tasksForView } from "./board";
 import { FilterMenu, useClearFilters, useViewFilters } from "./FilterMenu";
 import { areaShown, openFirst, sortTasks, taskShown } from "./filters";
+import { NewTaskButton } from "./NewTaskModal";
+import { spotFor, type TaskSpot } from "./newTask";
 import { Board } from "./TaskBoard";
 import { useTasksContext } from "./TasksLayout";
 
@@ -38,6 +41,7 @@ export function TasksPage() {
   const filterView = valid ? view : "all";
   const filters = useViewFilters(filterView, group);
   const clearFilters = useClearFilters(filterView);
+  const openNewTask = useNewTask((state) => state.open);
 
   if (!valid) return <Navigate to="/tasks/all" replace />;
 
@@ -64,6 +68,10 @@ export function TasksPage() {
       )
     : [];
   const showFlag = finished || (group !== "priority" && filters.subgroup !== "priority");
+  // A task added in Today is scheduled today, so it shows up where it was added.
+  const base: TaskSpot = view === "today" && data ? { scheduledDate: data.today } : {};
+  const onAdd = (columnKey: string, subgroupKey: string | null) =>
+    data && openNewTask(spotFor(columnKey, subgroupKey, data.projects, base), data.today);
 
   return (
     <>
@@ -86,6 +94,7 @@ export function TasksPage() {
         )}
         <div className="ml-auto flex items-center gap-2">
           {data && <FilterMenu view={view} layout={group} lifeAreas={data.lifeAreas} />}
+          {grouped && <NewTaskButton spot={base} today={data?.today} />}
         </div>
       </header>
       {error ? (
@@ -96,12 +105,24 @@ export function TasksPage() {
         <p className="p-(--page-gutter) type-meta text-(--text-tertiary)">Loading…</p>
       ) : (
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <Board view={view} group={group} columns={columns} context={data} showFlag={showFlag} />
+          <Board
+            view={view}
+            group={group}
+            columns={columns}
+            context={data}
+            showFlag={showFlag}
+            onAdd={grouped ? onAdd : undefined}
+          />
           {tasks.length === 0 &&
             (unfiltered.length === 0 ? (
-              <p className="pointer-events-none absolute inset-0 grid place-items-center type-body text-(--text-secondary)">
-                {EMPTY[view]}
-              </p>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <p className="type-body text-(--text-secondary)">{EMPTY[view]}</p>
+                {view === "all" && (
+                  <span className="pointer-events-auto">
+                    <NewTaskButton today={data.today} />
+                  </span>
+                )}
+              </div>
             ) : (
               <NoMatch onClear={clearFilters} />
             ))}

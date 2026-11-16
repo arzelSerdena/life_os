@@ -42,6 +42,7 @@ import {
   nextMonday,
   targetId,
 } from "./inbox";
+import { NewTaskButton } from "./NewTaskModal";
 import { PRIORITY_COLOR } from "./TaskBoard";
 import { TaskCard } from "./TaskCard";
 import type { TasksData } from "./TasksLayout";
@@ -63,6 +64,7 @@ export function InboxPage() {
         <h1 className="truncate type-page-title text-(--page-title)">Inbox</h1>
         <div className="ml-auto flex items-center gap-2">
           {data && <FilterMenu view="inbox" layout="area" lifeAreas={data.lifeAreas} />}
+          <NewTaskButton today={data?.today} />
         </div>
       </header>
       {error ? (

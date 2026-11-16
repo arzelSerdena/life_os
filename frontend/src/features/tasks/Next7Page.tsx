@@ -33,12 +33,15 @@ import {
 import type { OccurrenceRead, RoutineStepDay, TaskRead } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useNewTask } from "../../stores/newTaskStore";
 import { PanelLink } from "../detail-panel/PanelLink";
 import { areaDataAttribute } from "../life-areas/palette";
 import { splitTasks } from "./board";
 import { FilterMenu, useViewFilters } from "./FilterMenu";
 import { type Filters, openFirst, sortTasks } from "./filters";
 import { formatTime, useTimeFormat } from "./format";
+import { NewTaskButton } from "./NewTaskModal";
+import { spotFor } from "./newTask";
 import {
   applyDrop,
   buildDayColumns,
@@ -50,7 +53,7 @@ import {
   type RoutineDay,
 } from "./next7";
 import { ProgressRing } from "./RoutinesPage";
-import { Counter, ProjectCard, SubgroupBlock } from "./TaskBoard";
+import { AddButton, Counter, ProjectCard, SubgroupBlock } from "./TaskBoard";
 import { TaskCard } from "./TaskCard";
 import type { TasksData } from "./TasksLayout";
 import { useTasksContext } from "./TasksLayout";
@@ -67,6 +70,7 @@ export function Next7Page() {
         <h1 className="truncate type-page-title text-(--page-title)">Next 7 days</h1>
         <div className="ml-auto flex items-center gap-2">
           {data && <FilterMenu view="next7" layout="days" lifeAreas={data.lifeAreas} />}
+          <NewTaskButton today={data?.today} />
         </div>
       </header>
       {error ? (
@@ -280,6 +284,10 @@ function DayColumnView({
   reorderable: boolean;
 }) {
   const { setNodeRef } = useDroppable({ id: columnKey(column.key) });
+  const openNewTask = useNewTask((state) => state.open);
+  // The + fills in the day (No date adds nothing) and the subgroup's area or priority.
+  const add = (subgroupKey: string | null) =>
+    openNewTask(spotFor(column.key, subgroupKey, data.projects), data.today);
   const headingId = `day-${column.key}`;
   const card = (task: TaskRead, containerProps?: ComponentPropsWithRef<"li">) => (
     <TaskCard
@@ -330,6 +338,7 @@ function DayColumnView({
             {column.title}
           </h2>
           <Counter count={count} />
+          <AddButton label={`New task in ${column.title}`} onPress={() => add(null)} />
         </div>
         <p className="-mt-0.5 type-meta text-(--text-tertiary)">{column.subtitle}</p>
       </header>
@@ -396,6 +405,7 @@ function DayColumnView({
                 key={subgroup.key}
                 collapseKey={`next7/${filters.subgroup}/${column.key}/${subgroup.key}`}
                 subgroup={subgroup}
+                onAdd={() => add(subgroup.key)}
               >
                 <ul className="flex flex-col gap-1.5">{subgroup.tasks.map(item)}</ul>
               </SubgroupBlock>

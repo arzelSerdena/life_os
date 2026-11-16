@@ -71,3 +71,15 @@ export const createRoutineStep = (
   routine: Routine,
   body: Record<string, unknown>,
 ) => send<RoutineStep>(request, "post", `/api/routines/${routine.id}/steps`, body);
+
+export type Section = { id: number; title: string };
+
+export const createSection = (request: APIRequestContext, project: Project, title: string) =>
+  send<Section>(request, "post", `/api/projects/${project.id}/sections`, { title });
+
+/** Every task, with its fields and subtasks, for checking what a screen created. */
+export const listTasks = (request: APIRequestContext) =>
+  send<Record<string, unknown>[]>(request, "get", "/api/tasks?include_cancelled=true");
+
+export const listTemplates = (request: APIRequestContext) =>
+  send<Record<string, unknown>[]>(request, "get", "/api/task-templates");
