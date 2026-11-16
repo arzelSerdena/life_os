@@ -154,6 +154,8 @@
 
 - Fixed New project's footer going off screen when there are many life areas (the chips wrap with no limit): the pop-up now uses HeroUI's `scroll="inside"`, so it stays within the window and its body scrolls. Found when the new browser test added two areas and `projects.spec.ts` timed out clicking Create project.
 
+- Every other pop-up (New task, New event, New area / Edit area, Reorder areas, New metric) now uses `scroll="inside"` too, so none can push its footer off a short window. New task and New event pick the owner from a popover, so they don't grow with the number of areas, but Reorder areas lists every area and New metric every routine step. Browser test in `new-task.spec.ts` (240px-tall window).
+
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

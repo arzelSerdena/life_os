@@ -61,7 +61,8 @@ export function LifeAreaFormModal({
       onOpenChange={(isOpen) => !isOpen && onClose()}
       className="bg-[rgb(17_24_39/0.32)]"
     >
-      <Modal.Container>
+      {/* Long content scrolls in the body, so the footer stays on screen. */}
+      <Modal.Container scroll="inside">
         <Modal.Dialog className="w-[460px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
           <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
             <Modal.Heading className="type-panel-title text-(--text-primary)">
@@ -71,7 +72,7 @@ export function LifeAreaFormModal({
               <X />
             </IconButton>
           </Modal.Header>
-          <form noValidate onSubmit={onSubmit}>
+          <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-col">
             <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
               <Controller
                 control={control}

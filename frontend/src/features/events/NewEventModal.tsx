@@ -109,7 +109,8 @@ export function NewEventModal({
       onOpenChange={(isOpen) => !isOpen && onClose()}
       className="bg-[rgb(17_24_39/0.32)]"
     >
-      <Modal.Container>
+      {/* Long content scrolls in the body, so the footer stays on screen. */}
+      <Modal.Container scroll="inside">
         <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
           <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
             <Modal.Heading className="type-panel-title text-(--text-primary)">
@@ -119,7 +120,11 @@ export function NewEventModal({
               <X />
             </IconButton>
           </Modal.Header>
-          <form noValidate onSubmit={(event) => void submit(event).catch(() => {})}>
+          <form
+            noValidate
+            onSubmit={(event) => void submit(event).catch(() => {})}
+            className="flex min-h-0 flex-col"
+          >
             <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
               <TextField
                 fullWidth
