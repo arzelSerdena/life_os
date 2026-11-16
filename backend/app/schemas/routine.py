@@ -180,3 +180,43 @@ class MetricRef(BaseModel):
 
     id: int
     title: str
+
+
+HistoryState = Literal["done", "skipped", "missed", "todo", "upcoming", "paused", "not_due", "none"]
+
+
+class StepDayState(BaseModel):
+    """How one day went for a step. todo is today still open; upcoming is a later due day;
+    not_due is a day the schedule leaves out; none is a day before the step started."""
+
+    day: date
+    state: HistoryState
+
+
+class StepHistoryRead(BaseModel):
+    id: int
+    title: str
+    life_area_id: int
+    project_id: int | None
+    # The first due day from today on (today when it is due); None while paused.
+    next_due: date | None
+    paused_since: date | None
+    days: list[StepDayState]
+
+
+class RoutineHistoryRead(BaseModel):
+    id: int
+    title: str
+    # The schedule in force today.
+    rrule: str
+    paused_since: date | None
+    steps: list[StepHistoryRead]
+
+
+class RoutinesHistoryRead(BaseModel):
+    """Every active routine and how its active steps went on each day from start to end."""
+
+    start: date
+    end: date
+    today: date
+    routines: list[RoutineHistoryRead]

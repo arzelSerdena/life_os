@@ -59,3 +59,15 @@ export const getTask = (request: APIRequestContext, id: number) =>
 
 export const listProjects = (request: APIRequestContext) =>
   send<Project[]>(request, "get", "/api/projects");
+
+export type Routine = { id: number; title: string };
+export type RoutineStep = { id: number; title: string };
+
+export const createRoutine = (request: APIRequestContext, body: Record<string, unknown>) =>
+  send<Routine>(request, "post", "/api/routines", body);
+
+export const createRoutineStep = (
+  request: APIRequestContext,
+  routine: Routine,
+  body: Record<string, unknown>,
+) => send<RoutineStep>(request, "post", `/api/routines/${routine.id}/steps`, body);

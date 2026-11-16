@@ -18,7 +18,7 @@ import {
   listTasksOptions,
 } from "../../client/@tanstack/react-query.gen";
 import type { DayRead, LifeAreaRead, ProjectRead, TaskRead } from "../../client/types.gen";
-import { SIDEBAR_ROW, Sidebar, SidebarLink } from "../../components/Sidebar";
+import { Sidebar, SidebarLink } from "../../components/Sidebar";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { sidebarCounts } from "./board";
 import { next7Count } from "./next7";
@@ -98,7 +98,7 @@ export function TasksLayout() {
             label="Next 7 days"
             count={counts?.next7}
           />
-          <NotBuiltRow icon={Clock} label="Routines" />
+          <ViewLink to="/tasks/routines" icon={Clock} label="Routines" />
         </nav>
 
         <div className="flex-1" />
@@ -133,20 +133,6 @@ function ViewLink({
       <span className="flex-1 truncate">{label}</span>
       <SidebarCount value={count} />
     </SidebarLink>
-  );
-}
-
-/** A view that isn't built yet: shown so the sidebar keeps its shape, but not a link. */
-function NotBuiltRow({ icon, label, count }: { icon: LucideIcon; label: string; count?: number }) {
-  return (
-    <span
-      title={`${label} — not built yet`}
-      className={`${SIDEBAR_ROW} text-(--sidebar-item-text) opacity-50 hover:bg-transparent`}
-    >
-      <RowIcon icon={icon} />
-      <span className="flex-1 truncate">{label}</span>
-      <SidebarCount value={count} />
-    </span>
   );
 }
 

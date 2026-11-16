@@ -6,6 +6,7 @@ import { AreasLayout } from "./features/life-areas/AreasLayout";
 import { AreasOverviewPage } from "./features/life-areas/AreasOverviewPage";
 import { InboxPage } from "./features/tasks/InboxPage";
 import { Next7Page } from "./features/tasks/Next7Page";
+import { RoutinesPage } from "./features/tasks/RoutinesPage";
 import { TasksLayout } from "./features/tasks/TasksLayout";
 import { TasksPage } from "./features/tasks/TasksPage";
 
@@ -22,6 +23,7 @@ export function App() {
           <Route index element={<Navigate to="all" replace />} />
           <Route path="inbox" element={<InboxPage />} />
           <Route path="next-7-days" element={<Next7Page />} />
+          <Route path="routines" element={<RoutinesPage />} />
           <Route path=":view" element={<TasksPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/areas" replace />} />
