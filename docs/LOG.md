@@ -108,9 +108,10 @@
 
 - Action buttons are solid: the accent, or the area's 500 colour inside an area. The area page's Add split button and its "Add metric" empty-state button use the new `button--area` class (`styles/heroui-theme.css`); Restore (Finished & archived) and Try again (query errors) are solid accent. Style guide updated (Current rules and the Nov 16 Colour section).
 
+- Browser tests (Playwright, `pnpm e2e`, a new `e2e` CI job): `frontend/e2e/projects.spec.ts` covers New project (create and open, due before start) and the project status actions (complete with Undo, cancel with Go back, reopen, archive and restore) against a real API on a fresh temporary database (`e2e/start-api.mjs`, ports 8100 and 5180).
+
 **Next** (code, one branch and PR each, in this order)
 
-- Playwright tests for New project and the project status actions.
 - `settings` table, model, migration and API; `app.clock.today()` applies `day_ends_at`.
 - Phase 2 screens: Tasks group, New task, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

@@ -11,6 +11,7 @@
     "format": "biome check --write .",
     "typecheck": "tsc -b",
     "test": "vitest run",
+    "e2e": "playwright test",
     "api:export": "uv run --directory ../backend python -m app.export_openapi ../frontend/openapi.json",
     "api:generate": "pnpm api:export && openapi-ts",
     "tokens": "node scripts/build-tokens.mjs",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.6",
     "@hey-api/openapi-ts": "^0.99.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/vite": "^4.3.5",
     "@tanstack/react-query-devtools": "^5.107.1",
     "@testing-library/jest-dom": "^7.0.1",
