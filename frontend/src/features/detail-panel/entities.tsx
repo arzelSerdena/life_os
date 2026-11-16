@@ -199,7 +199,7 @@ type MoveBody = { life_area_id?: number; project_id?: number; section_id?: numbe
 
 /**
  * Sends the item to another owner (or section) with its `/move` endpoint, and returns the
- * batch to undo. Recurring tasks and routine steps aren't recorded, so they return none.
+ * batch to undo (none when nothing changed).
  */
 async function sendMove(kind: Movable, id: number, body: MoveBody): Promise<string | null> {
   const options = { body, throwOnError: true } as const;
@@ -207,15 +207,13 @@ async function sendMove(kind: Movable, id: number, body: MoveBody): Promise<stri
     case "task":
       return (await moveTask({ ...options, path: { task_id: id } })).data.batch_id;
     case "template":
-      await moveTaskTemplate({ ...options, path: { template_id: id } });
-      return null;
+      return (await moveTaskTemplate({ ...options, path: { template_id: id } })).data.batch_id;
     case "event":
       return (await moveEvent({ ...options, path: { event_id: id } })).data.batch_id;
     case "metric":
       return (await moveMetric({ ...options, path: { metric_id: id } })).data.batch_id;
     case "step":
-      await moveRoutineStep({ ...options, path: { step_id: id } });
-      return null;
+      return (await moveRoutineStep({ ...options, path: { step_id: id } })).data.batch_id;
   }
 }
 

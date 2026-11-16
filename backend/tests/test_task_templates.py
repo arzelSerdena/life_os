@@ -157,10 +157,24 @@ def test_deleting_a_template_keeps_tasks_made_from_it(client: TestClient) -> Non
     assert (kept["title"], kept["template_id"]) == ("Pack", None)
 
 
-def test_moving_a_template(client: TestClient, session: Session) -> None:
+def test_moving_a_template_can_be_undone(client: TestClient, session: Session) -> None:
     life_area = make_life_area(session)
     template = _create(client)
 
-    body = client.post(f"{URL}/{template['id']}/move", json={"life_area_id": life_area.id}).json()
+    change = client.post(f"{URL}/{template['id']}/move", json={"life_area_id": life_area.id}).json()
+    assert change["template"]["life_area_id"] == life_area.id
+    client.post(f"/api/undo/{change['batch_id']}")
 
-    assert body["life_area_id"] == life_area.id
+    back = client.get(f"{URL}/{template['id']}").json()
+    assert (back["life_area_id"], back["project_id"]) == (None, None)
+
+
+def test_moving_a_template_to_its_owner_records_nothing(
+    client: TestClient, session: Session
+) -> None:
+    life_area = make_life_area(session)
+    template = _create(client, life_area_id=life_area.id)
+
+    change = client.post(f"{URL}/{template['id']}/move", json={"life_area_id": life_area.id}).json()
+
+    assert change["batch_id"] is None

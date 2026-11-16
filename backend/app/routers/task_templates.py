@@ -8,6 +8,7 @@ from app.schemas.preview import ConfirmPreview
 from app.schemas.task import TaskMove, TaskRead
 from app.schemas.task_template import (
     TaskFromTemplate,
+    TaskTemplateChange,
     TaskTemplateCreate,
     TaskTemplateRead,
     TaskTemplateUpdate,
@@ -56,8 +57,9 @@ def update_task_template(
 
 
 @router.post("/{template_id}/move", responses={**NOT_FOUND, **CONFLICT})
-def move_task_template(session: SessionDep, template_id: int, data: TaskMove) -> TaskTemplateRead:
-    return _read(service.move_template(session, template_id, data))
+def move_task_template(session: SessionDep, template_id: int, data: TaskMove) -> TaskTemplateChange:
+    template, batch_id = service.move_template(session, template_id, data)
+    return TaskTemplateChange(template=_read(template), batch_id=batch_id)
 
 
 @router.post("/{template_id}/pause", responses=NOT_FOUND)

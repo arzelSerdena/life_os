@@ -297,6 +297,24 @@ def test_archiving_a_routine_can_be_undone(client: TestClient, area: int) -> Non
     assert [item["id"] for item in client.get("/api/routines").json()] == [routine["id"]]
 
 
+def test_moving_a_step_can_be_undone(client: TestClient, session: Session, area: int) -> None:
+    project = make_project(session, make_life_area(session))
+    routine = _routine(client)
+    step = _step(client, routine, area)
+
+    change = client.post(
+        f"/api/routine-steps/{step['id']}/move", json={"project_id": project.id}
+    ).json()
+    assert (change["step"]["life_area_id"], change["step"]["project_id"]) == (
+        project.life_area_id,
+        project.id,
+    )
+    client.post(f"/api/undo/{change['batch_id']}")
+
+    back = _get_step(client, routine, step)
+    assert (back["life_area_id"], back["project_id"]) == (area, None)
+
+
 def test_an_archived_routine_cant_get_new_steps(client: TestClient, area: int) -> None:
     routine = _routine(client)
     client.post(f"/api/routines/{routine['id']}/archive")
