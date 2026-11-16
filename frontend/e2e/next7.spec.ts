@@ -72,11 +72,13 @@ test("dragging a task onto another in the same day reorders the day", async ({ p
 
   await page.goto("/tasks/next-7-days");
   const column = page.getByRole("region", { name: "Tomorrow" });
-  const titles = () =>
-    column
-      .getByRole("listitem")
-      .getByRole("button", { name: /Water the plants|Clean the oven/ })
-      .allTextContents();
+  // Only this test's two tasks: the database is shared, so earlier runs (--repeat-each) and
+  // other specs may have left tasks in Tomorrow too.
+  const ours = [first.title, second.title];
+  const titles = async () =>
+    (await column.getByRole("listitem").getByRole("button").allTextContents()).filter((text) =>
+      ours.includes(text),
+    );
   await expect.poll(titles).toEqual([first.title, second.title]);
 
   await dragTo(page, card(column, second.title), card(column, first.title), 0.2);

@@ -142,7 +142,8 @@
 
 - Dragging a repeating event on the Calendar: an occurrence (not a cancelled one) can now be dragged to other days, or its bar's end resized, like a one-off event. Only that occurrence moves ("this one"), through `POST /api/events/{id}/occurrences/{day}/edit`, with the undo toast. Changing one occurrence is now recorded for undo (all but its notes): `status_changes` accepts `event_exception` rows (migration `e5f6a7b8c9d0`), and an exception the change created is removed again on Undo if it is unchanged since. The edit now returns `EventChange` (`batch_id` is null for series edits). Browser test in `frontend/e2e/calendar.spec.ts`.
 
+- Fixed a flaky browser test: `e2e/next7.spec.ts` "reorders the day" listed every task in Tomorrow whose title matched "Water the plants" or "Clean the oven", so tasks left by earlier runs in the shared test database (`--repeat-each`) broke it. It now checks only its own two tasks. Test change only.
+
 **Next** (code, one branch and PR each, in this order)
 
-- `e2e/next7.spec.ts` "dragging a task onto another in the same day reorders the day" fails when repeated against one database (`--repeat-each=3`, also on `main`); a single run passes. Worth a look.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
