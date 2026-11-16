@@ -10,36 +10,25 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
-import {
-  CalendarDays,
-  CalendarRange,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Folder,
-  Sun,
-  Sunrise,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Folder, Sun } from "lucide-react";
 import { type CSSProperties, type KeyboardEvent, type ReactNode, useState } from "react";
 import type { TaskRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { QueryError } from "../../components/QueryError";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { useTaskBoard } from "../../stores/taskBoardStore";
-import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
+import { DatePanel } from "../pickers/DatePicker";
 import { PRIORITIES } from "./board";
 import { FilterMenu, useClearFilters, useViewFilters } from "./FilterMenu";
 import { sortTasks, taskShown } from "./filters";
 import {
-  addDays,
   addMonths,
   type FileTarget,
   fileCounts,
   inboxList,
   monthGrid,
   monthTitle,
-  nextMonday,
   targetId,
 } from "./inbox";
 import { NewTaskButton } from "./NewTaskModal";
@@ -325,7 +314,7 @@ function AreaMenu({
   );
 }
 
-/** Date: the date field, then Today, Tomorrow and Next week (the date shows on hover). */
+/** Date: the shared date picker (typed date, Today, Tomorrow, Next week, the month). */
 function DatePopover({
   task,
   today,
@@ -339,24 +328,8 @@ function DatePopover({
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [draft, setDraft] = useState("");
-  const pick = (date: string) => {
-    onOpenChange(false);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) file(task, { kind: "date", date });
-  };
-  const quick = [
-    { icon: Sun, name: "Today", date: today },
-    { icon: Sunrise, name: "Tomorrow", date: addDays(today, 1) },
-    { icon: CalendarRange, name: "Next week", date: nextMonday(today) },
-  ];
   return (
-    <Popover
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        if (open) setDraft("");
-        onOpenChange(open);
-      }}
-    >
+    <Popover isOpen={isOpen} onOpenChange={onOpenChange}>
       <Popover.Trigger
         aria-label={`Schedule ${task.title}`}
         aria-keyshortcuts="D"
@@ -365,37 +338,20 @@ function DatePopover({
         <CalendarDays aria-hidden strokeWidth={2} />
         Date
       </Popover.Trigger>
-      <Popover.Content placement="bottom end" className="w-56">
-        <Popover.Dialog aria-label="Schedule" className="flex flex-col gap-2 p-3">
-          <input
-            type="date"
-            aria-label="Scheduled date"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") pick(event.currentTarget.value);
+      <Popover.Content
+        placement="bottom end"
+        style={{ width: 252 }}
+        className="rounded-[10px] border border-(--border-default) p-0"
+      >
+        <Popover.Dialog aria-label="Schedule" className="flex flex-col p-1.5 outline-none">
+          <DatePanel
+            value={task.scheduled_date}
+            today={today}
+            onPick={(date) => {
+              onOpenChange(false);
+              if (date && date !== task.scheduled_date) file(task, { kind: "date", date });
             }}
-            className="h-8 rounded-(--radius-6) border border-(--border-default) px-2 text-[13px] text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
           />
-          <div className="flex gap-1.5">
-            {quick.map(({ icon: Icon, name, date }) => (
-              <Button
-                key={name}
-                aria-label={`${name}, ${shortDate(date)}`}
-                onPress={() => pick(date)}
-                className="h-[30px] min-w-0 flex-1 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) text-(--text-secondary) hover:bg-(--color-neutral-100) [&_svg]:size-[15px]"
-              >
-                <span title={`${name} · ${shortDate(date)}`} className="grid place-items-center">
-                  <Icon aria-hidden strokeWidth={2} />
-                </span>
-              </Button>
-            ))}
-          </div>
-          {draft && (
-            <Button size="sm" onPress={() => pick(draft)} className="self-end">
-              Schedule
-            </Button>
-          )}
         </Popover.Dialog>
       </Popover.Content>
     </Popover>

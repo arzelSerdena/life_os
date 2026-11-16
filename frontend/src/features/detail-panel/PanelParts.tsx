@@ -36,7 +36,8 @@ export type PanelNotes = {
 };
 
 type PanelViewProps = {
-  crumbs: string[];
+  /** Text, or a picker such as the owner's; the last one is darker. */
+  crumbs: ReactNode[];
   marker: ReactNode;
   title: string;
   /** Saves a new title; omit when the title can't be changed here. */
@@ -85,7 +86,8 @@ export function PanelView({
         >
           {crumbs.map((crumb, index) => (
             <span
-              key={crumbs.slice(0, index + 1).join("/")}
+              // biome-ignore lint/suspicious/noArrayIndexKey: a crumb's place is its identity
+              key={index}
               className="flex min-w-0 items-center gap-1.5"
             >
               {index > 0 && <span className="text-neutral-300">/</span>}

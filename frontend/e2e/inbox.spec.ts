@@ -1,5 +1,13 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { createArea, createProject, getTask, postTask, serverToday, unique } from "./api.ts";
+import {
+  addDays,
+  createArea,
+  createProject,
+  getTask,
+  postTask,
+  serverToday,
+  unique,
+} from "./api.ts";
 
 // The Inbox against a real API: filing a task with its hover actions, its keys and by
 // dragging it onto the right container, each with Undo.
@@ -44,6 +52,30 @@ test("T schedules a focused card for today, and the Area menu files it out of th
   await expect(inbox.getByRole("button", { name: task.title })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(inbox.getByRole("button", { name: task.title })).toBeVisible();
+});
+
+test("D opens the shared date picker; a typed date schedules the card", async ({
+  page,
+  request,
+}) => {
+  const today = await serverToday(request);
+  const task = await postTask(request, { title: unique("Book the dentist") });
+
+  await page.goto("/tasks/inbox");
+  const inbox = page.getByRole("region", { name: "Inbox tasks" });
+  await inbox.getByRole("button", { name: task.title }).focus();
+  await page.keyboard.press("d");
+  const picker = page.getByRole("dialog", { name: "Schedule" });
+  await expect(picker.getByRole("button", { name: /^Tomorrow · / })).toBeVisible();
+  await picker.getByRole("textbox", { name: "Date" }).fill("+3d");
+  await picker.getByRole("textbox", { name: "Date" }).press("Enter");
+  await expect(picker).toHaveCount(0);
+  await expect(page.getByText(`Scheduled “${task.title}” · `)).toBeVisible();
+  await expect
+    .poll(async () => getTask(request, task.id))
+    .toMatchObject({
+      scheduled_date: addDays(today, 3),
+    });
 });
 
 test("Dragging a card onto a project or a priority files it", async ({ page, request }) => {
