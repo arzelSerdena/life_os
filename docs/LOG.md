@@ -136,5 +136,5 @@
 
 - Phase 2 screens: Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add (opens New task through `useNewTask().open()`; the pop-up is already rendered by the app shell).
 - The owner and section pickers in the detail panel's breadcrumb, and the date picker in the Inbox's Date hover action, which still use the older controls.
-- The Next 7 days drag tests are flaky on `main` too (`--repeat-each=3` fails about 2 in 6); worth a look.
+- `e2e/next7.spec.ts` "dragging a task onto another in the same day reorders the day" fails when repeated against one database (`--repeat-each=3`, also on `main`); a single run passes. Worth a look.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
