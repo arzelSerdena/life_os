@@ -66,7 +66,7 @@ export function tasksForView(
   }
 }
 
-/** Open tasks with no life area. The Inbox view itself comes in its own change. */
+/** Open tasks with no life area: the Inbox (inbox.ts lists them in order). */
 export function inboxTasks(tasks: readonly TaskRead[]): TaskRead[] {
   return tasks.filter((task) => task.status === "todo" && task.life_area_id === null);
 }

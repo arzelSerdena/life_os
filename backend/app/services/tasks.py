@@ -117,20 +117,26 @@ def create_task(session: Session, data: TaskCreate) -> Task:
     return _save(session, task)
 
 
-def update_task(session: Session, task_id: int, data: TaskUpdate) -> Task:
+def update_task(session: Session, task_id: int, data: TaskUpdate) -> TaskChange:
+    """Change the fields sent. Every change but notes is recorded, so filing a task (a date,
+    a priority) can be undone; notes are saved as they're typed and undone in the editor."""
     task = get_task(session, task_id)
     changes = data.model_dump(exclude_unset=True)
     # Check the result before touching the task, so a refused edit leaves nothing behind.
     due_date = changes.get("due_date", task.due_date)
     if changes.get("due_time", task.due_time) is not None and due_date is None:
         raise UnprocessableError("A due time needs a due date.")
+    history = ChangeRecorder(session)
     day_before = task.placement_date
     for field, value in changes.items():
-        setattr(task, field, value)
+        if field == "notes":
+            task.notes = value
+        else:
+            history.set(task, field, value)
     if task.placement_date != day_before:
         # A task that lands on another day (or in Unscheduled) goes to the end of it.
-        task.sort_order = next_position(session, task.placement_date)
-    return _save(session, task)
+        history.set(task, "sort_order", next_position(session, task.placement_date))
+    return TaskChange(_save(session, task), history.batch_id)
 
 
 def reorder_tasks(session: Session, data: TaskReorder) -> list[Task]:

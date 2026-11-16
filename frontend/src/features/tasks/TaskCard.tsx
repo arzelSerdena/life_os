@@ -9,7 +9,7 @@ import {
   Redo,
   Repeat,
 } from "lucide-react";
-import { useState } from "react";
+import { type ComponentPropsWithRef, type ReactNode, useState } from "react";
 import {
   completeTaskMutation,
   reopenTaskMutation,
@@ -34,6 +34,10 @@ type TaskCardProps = {
   showFlag: boolean;
   /** The project name is hidden inside its own project subgroup. */
   showProject: boolean;
+  /** Extra props for the card itself, such as a drag handle's (the Inbox). */
+  containerProps?: ComponentPropsWithRef<"li">;
+  /** Shown over the card's top right on hover and focus, such as the Inbox's actions. */
+  actions?: ReactNode;
 };
 
 /**
@@ -47,6 +51,8 @@ export function TaskCard({
   project,
   showFlag,
   showProject,
+  containerProps,
+  actions,
 }: TaskCardProps) {
   const [open, setOpen] = useState(false);
   const pending = usePendingDeletes((state) => state.pending);
@@ -94,9 +100,11 @@ export function TaskCard({
 
   return (
     <li
+      {...containerProps}
       data-area={areaDataAttribute(areaColor)}
-      className="relative flex flex-col gap-0.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--color-neutral-300)"
+      className={`group/card relative flex flex-col gap-0.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--color-neutral-300) ${containerProps?.className ?? ""}`}
     >
+      {actions}
       <div className="flex items-start gap-2">
         <label className="relative z-10 -mx-1 -mt-0.5 -mb-1 grid size-6 shrink-0 cursor-pointer place-items-center">
           <input

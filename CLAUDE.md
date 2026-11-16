@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Life OS is a single-user, local-data desktop life-planning app. **Phase 1 (Foundations + Life Areas)** is complete: the app shell (icon rail + Plan sidebar) is built, and life areas can be created, edited, archived, restored and deleted. The backend is built ahead through Phase 4. The UI design phase is finished (Nov 16): every screen is approved in `design/html_mockups/approved-*.html`. Phase 2 screens are in progress: the Tasks group's All, Today, Unscheduled, Completed and Cancelled boards are built; the rest is listed under Next in `docs/LOG.md`. Frontend features live in `frontend/src/features/<name>/`.
+Life OS is a single-user, local-data desktop life-planning app. **Phase 1 (Foundations + Life Areas)** is complete: the app shell (icon rail + Plan sidebar) is built, and life areas can be created, edited, archived, restored and deleted. The backend is built ahead through Phase 4. The UI design phase is finished (Nov 16): every screen is approved in `design/html_mockups/approved-*.html`. Phase 2 screens are in progress: the Tasks group's All, Today, Inbox, Unscheduled, Completed and Cancelled screens are built; the rest is listed under Next in `docs/LOG.md`. Frontend features live in `frontend/src/features/<name>/`.
 
 ## Commands
 

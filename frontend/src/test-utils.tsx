@@ -2,7 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { App } from "./App";
-import type { AreaPageRead, LifeAreaRead, OverviewRead } from "./client/types.gen";
+import type { AreaPageRead, LifeAreaRead, OverviewRead, TaskRead } from "./client/types.gen";
 import { createQueryClient } from "./queryClient";
 
 export function renderApp(path = "/areas") {
@@ -26,6 +26,36 @@ export function lifeArea(overrides: Partial<LifeAreaRead> = {}): LifeAreaRead {
     archived_at: null,
     created_at: "2026-11-10T00:00:00Z",
     updated_at: "2026-11-10T00:00:00Z",
+    ...overrides,
+  };
+}
+
+let nextTaskId = 1;
+/** A to-do task with no owner and no dates; each call gets a new id. */
+export function taskRead(overrides: Partial<TaskRead>): TaskRead {
+  const id = nextTaskId++;
+  return {
+    id,
+    life_area_id: null,
+    project_id: null,
+    section_id: null,
+    template_id: null,
+    occurrence_date: null,
+    title: `Task ${id}`,
+    notes: null,
+    status: "todo",
+    priority: "none",
+    scheduled_date: null,
+    due_date: null,
+    due_time: null,
+    completed_at: null,
+    cancelled_at: null,
+    archived_at: null,
+    sort_order: 0,
+    rollover_count: 0,
+    created_at: "2026-11-01T00:00:00Z",
+    updated_at: "2026-11-01T00:00:00Z",
+    subtasks: [],
     ...overrides,
   };
 }

@@ -1,38 +1,9 @@
 import { expect, test } from "vitest";
-import type { ProjectRead, TaskRead } from "../../client/types.gen";
-import { lifeArea } from "../../test-utils";
+import type { ProjectRead } from "../../client/types.gen";
+import { lifeArea, taskRead as task } from "../../test-utils";
 import { buildColumns, sidebarCounts, tasksForView } from "./board";
 
 const TODAY = "2026-11-16";
-
-let nextId = 1;
-function task(overrides: Partial<TaskRead>): TaskRead {
-  const id = nextId++;
-  return {
-    id,
-    life_area_id: null,
-    project_id: null,
-    section_id: null,
-    template_id: null,
-    occurrence_date: null,
-    title: `Task ${id}`,
-    notes: null,
-    status: "todo",
-    priority: "none",
-    scheduled_date: null,
-    due_date: null,
-    due_time: null,
-    completed_at: null,
-    cancelled_at: null,
-    archived_at: null,
-    sort_order: 0,
-    rollover_count: 0,
-    created_at: "2026-11-01T00:00:00Z",
-    updated_at: "2026-11-01T00:00:00Z",
-    subtasks: [],
-    ...overrides,
-  };
-}
 
 const career = lifeArea({ id: 1, title: "Career", color: "blue", sort_order: 0 });
 const finance = lifeArea({ id: 2, title: "Finance", color: "teal", sort_order: 1 });

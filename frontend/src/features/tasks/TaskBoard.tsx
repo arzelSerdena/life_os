@@ -219,7 +219,8 @@ function ProjectCard({
   );
 }
 
-const PRIORITY_COLOR: Record<string, string> = {
+/** The priority squares' fills (High, Medium, Low, No priority). */
+export const PRIORITY_COLOR: Record<string, string> = {
   high: "bg-(--priority-high)",
   medium: "bg-(--priority-medium)",
   low: "bg-(--priority-low)",

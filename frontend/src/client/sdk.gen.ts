@@ -442,6 +442,8 @@ export const getTask = <ThrowOnError extends boolean = false>(options: Options<G
 
 /**
  * Update Task
+ *
+ * Change the fields sent. The batch undoes every change except to notes.
  */
 export const updateTask = <ThrowOnError extends boolean = false>(options: Options<UpdateTaskData, ThrowOnError>): RequestResult<UpdateTaskResponses, UpdateTaskErrors, ThrowOnError> => (options.client ?? client).patch<UpdateTaskResponses, UpdateTaskErrors, ThrowOnError>({
     url: '/api/tasks/{task_id}',

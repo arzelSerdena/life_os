@@ -84,8 +84,9 @@ def get_task(session: SessionDep, task_id: int) -> TaskRead:
 
 
 @router.patch("/tasks/{task_id}", responses=NOT_FOUND)
-def update_task(session: SessionDep, task_id: int, data: TaskUpdate) -> TaskRead:
-    return TaskRead.model_validate(service.update_task(session, task_id, data))
+def update_task(session: SessionDep, task_id: int, data: TaskUpdate) -> TaskChange:
+    """Change the fields sent. The batch undoes every change except to notes."""
+    return _change(service.update_task(session, task_id, data))
 
 
 @router.post("/tasks/{task_id}/move", responses={**NOT_FOUND, **CONFLICT})
