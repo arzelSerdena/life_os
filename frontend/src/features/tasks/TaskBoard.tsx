@@ -85,7 +85,7 @@ function BoardColumn({
   );
 }
 
-function SubgroupBlock({
+export function SubgroupBlock({
   collapseKey,
   subgroup,
   children,
@@ -161,7 +161,7 @@ function Cards({
 }
 
 /** The project leading its subgroup: folder, name, progress bar, due date and done / total. */
-function ProjectCard({
+export function ProjectCard({
   project,
   today,
   color,

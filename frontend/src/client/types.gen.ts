@@ -217,6 +217,35 @@ export type DayRead = {
 };
 
 /**
+ * DaysRead
+ *
+ * A run of days from `start` to `end` (Next 7 days: today and the six after it), placed
+ * as on the week board, plus Unscheduled.
+ */
+export type DaysRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Today
+     */
+    today: string;
+    /**
+     * Unscheduled
+     */
+    unscheduled: Array<TaskRead>;
+    /**
+     * Days
+     */
+    days: Array<DayRead>;
+};
+
+/**
  * DeadlineRead
  */
 export type DeadlineRead = {
@@ -6162,6 +6191,52 @@ export type GetWeekResponses = {
 };
 
 export type GetWeekResponse = GetWeekResponses[keyof GetWeekResponses];
+
+export type GetDaysData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Start
+         */
+        start?: string | null;
+        /**
+         * Count
+         */
+        count?: number;
+        /**
+         * Life Area Id
+         */
+        life_area_id?: number | null;
+        /**
+         * Project Id
+         */
+        project_id?: number | null;
+        /**
+         * Include Cancelled
+         */
+        include_cancelled?: boolean;
+    };
+    url: '/api/days';
+};
+
+export type GetDaysErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetDaysError = GetDaysErrors[keyof GetDaysErrors];
+
+export type GetDaysResponses = {
+    /**
+     * Successful Response
+     */
+    200: DaysRead;
+};
+
+export type GetDaysResponse = GetDaysResponses[keyof GetDaysResponses];
 
 export type ListRoutinesData = {
     body?: never;

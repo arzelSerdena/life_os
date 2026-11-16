@@ -12,15 +12,16 @@ import {
 import type { ReactNode } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import {
-  getWeekOptions,
+  getDaysOptions,
   listLifeAreasOptions,
   listProjectsOptions,
   listTasksOptions,
 } from "../../client/@tanstack/react-query.gen";
-import type { LifeAreaRead, ProjectRead, TaskRead } from "../../client/types.gen";
+import type { DayRead, LifeAreaRead, ProjectRead, TaskRead } from "../../client/types.gen";
 import { SIDEBAR_ROW, Sidebar, SidebarLink } from "../../components/Sidebar";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { sidebarCounts } from "./board";
+import { next7Count } from "./next7";
 
 export type TasksData = {
   /** The server's today, which follows Settings › Day ends at. */
@@ -28,6 +29,8 @@ export type TasksData = {
   tasks: TaskRead[];
   lifeAreas: LifeAreaRead[];
   projects: ProjectRead[];
+  /** Today and the six days after it, with their events and routine steps (Next 7 days). */
+  days: DayRead[];
 };
 
 type TasksContext = { data: TasksData | null; error: unknown };
@@ -38,32 +41,38 @@ export function useTasksContext(): TasksContext {
 }
 
 /**
- * The Tasks group: its sidebar beside the open view. Loading the week first rolls unfinished
- * tasks over to today and creates this week's recurring tasks, as the week board does.
+ * The Tasks group: its sidebar beside the open view. Loading the next 7 days first rolls
+ * unfinished tasks over to today and creates those days' recurring tasks, as the week board does.
  */
 export function TasksLayout() {
-  const week = useQuery(getWeekOptions());
+  const days = useQuery(getDaysOptions());
   const tasks = useQuery({
     ...listTasksOptions({ query: { include_cancelled: true } }),
-    enabled: week.isSuccess,
+    enabled: days.isSuccess,
   });
   const lifeAreas = useQuery(listLifeAreasOptions());
   const projects = useQuery(listProjectsOptions());
   const pending = usePendingDeletes((state) => state.pending);
 
   const data: TasksData | null =
-    week.data && tasks.data && lifeAreas.data && projects.data
+    days.data && tasks.data && lifeAreas.data && projects.data
       ? {
-          today: week.data.today,
+          today: days.data.today,
           tasks: tasks.data.filter((task) => !isPendingDelete(pending, "task", task.id)),
           lifeAreas: lifeAreas.data,
           projects: projects.data.filter(
             (project) => project.status === "active" && project.archived_at === null,
           ),
+          days: days.data.days,
         }
       : null;
-  const error = week.error ?? tasks.error ?? lifeAreas.error ?? projects.error;
-  const counts = data ? sidebarCounts(data.tasks, data.today) : null;
+  const error = days.error ?? tasks.error ?? lifeAreas.error ?? projects.error;
+  const counts = data
+    ? {
+        ...sidebarCounts(data.tasks, data.today),
+        next7: next7Count(data.tasks, data.days, data.today),
+      }
+    : null;
 
   return (
     <>
@@ -83,7 +92,12 @@ export function TasksLayout() {
             label="Unscheduled"
             count={counts?.unscheduled}
           />
-          <NotBuiltRow icon={CalendarDays} label="Next 7 days" />
+          <ViewLink
+            to="/tasks/next-7-days"
+            icon={CalendarDays}
+            label="Next 7 days"
+            count={counts?.next7}
+          />
           <NotBuiltRow icon={Clock} label="Routines" />
         </nav>
 

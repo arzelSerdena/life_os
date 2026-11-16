@@ -1,4 +1,5 @@
-"""The week board: Unscheduled plus seven days of tasks and event occurrences.
+"""The day boards: Unscheduled plus a run of days with their tasks, event occurrences and
+routine steps. The week board is Monday to Sunday; Next 7 days runs from today.
 
 Tasks are placed by the placement rule: on their scheduled date, else their due date, else
 in Unscheduled.
@@ -40,17 +41,21 @@ class Week:
 
 
 def get_week(session: Session, any_day: date, filters: WeekFilters) -> Week:
-    """The Monday-to-Sunday week containing `any_day`.
+    """The Monday-to-Sunday week containing `any_day`. See `get_days`."""
+    start = any_day - timedelta(days=any_day.weekday())
+    return get_days(session, start, 7, filters)
 
-    Rolls unfinished tasks from past days over to today and creates the week's missing
+
+def get_days(session: Session, start: date, count: int, filters: WeekFilters) -> Week:
+    """`count` days from `start`, with Unscheduled.
+
+    Rolls unfinished tasks from past days over to today and creates the range's missing
     recurring tasks first. Both are safe to repeat: a second call changes nothing.
     """
-    start = any_day - timedelta(days=any_day.weekday())
-    end = start + timedelta(days=6)
+    end = start + timedelta(days=count - 1)
 
     rollover.roll_over(session)
     templates.generate_occurrences(session, start, end)
-
     placed = tasks.list_tasks(
         session,
         tasks.TaskFilters(
@@ -81,7 +86,7 @@ def get_week(session: Session, any_day: date, filters: WeekFilters) -> Week:
         ),
     )
 
-    week_days = [start + timedelta(days=offset) for offset in range(7)]
+    week_days = [start + timedelta(days=offset) for offset in range(count)]
     due_steps = routines.steps_for_days(
         session, week_days, life_area_id=filters.life_area_id, project_id=filters.project_id
     )
