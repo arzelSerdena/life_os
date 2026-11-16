@@ -114,7 +114,11 @@
 
 - Settings backend: the single-row `settings` table (model `AppSettings`, migration), `GET /api/settings` (creates the defaults on first read) and `PATCH /api/settings`. `app.clock.today()` and `clock.local_date()` apply `day_ends_at`: every request reads the stored hour first, so Home, rollover, routine logs, completed dates and streaks all follow it.
 
+- Applied the settings migration to the real database (backup kept as `backend/data/life_os.before-settings.db`).
+
+- Tasks group, first part: the rail's Tasks opens it, with its sidebar (ALL, Inbox, Today, Unscheduled, Next 7 days, Routines; Completed and Cancelled at the bottom; open-task counts) and the All, Today, Unscheduled, Completed and Cancelled boards. Priority | Area switch, columns one fifth of the board wide, collapsible subgroups, Today's red Overdue subgroup, project cards leading their subgroup, and task cards (area checkbox, flags for High and Medium, repeat, notes, rollovers, due date and time, project, subtask toggle with checkable subtasks). Checking off shows the undo toast; clicking a card opens the detail panel. Browser tests in `frontend/e2e/tasks.spec.ts`.
+
 **Next** (code, one branch and PR each, in this order)
 
-- Phase 2 screens: Tasks group, New task, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
+- Phase 2 screens: the rest of the Tasks group (Inbox with its hover actions and drop panel, Next 7 days and Routines with drag and drop, the filter-and-sort menu), New task with the column and subgroup +, pickers, Calendar Week and Month (FullCalendar day grid), `Ctrl N` quick add.
 - Phase 3 to 6 screens as in the roadmap: routine page and Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

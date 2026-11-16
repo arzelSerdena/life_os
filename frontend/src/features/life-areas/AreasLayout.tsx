@@ -4,7 +4,7 @@ import { type ReactNode, useState } from "react";
 import { NavLink, Outlet, useNavigate, useOutletContext } from "react-router";
 import { listLifeAreasOptions, listProjectsOptions } from "../../client/@tanstack/react-query.gen";
 import { IconButton } from "../../components/IconButton";
-import { Sidebar } from "../../components/Sidebar";
+import { SIDEBAR_ROW, SIDEBAR_ROW_ACTIVE, Sidebar, SidebarLink } from "../../components/Sidebar";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { NewProjectModal } from "../projects/NewProjectModal";
 import type { LifeAreaPrefill } from "./form";
@@ -157,11 +157,6 @@ export function AreasLayout() {
   );
 }
 
-const SIDEBAR_ROW =
-  "flex h-(--sidebar-item-height) items-center gap-2 rounded-(--radius-6) px-2 type-sidebar-item outline-none hover:bg-(--sidebar-item-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
-const SIDEBAR_ROW_ACTIVE =
-  "bg-(--sidebar-item-active-bg) text-(--sidebar-item-text-active) shadow-[inset_2px_0_0_var(--color-brand-600)]";
-
 /** A sidebar row that opens something in place instead of going to a page. */
 function SidebarButton({
   isActive,
@@ -181,18 +176,5 @@ function SidebarButton({
     >
       {children}
     </button>
-  );
-}
-
-function SidebarLink({ to, children }: { to: string; children: ReactNode }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `${SIDEBAR_ROW} ${isActive ? SIDEBAR_ROW_ACTIVE : "text-(--sidebar-item-text)"}`
-      }
-    >
-      {children}
-    </NavLink>
   );
 }
