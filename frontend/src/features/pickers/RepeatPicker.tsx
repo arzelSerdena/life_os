@@ -22,6 +22,10 @@ export function RepeatChip({
   value,
   anchor,
   allowCompletion = true,
+  allowNone = true,
+  allowEnd = true,
+  label = "Repeat",
+  chip,
   onChange,
 }: {
   value: RepeatRule | null;
@@ -29,6 +33,14 @@ export function RepeatChip({
   anchor: string;
   /** Tasks can repeat from completion; other items only from the schedule. */
   allowCompletion?: boolean;
+  /** A routine always repeats, so it has no "Does not repeat". */
+  allowNone?: boolean;
+  /** A routine's schedule never ends, so its Custom has no Ends. */
+  allowEnd?: boolean;
+  /** The chip's accessible name and the popover's. */
+  label?: string;
+  /** What the chip says, if not the rule. */
+  chip?: ReactNode;
   onChange: (rule: RepeatRule | null) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,19 +49,25 @@ export function RepeatChip({
     <PopoverChip
       icon={Repeat}
       tone={value ? "default" : "ghost"}
-      label="Repeat"
+      label={label}
       width={custom ? 320 : 260}
       isOpen={isOpen}
       onOpenChange={(open) => {
         if (open) setCustom(false);
         setIsOpen(open);
       }}
-      chip={<span className="truncate">{value ? describeRepeat(value, anchor) : "Repeat"}</span>}
+      chip={
+        <span className="truncate">
+          {chip ?? (value ? describeRepeat(value, anchor) : "Repeat")}
+        </span>
+      }
     >
       <RepeatPanel
         value={value}
         anchor={anchor}
         allowCompletion={allowCompletion}
+        allowNone={allowNone}
+        allowEnd={allowEnd}
         custom={custom}
         onCustom={() => setCustom(true)}
         onCancel={() => setIsOpen(false)}
@@ -107,6 +125,8 @@ function RepeatPanel({
   value,
   anchor,
   allowCompletion,
+  allowNone = true,
+  allowEnd = true,
   custom,
   onCustom,
   onCancel,
@@ -115,6 +135,8 @@ function RepeatPanel({
   value: RepeatRule | null;
   anchor: string;
   allowCompletion: boolean;
+  allowNone?: boolean;
+  allowEnd?: boolean;
   custom: boolean;
   onCustom: () => void;
   onCancel: () => void;
@@ -127,6 +149,7 @@ function RepeatPanel({
         initial={value ?? simpleRule("weekly", anchor)}
         anchor={anchor}
         allowCompletion={allowCompletion}
+        allowEnd={allowEnd}
         onCancel={onCancel}
         onDone={onPick}
       />
@@ -134,10 +157,14 @@ function RepeatPanel({
   }
   return (
     <>
-      <PickerRow selected={value === null} onPress={() => onPick(null)}>
-        Does not repeat
-      </PickerRow>
-      <PickerSeparator />
+      {allowNone && (
+        <>
+          <PickerRow selected={value === null} onPress={() => onPick(null)}>
+            Does not repeat
+          </PickerRow>
+          <PickerSeparator />
+        </>
+      )}
       {presets(anchor).map((preset) => (
         <PickerRow
           key={preset.id}
@@ -174,12 +201,14 @@ function CustomRepeat({
   initial,
   anchor,
   allowCompletion,
+  allowEnd,
   onCancel,
   onDone,
 }: {
   initial: RepeatRule;
   anchor: string;
   allowCompletion: boolean;
+  allowEnd: boolean;
   onCancel: () => void;
   onDone: (rule: RepeatRule) => void;
 }) {
@@ -289,27 +318,31 @@ function CustomRepeat({
           </>
         )}
 
-        <Label>Ends</Label>
-        <SegmentSwitch
-          label="Ends"
-          value={rule.ends.kind}
-          options={[
-            { key: "never", label: "Never" },
-            { key: "on", label: "On a date" },
-            { key: "after", label: "After" },
-          ]}
-          onChange={(kind) =>
-            setRule({
-              ...rule,
-              ends:
-                kind === "on"
-                  ? { kind, date: endDate ?? addDays(anchor, 91) }
-                  : kind === "after"
-                    ? { kind, count: count || 10 }
-                    : { kind },
-            })
-          }
-        />
+        {allowEnd && (
+          <>
+            <Label>Ends</Label>
+            <SegmentSwitch
+              label="Ends"
+              value={rule.ends.kind}
+              options={[
+                { key: "never", label: "Never" },
+                { key: "on", label: "On a date" },
+                { key: "after", label: "After" },
+              ]}
+              onChange={(kind) =>
+                setRule({
+                  ...rule,
+                  ends:
+                    kind === "on"
+                      ? { kind, date: endDate ?? addDays(anchor, 91) }
+                      : kind === "after"
+                        ? { kind, count: count || 10 }
+                        : { kind },
+                })
+              }
+            />
+          </>
+        )}
         {rule.ends.kind === "on" && (
           <>
             <span />

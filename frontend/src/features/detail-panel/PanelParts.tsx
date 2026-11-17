@@ -124,7 +124,8 @@ export function PanelView({
   );
 }
 
-function PanelMenu({ actions }: { actions: PanelAction[] }) {
+/** The ⋯ menu: the panel's, and the routine page header's. */
+export function PanelMenu({ actions }: { actions: PanelAction[] }) {
   const firstDanger = actions.find((action) => action.isDanger)?.id;
   return (
     <Dropdown>

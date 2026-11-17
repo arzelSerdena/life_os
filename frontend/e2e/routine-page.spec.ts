@@ -126,6 +126,79 @@ test("a square's popover and Skip day change a day, with Undo", async ({ page, r
   await expect(day.getByText("1/2")).toBeVisible();
 });
 
+test("the header renames, reschedules, pauses, archives and deletes", async ({ page, request }) => {
+  const today = await serverToday(request);
+  const start = addDays(today, -7);
+  const area = await createArea(request, unique("Health"), "plum");
+  const routine = await createRoutine(request, { title: unique("Evening"), starts_on: start });
+  await createRoutineStep(request, routine, {
+    title: unique("Read"),
+    life_area_id: area.id,
+    starts_on: start,
+  });
+  await page.goto(`/areas/routines/${routine.id}`);
+
+  // Rename in place; Esc puts the name back.
+  const renamed = unique("Wind down");
+  await page.getByRole("button", { name: routine.title }).click();
+  await page.getByRole("textbox", { name: "Routine name" }).fill("Nope");
+  await page.getByRole("textbox", { name: "Routine name" }).press("Escape");
+  await expect(page.getByRole("heading", { level: 1, name: routine.title })).toBeVisible();
+  await page.getByRole("button", { name: routine.title }).click();
+  await page.getByRole("textbox", { name: "Routine name" }).fill(renamed);
+  await page.getByRole("textbox", { name: "Routine name" }).press("Enter");
+  await expect(page.getByRole("heading", { level: 1, name: renamed })).toBeVisible();
+
+  // The schedule chip picks a rule, then asks which days it applies to.
+  await page.getByRole("button", { name: "Change schedule" }).click();
+  await page.getByRole("dialog", { name: "Change schedule" }).getByText("Every weekday").click();
+  const confirm = page.getByRole("alertdialog", { name: "Change schedule?" });
+  await expect(confirm.getByText("Keeps 7 past days as they were")).toBeVisible();
+  await confirm.getByText("All days").click();
+  await confirm.getByRole("button", { name: "Change schedule" }).click();
+  await expect(confirm).toBeHidden();
+  await expect(page.getByRole("button", { name: "Change schedule" })).toContainText(
+    "Every weekday",
+  );
+
+  // ⋯: pause, then resume.
+  const menu = page.getByRole("button", { name: "More actions" });
+  await menu.click();
+  await page.getByRole("menuitem", { name: "Pause routine" }).click();
+  // The title row's pause icon (the sidebar's ring shows one too).
+  const paused = page
+    .getByRole("heading", { level: 1 })
+    .locator("..")
+    .getByRole("img", { name: "Paused" });
+  await expect(paused).toBeVisible();
+  await menu.click();
+  await page.getByRole("menuitem", { name: "Resume routine" }).click();
+  await expect(paused).toBeHidden();
+
+  // Archive, with Undo in its toast.
+  await menu.click();
+  await page.getByRole("menuitem", { name: "Archive routine" }).click();
+  await expect(page.getByText("This routine is archived.")).toBeVisible();
+  await page
+    .getByRole("status")
+    .filter({ hasText: `Archived “${renamed}”` })
+    .getByRole("button", { name: "Undo" })
+    .click();
+  await expect(page.getByText("This routine is archived.")).toBeHidden();
+
+  // Delete asks first, then leaves the page.
+  await menu.click();
+  await page.getByRole("menuitem", { name: "Delete routine" }).click();
+  await page
+    .getByRole("alertdialog", { name: `Delete “${renamed}”?` })
+    .getByRole("button", { name: "Delete routine" })
+    .click();
+  await expect(page).toHaveURL(/\/areas$/);
+  await expect(
+    page.getByRole("navigation", { name: "Routines" }).getByRole("link", { name: renamed }),
+  ).toBeHidden();
+});
+
 test("a routine with no steps says so", async ({ page, request }) => {
   const routine = await createRoutine(request, { title: unique("Workout") });
 

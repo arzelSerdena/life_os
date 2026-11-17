@@ -18,13 +18,15 @@ import { errorMessage } from "../../errors";
 import { areaDataAttribute } from "../life-areas/palette";
 import { GROUP_LABELS, rowMeta, rowName } from "./previewText";
 
-/** What the footer says: archives can be restored, status changes undone, deletes can't. */
-export type ConfirmTone = "archive" | "undo" | "delete";
+/** What the footer says: archives can be restored, status changes undone, deletes can't;
+ * a plain change (a routine's schedule) says nothing. */
+export type ConfirmTone = "archive" | "undo" | "delete" | "plain";
 
 const FOOTER_LINES: Record<ConfirmTone, string> = {
   archive: "You can restore it from Finished & archived",
   undo: "You can undo this",
   delete: "Can’t be undone",
+  plain: "",
 };
 
 /** A group shows this many rows, then "+n more", but only when 2 or more would be hidden. */

@@ -1,29 +1,24 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Pause, Repeat } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
 import {
   getRoutinePageOptions,
   listLifeAreasOptions,
   listProjectsOptions,
-  listRoutineStepsForDayOptions,
 } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead, ProjectRead, RoutinePageRead } from "../../client/types.gen";
-import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import type { Period } from "../../period";
 import { usePeriodStore } from "../../stores/periodStore";
-import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
-import { ProgressRing } from "../tasks/RoutinesPage";
 import { DayCard } from "./DayCard";
+import { RoutineHeader } from "./RoutineHeader";
 import {
   completionSubtitle,
   heatmap,
   type ScheduleHistory,
   scheduleHistory,
-  scheduleLabel,
   stepAreaIds,
   type Tile,
   tiles,
@@ -79,49 +74,12 @@ function RoutineView({
   const [square, setSquare] = useState<SquareTarget | null>(null);
   const { routine } = page;
   const hasSteps = page.steps.length > 0;
-  const areaOf = (id: number) => areas.find((area) => area.id === id);
   const projectOf = (id: number | null) => projects.find((project) => project.id === id);
   const history = scheduleHistory(page, period);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex shrink-0 items-start gap-4 px-(--page-gutter) pt-(--page-gutter)">
-        <div className="min-w-0">
-          <div className="flex h-(--page-header-height) items-center gap-2.5">
-            <TodayRing page={page} />
-            <h1 className="truncate type-page-title text-(--page-title)">{routine.title}</h1>
-          </div>
-          <div className="mt-0.5 flex min-h-6 flex-wrap items-center gap-2 pl-7">
-            {page.paused_since && (
-              <span className="inline-flex h-5 items-center gap-1 rounded-full bg-(--color-neutral-100) px-2 text-[11px] font-medium text-(--text-secondary)">
-                <Pause aria-hidden className="size-[11px] fill-current stroke-none" />
-                Paused since {shortDate(page.paused_since)}
-              </span>
-            )}
-            <span className="inline-flex h-6 items-center gap-1.5 rounded-(--radius-6) border border-(--border-default) px-2 text-xs font-medium text-(--text-secondary)">
-              <Repeat aria-hidden className="size-3" />
-              {scheduleLabel(page)}
-            </span>
-            {stepAreaIds(page).map((id) => {
-              const area = areaOf(id);
-              if (!area) return null;
-              return (
-                <span
-                  key={id}
-                  data-area={areaDataAttribute(area.color)}
-                  className="inline-flex h-5 items-center gap-1 rounded-full bg-(--area-tint-active) px-2 text-[11px] font-medium text-(--text-primary)"
-                >
-                  <span aria-hidden className="size-1.5 rounded-[2px] bg-(--area-solid)" />
-                  {area.title}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          <PeriodSwitch isDisabled={!hasSteps} />
-        </div>
-      </header>
+      <RoutineHeader page={page} areas={areas} hasSteps={hasSteps} />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
         {routine.archived_at && (
@@ -177,26 +135,6 @@ function stepsSubtitle(page: RoutinePageRead): string {
   const steps = page.steps.length;
   const areas = stepAreaIds(page).length;
   return `${steps} ${steps === 1 ? "step" : "steps"} in ${areas} ${areas === 1 ? "area" : "areas"}`;
-}
-
-/** Today's ring in the header: done out of today's due steps; a pause icon while paused. */
-function TodayRing({ page }: { page: RoutinePageRead }) {
-  const due = useQuery(listRoutineStepsForDayOptions({ query: { day: page.today } }));
-  if (page.paused_since) {
-    return (
-      <Pause
-        role="img"
-        aria-label="Paused"
-        className="size-[18px] shrink-0 fill-(--color-neutral-500) stroke-none"
-      />
-    );
-  }
-  const mine = (due.data ?? []).filter(
-    (item) => item.routine_id === page.routine.id && item.status !== "skipped",
-  );
-  return (
-    <ProgressRing done={mine.filter((item) => item.status === "done").length} total={mine.length} />
-  );
 }
 
 function Tiles({ tiles }: { tiles: Tile[] }) {
