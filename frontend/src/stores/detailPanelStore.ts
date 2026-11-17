@@ -1,16 +1,15 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-/** What the detail panel shows. Events open on one occurrence, named by its original date. */
+/** What the detail panel shows. Events open on one occurrence, named by its original date.
+ * Routines and their steps never open it: they are edited on the routine page. */
 export type PanelTarget =
   | { kind: "area"; id: number }
   | { kind: "project"; id: number }
   | { kind: "task"; id: number }
   | { kind: "template"; id: number }
   | { kind: "event"; id: number; day: string | null }
-  | { kind: "metric"; id: number }
-  | { kind: "routine"; id: number }
-  | { kind: "step"; id: number; routineId: number };
+  | { kind: "metric"; id: number };
 
 export const PANEL_MIN_WIDTH = 360;
 export const PANEL_MAX_WIDTH = 560;

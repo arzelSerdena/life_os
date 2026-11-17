@@ -1,3 +1,4 @@
+import { Button } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Archive,
@@ -6,6 +7,7 @@ import {
   CircleMinus,
   Pause,
   Play,
+  Plus,
   Repeat,
   Trash2,
 } from "lucide-react";
@@ -42,16 +44,18 @@ import { scheduleImpact, scheduleLabel, stepAreaIds, weekdayDate } from "./routi
 /**
  * The routine page's header: today's ring, the name (click to rename), Paused since, the
  * schedule chip (the Repeat picker, then Change schedule), the steps' areas, the period
- * switch and the ⋯ menu (Skip today, Pause or Resume, Archive or Restore, Delete).
+ * switch, the ⋯ menu (Skip today, Pause or Resume, Archive or Restore, Delete) and Add step.
  */
 export function RoutineHeader({
   page,
   areas,
   hasSteps,
+  onAddStep,
 }: {
   page: RoutinePageRead;
   areas: LifeAreaRead[];
   hasSteps: boolean;
+  onAddStep: () => void;
 }) {
   const { routine } = page;
   const isArchived = routine.archived_at !== null;
@@ -96,6 +100,12 @@ export function RoutineHeader({
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <PeriodSwitch isDisabled={!hasSteps} />
         <RoutineMenu page={page} />
+        {!isArchived && (
+          <Button onPress={onAddStep} className="ml-2">
+            <Plus aria-hidden strokeWidth={2} />
+            Add step
+          </Button>
+        )}
       </div>
     </header>
   );
@@ -131,7 +141,7 @@ function RoutineTitle({ routine }: { routine: RoutineRead }) {
   const save = () => {
     const next = draft?.trim();
     setDraft(null);
-    if (cancelled.current || !next || next === routine.title) return;
+    if (cancelled.current || !next || next === shown) return;
     update.mutate({ path: { routine_id: routine.id }, body: { title: next } });
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -168,7 +178,8 @@ function RoutineTitle({ routine }: { routine: RoutineRead }) {
           title="Rename"
           onClick={() => {
             cancelled.current = false;
-            setDraft(routine.title);
+            // The name as shown: a rename still saving is the newest one.
+            setDraft(shown);
           }}
           className="-mx-1 max-w-[calc(100%+8px)] truncate rounded-(--radius-6) px-1 text-left outline-none hover:bg-(--bg-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         >

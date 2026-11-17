@@ -27,9 +27,12 @@ export function OwnerChip({
   const [isOpen, setIsOpen] = useState(false);
   const project = projects.find((p) => p.id === value.projectId);
   const area = lifeAreas.find((a) => a.id === (project?.life_area_id ?? value.lifeAreaId));
+  // Items that can't be in the Inbox show a dashed "Owner" chip until one is picked.
+  const isUnset = !allowInbox && !project && !area;
   return (
     <PopoverChip
       label="Owner"
+      tone={isUnset ? "ghost" : "default"}
       width={280}
       isOpen={isOpen}
       onOpenChange={setIsOpen}
@@ -47,11 +50,20 @@ export function OwnerChip({
             data-area={areaDataAttribute(area.color)}
             className="size-2 shrink-0 rounded-[2px] bg-(--area-solid)"
           />
+        ) : isUnset ? (
+          <span
+            aria-hidden
+            className="size-2 shrink-0 rounded-[2px] border border-dashed border-(--color-neutral-400)"
+          />
         ) : (
           <Inbox aria-hidden strokeWidth={2} />
         )
       }
-      chip={<span className="truncate">{project?.title ?? area?.title ?? "Inbox"}</span>}
+      chip={
+        <span className="truncate">
+          {project?.title ?? area?.title ?? (isUnset ? "Owner" : "Inbox")}
+        </span>
+      }
     >
       <OwnerPanel
         value={value}

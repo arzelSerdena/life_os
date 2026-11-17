@@ -72,6 +72,22 @@ export const createRoutineStep = (
   body: Record<string, unknown>,
 ) => send<RoutineStep>(request, "post", `/api/routines/${routine.id}/steps`, body);
 
+/** A metric owned by `area` that counts the step's done days. */
+export const createStepMetric = (
+  request: APIRequestContext,
+  area: Area,
+  step: RoutineStep,
+  title: string,
+) =>
+  send<{ id: number; title: string }>(request, "post", "/api/metrics", {
+    title,
+    life_area_id: area.id,
+    source: "routine_step",
+    routine_step_id: step.id,
+    aggregation: "sum",
+    direction: "higher",
+  });
+
 /** Marks a step done or skipped on a day. */
 export const checkStep = (
   request: APIRequestContext,

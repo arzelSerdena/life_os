@@ -150,12 +150,12 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
           </p>
           {group.steps.map((row) => (
             <div key={row.step_id} className="grid h-7 items-center" style={columns}>
-              <PanelLink
-                target={{ kind: "step", id: row.step_id, routineId: group.routine_id }}
-                className="truncate pr-2 text-[13px] text-(--text-primary)"
+              <Link
+                to={`/areas/routines/${group.routine_id}`}
+                className="truncate rounded-[4px] pr-2 text-left text-[13px] text-(--text-primary) outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
               >
                 {row.title}
-              </PanelLink>
+              </Link>
               <span
                 className="grid h-3 items-center gap-px"
                 style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}

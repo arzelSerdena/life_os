@@ -1,4 +1,6 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Button } from "@heroui/react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
 import {
@@ -6,13 +8,22 @@ import {
   listLifeAreasOptions,
   listProjectsOptions,
 } from "../../client/@tanstack/react-query.gen";
-import type { LifeAreaRead, ProjectRead, RoutinePageRead } from "../../client/types.gen";
+import { updateRoutine } from "../../client/sdk.gen";
+import type {
+  LifeAreaRead,
+  ProjectRead,
+  RoutinePageRead,
+  RoutineRead,
+} from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import type { Period } from "../../period";
 import { usePeriodStore } from "../../stores/periodStore";
+import { NotesEditor } from "../detail-panel/NotesEditor";
 import { areaDataAttribute } from "../life-areas/palette";
 import { DayCard } from "./DayCard";
+import { EditableStepLabel } from "./EditableStepLabel";
+import { NewStepModal } from "./NewStepModal";
 import { RoutineHeader } from "./RoutineHeader";
 import {
   completionSubtitle,
@@ -72,17 +83,25 @@ function RoutineView({
 }) {
   const [selected, setSelected] = useState(page.today);
   const [square, setSquare] = useState<SquareTarget | null>(null);
+  const [isAddingStep, setIsAddingStep] = useState(false);
   const { routine } = page;
+  const isArchived = routine.archived_at !== null;
   const hasSteps = page.steps.length > 0;
   const projectOf = (id: number | null) => projects.find((project) => project.id === id);
   const history = scheduleHistory(page, period);
+  const lastStep = page.steps.at(-1)?.step;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <RoutineHeader page={page} areas={areas} hasSteps={hasSteps} />
+      <RoutineHeader
+        page={page}
+        areas={areas}
+        hasSteps={hasSteps}
+        onAddStep={() => setIsAddingStep(true)}
+      />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
-        {routine.archived_at && (
+        {isArchived && (
           <p className="type-body text-(--text-tertiary)">This routine is archived.</p>
         )}
         {hasSteps && <Tiles tiles={tiles(page, period)} />}
@@ -95,12 +114,25 @@ function RoutineView({
                   period={period}
                   selected={selected === page.today ? null : selected}
                   onSelect={setSelected}
-                  onSquare={routine.archived_at ? undefined : setSquare}
+                  onSquare={isArchived ? undefined : setSquare}
+                  label={
+                    isArchived
+                      ? undefined
+                      : (row) => <EditableStepLabel row={row} areas={areas} projects={projects} />
+                  }
                   areas={areas}
                   projects={projects}
                 />
               ) : (
-                <CardEmpty>No steps yet.</CardEmpty>
+                <div className="flex min-h-10 items-center justify-between gap-3">
+                  <CardEmpty>No steps yet.</CardEmpty>
+                  {!isArchived && (
+                    <Button size="sm" variant="ghost" onPress={() => setIsAddingStep(true)}>
+                      <Plus aria-hidden />
+                      Add step
+                    </Button>
+                  )}
+                </div>
               )}
             </SectionCard>
             <CompletionCard page={page} period={period} areas={areas} projectOf={projectOf} />
@@ -120,13 +152,55 @@ function RoutineView({
                 <CardEmpty>No steps yet.</CardEmpty>
               </SectionCard>
             )}
+            <RoutineNotes routine={routine} />
           </div>
         </div>
       </div>
       {square && (
         <SquarePopover target={square} today={page.today} onClose={() => setSquare(null)} />
       )}
+      {isAddingStep && (
+        <NewStepModal
+          routine={routine}
+          today={page.today}
+          owner={{
+            lifeAreaId: lastStep?.life_area_id ?? null,
+            projectId: lastStep?.project_id ?? null,
+          }}
+          lifeAreas={areas.filter((area) => area.archived_at === null)}
+          projects={projects.filter(
+            (project) => project.status === "active" && project.archived_at === null,
+          )}
+          onClose={() => setIsAddingStep(false)}
+        />
+      )}
     </div>
+  );
+}
+
+/** The Notes card under the Day card: the routine's Markdown notes, saved as you type. */
+function RoutineNotes({ routine }: { routine: RoutineRead }) {
+  const queryClient = useQueryClient();
+  return (
+    <NotesEditor
+      key={`routine-${routine.id}`}
+      variant="card"
+      initialMarkdown={routine.notes}
+      showSource={false}
+      toolbarContainer={null}
+      onSave={async (notes) => {
+        await updateRoutine({
+          path: { routine_id: routine.id },
+          body: { notes },
+          throwOnError: true,
+        });
+        // Marked stale without a refetch, so the page doesn't reload while typing.
+        await queryClient.invalidateQueries({
+          predicate: (query) => (query.queryKey[0] as { _id?: string })?._id === "getRoutinePage",
+          refetchType: "none",
+        });
+      }}
+    />
   );
 }
 

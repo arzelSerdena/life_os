@@ -7,7 +7,6 @@ import {
   CircleCheck,
   CircleX,
   Flag,
-  Flame,
   Folder,
   ListChecks,
   MapPin,
@@ -36,8 +35,6 @@ import {
   getMetricQueryKey,
   getProjectOptions,
   getProjectQueryKey,
-  getRoutineOptions,
-  getRoutineQueryKey,
   getTaskOptions,
   getTaskQueryKey,
   getTaskTemplateOptions,
@@ -54,8 +51,6 @@ import {
   updateLifeAreaMutation,
   updateMetricMutation,
   updateProjectMutation,
-  updateRoutineMutation,
-  updateRoutineStepMutation,
   updateSubtaskMutation,
   updateTaskMutation,
   updateTaskTemplateMutation,
@@ -66,15 +61,12 @@ import {
   editEventOccurrence,
   moveEvent,
   moveMetric,
-  moveRoutineStep,
   moveTask,
   moveTaskTemplate,
   updateEvent,
   updateLifeArea,
   updateMetric,
   updateProject,
-  updateRoutine,
-  updateRoutineStep,
   updateTask,
   updateTaskTemplate,
 } from "../../client/sdk.gen";
@@ -88,8 +80,6 @@ import { usePeriodStore } from "../../stores/periodStore";
 import {
   DeleteEventDialog,
   DeleteMetricDialog,
-  DeleteRoutineDialog,
-  DeleteStepDialog,
   DeleteTemplateDialog,
 } from "../deleting/deleteDialogs";
 import { useDeleteWithUndo } from "../deleting/UndoToast";
@@ -128,10 +118,6 @@ export function EntityPanel({ target }: { target: PanelTarget }) {
       return <EventPanel id={target.id} day={target.day} />;
     case "metric":
       return <MetricPanel id={target.id} />;
-    case "routine":
-      return <RoutinePanel id={target.id} />;
-    case "step":
-      return <StepPanel id={target.id} routineId={target.routineId} />;
   }
 }
 
@@ -194,7 +180,7 @@ function deleteAction(
   };
 }
 
-type Movable = "task" | "template" | "event" | "metric" | "step";
+type Movable = "task" | "template" | "event" | "metric";
 type MoveBody = { life_area_id?: number; project_id?: number; section_id?: number };
 
 /**
@@ -212,8 +198,6 @@ async function sendMove(kind: Movable, id: number, body: MoveBody): Promise<stri
       return (await moveEvent({ ...options, path: { event_id: id } })).data.batch_id;
     case "metric":
       return (await moveMetric({ ...options, path: { metric_id: id } })).data.batch_id;
-    case "step":
-      return (await moveRoutineStep({ ...options, path: { step_id: id } })).data.batch_id;
   }
 }
 
@@ -1128,106 +1112,6 @@ function MetricPanel({ id }: { id: number }) {
           onClose={() => setIsDeleting(false)}
           onDeleted={close}
         />
-      )}
-    </AreaScope>
-  );
-}
-
-// ---------- Routine and routine step ----------
-
-function RoutinePanel({ id }: { id: number }) {
-  const query = useQuery(getRoutineOptions({ path: { routine_id: id } }));
-  const update = useMutation(updateRoutineMutation());
-  const saveNotes = useNotesSave();
-  const close = useDetailPanel((state) => state.close);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const routine = query.data;
-  if (!routine) return <Loading error={query.error} />;
-  const path = { routine_id: id };
-  const schedule = routine.schedules.at(-1);
-  return (
-    <AreaScope>
-      <PanelView
-        crumbs={["Routines"]}
-        marker={<Marker icon={Repeat} />}
-        title={routine.title}
-        onRename={(title) => update.mutateAsync({ path, body: { title } })}
-        chips={
-          <>
-            {schedule && <Chip icon={Repeat}>{describeRule(schedule.rrule)}</Chip>}
-            <Chip icon={ListChecks}>{plural(routine.steps.length, "step")}</Chip>
-            {routine.is_paused && <Chip icon={Pause}>Paused</Chip>}
-          </>
-        }
-        notes={{
-          key: `routine-${id}`,
-          markdown: routine.notes,
-          save: (notes) =>
-            saveNotes(
-              () => updateRoutine({ path, body: { notes }, throwOnError: true }),
-              getRoutineQueryKey({ path }),
-            ),
-        }}
-        actions={[deleteAction("Delete routine", () => setIsDeleting(true))]}
-        error={update.error}
-      />
-      {isDeleting && (
-        <DeleteRoutineDialog
-          routine={routine}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={close}
-        />
-      )}
-    </AreaScope>
-  );
-}
-
-function StepPanel({ id, routineId }: { id: number; routineId: number }) {
-  const query = useQuery(getRoutineOptions({ path: { routine_id: routineId } }));
-  const step = query.data?.steps.find((s) => s.id === id);
-  const owner = useOwnerCrumbs("step", step);
-  const area = owner.area;
-  const update = useMutation(updateRoutineStepMutation());
-  const saveNotes = useNotesSave();
-  const close = useDetailPanel((state) => state.close);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const routine = query.data;
-  if (!routine || !step) return <Loading error={query.error} />;
-  const path = { step_id: id };
-  const schedule = routine.schedules.at(-1);
-  return (
-    <AreaScope color={area?.color}>
-      <PanelView
-        crumbs={[...owner.crumbs(), routine.title]}
-        marker={<Marker icon={Repeat} />}
-        title={step.title}
-        onRename={(title) => update.mutateAsync({ path, body: { title } })}
-        chips={
-          <>
-            {schedule && <Chip icon={Repeat}>{describeRule(schedule.rrule)}</Chip>}
-            <Chip icon={Flame}>
-              Streak {step.current_streak} · best {step.best_streak}
-            </Chip>
-            <Chip icon={CalendarDays}>Since {shortDate(step.starts_on)}</Chip>
-            {(step.is_paused || routine.is_paused) && <Chip icon={Pause}>Paused</Chip>}
-          </>
-        }
-        notes={{
-          key: `step-${id}`,
-          markdown: step.notes,
-          save: (notes) =>
-            saveNotes(
-              () => updateRoutineStep({ path, body: { notes }, throwOnError: true }),
-              getRoutineQueryKey({ path: { routine_id: routineId } }),
-            ),
-        }}
-        actions={[deleteAction("Delete step", () => setIsDeleting(true))]}
-        error={owner.error ?? update.error}
-      />
-      {isDeleting && (
-        <DeleteStepDialog step={step} onClose={() => setIsDeleting(false)} onDeleted={close} />
       )}
     </AreaScope>
   );

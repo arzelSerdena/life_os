@@ -1,4 +1,5 @@
-import { act, screen, waitFor, within } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import type {
@@ -8,10 +9,12 @@ import type {
   RoutineRead,
   TaskRead,
 } from "../../client/types.gen";
+import { createQueryClient } from "../../queryClient";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { lifeArea, renderApp } from "../../test-utils";
+import { DeleteStepDialog } from "./deleteDialogs";
 
 const career = lifeArea({ id: 1, title: "Career", color: "blue" });
 
@@ -142,8 +145,6 @@ beforeEach(() => {
           return json(project);
         case "/api/tasks/2":
           return json(currentTask);
-        case "/api/routines/4":
-          return json(routine);
         case "/api/routine-steps/1/delete-preview":
           return json({
             groups: [
@@ -241,10 +242,11 @@ test("deleting a metric asks first and lists what goes with it", async () => {
 });
 
 test("a step that feeds a metric can't be deleted, and the dialog names the metric", async () => {
-  const panel = await openPanel({ kind: "step", id: 1, routineId: 4 });
-  await within(panel).findByRole("textbox", { name: "Title" });
-  const { user, item } = await chooseFromMenu(panel, "Delete step");
-  await user.click(item);
+  render(
+    <QueryClientProvider client={createQueryClient()}>
+      <DeleteStepDialog step={routine.steps[0]} onClose={() => {}} />
+    </QueryClientProvider>,
+  );
 
   const dialog = await screen.findByRole("alertdialog");
   await waitFor(() =>

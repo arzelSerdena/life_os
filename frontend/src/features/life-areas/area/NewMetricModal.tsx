@@ -42,17 +42,20 @@ type Aggregation = MetricCreate["aggregation"];
  */
 export function NewMetricModal({
   lifeArea,
+  stepId: fedBy,
   onClose,
 }: {
   lifeArea: LifeAreaRead;
+  /** Opened from a routine step's "Feeds metric": counts that step's days. */
+  stepId?: number;
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
-  const [source, setSource] = useState<Source>("manual");
+  const [source, setSource] = useState<Source>(fedBy ? "routine_step" : "manual");
   const [preset, setPreset] = useState<Preset>(PRESETS[0]);
   const [unit, setUnit] = useState("");
-  const [stepId, setStepId] = useState<number | null>(null);
+  const [stepId, setStepId] = useState<number | null>(fedBy ?? null);
   const [aggregation, setAggregation] = useState<Aggregation>("sum");
   const [direction, setDirection] = useState<"higher" | "lower">("higher");
   const [current, setCurrent] = useState("");
