@@ -7,12 +7,18 @@ from app import clock
 from app.db import SessionDep
 from app.models import Routine, RoutineStep
 from app.schemas.common import ErrorResponse
+from app.schemas.overview import OverviewPeriod
 from app.schemas.preview import RoutineDeletePreview
 from app.schemas.routine import (
+    MetricRef,
+    PauseRead,
+    RoutineBucketRead,
     RoutineChange,
     RoutineCreate,
     RoutineHistoryRead,
     RoutineLogSet,
+    RoutinePageRead,
+    RoutinePageStepRead,
     RoutineRead,
     RoutinesHistoryRead,
     RoutineStepChange,
@@ -21,13 +27,16 @@ from app.schemas.routine import (
     RoutineStepMove,
     RoutineStepRead,
     RoutineStepUpdate,
+    RoutineTotalsRead,
     RoutineUpdate,
+    RunRead,
     ScheduleChange,
     ScheduleRead,
     StepDayState,
     StepHistoryRead,
 )
 from app.services import previews
+from app.services import routine_page as page_service
 from app.services import routines as service
 
 router = APIRouter(prefix="/api", tags=["routines"])
@@ -145,6 +154,62 @@ def create_routine(session: SessionDep, data: RoutineCreate) -> RoutineRead:
 @router.get("/routines/{routine_id}", responses=NOT_FOUND)
 def get_routine(session: SessionDep, routine_id: int) -> RoutineRead:
     return _read(service.get_routine(session, routine_id))
+
+
+@router.get("/routines/{routine_id}/page", responses=NOT_FOUND)
+def get_routine_page(
+    session: SessionDep,
+    routine_id: int,
+    period: OverviewPeriod = "quarter",
+    date: date | None = None,
+) -> RoutinePageRead:
+    """One routine over the week, month, quarter or year containing `date` (default: today):
+    totals and runs, each step's state per day, and the schedules and pauses."""
+    page = page_service.get_routine_page(session, routine_id, period, date or clock.today())
+    routine = page.routine
+    return RoutinePageRead(
+        routine=_read(routine),
+        rrule=page.rrule,
+        paused_since=page.paused_since,
+        pauses=[PauseRead.model_validate(pause) for pause in routine.pauses],
+        period=page.period,
+        start=page.view.start,
+        end=page.view.end,
+        today=page.today,
+        totals=_totals(page.totals),
+        previous=_totals(page.previous) if page.previous else None,
+        current_run=RunRead(**vars(page.current_run)),
+        best_run=RunRead(**vars(page.best_run)),
+        buckets=[
+            RoutineBucketRead(
+                start=bucket.start, end=bucket.end, totals=_totals(bucket.totals), run=bucket.run
+            )
+            for bucket in page.buckets
+        ],
+        steps=[
+            RoutinePageStepRead(
+                step=_step_read(routine, row.step),
+                metric=MetricRef.model_validate(row.metric) if row.metric else None,
+                next_due=row.next_due,
+                paused_since=row.paused_since,
+                days=[StepDayState(day=day, state=state) for day, state in row.days],
+                done=row.done,
+                missed=row.missed,
+            )
+            for row in page.steps
+        ],
+    )
+
+
+def _totals(totals: page_service.Totals) -> RoutineTotalsRead:
+    return RoutineTotalsRead(
+        done=totals.done,
+        missed=totals.missed,
+        skipped=totals.skipped,
+        due_days=totals.due_days,
+        full_days=totals.full_days,
+        completion_rate=totals.completion_rate,
+    )
 
 
 @router.patch("/routines/{routine_id}", responses=NOT_FOUND)

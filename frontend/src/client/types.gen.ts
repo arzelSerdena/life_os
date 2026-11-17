@@ -1264,6 +1264,22 @@ export type OverviewRead = {
 };
 
 /**
+ * PauseRead
+ *
+ * A paused stretch: from starts_on up to, not including, ends_on (None: still paused).
+ */
+export type PauseRead = {
+    /**
+     * Starts On
+     */
+    starts_on: string;
+    /**
+     * Ends On
+     */
+    ends_on: string | null;
+};
+
+/**
  * PeriodRead
  */
 export type PeriodRead = {
@@ -1579,6 +1595,28 @@ export type ProjectsAreaRead = {
 };
 
 /**
+ * RoutineBucketRead
+ *
+ * One point of the tiles' lines: a day (week), a week (month, quarter) or a month (year),
+ * with the current run at its end.
+ */
+export type RoutineBucketRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    totals: RoutineTotalsRead;
+    /**
+     * Run
+     */
+    run: number;
+};
+
+/**
  * RoutineChange
  *
  * The routine after the change, and the batch to pass to undo (None if nothing changed).
@@ -1691,6 +1729,83 @@ export type RoutineLogSet = {
      * Status
      */
     status: 'done' | 'skipped';
+};
+
+/**
+ * RoutinePageRead
+ *
+ * One routine over a calendar period (docs/DOMAIN.md, section 8).
+ */
+export type RoutinePageRead = {
+    routine: RoutineRead;
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Paused Since
+     */
+    paused_since: string | null;
+    /**
+     * Pauses
+     */
+    pauses: Array<PauseRead>;
+    /**
+     * Period
+     */
+    period: string;
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Today
+     */
+    today: string;
+    totals: RoutineTotalsRead;
+    previous: RoutineTotalsRead | null;
+    current_run: RunRead;
+    best_run: RunRead;
+    /**
+     * Buckets
+     */
+    buckets: Array<RoutineBucketRead>;
+    /**
+     * Steps
+     */
+    steps: Array<RoutinePageStepRead>;
+};
+
+/**
+ * RoutinePageStepRead
+ */
+export type RoutinePageStepRead = {
+    step: RoutineStepRead;
+    metric: MetricRef | null;
+    /**
+     * Next Due
+     */
+    next_due: string | null;
+    /**
+     * Paused Since
+     */
+    paused_since: string | null;
+    /**
+     * Days
+     */
+    days: Array<StepDayState>;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Missed
+     */
+    missed: number;
 };
 
 /**
@@ -1919,6 +2034,40 @@ export type RoutineStepUpdate = {
 };
 
 /**
+ * RoutineTotalsRead
+ *
+ * Counts over a stretch of days up to today. completion_rate is done ÷ (done + missed)
+ * as a whole percent, None when neither happened. due_days are days with a step done,
+ * missed or still to do; full_days those on which every due step was done.
+ */
+export type RoutineTotalsRead = {
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Missed
+     */
+    missed: number;
+    /**
+     * Skipped
+     */
+    skipped: number;
+    /**
+     * Due Days
+     */
+    due_days: number;
+    /**
+     * Full Days
+     */
+    full_days: number;
+    /**
+     * Completion Rate
+     */
+    completion_rate: number | null;
+};
+
+/**
  * RoutineUpdate
  *
  * Only the fields sent are changed. The schedule has its own endpoint.
@@ -2020,6 +2169,26 @@ export type RoutinesHistoryRead = {
      * Routines
      */
     routines: Array<RoutineHistoryRead>;
+};
+
+/**
+ * RunRead
+ *
+ * Full days in a row, with the first and last of them (None while the run is 0).
+ */
+export type RunRead = {
+    /**
+     * Length
+     */
+    length: number;
+    /**
+     * Start
+     */
+    start: string | null;
+    /**
+     * End
+     */
+    end: string | null;
 };
 
 /**
@@ -6643,6 +6812,49 @@ export type UpdateRoutineResponses = {
 };
 
 export type UpdateRoutineResponse = UpdateRoutineResponses[keyof UpdateRoutineResponses];
+
+export type GetRoutinePageData = {
+    body?: never;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: {
+        /**
+         * Period
+         */
+        period?: 'week' | 'month' | 'quarter' | 'year';
+        /**
+         * Date
+         */
+        date?: string | null;
+    };
+    url: '/api/routines/{routine_id}/page';
+};
+
+export type GetRoutinePageErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRoutinePageError = GetRoutinePageErrors[keyof GetRoutinePageErrors];
+
+export type GetRoutinePageResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinePageRead;
+};
+
+export type GetRoutinePageResponse = GetRoutinePageResponses[keyof GetRoutinePageResponses];
 
 export type ChangeRoutineScheduleData = {
     body: ScheduleChange;

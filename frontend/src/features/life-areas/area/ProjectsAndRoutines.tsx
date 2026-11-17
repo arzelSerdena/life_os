@@ -1,4 +1,5 @@
 import { Folder } from "lucide-react";
+import { Link } from "react-router";
 import type { AreaPageRead, StepRowRead } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
@@ -135,12 +136,12 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
           className="border-b border-(--border-default) py-2 last:border-b-0"
         >
           <p className="flex h-7 items-center gap-2 text-xs">
-            <PanelLink
-              target={{ kind: "routine", id: group.routine_id }}
-              className="font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase"
+            <Link
+              to={`/areas/routines/${group.routine_id}`}
+              className="rounded-[4px] font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
             >
               {group.title}
-            </PanelLink>
+            </Link>
             <span className="text-(--text-tertiary)">{describeRule(group.rrule)}</span>
             <span className="ml-auto text-(--text-tertiary)">
               {group.steps.length} of its {plural(group.total_steps, "step")}{" "}

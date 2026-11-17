@@ -205,6 +205,18 @@ def next_due(routine: Routine, step: RoutineStep) -> date | None:
 
 
 def _step_history(routine: Routine, step: RoutineStep, first: date, last: date) -> StepHistory:
+    return StepHistory(
+        step=step,
+        days=step_states(routine, step, first, last),
+        next_due=next_due(routine, step),
+        paused_since=paused_since(step),
+    )
+
+
+def step_states(
+    routine: Routine, step: RoutineStep, first: date, last: date
+) -> list[tuple[date, HistoryState]]:
+    """The step's state on each day from first to last."""
     today = clock.today()
     scheduled = set(_scheduled_days(routine, step, first, last))
     pauses = [*routine.pauses, *step.pauses]
@@ -225,12 +237,7 @@ def _step_history(routine: Routine, step: RoutineStep, first: date, last: date) 
             state = "missed" if day < today else "todo" if day == today else "upcoming"
         days.append((day, state))
         day += timedelta(days=1)
-    return StepHistory(
-        step=step,
-        days=days,
-        next_due=next_due(routine, step),
-        paused_since=paused_since(step),
-    )
+    return days
 
 
 def _active_routines(session: Session) -> Sequence[Routine]:

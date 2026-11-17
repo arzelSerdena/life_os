@@ -8,7 +8,7 @@ export const unique = (title: string) => `${title} ${Date.now().toString(36)}${c
 
 async function send<T>(
   request: APIRequestContext,
-  method: "get" | "post",
+  method: "get" | "post" | "put",
   path: string,
   data?: unknown,
 ): Promise<T> {
@@ -71,6 +71,14 @@ export const createRoutineStep = (
   routine: Routine,
   body: Record<string, unknown>,
 ) => send<RoutineStep>(request, "post", `/api/routines/${routine.id}/steps`, body);
+
+/** Marks a step done or skipped on a day. */
+export const checkStep = (
+  request: APIRequestContext,
+  step: RoutineStep,
+  day: string,
+  status: "done" | "skipped" = "done",
+) => send(request, "put", `/api/routine-steps/${step.id}/days/${day}`, { status });
 
 export type Section = { id: number; title: string };
 
