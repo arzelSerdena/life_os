@@ -7,7 +7,15 @@ import type {
   StepDayState,
 } from "../../client/types.gen";
 import { parseRRule } from "../pickers/repeat";
-import { dayCard, heatmap, scheduleHistory, scheduleLabel, tiles } from "./routine";
+import {
+  dayCard,
+  heatmap,
+  ruleDueOn,
+  scheduleHistory,
+  scheduleImpact,
+  scheduleLabel,
+  tiles,
+} from "./routine";
 
 const TODAY = "2026-11-18"; // a Wednesday; its week is Nov 16 to 22
 const WEEK = [
@@ -284,5 +292,47 @@ describe("dayCard", () => {
 
     expect(dayCard(paused, TODAY, [])).toEqual({ kind: "paused", since: "2026-11-17" });
     expect(dayCard(sunday, TODAY, [])).toEqual({ kind: "not_due", next: "2026-11-22" });
+  });
+});
+
+describe("ruleDueOn", () => {
+  it("reads a month's day from the rule, not the start", () => {
+    const rule = "FREQ=MONTHLY;BYMONTHDAY=14";
+    expect(ruleDueOn(rule, "2026-11-09", "2026-11-14")).toBe(true);
+    expect(ruleDueOn(rule, "2026-11-09", "2026-12-14")).toBe(true);
+    expect(ruleDueOn(rule, "2026-11-09", "2026-11-09")).toBe(false);
+  });
+
+  it("is never due before the start", () => {
+    expect(ruleDueOn("FREQ=DAILY", "2026-11-09", "2026-11-08")).toBe(false);
+  });
+});
+
+describe("scheduleImpact", () => {
+  // Daily since Mon Nov 9; today is Wed Nov 18, so Nov 9 to 17 are past.
+  it("names the weekday a change stops being due on", () => {
+    const impact = scheduleImpact(page(), "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA", "2026-11-19");
+
+    expect(impact.pastDays).toBe(9);
+    expect(impact.keeps).toBe("Keeps 9 past days as they were");
+    expect(impact.changes).toBe("Changes which of 9 past days were due · 1 Sunday no longer due");
+  });
+
+  it("counts days when they fall on different weekdays", () => {
+    const impact = scheduleImpact(page(), "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR", "2026-11-19");
+
+    expect(impact.changes).toBe("Changes which of 9 past days were due · 2 days no longer due");
+  });
+
+  it("says what a change from a past day rewrites", () => {
+    const impact = scheduleImpact(page(), "FREQ=WEEKLY;BYDAY=MO", "2026-11-16");
+
+    expect(impact.keeps).toBe("Keeps 7 past days as they were; changes 2 since Nov 16");
+  });
+
+  it("has no past for a routine that starts today", () => {
+    const routine = { ...page().routine, schedules: [{ rrule: "FREQ=DAILY", starts_on: TODAY }] };
+
+    expect(scheduleImpact(page({ routine }), "FREQ=WEEKLY;BYDAY=MO", TODAY).pastDays).toBe(0);
   });
 });

@@ -7,7 +7,7 @@ import type {
 } from "../../client/types.gen";
 import { addDays, type Period, periodInSentence } from "../../period";
 import { shortDate } from "../life-areas/overview/format";
-import { describeRepeat, parseRRule } from "../pickers/repeat";
+import { describeRepeat, matches, parseRRule } from "../pickers/repeat";
 
 /**
  * The routine page, as pure functions (Approved: routine page; docs/DOMAIN.md section 8):
@@ -63,6 +63,82 @@ export function scheduleLabel(page: RoutinePageRead): string {
   if (current.starts_on < page.today) return `${rule} · since ${shortDate(current.starts_on)}`;
   if (current.starts_on === page.today) return `${rule} · from today`;
   return `${rule} · from ${shortDate(current.starts_on)}`;
+}
+
+// ---------- Changing the schedule ----------
+
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+/** Whether a stored RRULE, running from `startsOn`, falls on `day`. Its BYMONTHDAY and
+ * BYMONTH win over the start's day, as the backend reads them. */
+export function ruleDueOn(rrule: string, startsOn: string, day: string): boolean {
+  if (day < startsOn) return false;
+  const fields = Object.fromEntries(rrule.split(";").map((part) => part.split("=")));
+  const rule = parseRRule(rrule);
+  if (rule.frequency === "monthly" || rule.frequency === "yearly") {
+    const [y, m, d] = day.split("-").map(Number);
+    const [sy, sm] = startsOn.split("-").map(Number);
+    const monthDay = Number(fields.BYMONTHDAY ?? startsOn.slice(8));
+    if (d !== monthDay) return false;
+    if (rule.frequency === "monthly") return ((y - sy) * 12 + (m - sm)) % rule.interval === 0;
+    return m === Number(fields.BYMONTH ?? sm) && (y - sy) % rule.interval === 0;
+  }
+  return matches(rule, startsOn, day);
+}
+
+/** Whether the routine's schedules made `day` due: the schedule in effect that day. */
+function scheduledOn(page: RoutinePageRead, day: string): boolean {
+  const row = [...page.routine.schedules].reverse().find((item) => item.starts_on <= day);
+  return row ? ruleDueOn(row.rrule, row.starts_on, day) : false;
+}
+
+export type ScheduleImpact = {
+  /** Days before today since the routine started. */
+  pastDays: number;
+  /** "Keeps 41 past days as they were", for a change from `from`. */
+  keeps: string;
+  /** "Changes which of 41 past days were due · 6 Sundays no longer due". */
+  changes: string;
+};
+
+/** What a new schedule would do to the past, from a date or for all days. */
+export function scheduleImpact(page: RoutinePageRead, rrule: string, from: string): ScheduleImpact {
+  const start = page.routine.schedules[0].starts_on;
+  const past = start < page.today ? each(start, addDays(page.today, -1)) : [];
+  const kept = past.filter((day) => day < from).length;
+  const lost: string[] = [];
+  let gained = 0;
+  for (const day of past) {
+    const before = scheduledOn(page, day);
+    const after = ruleDueOn(rrule, start, day);
+    if (before && !after) lost.push(day);
+    if (after && !before) gained += 1;
+  }
+  const lostDays = new Set(lost.map(weekday));
+  const lostText =
+    lost.length === 0
+      ? ""
+      : lostDays.size === 1
+        ? ` · ${lost.length} ${WEEKDAY_NAMES[weekday(lost[0])]}${lost.length === 1 ? "" : "s"} no longer due`
+        : ` · ${lost.length} ${plural(lost.length, "day")} no longer due`;
+  const gainedText = gained ? ` · ${gained} more ${plural(gained, "day")} due` : "";
+  const days = (count: number) => `${count} past ${plural(count, "day")}`;
+  return {
+    pastDays: past.length,
+    keeps:
+      kept === past.length
+        ? `Keeps ${days(kept)} as they were`
+        : `Keeps ${days(kept)} as they were; changes ${past.length - kept} since ${shortDate(from)}`,
+    changes: `Changes which of ${days(past.length)} were due${lostText}${gainedText}`,
+  };
 }
 
 /** The life areas of the steps, in step order, each once. */

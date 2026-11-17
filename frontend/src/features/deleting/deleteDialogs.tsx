@@ -36,7 +36,8 @@ export function useDeletedToast() {
   return (message: string) => show(`${message} · Can’t be undone`, null);
 }
 
-function metricNames(metrics: MetricRef[]): string {
+/** "Reading days", or "Reading days and Stretch days". */
+export function metricNames(metrics: Pick<MetricRef, "title">[]): string {
   const names = metrics.map((metric) => metric.title);
   return names.length <= 1
     ? names.join("")

@@ -140,7 +140,7 @@ export function parseRRule(rrule: string): RepeatRule {
 }
 
 /** Whether `day` (on or after the anchor) is one of the rule's dates. */
-function matches(rule: RepeatRule, anchor: string, day: string): boolean {
+export function matches(rule: RepeatRule, anchor: string, day: string): boolean {
   const [ay, am, ad] = anchor.split("-").map(Number);
   const [y, m, d] = day.split("-").map(Number);
   switch (rule.frequency) {

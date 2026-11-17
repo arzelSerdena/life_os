@@ -162,9 +162,12 @@
 
 - Checking off and skipping routine steps can be undone (migration `f6a7b8c9d0e1`: `status_changes` records `routine_log` rows). The check-off and Skip day endpoints return a `batch_id` (`RoutineStepDayChange`, `RoutineDayChange`). On the routine page, clicking a step's square opens its popover (Done / Skipped / To do, or Missed for a past day), and skipping a step or a day shows the "Skipped “Read” today" or "Skipped day · Tue, Nov 17" toast with Undo. `AnchoredPopover` moved to `components/`. Tests in `test_routines.py` (7 new); browser test in `routine-page.spec.ts`.
 
+- Applied migration `f6a7b8c9d0e1` to the real database (backup kept in the session scratchpad).
+
+- Routine page header (`features/routines/RoutineHeader.tsx`): click the name to rename it in place (Enter or leaving saves, Esc puts it back); the schedule chip opens the Repeat picker (no "Does not repeat", no Ends), then Change schedule? asks From a date (default tomorrow; "Keeps 40 past days as they were") or All days ("Changes which of 40 past days were due · 6 Sundays no longer due"), and a routine with no past yet changes at once. The ⋯ menu has Skip today (with the Skipped day toast and Undo), Pause or Resume, Archive (toast with Undo) or Restore for an archived routine, and Delete (its preview dialog, then back to `/areas`; disabled with a hint while a step feeds a metric). Rules in `routine.ts` (`ruleDueOn`, `scheduleImpact`) with tests in `routine.test.ts`; browser test in `routine-page.spec.ts`. `PanelMenu` and `metricNames` are exported for it, `matches` in `pickers/repeat.ts` too, and `ConfirmDialog` has a `plain` tone with no footer line.
+
 **Next** (code, one branch and PR each, in this order)
 
-- Routine page, header: rename, the schedule chip opening the Repeat picker then Change schedule, and the ⋯ menu (Skip today, Pause/Resume, Archive, Delete with its preview).
 - Routine page, steps: Add step, editing a step in its row (rename; ⋯ with owner, Feeds metric, Pause, Archive, Delete) and the Notes card. Then remove the stopgap routine and step detail panels (`features/detail-panel/entities.tsx`) and point step titles on the area page at the routine page.
 - New routine (sidebar + and the first-run "Set up your first routine" state) and dragging routines in the sidebar.
 - Phase 3 to 6 screens as in the roadmap: Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
