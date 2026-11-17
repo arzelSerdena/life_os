@@ -21,6 +21,7 @@ from app.schemas.routine import (
     RoutinePageRead,
     RoutinePageStepRead,
     RoutineRead,
+    RoutineReorder,
     RoutinesHistoryRead,
     RoutineStepChange,
     RoutineStepCreate,
@@ -151,6 +152,12 @@ def get_routines_history(
 @router.post("/routines", status_code=status.HTTP_201_CREATED)
 def create_routine(session: SessionDep, data: RoutineCreate) -> RoutineRead:
     return _read(service.create_routine(session, data))
+
+
+@router.post("/routines/reorder", responses=NOT_FOUND)
+def reorder_routines(session: SessionDep, data: RoutineReorder) -> list[RoutineRead]:
+    """Set the routines' order; returns the active routines in their new order."""
+    return [_read(r) for r in service.reorder_routines(session, data)]
 
 
 @router.get("/routines/{routine_id}", responses=NOT_FOUND)

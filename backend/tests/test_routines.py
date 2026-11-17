@@ -541,3 +541,76 @@ def test_history_leaves_out_archived_routines_and_steps(client: TestClient, area
 @pytest.mark.parametrize("count", [0, 372])
 def test_history_range_is_limited(client: TestClient, count: int) -> None:
     assert client.get("/api/routines/history", params={"count": count}).status_code == 422
+
+
+# ---------- Creating with steps and reordering ----------
+
+
+def test_create_routine_with_its_steps(client: TestClient, session: Session, area: int) -> None:
+    project = make_project(session, make_life_area(session, "Career"))
+
+    routine = _routine(
+        client,
+        "Workout",
+        rrule="FREQ=WEEKLY;BYDAY=MO,WE,FR",
+        starts_on="2026-11-20",
+        steps=[
+            {"title": "Warm up", "life_area_id": area},
+            {"title": "Strength circuit", "project_id": project.id},
+        ],
+    )
+
+    assert [(s["title"], s["sort_order"], s["starts_on"]) for s in routine["steps"]] == [
+        ("Warm up", 0, "2026-11-20"),
+        ("Strength circuit", 1, "2026-11-20"),
+    ]
+    circuit = routine["steps"][1]
+    assert (circuit["project_id"], circuit["life_area_id"]) == (project.id, project.life_area_id)
+
+
+def test_create_routine_with_a_step_without_an_owner_creates_nothing(client: TestClient) -> None:
+    response = client.post(
+        "/api/routines", json={"title": "Workout", "steps": [{"title": "Warm up"}]}
+    )
+
+    assert response.status_code == 422, response.text
+    assert client.get("/api/routines").json() == []
+
+
+def test_create_routine_with_a_step_in_an_archived_area_is_a_conflict(
+    client: TestClient, session: Session
+) -> None:
+    archived = make_life_area(session, "Old")
+    client.post(f"/api/life-areas/{archived.id}/archive")
+
+    response = client.post(
+        "/api/routines",
+        json={"title": "Workout", "steps": [{"title": "Warm up", "life_area_id": archived.id}]},
+    )
+
+    assert response.status_code == 409, response.text
+    assert client.get("/api/routines").json() == []
+
+
+def test_reorder_routines(client: TestClient) -> None:
+    morning, evening, weekly = (_routine(client, t)["id"] for t in ["Morning", "Evening", "Weekly"])
+    client.post(f"/api/routines/{evening}/archive")
+
+    response = client.post("/api/routines/reorder", json={"routine_ids": [weekly, morning]})
+
+    assert response.status_code == 200, response.text
+    assert [r["title"] for r in response.json()] == ["Weekly", "Morning"]
+    client.post(f"/api/routines/{evening}/unarchive")
+    titles = [r["title"] for r in client.get("/api/routines/history").json()["routines"]]
+    assert titles == ["Weekly", "Morning", "Evening"]
+
+
+def test_reorder_routines_rejects_duplicates_and_missing_ones(client: TestClient) -> None:
+    morning = _routine(client)["id"]
+
+    twice = client.post("/api/routines/reorder", json={"routine_ids": [morning, morning]})
+    missing = client.post("/api/routines/reorder", json={"routine_ids": [999]})
+
+    assert twice.status_code == 422
+    assert twice.json() == {"detail": "A routine can only appear once in the new order."}
+    assert missing.status_code == 404

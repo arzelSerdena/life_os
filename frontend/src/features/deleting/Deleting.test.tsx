@@ -308,12 +308,13 @@ test("deleting a task waits behind an undo toast, and Undo cancels it", async ()
   const { user, item } = await chooseFromMenu(panel, "Delete task");
   await user.click(item);
 
-  const toast = await screen.findByRole("status");
-  expect(toast).toHaveTextContent("Deleted “Update resume”");
+  // The sidebar's drag-and-drop has its own (empty) status region.
+  const toast = (await screen.findByText(/Deleted “Update resume”/)).closest('[role="status"]');
+  if (!(toast instanceof HTMLElement)) throw new Error("No undo toast");
   expect(screen.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
   await user.click(within(toast).getByRole("button", { name: "Undo" }));
 
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.queryByText(/Deleted “Update resume”/)).not.toBeInTheDocument();
   expect(writes()).toEqual([]);
 });
 

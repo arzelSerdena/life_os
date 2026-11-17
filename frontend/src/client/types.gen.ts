@@ -977,6 +977,27 @@ export type MetricUpdate = {
 };
 
 /**
+ * NewRoutineStep
+ *
+ * A step created with its routine: owned by a life area or a project, due from the
+ * routine's start.
+ */
+export type NewRoutineStep = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id?: number | null;
+    /**
+     * Project Id
+     */
+    project_id?: number | null;
+};
+
+/**
  * OccurrenceCancel
  */
 export type OccurrenceCancel = {
@@ -1632,7 +1653,8 @@ export type RoutineChange = {
 /**
  * RoutineCreate
  *
- * A routine, due on the days its rule says from starts_on (default: today, daily).
+ * A routine, due on the days its rule says from starts_on (default: today, daily),
+ * with its first steps in order.
  */
 export type RoutineCreate = {
     /**
@@ -1651,6 +1673,10 @@ export type RoutineCreate = {
      * Starts On
      */
     starts_on?: string | null;
+    /**
+     * Steps
+     */
+    steps?: Array<NewRoutineStep>;
 };
 
 /**
@@ -1868,6 +1894,18 @@ export type RoutineRead = {
      * Steps
      */
     steps: Array<RoutineStepRead>;
+};
+
+/**
+ * RoutineReorder
+ *
+ * The new order of the routines. Routines not listed keep their order, after these.
+ */
+export type RoutineReorder = {
+    /**
+     * Routine Ids
+     */
+    routine_ids: Array<number>;
 };
 
 /**
@@ -6735,6 +6773,37 @@ export type GetRoutinesHistoryResponses = {
 };
 
 export type GetRoutinesHistoryResponse = GetRoutinesHistoryResponses[keyof GetRoutinesHistoryResponses];
+
+export type ReorderRoutinesData = {
+    body: RoutineReorder;
+    path?: never;
+    query?: never;
+    url: '/api/routines/reorder';
+};
+
+export type ReorderRoutinesErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderRoutinesError = ReorderRoutinesErrors[keyof ReorderRoutinesErrors];
+
+export type ReorderRoutinesResponses = {
+    /**
+     * Response Reorder Routines
+     *
+     * Successful Response
+     */
+    200: Array<RoutineRead>;
+};
+
+export type ReorderRoutinesResponse = ReorderRoutinesResponses[keyof ReorderRoutinesResponses];
 
 export type DeleteRoutineData = {
     body?: never;
