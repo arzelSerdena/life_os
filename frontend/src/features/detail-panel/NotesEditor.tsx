@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { SectionCard } from "../../components/SectionCard";
 
 const SAVE_DELAY_MS = 600;
 export const NOTES_MAX_LENGTH = 50_000;
@@ -40,6 +41,9 @@ type NotesEditorProps = {
   toolbarContainer: HTMLElement | null;
   /** Shown above the notes, such as the "Notes for" switch of a repeating event. */
   header?: ReactNode;
+  /** "card": a page's Notes card (the routine page), with its title and save state in the
+   * card's header. */
+  variant?: "panel" | "card";
 };
 
 /**
@@ -52,6 +56,7 @@ export function NotesEditor({
   showSource,
   toolbarContainer,
   header,
+  variant = "panel",
 }: NotesEditorProps) {
   const latest = useRef(initialMarkdown ?? "");
   const saved = useRef(initialMarkdown ?? "");
@@ -141,21 +146,16 @@ export function NotesEditor({
             ? "Too long to save"
             : "Couldn't save"
           : "";
-
-  return (
-    <section
-      aria-label="Notes"
-      className="flex flex-col gap-1 border-t border-(--border-default) pt-3"
+  const statusLine = (
+    <span
+      role="status"
+      className={`type-meta ${state === "error" ? "text-(--text-danger)" : "text-(--text-tertiary)"}`}
     >
-      <div className="flex h-5 items-center justify-between">
-        <h3 className="type-label text-(--text-tertiary)">Notes</h3>
-        <span
-          role="status"
-          className={`type-meta ${state === "error" ? "text-(--text-danger)" : "text-(--text-tertiary)"}`}
-        >
-          {status}
-        </span>
-      </div>
+      {status}
+    </span>
+  );
+  const body = (
+    <>
       {header}
       {showSource ? (
         <textarea
@@ -177,6 +177,26 @@ export function NotesEditor({
         !showSource &&
         toolbarContainer &&
         createPortal(<Toolbar editor={editor} />, toolbarContainer)}
+    </>
+  );
+
+  if (variant === "card") {
+    return (
+      <SectionCard title="Notes" action={<span className="pt-0.5 pr-2">{statusLine}</span>}>
+        {body}
+      </SectionCard>
+    );
+  }
+  return (
+    <section
+      aria-label="Notes"
+      className="flex flex-col gap-1 border-t border-(--border-default) pt-3"
+    >
+      <div className="flex h-5 items-center justify-between">
+        <h3 className="type-label text-(--text-tertiary)">Notes</h3>
+        {statusLine}
+      </div>
+      {body}
     </section>
   );
 }

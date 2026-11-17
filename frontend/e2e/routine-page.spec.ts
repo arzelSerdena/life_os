@@ -5,6 +5,7 @@ import {
   createArea,
   createRoutine,
   createRoutineStep,
+  createStepMetric,
   serverToday,
   unique,
 } from "./api.ts";
@@ -199,14 +200,136 @@ test("the header renames, reschedules, pauses, archives and deletes", async ({ p
   ).toBeHidden();
 });
 
-test("a routine with no steps says so", async ({ page, request }) => {
+test("a routine with no steps says so, and its first step is added", async ({ page, request }) => {
+  const area = await createArea(request, unique("Health"), "teal");
   const routine = await createRoutine(request, { title: unique("Workout") });
 
   await page.goto(`/areas/routines/${routine.id}`);
 
   await expect(page.getByRole("heading", { level: 1, name: routine.title })).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Steps" }).getByText("No steps yet."),
-  ).toBeVisible();
+  const steps = page.getByRole("region", { name: "Steps" });
+  await expect(steps.getByText("No steps yet.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Previous period" })).toBeDisabled();
+
+  // With no step to copy, New step asks for an owner before it can add.
+  await steps.getByRole("button", { name: "Add step" }).click();
+  const modal = page.getByRole("dialog", { name: "New step" });
+  const title = unique("Warm up");
+  await modal.getByRole("textbox", { name: "Title" }).fill(title);
+  const add = modal.getByRole("button", { name: "Add step" });
+  await expect(add).toBeDisabled();
+  await modal.getByRole("button", { name: "Owner" }).click();
+  await page.getByRole("dialog", { name: "Owner" }).getByText(area.title).click();
+  await add.click();
+
+  await expect(modal).toBeHidden();
+  await expect(steps.getByRole("button", { name: title, exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Day" }).getByText("0/1")).toBeVisible();
+});
+
+test("steps are added, renamed, moved, paused, archived and deleted in place", async ({
+  page,
+  request,
+}) => {
+  const today = await serverToday(request);
+  const health = await createArea(request, unique("Health"), "rose");
+  const home = await createArea(request, unique("Home"), "ochre");
+  const routine = await createRoutine(request, { title: unique("Evening"), starts_on: today });
+  const read = await createRoutineStep(request, routine, {
+    title: unique("Read"),
+    life_area_id: health.id,
+    starts_on: today,
+  });
+  const metric = await createStepMetric(request, health, read, unique("Reading days"));
+
+  await page.goto(`/areas/routines/${routine.id}`);
+  const steps = page.getByRole("region", { name: "Steps" });
+
+  // Add step: the owner starts as the last step's.
+  await page.getByRole("button", { name: "Add step" }).click();
+  const modal = page.getByRole("dialog", { name: "New step" });
+  await expect(modal.getByRole("button", { name: "Owner" })).toContainText(health.title);
+  await expect(modal.getByRole("button", { name: "Starts" })).toContainText("Starts today");
+  const floss = unique("Floss");
+  await modal.getByRole("textbox", { name: "Title" }).fill(floss);
+  await modal.getByRole("textbox", { name: "Title" }).press("Enter");
+  await expect(modal).toBeHidden();
+  await expect(steps.getByRole("button", { name: floss, exact: true })).toBeVisible();
+
+  // Rename in place: Esc puts it back, Enter saves.
+  await steps.getByRole("button", { name: floss, exact: true }).click();
+  const name = steps.getByRole("textbox", { name: "Step name" });
+  await name.fill("Nope");
+  await name.press("Escape");
+  await expect(steps.getByRole("button", { name: floss, exact: true })).toBeVisible();
+  const flossed = unique("Floss teeth");
+  await steps.getByRole("button", { name: floss, exact: true }).click();
+  await name.fill(flossed);
+  await name.press("Enter");
+  await expect(steps.getByRole("button", { name: flossed, exact: true })).toBeVisible();
+
+  // While editing, the owner chip moves it, with Undo in the toast.
+  await steps.getByRole("button", { name: flossed, exact: true }).click();
+  await steps.getByRole("button", { name: "Owner" }).click();
+  await page.getByRole("dialog", { name: "Owner" }).getByText(home.title).click();
+  const moved = page.getByRole("status").filter({ hasText: `Moved “${flossed}” · ${home.title}` });
+  await expect(moved).toBeVisible();
+  await expect(steps.getByRole("button", { name: "Owner" })).toContainText(home.title);
+  await name.press("Enter");
+  await expect(name).toBeHidden();
+
+  // ⋯: pause, then resume.
+  const actions = steps.getByRole("button", { name: `Actions for ${flossed}` });
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Pause step" }).click();
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Resume step" }).click();
+  await actions.click();
+  await expect(page.getByRole("menuitem", { name: "Pause step" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toBeHidden();
+
+  // Archive leaves the page; Undo brings it back.
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Archive step" }).click();
+  await expect(steps.getByRole("button", { name: flossed, exact: true })).toBeHidden();
+  await page
+    .getByRole("status")
+    .filter({ hasText: `Archived “${flossed}”` })
+    .getByRole("button", { name: "Undo" })
+    .click();
+  await expect(steps.getByRole("button", { name: flossed, exact: true })).toBeVisible();
+
+  // A step that feeds a metric can't be deleted; another one can, after asking.
+  await steps.getByRole("button", { name: `Actions for ${read.title}` }).click();
+  await expect(page.getByRole("menuitem", { name: /Delete step/ })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
+  await expect(page.getByRole("menuitem", { name: /Delete step/ })).toContainText(
+    `Feeds ${metric.title}. Archive it instead.`,
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toBeHidden();
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Delete step" }).click();
+  await page
+    .getByRole("alertdialog", { name: `Delete “${flossed}”?` })
+    .getByRole("button", { name: "Delete step" })
+    .click();
+  await expect(steps.getByRole("button", { name: flossed, exact: true })).toBeHidden();
+  await expect(steps.getByRole("button", { name: read.title, exact: true })).toBeVisible();
+});
+
+test("the Notes card saves as you type", async ({ page, request }) => {
+  const routine = await createRoutine(request, { title: unique("Morning") });
+  await page.goto(`/areas/routines/${routine.id}`);
+
+  const notes = page.getByRole("region", { name: "Notes" });
+  await notes.getByRole("textbox", { name: "Notes" }).click();
+  await page.keyboard.type("Phone on the charger first");
+  await expect(notes.getByRole("status")).toHaveText("Saved");
+
+  await page.reload();
+  await expect(notes.getByText("Phone on the charger first")).toBeVisible();
 });

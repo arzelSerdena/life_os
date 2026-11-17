@@ -124,22 +124,32 @@ export function PanelView({
   );
 }
 
-/** The ⋯ menu: the panel's, and the routine page header's. */
-export function PanelMenu({ actions }: { actions: PanelAction[] }) {
+/** The ⋯ menu: the panel's, the routine page header's and each step row's. */
+export function PanelMenu({
+  actions,
+  label = "More actions",
+  placement = "bottom end",
+  onOpenChange,
+}: {
+  actions: PanelAction[];
+  label?: string;
+  placement?: "bottom end" | "bottom start";
+  onOpenChange?: (isOpen: boolean) => void;
+}) {
   const firstDanger = actions.find((action) => action.isDanger)?.id;
   return (
-    <Dropdown>
+    <Dropdown onOpenChange={onOpenChange}>
       <Button
         isIconOnly
         variant="ghost"
-        aria-label="More actions"
+        aria-label={label}
         className="size-7 min-w-0 rounded-(--radius-6) text-(--text-tertiary) hover:bg-(--bg-hover) hover:text-(--text-primary) [&_svg]:size-4"
       >
         <Ellipsis aria-hidden />
       </Button>
-      <Dropdown.Popover placement="bottom end" className="min-w-[200px] max-w-[250px]">
+      <Dropdown.Popover placement={placement} className="min-w-[200px] max-w-[250px]">
         <Dropdown.Menu
-          aria-label="More actions"
+          aria-label={label}
           disabledKeys={actions.filter((a) => a.isDisabled).map((a) => a.id)}
           onAction={(key) => actions.find((action) => action.id === key)?.onAction()}
         >

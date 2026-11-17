@@ -1,5 +1,5 @@
 import { ChartLine, Folder } from "lucide-react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { LifeAreaRead, ProjectRead, RoutinePageStepRead } from "../../client/types.gen";
 import type { Period } from "../../period";
 import { areaDataAttribute } from "../life-areas/palette";
@@ -162,6 +162,7 @@ export function StepsHeatmap({
   selected,
   onSelect,
   onSquare,
+  label,
   areas,
   projects,
 }: {
@@ -171,6 +172,8 @@ export function StepsHeatmap({
   onSelect: (day: string) => void;
   /** Left out for an archived routine, whose days can't change. */
   onSquare?: (target: SquareTarget) => void;
+  /** Each step's label, such as one that edits in place; StepLabel by default. */
+  label?: (row: RoutinePageStepRead) => ReactNode;
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
@@ -239,10 +242,14 @@ export function StepsHeatmap({
           )}
           className={`${ROW} mt-1.5`}
         >
-          <StepLabel
-            row={row}
-            project={projects.find((project) => project.id === row.step.project_id)}
-          />
+          {label ? (
+            label(row)
+          ) : (
+            <StepLabel
+              row={row}
+              project={projects.find((project) => project.id === row.step.project_id)}
+            />
+          )}
           <Cells
             cells={cells}
             columns={map.columns}
