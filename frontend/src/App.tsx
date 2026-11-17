@@ -5,6 +5,7 @@ import { ArchivedAreasPage } from "./features/life-areas/ArchivedAreasPage";
 import { AreaPage } from "./features/life-areas/AreaPage";
 import { AreasLayout } from "./features/life-areas/AreasLayout";
 import { AreasOverviewPage } from "./features/life-areas/AreasOverviewPage";
+import { RoutinePage } from "./features/routines/RoutinePage";
 import { InboxPage } from "./features/tasks/InboxPage";
 import { Next7Page } from "./features/tasks/Next7Page";
 import { RoutinesPage } from "./features/tasks/RoutinesPage";
@@ -23,6 +24,7 @@ export function App() {
         <Route path="areas" element={<AreasLayout />}>
           <Route index element={<AreasOverviewPage />} />
           <Route path="archived" element={<ArchivedAreasPage />} />
+          <Route path="routines/:routineId" element={<RoutinePage />} />
           <Route path=":areaId" element={<AreaPage />} />
         </Route>
         <Route path="tasks" element={<TasksLayout />}>

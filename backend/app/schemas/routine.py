@@ -220,3 +220,73 @@ class RoutinesHistoryRead(BaseModel):
     end: date
     today: date
     routines: list[RoutineHistoryRead]
+
+
+class PauseRead(BaseModel):
+    """A paused stretch: from starts_on up to, not including, ends_on (None: still paused)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    starts_on: date
+    ends_on: date | None
+
+
+class RoutineTotalsRead(BaseModel):
+    """Counts over a stretch of days up to today. completion_rate is done ÷ (done + missed)
+    as a whole percent, None when neither happened. due_days are days with a step done,
+    missed or still to do; full_days those on which every due step was done."""
+
+    done: int
+    missed: int
+    skipped: int
+    due_days: int
+    full_days: int
+    completion_rate: int | None
+
+
+class RunRead(BaseModel):
+    """Full days in a row, with the first and last of them (None while the run is 0)."""
+
+    length: int
+    start: date | None
+    end: date | None
+
+
+class RoutineBucketRead(BaseModel):
+    """One point of the tiles' lines: a day (week), a week (month, quarter) or a month (year),
+    with the current run at its end."""
+
+    start: date
+    end: date
+    totals: RoutineTotalsRead
+    run: int
+
+
+class RoutinePageStepRead(BaseModel):
+    step: RoutineStepRead
+    metric: MetricRef | None
+    next_due: date | None
+    paused_since: date | None
+    days: list[StepDayState]
+    # Done and missed days in the period, up to today.
+    done: int
+    missed: int
+
+
+class RoutinePageRead(BaseModel):
+    """One routine over a calendar period (docs/DOMAIN.md, section 8)."""
+
+    routine: RoutineRead
+    rrule: str
+    paused_since: date | None
+    pauses: list[PauseRead]
+    period: str
+    start: date
+    end: date
+    today: date
+    totals: RoutineTotalsRead
+    previous: RoutineTotalsRead | None
+    current_run: RunRead
+    best_run: RunRead
+    buckets: list[RoutineBucketRead]
+    steps: list[RoutinePageStepRead]

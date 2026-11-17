@@ -1,12 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { Archive, Folder, Plus } from "lucide-react";
+import { Archive, Folder, Pause, Plus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { NavLink, Outlet, useNavigate, useOutletContext } from "react-router";
-import { listLifeAreasOptions, listProjectsOptions } from "../../client/@tanstack/react-query.gen";
+import {
+  getRoutinesHistoryOptions,
+  listLifeAreasOptions,
+  listProjectsOptions,
+} from "../../client/@tanstack/react-query.gen";
 import { IconButton } from "../../components/IconButton";
 import { SIDEBAR_ROW, SIDEBAR_ROW_ACTIVE, Sidebar, SidebarLink } from "../../components/Sidebar";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { NewProjectModal } from "../projects/NewProjectModal";
+import { ProgressRing } from "../tasks/RoutinesPage";
+import { routineColumn } from "../tasks/routines";
 import type { LifeAreaPrefill } from "./form";
 import { LifeAreaFormModal } from "./LifeAreaFormModal";
 import { areaDataAttribute, nextFreePalette } from "./palette";
@@ -122,6 +128,10 @@ export function AreasLayout() {
           ))}
         </nav>
 
+        <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
+
+        <RoutinesGroup />
+
         <div className="flex-1" />
         <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
         <SidebarLink to="/areas/archived">
@@ -153,6 +163,44 @@ export function AreasLayout() {
           onCreated={(project) => openPanel({ kind: "project", id: project.id })}
         />
       )}
+    </>
+  );
+}
+
+/** ROUTINES: each active routine with today's ring (a pause icon while paused), in routine
+ * order; a routine opens its page. */
+function RoutinesGroup() {
+  const history = useQuery(getRoutinesHistoryOptions());
+  const routines = history.data?.routines ?? [];
+  return (
+    <>
+      <div className="mb-0.5 flex h-8 items-center gap-2 pr-1">
+        <h2 className="flex-1 pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase">
+          Routines
+        </h2>
+      </div>
+      <nav aria-label="Routines" className="flex flex-col gap-(--sidebar-item-gap)">
+        {history.isSuccess && routines.length === 0 && (
+          <p className="px-2 py-1 type-meta text-(--text-secondary)">No routines yet.</p>
+        )}
+        {routines.map((routine) => {
+          const column = routineColumn(routine, history.data?.today ?? "");
+          return (
+            <SidebarLink key={routine.id} to={`/areas/routines/${routine.id}`}>
+              {routine.paused_since ? (
+                <Pause
+                  role="img"
+                  aria-label="Paused"
+                  className="size-4 shrink-0 fill-(--color-neutral-500) stroke-none"
+                />
+              ) : (
+                <ProgressRing done={column.done} total={column.total} className="size-4" />
+              )}
+              <span className="truncate">{routine.title}</span>
+            </SidebarLink>
+          );
+        })}
+      </nav>
     </>
   );
 }

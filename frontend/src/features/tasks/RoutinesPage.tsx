@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, Pause } from "lucide-react";
+import { Link } from "react-router";
 import {
   clearRoutineStepDayMutation,
   getRoutinesHistoryOptions,
@@ -89,7 +90,12 @@ function RoutineColumnView({
             id={headingId}
             className="truncate text-base leading-6 font-semibold text-(--text-primary)"
           >
-            {routine.title}
+            <Link
+              to={`/areas/routines/${routine.id}`}
+              className="rounded-[4px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            >
+              {routine.title}
+            </Link>
           </h2>
           {column.total > 0 && <Counter count={`${column.done}/${column.total}`} />}
         </div>
@@ -213,11 +219,20 @@ function Square({ item }: { item: StepDayState }) {
 }
 
 /** Today's progress: an accent arc on a grey ring; an empty grey ring when nothing is due. */
-export function ProgressRing({ done, total }: { done: number; total: number }) {
+export function ProgressRing({
+  done,
+  total,
+  className = "size-[18px]",
+}: {
+  done: number;
+  total: number;
+  /** Its size: 18 px by default, 16 px in the sidebar. */
+  className?: string;
+}) {
   const circumference = 2 * Math.PI * 7;
   const filled = total ? (done / total) * circumference : 0;
   return (
-    <svg aria-hidden viewBox="0 0 18 18" className="size-[18px] shrink-0">
+    <svg aria-hidden viewBox="0 0 18 18" className={`${className} shrink-0`}>
       <circle cx="9" cy="9" r="7" fill="none" strokeWidth="2.5" stroke="var(--color-neutral-200)" />
       {filled > 0 && (
         <circle

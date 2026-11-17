@@ -229,7 +229,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 - **Pausing** starts today and resuming ends the pause today, so a day is either paused or due. Resuming a routine also resumes its steps; a step resumed on its own stays not due while its routine is paused.
 - A step can feed a metric (section 7). While it does, neither the step nor its routine can be deleted.
 - **Streaks** belong to one step and are calculated, never stored: the step's done due days in a row. A missed day resets the count; skipped days, paused days and today (still to do) neither count nor break it.
-- **Full days and runs** belong to the routine. A full day is a due day on which every due step was done. Skipped steps are left out of the day; a day with every step skipped, a paused day and today are neutral (they neither count nor break a run). A day with a missed step breaks the run. A **run** is full days in a row: the current run, the best run (with its dates) and, across routines, the longest run. When the current run is 0, the best run is shown first. "Streak" is never used for a routine.
+- **Full days and runs** belong to the routine. A full day is a due day on which every due step was done. Skipped steps are left out of the day; a day with every step skipped, a paused day and today while a step is still to do are neutral (they neither count nor break a run). Today counts as a full day once every due step is done or skipped. A day with a missed step breaks the run. A **run** is full days in a row: the current run, the best run (with its dates) and, across routines, the longest run. When the current run is 0, the best run is shown first. "Streak" is never used for a routine.
 - **Restoring** a routine brings back the steps its archive took (section 4).
 - Routines are ordered by `routines.sort_order`, set by dragging in the Plan sidebar.
 
@@ -307,7 +307,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Contents**: the counts an archive would affect, and whether anything still belongs to the area. Deleting is only offered when nothing does.
 
 - A **routine page** (`GET /api/routines/{id}/page?period=&date=`) shows one routine over a calendar period:
-  - **Totals**: completion rate (done ÷ (done + missed)), full days out of due days, the current and best run with their dates, missed and skipped.
+  - **Totals**: completion rate (done ÷ (done + missed)), full days out of due days (days with a step done, missed or still to do), the current run and the best run reached in the period with their dates (a run can start before the period), missed and skipped, each compared with the previous period (none for a year, or before the routine started), plus one point per day (week), week (month, quarter) or month (year) for the tiles' lines.
   - **Step days**: each step's status for every day: done, skipped, missed, paused, to do (today), upcoming, not due, or not started (before the step's `starts_on`).
   - **History**: the schedules and pauses that touch the period, and each step's completion (done of done + missed).
   - An archived routine reads the same way, read-only, opened on the period that holds its archive date; its current run is the final run.

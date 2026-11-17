@@ -115,6 +115,30 @@ export function toRRule(rule: RepeatRule, anchor: string): string {
   return parts.join(";");
 }
 
+/** A stored RRULE read back as a rule, from the schedule; it never ends (the API keeps
+ * the end apart, in `ends_on`). Rules the picker can't build fall back to their FREQ. */
+export function parseRRule(rrule: string): RepeatRule {
+  const fields = Object.fromEntries(rrule.split(";").map((part) => part.split("=")));
+  const frequencies: Record<string, Frequency> = {
+    DAILY: "daily",
+    WEEKLY: "weekly",
+    MONTHLY: "monthly",
+    YEARLY: "yearly",
+  };
+  const weekdays: number[] = (fields.BYDAY ?? "")
+    .split(",")
+    .map((day: string) => BYDAY.indexOf(day as (typeof BYDAY)[number]))
+    .filter((index: number) => index >= 0)
+    .sort();
+  return {
+    frequency: frequencies[fields.FREQ] ?? "daily",
+    interval: Number(fields.INTERVAL ?? 1) || 1,
+    weekdays,
+    from: "schedule",
+    ends: { kind: "never" },
+  };
+}
+
 /** Whether `day` (on or after the anchor) is one of the rule's dates. */
 function matches(rule: RepeatRule, anchor: string, day: string): boolean {
   const [ay, am, ad] = anchor.split("-").map(Number);
