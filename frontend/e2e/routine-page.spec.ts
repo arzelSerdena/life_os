@@ -76,6 +76,56 @@ test("a routine's page shows its run and checks today's steps off", async ({ pag
   await expect(day.getByRole("heading", { name: "Today" })).toBeVisible();
 });
 
+test("a square's popover and Skip day change a day, with Undo", async ({ page, request }) => {
+  const today = await serverToday(request);
+  const area = await createArea(request, unique("Health"), "teal");
+  const routine = await createRoutine(request, { title: unique("Morning"), starts_on: today });
+  const read = await createRoutineStep(request, routine, {
+    title: unique("Read"),
+    life_area_id: area.id,
+    starts_on: today,
+  });
+  const stretch = await createRoutineStep(request, routine, {
+    title: unique("Stretch"),
+    life_area_id: area.id,
+    starts_on: today,
+  });
+
+  await page.goto(`/areas/routines/${routine.id}`);
+  const day = page.getByRole("region", { name: "Day" });
+  await expect(day.getByText("0/2")).toBeVisible();
+  const toast = page.getByRole("status").filter({ hasText: "Skipped" });
+
+  // A step's square opens its popover: Done checks it off.
+  const square = page.getByTitle(`${read.title} · ${weekdayDate(today)}`);
+  await square.click();
+  const popover = page.getByRole("dialog", { name: `${read.title}, ${weekdayDate(today)}` });
+  await expect(popover.getByRole("button", { name: "To do" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await popover.getByRole("button", { name: "Done" }).click();
+  await expect(popover).toBeHidden();
+  await expect(day.getByRole("checkbox", { name: `Mark ${read.title} not done` })).toBeChecked();
+
+  // Skipped from the popover says so, and Undo puts the check back.
+  await square.click();
+  await popover.getByRole("button", { name: "Skipped" }).click();
+  await expect(toast.getByText(`Skipped “${read.title}” today`)).toBeVisible();
+  await expect(day.getByText("0/1")).toBeVisible();
+  await toast.getByRole("button", { name: "Undo" }).click();
+  await expect(day.getByRole("checkbox", { name: `Mark ${read.title} not done` })).toBeChecked();
+
+  // Skip day skips what's left; Undo brings it back.
+  await day.getByRole("button", { name: "Skip day" }).click();
+  await expect(toast.getByText(`Skipped day · ${weekdayDate(today)}`)).toBeVisible();
+  const stretchRow = day.getByRole("listitem").filter({ hasText: stretch.title });
+  await expect(stretchRow.getByText("Skipped")).toBeVisible();
+  await toast.getByRole("button", { name: "Undo" }).click();
+  await expect(stretchRow.getByText("Skipped")).toBeHidden();
+  await expect(day.getByText("1/2")).toBeVisible();
+});
+
 test("a routine with no steps says so", async ({ page, request }) => {
   const routine = await createRoutine(request, { title: unique("Workout") });
 

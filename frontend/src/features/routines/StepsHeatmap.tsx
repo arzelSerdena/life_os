@@ -4,6 +4,7 @@ import type { LifeAreaRead, ProjectRead, RoutinePageStepRead } from "../../clien
 import type { Period } from "../../period";
 import { areaDataAttribute } from "../life-areas/palette";
 import type { DayState, HeatCell, Heatmap } from "./routine";
+import { canEditSquare, type SquareTarget } from "./SquarePopover";
 
 /** Squares grow as the period shrinks: a quarter or year is dense, a week is wide. */
 const SIZE: Record<Period, string> = {
@@ -66,6 +67,7 @@ function Cells({
   isAll,
   selected,
   onSelect,
+  onSquare,
 }: {
   cells: HeatCell[];
   columns: number;
@@ -73,6 +75,8 @@ function Cells({
   isAll: boolean;
   selected: string | null;
   onSelect: (day: string) => void;
+  /** A step's square with a state that can be changed: opens its popover. */
+  onSquare?: (anchor: HTMLElement, day: string, state: DayState) => void;
 }) {
   return (
     <div
@@ -81,16 +85,26 @@ function Cells({
     >
       {cells.map((cell) => {
         const { className, style } = cellStyle(cell, isAll, selected);
-        const { day } = cell;
+        const { day, state } = cell;
         return (
-          // Squares are pointer shortcuts to the Day card; its Today button and the
-          // period switch reach the same days from the keyboard.
+          // Squares are pointer shortcuts to the Day card, whose rows check off and skip
+          // the same steps; its Today button and the period switch reach the same days
+          // from the keyboard.
           // biome-ignore lint/a11y/noStaticElementInteractions: see above
           // biome-ignore lint/a11y/useKeyWithClickEvents: see above
           <i
             key={cell.key}
             title={cell.label}
-            onClick={day ? () => onSelect(day) : undefined}
+            onClick={
+              day
+                ? (event) => {
+                    onSelect(day);
+                    if (onSquare && state !== "share" && canEditSquare(state)) {
+                      onSquare(event.currentTarget, day, state);
+                    }
+                  }
+                : undefined
+            }
             className={`block h-full ${day ? "cursor-pointer hover:outline-[1.5px] hover:outline-offset-1 hover:outline-(--color-neutral-500) hover:outline-solid" : ""} ${className}`}
             style={style}
           />
@@ -147,6 +161,7 @@ export function StepsHeatmap({
   period,
   selected,
   onSelect,
+  onSquare,
   areas,
   projects,
 }: {
@@ -154,6 +169,8 @@ export function StepsHeatmap({
   period: Period;
   selected: string | null;
   onSelect: (day: string) => void;
+  /** Left out for an archived routine, whose days can't change. */
+  onSquare?: (target: SquareTarget) => void;
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
@@ -233,6 +250,11 @@ export function StepsHeatmap({
             isAll={false}
             selected={selected}
             onSelect={onSelect}
+            onSquare={
+              onSquare &&
+              ((anchor, day, state) =>
+                onSquare({ anchor, stepId: row.step.id, title: row.step.title, day, state }))
+            }
           />
         </div>
       ))}

@@ -917,7 +917,8 @@ export const resumeRoutine = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Skip Routine Day
  *
- * Skip the whole routine on one day. Steps already checked keep their state.
+ * Skip the whole routine on one day, recorded for undo. Steps already checked keep their
+ * state.
  */
 export const skipRoutineDay = <ThrowOnError extends boolean = false>(options: Options<SkipRoutineDayData, ThrowOnError>): RequestResult<SkipRoutineDayResponses, SkipRoutineDayErrors, ThrowOnError> => (options.client ?? client).post<SkipRoutineDayResponses, SkipRoutineDayErrors, ThrowOnError>({ url: '/api/routines/{routine_id}/days/{day}/skip', ...options });
 
@@ -1019,7 +1020,7 @@ export const clearRoutineStepDay = <ThrowOnError extends boolean = false>(option
 /**
  * Set Routine Step Day
  *
- * Mark the step done or skipped on a due day.
+ * Mark the step done or skipped on a due day, recorded for undo.
  */
 export const setRoutineStepDay = <ThrowOnError extends boolean = false>(options: Options<SetRoutineStepDayData, ThrowOnError>): RequestResult<SetRoutineStepDayResponses, SetRoutineStepDayErrors, ThrowOnError> => (options.client ?? client).put<SetRoutineStepDayResponses, SetRoutineStepDayErrors, ThrowOnError>({
     url: '/api/routine-steps/{step_id}/days/{day}',

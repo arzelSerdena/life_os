@@ -163,6 +163,20 @@ class RoutineStepDay(BaseModel):
         )
 
 
+class RoutineStepDayChange(BaseModel):
+    """The step's day after checking it, and the batch to pass to undo (None if unchanged)."""
+
+    step_day: RoutineStepDay
+    batch_id: str | None
+
+
+class RoutineDayChange(BaseModel):
+    """Every step due that day after skipping it, and the batch to pass to undo."""
+
+    steps: list[RoutineStepDay]
+    batch_id: str | None
+
+
 class RoutineChange(BaseModel):
     """The routine after the change, and the batch to pass to undo (None if nothing changed)."""
 

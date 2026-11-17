@@ -14,6 +14,7 @@ import {
   updateTaskMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { DaysRead, EventChange } from "../../client/types.gen";
+import { AnchoredPopover } from "../../components/AnchoredPopover";
 import { QueryError } from "../../components/QueryError";
 import { today as localToday } from "../../period";
 import { useCalendarStore } from "../../stores/calendarStore";
@@ -29,7 +30,7 @@ import type { RowContext } from "./AgendaRow";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarHeader } from "./CalendarHeader";
 import { AgendaPanel, InboxPanel } from "./CalendarPanel";
-import { AddMenu, AnchoredPopover, DayPopover, RoutinePopover } from "./CalendarPopovers";
+import { AddMenu, DayPopover, RoutinePopover } from "./CalendarPopovers";
 import { CalendarSidebar } from "./CalendarSidebar";
 import {
   agendaDays,

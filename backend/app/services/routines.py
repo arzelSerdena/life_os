@@ -326,19 +326,26 @@ def resume_routine(session: Session, routine_id: int) -> Routine:
     return _save(session, routine)
 
 
-def skip_day(session: Session, routine_id: int, day: date) -> list[StepDay]:
-    """Skip the whole routine on one day: every due step not already checked is skipped."""
+def skip_day(session: Session, routine_id: int, day: date) -> tuple[list[StepDay], str | None]:
+    """Skip the whole routine on one day: every due step not already checked is skipped.
+
+    Recorded for undo, which removes the skips it added.
+    """
     routine = _get_active_routine(session, routine_id)
+    history = ChangeRecorder(session)
     for step in routine.steps:
         already_checked = any(log.date == day for log in step.logs)
         if step.archived_at is None and not already_checked and is_due(routine, step, day):
-            step.logs.append(RoutineLog(date=day, status="skipped"))
+            log = RoutineLog(date=day, status="skipped")
+            step.logs.append(log)
+            history.created(log)
     session.commit()
-    return [
+    steps = [
         StepDay(step, routine, day, day_status(step, day))
         for step in routine.steps
         if step.archived_at is None and is_due(routine, step, day)
     ]
+    return steps, history.batch_id
 
 
 def archive_routine(session: Session, routine_id: int) -> tuple[Routine, str | None]:
@@ -468,21 +475,25 @@ def delete_step(session: Session, step_id: int) -> None:
     session.commit()
 
 
-def set_log(session: Session, step_id: int, day: date, status: str) -> StepDay:
-    """Mark the step done or skipped on a due day. Done can't be in the future."""
+def set_log(session: Session, step_id: int, day: date, status: str) -> tuple[StepDay, str | None]:
+    """Mark the step done or skipped on a due day, recorded for undo. Done can't be in the
+    future."""
     step = _get_active_step(session, step_id)
     routine = get_routine(session, step.routine_id)
     if not is_due(routine, step, day):
         raise UnprocessableError(f"Routine step {step_id} isn't due on {day}.")
     if status == "done" and day > clock.today():
         raise UnprocessableError("A step can't be done on a day that hasn't come yet.")
+    history = ChangeRecorder(session)
     log = next((log for log in step.logs if log.date == day), None)
     if log is None:
-        step.logs.append(RoutineLog(date=day, status=status))
+        log = RoutineLog(date=day, status=status)
+        step.logs.append(log)
+        history.created(log)
     else:
-        log.status = status
+        history.set(log, "status", status)
     session.commit()
-    return StepDay(step, routine, day, day_status(step, day))
+    return StepDay(step, routine, day, day_status(step, day)), history.batch_id
 
 
 def clear_log(session: Session, step_id: int, day: date) -> StepDay:

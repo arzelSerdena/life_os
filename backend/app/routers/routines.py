@@ -15,6 +15,7 @@ from app.schemas.routine import (
     RoutineBucketRead,
     RoutineChange,
     RoutineCreate,
+    RoutineDayChange,
     RoutineHistoryRead,
     RoutineLogSet,
     RoutinePageRead,
@@ -24,6 +25,7 @@ from app.schemas.routine import (
     RoutineStepChange,
     RoutineStepCreate,
     RoutineStepDay,
+    RoutineStepDayChange,
     RoutineStepMove,
     RoutineStepRead,
     RoutineStepUpdate,
@@ -235,11 +237,13 @@ def resume_routine(session: SessionDep, routine_id: int) -> RoutineRead:
 
 
 @router.post("/routines/{routine_id}/days/{day}/skip", responses={**NOT_FOUND, **CONFLICT})
-def skip_routine_day(session: SessionDep, routine_id: int, day: date) -> list[RoutineStepDay]:
-    """Skip the whole routine on one day. Steps already checked keep their state."""
-    return [
-        RoutineStepDay.from_step_day(item) for item in service.skip_day(session, routine_id, day)
-    ]
+def skip_routine_day(session: SessionDep, routine_id: int, day: date) -> RoutineDayChange:
+    """Skip the whole routine on one day, recorded for undo. Steps already checked keep their
+    state."""
+    found, batch_id = service.skip_day(session, routine_id, day)
+    return RoutineDayChange(
+        steps=[RoutineStepDay.from_step_day(item) for item in found], batch_id=batch_id
+    )
 
 
 @router.post("/routines/{routine_id}/archive", responses=NOT_FOUND)
@@ -342,9 +346,10 @@ def delete_routine_step(session: SessionDep, step_id: int) -> None:
 @router.put("/routine-steps/{step_id}/days/{day}", responses={**NOT_FOUND, **CONFLICT})
 def set_routine_step_day(
     session: SessionDep, step_id: int, day: date, data: RoutineLogSet
-) -> RoutineStepDay:
-    """Mark the step done or skipped on a due day."""
-    return RoutineStepDay.from_step_day(service.set_log(session, step_id, day, data.status))
+) -> RoutineStepDayChange:
+    """Mark the step done or skipped on a due day, recorded for undo."""
+    found, batch_id = service.set_log(session, step_id, day, data.status)
+    return RoutineStepDayChange(step_day=RoutineStepDay.from_step_day(found), batch_id=batch_id)
 
 
 @router.delete("/routine-steps/{step_id}/days/{day}", responses=NOT_FOUND)

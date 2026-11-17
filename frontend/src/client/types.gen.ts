@@ -1654,6 +1654,22 @@ export type RoutineCreate = {
 };
 
 /**
+ * RoutineDayChange
+ *
+ * Every step due that day after skipping it, and the batch to pass to undo.
+ */
+export type RoutineDayChange = {
+    /**
+     * Steps
+     */
+    steps: Array<RoutineStepDay>;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
+};
+
+/**
  * RoutineDeletePreview
  *
  * Deleting is refused while `metrics` is not empty: those metrics count a step's days.
@@ -1931,6 +1947,19 @@ export type RoutineStepDay = {
      * Status
      */
     status: 'todo' | 'done' | 'skipped' | 'missed';
+};
+
+/**
+ * RoutineStepDayChange
+ *
+ * The step's day after checking it, and the batch to pass to undo (None if unchanged).
+ */
+export type RoutineStepDayChange = {
+    step_day: RoutineStepDay;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
 };
 
 /**
@@ -7001,11 +7030,9 @@ export type SkipRoutineDayError = SkipRoutineDayErrors[keyof SkipRoutineDayError
 
 export type SkipRoutineDayResponses = {
     /**
-     * Response Skip Routine Day
-     *
      * Successful Response
      */
-    200: Array<RoutineStepDay>;
+    200: RoutineDayChange;
 };
 
 export type SkipRoutineDayResponse = SkipRoutineDayResponses[keyof SkipRoutineDayResponses];
@@ -7517,7 +7544,7 @@ export type SetRoutineStepDayResponses = {
     /**
      * Successful Response
      */
-    200: RoutineStepDay;
+    200: RoutineStepDayChange;
 };
 
 export type SetRoutineStepDayResponse = SetRoutineStepDayResponses[keyof SetRoutineStepDayResponses];

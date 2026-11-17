@@ -146,8 +146,8 @@ def test_checking_a_step_done_skipped_and_back(client: TestClient, area: int) ->
     routine = _routine(client, starts_on="2026-11-16")
     step = _step(client, routine, area, starts_on="2026-11-16")
 
-    assert _check(client, step, "2026-11-18").json()["status"] == "done"
-    assert _check(client, step, "2026-11-17", "skipped").json()["status"] == "skipped"
+    assert _check(client, step, "2026-11-18").json()["step_day"]["status"] == "done"
+    assert _check(client, step, "2026-11-17", "skipped").json()["step_day"]["status"] == "skipped"
     assert _day(client) == {"Stretch": "done"}
 
     cleared = client.delete(f"/api/routine-steps/{step['id']}/days/2026-11-17").json()
@@ -178,10 +178,87 @@ def test_skipping_a_day_skips_every_unchecked_step(client: TestClient, area: int
 
     response = client.post(f"/api/routines/{routine['id']}/days/2026-11-18/skip")
 
-    assert {item["title"]: item["status"] for item in response.json()} == {
+    assert {item["title"]: item["status"] for item in response.json()["steps"]} == {
         "Stretch": "done",
         "Meditate": "skipped",
     }
+
+
+# ---------- Undoing check-offs and skips ----------
+
+
+def test_checking_a_step_off_can_be_undone(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    step = _step(client, routine, area, starts_on="2026-11-16")
+
+    change = _check(client, step, "2026-11-18").json()
+    client.post(f"/api/undo/{change['batch_id']}")
+
+    assert _day(client) == {"Stretch": "todo"}
+
+
+def test_changing_a_check_off_undoes_to_the_old_status(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    step = _step(client, routine, area, starts_on="2026-11-16")
+    _check(client, step, "2026-11-18")
+
+    change = _check(client, step, "2026-11-18", "skipped").json()
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 200
+
+    assert _day(client) == {"Stretch": "done"}
+
+
+def test_checking_the_same_status_again_has_nothing_to_undo(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    step = _step(client, routine, area, starts_on="2026-11-16")
+    _check(client, step, "2026-11-18")
+
+    assert _check(client, step, "2026-11-18").json()["batch_id"] is None
+
+
+def test_a_check_off_changed_since_cant_be_undone(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    step = _step(client, routine, area, starts_on="2026-11-16")
+    change = _check(client, step, "2026-11-18", "skipped").json()
+    _check(client, step, "2026-11-18", "done")
+
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 409
+    assert _day(client) == {"Stretch": "done"}
+
+
+def test_undoing_a_check_off_cleared_since_changes_nothing(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    step = _step(client, routine, area, starts_on="2026-11-16")
+    change = _check(client, step, "2026-11-18").json()
+    client.delete(f"/api/routine-steps/{step['id']}/days/2026-11-18")
+
+    assert client.post(f"/api/undo/{change['batch_id']}").status_code == 200
+    assert _day(client) == {"Stretch": "todo"}
+
+
+def test_skipping_a_day_can_be_undone(client: TestClient, area: int) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    stretch = _step(client, routine, area, "Stretch", starts_on="2026-11-16")
+    _step(client, routine, area, "Meditate", starts_on="2026-11-16")
+    _check(client, stretch, "2026-11-18")
+
+    change = client.post(f"/api/routines/{routine['id']}/days/2026-11-18/skip").json()
+    client.post(f"/api/undo/{change['batch_id']}")
+
+    # The step checked before the skip keeps its check
+    assert _day(client) == {"Stretch": "done", "Meditate": "todo"}
+
+
+def test_skipping_a_day_with_nothing_left_has_nothing_to_undo(
+    client: TestClient, area: int
+) -> None:
+    routine = _routine(client, starts_on="2026-11-16")
+    stretch = _step(client, routine, area, starts_on="2026-11-16")
+    _check(client, stretch, "2026-11-18")
+
+    change = client.post(f"/api/routines/{routine['id']}/days/2026-11-18/skip").json()
+
+    assert change["batch_id"] is None
 
 
 def test_day_view_filters_and_hides_archived(
