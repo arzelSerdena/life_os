@@ -29,6 +29,7 @@ import {
   tiles,
 } from "./routine";
 import { Sparkline } from "./Sparkline";
+import { SquarePopover, type SquareTarget } from "./SquarePopover";
 import { StepLabel, StepsHeatmap } from "./StepsHeatmap";
 
 /** One routine over the selected period (Approved: routine page). Routines and their steps
@@ -75,6 +76,7 @@ function RoutineView({
   projects: ProjectRead[];
 }) {
   const [selected, setSelected] = useState(page.today);
+  const [square, setSquare] = useState<SquareTarget | null>(null);
   const { routine } = page;
   const hasSteps = page.steps.length > 0;
   const areaOf = (id: number) => areas.find((area) => area.id === id);
@@ -135,6 +137,7 @@ function RoutineView({
                   period={period}
                   selected={selected === page.today ? null : selected}
                   onSelect={setSelected}
+                  onSquare={routine.archived_at ? undefined : setSquare}
                   areas={areas}
                   projects={projects}
                 />
@@ -162,6 +165,9 @@ function RoutineView({
           </div>
         </div>
       </div>
+      {square && (
+        <SquarePopover target={square} today={page.today} onClose={() => setSquare(null)} />
+      )}
     </div>
   );
 }

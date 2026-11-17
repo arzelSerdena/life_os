@@ -18,6 +18,7 @@ from app.models import (
     Metric,
     Project,
     Routine,
+    RoutineLog,
     RoutineStep,
     StatusChange,
     Subtask,
@@ -36,12 +37,13 @@ ENTITY_MODELS: dict[str, type[Base]] = {
     "metric": Metric,
     "routine": Routine,
     "routine_step": RoutineStep,
+    "routine_log": RoutineLog,
 }
 ENTITY_TYPES = {model: name for name, model in ENTITY_MODELS.items()}
 
-# A status_changes row with this field means "the batch created this row" (a task, or an
-# event exception). Its new_value holds a snapshot, so undo only removes the row if nobody
-# has changed it since.
+# A status_changes row with this field means "the batch created this row" (a task, an event
+# exception, or a routine step's log for a day). Its new_value holds a snapshot, so undo only
+# removes the row if nobody has changed it since.
 CREATED = "_created"
 SNAPSHOT_SKIP = {"id", "created_at", "updated_at"}
 
@@ -105,8 +107,8 @@ class ChangeRecorder:
         self._record(entity, field, _dump(old_value), _dump(value))
         setattr(entity, field, value)
 
-    def created(self, entity: Task | EventException) -> None:
-        """Record a task or event exception the change created, so undo can remove it."""
+    def created(self, entity: Task | EventException | RoutineLog) -> None:
+        """Record a row the change created, so undo can remove it."""
         self._session.flush()  # assigns the id
         self._record(entity, CREATED, None, _snapshot(entity))
 

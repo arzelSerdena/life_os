@@ -16,6 +16,7 @@ ENTITY_TYPES = (
     "metric",
     "routine",
     "routine_step",
+    "routine_log",
 )
 
 

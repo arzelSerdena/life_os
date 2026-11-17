@@ -1,7 +1,5 @@
-import { Popover } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { CalendarDays, Check, Plus, SquareCheck, X } from "lucide-react";
-import { type ReactNode, type RefObject, useMemo } from "react";
 import {
   clearRoutineStepDayMutation,
   setRoutineStepDayMutation,
@@ -15,48 +13,6 @@ import { ProgressRing } from "../tasks/RoutinesPage";
 import { EntryRow, type RowContext } from "./AgendaRow";
 import type { Entry } from "./calendar";
 import type { ColorOf } from "./GridEntry";
-
-/**
- * A popover opened from something the calendar drew (a routine, "+3 more", a day), so it
- * anchors to that element instead of wrapping a trigger. Esc and a click outside close it.
- */
-export function AnchoredPopover({
-  anchor,
-  label,
-  width,
-  placement = "bottom start",
-  onClose,
-  children,
-}: {
-  anchor: HTMLElement;
-  label: string;
-  width: number;
-  placement?: "bottom start" | "right top" | "bottom";
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  const triggerRef: RefObject<HTMLElement> = useMemo(() => ({ current: anchor }), [anchor]);
-  const onOpenChange = (isOpen: boolean) => {
-    if (!isOpen) onClose();
-  };
-  // The root carries HeroUI's popover styles. It needs a trigger to press, so a hidden one
-  // stands in; the popover is placed by the anchor.
-  return (
-    <Popover isOpen onOpenChange={onOpenChange}>
-      <Popover.Trigger aria-hidden tabIndex={-1} className="hidden" />
-      <Popover.Content
-        triggerRef={triggerRef}
-        placement={placement}
-        style={{ width }}
-        className="rounded-[10px] border border-(--border-default) p-0"
-      >
-        <Popover.Dialog aria-label={label} className="flex flex-col p-1.5 outline-none">
-          {children}
-        </Popover.Dialog>
-      </Popover.Content>
-    </Popover>
-  );
-}
 
 /** A day's routines with their steps; checking a step logs it for that day. */
 export function RoutinePopover({

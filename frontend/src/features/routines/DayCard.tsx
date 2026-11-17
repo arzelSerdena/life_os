@@ -11,10 +11,12 @@ import {
 import type { LifeAreaRead, ProjectRead, RoutinePageRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { QueryError } from "../../components/QueryError";
+import { useChangeToast } from "../../stores/changeToastStore";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { ProgressRing } from "../tasks/RoutinesPage";
 import { type DayRow, dayCard, weekdayDate } from "./routine";
+import { skippedMessage } from "./SquarePopover";
 
 /**
  * The Day card beside the heatmap: today by default, or the day clicked in the heatmap.
@@ -35,7 +37,11 @@ export function DayCard({
   projects: ProjectRead[];
 }) {
   const due = useQuery(listRoutineStepsForDayOptions({ query: { day } }));
-  const skipDay = useMutation(skipRoutineDayMutation());
+  const showToast = useChangeToast((state) => state.show);
+  const skipDay = useMutation({
+    ...skipRoutineDayMutation(),
+    onSuccess: (change) => showToast(`Skipped day · ${weekdayDate(day)}`, change.batch_id),
+  });
   const resume = useMutation(resumeRoutineMutation());
   const isToday = day === page.today;
   const card = due.data ? dayCard(page, day, due.data) : null;
@@ -102,8 +108,7 @@ export function DayCard({
                   key={item.row.step.id}
                   item={item}
                   day={day}
-                  isToday={isToday}
-                  isPast={day < page.today}
+                  today={page.today}
                   isArchived={isArchived}
                   color={
                     areas.find((area) => area.id === item.row.step.life_area_id)?.color ?? undefined
@@ -140,22 +145,23 @@ const STATE_LABEL: Partial<Record<DayRow["state"], string>> = {
 function StepRow({
   item,
   day,
-  isToday,
-  isPast,
+  today,
   isArchived,
   color,
   project,
 }: {
   item: DayRow;
   day: string;
-  isToday: boolean;
-  isPast: boolean;
+  today: string;
   isArchived: boolean;
   color: string | undefined;
   project: ProjectRead | undefined;
 }) {
+  const showToast = useChangeToast((state) => state.show);
   const set = useMutation(setRoutineStepDayMutation());
   const clear = useMutation(clearRoutineStepDayMutation());
+  const isToday = day === today;
+  const isPast = day < today;
   const { row, state } = item;
   const { step } = row;
   const path = { step_id: step.id, day };
@@ -257,7 +263,15 @@ function StepRow({
           <IconButton
             label={`Skip ${step.title}`}
             isDisabled={busy}
-            onPress={() => set.mutate({ path, body: { status: "skipped" } })}
+            onPress={() =>
+              set.mutate(
+                { path, body: { status: "skipped" } },
+                {
+                  onSuccess: (change) =>
+                    showToast(skippedMessage(step.title, day, today), change.batch_id),
+                },
+              )
+            }
           >
             <CircleMinus />
           </IconButton>

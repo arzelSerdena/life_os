@@ -2036,7 +2036,8 @@ export const resumeRoutineMutation = (options?: Partial<Options<ResumeRoutineDat
 /**
  * Skip Routine Day
  *
- * Skip the whole routine on one day. Steps already checked keep their state.
+ * Skip the whole routine on one day, recorded for undo. Steps already checked keep their
+ * state.
  */
 export const skipRoutineDayMutation = (options?: Partial<Options<SkipRoutineDayData>>): UseMutationOptions<SkipRoutineDayResponse, SkipRoutineDayError, Options<SkipRoutineDayData>> => {
     const mutationOptions: UseMutationOptions<SkipRoutineDayResponse, SkipRoutineDayError, Options<SkipRoutineDayData>> = {
@@ -2287,7 +2288,7 @@ export const clearRoutineStepDayMutation = (options?: Partial<Options<ClearRouti
 /**
  * Set Routine Step Day
  *
- * Mark the step done or skipped on a due day.
+ * Mark the step done or skipped on a due day, recorded for undo.
  */
 export const setRoutineStepDayMutation = (options?: Partial<Options<SetRoutineStepDayData>>): UseMutationOptions<SetRoutineStepDayResponse, SetRoutineStepDayError, Options<SetRoutineStepDayData>> => {
     const mutationOptions: UseMutationOptions<SetRoutineStepDayResponse, SetRoutineStepDayError, Options<SetRoutineStepDayData>> = {
