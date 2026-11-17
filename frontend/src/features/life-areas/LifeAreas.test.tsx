@@ -214,7 +214,8 @@ test("archives an empty area at once with an undo toast, then restores it", asyn
     expect(sidebarAreas().queryByRole("link", { name: "Health" })).not.toBeInTheDocument(),
   );
 
-  expect(await screen.findByRole("status")).toHaveTextContent("Archived “Health”");
+  // The sidebar's drag-and-drop has its own (empty) status region.
+  expect(await screen.findByText(/Archived “Health”/)).toBeInTheDocument();
 
   await user.click(screen.getByRole("link", { name: "Finished & archived" }));
   await user.click(await screen.findByRole("button", { name: "Restore" }));

@@ -21,6 +21,7 @@ from app.models.base import utc_now
 from app.schemas.routine import (
     HistoryState,
     RoutineCreate,
+    RoutineReorder,
     RoutineStepCreate,
     RoutineStepMove,
     RoutineStepUpdate,
@@ -276,15 +277,53 @@ def get_routine(session: Session, routine_id: int) -> Routine:
 
 
 def create_routine(session: Session, data: RoutineCreate) -> Routine:
+    """Create the routine and its first steps in one transaction."""
     last_position = session.scalar(select(Routine.sort_order).order_by(Routine.sort_order.desc()))
+    starts_on = data.starts_on or clock.today()
+    steps: list[RoutineStep] = []
+    for position, new_step in enumerate(data.steps):
+        owner = resolve_owner(
+            session,
+            life_area_id=new_step.life_area_id,
+            project_id=new_step.project_id,
+            section_id=None,
+            allow_inbox=False,
+        )
+        assert owner.life_area_id is not None
+        steps.append(
+            RoutineStep(
+                title=new_step.title,
+                life_area_id=owner.life_area_id,
+                project_id=owner.project_id,
+                starts_on=starts_on,
+                sort_order=position,
+            )
+        )
     routine = Routine(
         title=data.title,
         notes=data.notes,
         sort_order=0 if last_position is None else last_position + 1,
-        schedules=[RoutineSchedule(rrule=data.rrule, starts_on=data.starts_on or clock.today())],
+        schedules=[RoutineSchedule(rrule=data.rrule, starts_on=starts_on)],
+        steps=steps,
     )
     session.add(routine)
     return _save(session, routine)
+
+
+def reorder_routines(session: Session, data: RoutineReorder) -> Sequence[Routine]:
+    """Set the order used by the sidebar, the Routines board and the overview, in one step."""
+    if len(set(data.routine_ids)) != len(data.routine_ids):
+        raise UnprocessableError("A routine can only appear once in the new order.")
+    listed = [get_routine(session, routine_id) for routine_id in data.routine_ids]
+    others = session.scalars(
+        select(Routine)
+        .where(Routine.id.not_in(data.routine_ids))
+        .order_by(Routine.sort_order, Routine.id)
+    ).all()
+    for position, routine in enumerate([*listed, *others]):
+        routine.sort_order = position
+    session.commit()
+    return list_routines(session)
 
 
 def update_routine(session: Session, routine_id: int, data: RoutineUpdate) -> Routine:

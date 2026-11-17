@@ -1,16 +1,39 @@
-import { useQuery } from "@tanstack/react-query";
-import { Archive, Folder, Pause, Plus } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Archive, Folder, GripVertical, Pause, Plus } from "lucide-react";
+import { type ReactNode, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate, useOutletContext } from "react-router";
 import {
   getRoutinesHistoryOptions,
+  getRoutinesHistoryQueryKey,
   listLifeAreasOptions,
   listProjectsOptions,
+  reorderRoutinesMutation,
 } from "../../client/@tanstack/react-query.gen";
+import type { RoutineHistoryRead, RoutinesHistoryRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { SIDEBAR_ROW, SIDEBAR_ROW_ACTIVE, Sidebar, SidebarLink } from "../../components/Sidebar";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { NewProjectModal } from "../projects/NewProjectModal";
+import { NewRoutineModal } from "../routines/NewRoutineModal";
+import { moveRoutine } from "../routines/newRoutine";
 import { ProgressRing } from "../tasks/RoutinesPage";
 import { routineColumn } from "../tasks/routines";
 import type { LifeAreaPrefill } from "./form";
@@ -22,6 +45,8 @@ type AreasContext = {
   openCreateForm: (prefill?: LifeAreaPrefill) => void;
   /** Opens the New project pop-up, with an area chosen if one is given. */
   openNewProject: (lifeAreaId?: number) => void;
+  /** Opens New routine, optionally with a quick-start name filled in. */
+  openNewRoutine: (title?: string) => void;
 };
 
 /** Lets pages inside the Areas group open the New area pop-up. */
@@ -36,6 +61,8 @@ export function AreasLayout() {
   const navigate = useNavigate();
   const [formTarget, setFormTarget] = useState<FormTarget | null>(null);
   const [newProject, setNewProject] = useState<{ lifeAreaId?: number } | null>(null);
+  const [newRoutine, setNewRoutine] = useState<{ title?: string } | null>(null);
+  const history = useQuery(getRoutinesHistoryOptions());
   const lifeAreas = useQuery(listLifeAreasOptions());
   const activeAreas = lifeAreas.data ?? [];
   const projects = useQuery(listProjectsOptions());
@@ -56,6 +83,7 @@ export function AreasLayout() {
   const context: AreasContext = {
     openCreateForm: (prefill) => setFormTarget({ prefill }),
     openNewProject: (lifeAreaId) => setNewProject({ lifeAreaId }),
+    openNewRoutine: (title) => setNewRoutine({ title }),
   };
 
   return (
@@ -130,7 +158,7 @@ export function AreasLayout() {
 
         <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
 
-        <RoutinesGroup />
+        <RoutinesGroup onNew={() => context.openNewRoutine()} />
 
         <div className="flex-1" />
         <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
@@ -163,46 +191,173 @@ export function AreasLayout() {
           onCreated={(project) => openPanel({ kind: "project", id: project.id })}
         />
       )}
+
+      {newRoutine && history.data && (
+        <NewRoutineModal
+          today={history.data.today}
+          title={newRoutine.title}
+          lifeAreas={activeAreas}
+          projects={activeProjects}
+          onClose={() => setNewRoutine(null)}
+          onCreated={(routine) => {
+            setNewRoutine(null);
+            navigate(`/areas/routines/${routine.id}`);
+          }}
+        />
+      )}
     </>
   );
 }
 
-/** ROUTINES: each active routine with today's ring (a pause icon while paused), in routine
- * order; a routine opens its page. */
-function RoutinesGroup() {
+/** ROUTINES: the heading opens the routines page and + opens New routine; each active routine
+ * shows today's ring (a pause icon while paused), in routine order. Rows are dragged into a
+ * new order: the row lifts and a dashed spot shows where it will land. */
+function RoutinesGroup({ onNew }: { onNew: () => void }) {
+  const queryClient = useQueryClient();
   const history = useQuery(getRoutinesHistoryOptions());
   const routines = history.data?.routines ?? [];
+  const today = history.data?.today ?? "";
+  const reorder = useMutation(reorderRoutinesMutation());
+  const [dragging, setDragging] = useState<number | null>(null);
+  // A drop ends with a click on the row under the pointer, which shouldn't open it.
+  const justDropped = useRef(false);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+      // Enter still opens the routine; Space picks the row up and puts it down.
+      keyboardCodes: { start: ["Space"], cancel: ["Escape"], end: ["Space"] },
+    }),
+  );
+
+  const onDragStart = ({ active }: DragStartEvent) => setDragging(Number(active.id));
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setDragging(null);
+    justDropped.current = true;
+    setTimeout(() => {
+      justDropped.current = false;
+    });
+    if (!over || active.id === over.id || !history.data) return;
+    const order = moveRoutine(
+      routines.map((routine) => routine.id),
+      Number(active.id),
+      Number(over.id),
+    );
+    const byId = new Map(routines.map((routine) => [routine.id, routine]));
+    const key = getRoutinesHistoryQueryKey();
+    queryClient.setQueryData<RoutinesHistoryRead>(key, {
+      ...history.data,
+      routines: order.flatMap((id) => byId.get(id) ?? []),
+    });
+    reorder.mutate(
+      { body: { routine_ids: order } },
+      { onError: () => queryClient.invalidateQueries({ queryKey: key }) },
+    );
+  };
+  const lifted = routines.find((routine) => routine.id === dragging);
+
   return (
     <>
-      <div className="mb-0.5 flex h-8 items-center gap-2 pr-1">
-        <h2 className="flex-1 pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase">
+      <div className="mb-0.5 flex h-8 items-center gap-2 rounded-(--radius-6) pr-1 has-[a:hover]:bg-(--bg-hover) has-[a[aria-current=page]]:bg-(--bg-hover) has-[a[aria-current=page]]:shadow-[inset_2px_0_0_var(--color-brand-600)]">
+        <NavLink
+          to="/areas/routines"
+          end
+          className="flex h-full flex-1 items-center pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        >
           Routines
-        </h2>
+        </NavLink>
+        <IconButton label="New routine" onPress={onNew}>
+          <Plus />
+        </IconButton>
       </div>
-      <nav aria-label="Routines" className="flex flex-col gap-(--sidebar-item-gap)">
+      <nav
+        aria-label="Routines"
+        className="flex flex-col gap-(--sidebar-item-gap)"
+        onClickCapture={(event) => {
+          if (justDropped.current) event.preventDefault();
+        }}
+      >
         {history.isSuccess && routines.length === 0 && (
           <p className="px-2 py-1 type-meta text-(--text-secondary)">No routines yet.</p>
         )}
-        {routines.map((routine) => {
-          const column = routineColumn(routine, history.data?.today ?? "");
-          return (
-            <SidebarLink key={routine.id} to={`/areas/routines/${routine.id}`}>
-              {routine.paused_since ? (
-                <Pause
-                  role="img"
-                  aria-label="Paused"
-                  className="size-4 shrink-0 fill-(--color-neutral-500) stroke-none"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setDragging(null)}
+        >
+          <SortableContext
+            items={routines.map((routine) => routine.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {routines.map((routine) => (
+              <SortableRoutine key={routine.id} routine={routine} today={today} />
+            ))}
+          </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {lifted && (
+              <div
+                className={`${SIDEBAR_ROW} cursor-grabbing bg-(--bg-surface) text-(--sidebar-item-text) shadow-(--effect-overlay)`}
+              >
+                <GripVertical
+                  aria-hidden
+                  className="-ml-1.5 size-3 shrink-0 text-(--text-tertiary)"
+                  strokeWidth={2}
                 />
-              ) : (
-                <ProgressRing done={column.done} total={column.total} className="size-4" />
-              )}
-              <span className="truncate">{routine.title}</span>
-            </SidebarLink>
-          );
-        })}
+                <RoutineMark routine={lifted} today={today} />
+                <span className="truncate">{lifted.title}</span>
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
       </nav>
     </>
   );
+}
+
+/** A routine's row: a link to its page that can also be dragged. While it is being dragged,
+ * its place shows as a dashed spot. */
+function SortableRoutine({ routine, today }: { routine: RoutineHistoryRead; today: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: routine.id,
+  });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        data-testid="routine-drop-spot"
+        className="h-(--sidebar-item-height) rounded-(--radius-6) border-[1.5px] border-dashed border-(--color-neutral-300)"
+      />
+    );
+  }
+  // The link is what gets focus (Space lifts the row from there), so the wrapper is neither
+  // a button nor a second tab stop.
+  const { role: _role, tabIndex: _tabIndex, ...handle } = attributes;
+  return (
+    <div ref={setNodeRef} style={style} {...handle} {...listeners}>
+      <SidebarLink to={`/areas/routines/${routine.id}`}>
+        <RoutineMark routine={routine} today={today} />
+        <span className="truncate">{routine.title}</span>
+      </SidebarLink>
+    </div>
+  );
+}
+
+function RoutineMark({ routine, today }: { routine: RoutineHistoryRead; today: string }) {
+  if (routine.paused_since) {
+    return (
+      <Pause
+        role="img"
+        aria-label="Paused"
+        className="size-4 shrink-0 fill-(--color-neutral-500) stroke-none"
+      />
+    );
+  }
+  const column = routineColumn(routine, today);
+  return <ProgressRing done={column.done} total={column.total} className="size-4" />;
 }
 
 /** A sidebar row that opens something in place instead of going to a page. */

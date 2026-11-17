@@ -58,8 +58,20 @@ class RoutineRead(BaseModel):
     steps: list[RoutineStepRead]
 
 
+class NewRoutineStep(BaseModel):
+    """A step created with its routine: owned by a life area or a project, due from the
+    routine's start."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: Title
+    life_area_id: int | None = None
+    project_id: int | None = None
+
+
 class RoutineCreate(BaseModel):
-    """A routine, due on the days its rule says from starts_on (default: today, daily)."""
+    """A routine, due on the days its rule says from starts_on (default: today, daily),
+    with its first steps in order."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -67,8 +79,17 @@ class RoutineCreate(BaseModel):
     notes: Notes | None = None
     rrule: str = "FREQ=DAILY"
     starts_on: date | None = None
+    steps: Annotated[list[NewRoutineStep], Field(max_length=100)] = []
 
     _rule = field_validator("rrule")(_normalize_rule)
+
+
+class RoutineReorder(BaseModel):
+    """The new order of the routines. Routines not listed keep their order, after these."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    routine_ids: Annotated[list[int], Field(min_length=1, max_length=500)]
 
 
 class RoutineUpdate(BaseModel):
