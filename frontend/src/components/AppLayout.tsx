@@ -22,16 +22,15 @@ const DetailPanel = lazy(() =>
   })),
 );
 
-type RailGroup = { label: string; icon: LucideIcon; to?: string };
+type RailGroup = { label: string; icon: LucideIcon; to: string };
 
-// Groups without a route aren't built yet; they show as disabled so the rail keeps its shape.
 const GROUPS: RailGroup[] = [
   { label: "Home", icon: House, to: "/home" },
   { label: "Tasks", icon: SquareKanban, to: "/tasks" },
   { label: "Calendar", icon: CalendarDays, to: "/calendar" },
   { label: "Plan", icon: LayoutGrid, to: "/areas" },
 ];
-const SETTINGS: RailGroup = { label: "Settings", icon: Settings };
+const SETTINGS: RailGroup = { label: "Settings", icon: Settings, to: "/settings" };
 
 /** The icon rail. Each group renders its own sidebar and page inside the outlet. */
 export function AppLayout() {
@@ -70,10 +69,10 @@ const RAIL_ITEM =
 function RailItem({ group }: { group: RailGroup }) {
   const location = useLocation();
   const sidebar = useSidebarVisibility();
-  const isOpenGroup = group.to !== undefined && location.pathname.startsWith(group.to);
+  const isOpenGroup = location.pathname.startsWith(group.to);
   const Icon = group.icon;
   const icon = <Icon aria-hidden className="size-(--rail-icon-size)" strokeWidth={2} />;
-  return group.to ? (
+  return (
     <NavLink
       to={group.to}
       aria-label={group.label}
@@ -95,15 +94,5 @@ function RailItem({ group }: { group: RailGroup }) {
     >
       {icon}
     </NavLink>
-  ) : (
-    <button
-      type="button"
-      disabled
-      aria-label={`${group.label} (not built yet)`}
-      title={`${group.label} — not built yet`}
-      className={`${RAIL_ITEM} opacity-50`}
-    >
-      {icon}
-    </button>
   );
 }

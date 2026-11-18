@@ -5,6 +5,20 @@ export type ClientOptions = {
 };
 
 /**
+ * AboutRead
+ */
+export type AboutRead = {
+    /**
+     * Version
+     */
+    version: string;
+    /**
+     * Database Path
+     */
+    database_path: string;
+};
+
+/**
  * ArchiveRead
  *
  * Finished & archived: archived areas, done, cancelled or archived projects, and
@@ -214,6 +228,75 @@ export type AreaProjectRead = {
      * Total
      */
     total: number;
+};
+
+/**
+ * BackupFailureRead
+ */
+export type BackupFailureRead = {
+    /**
+     * At
+     *
+     * Local wall-clock time
+     */
+    at: string;
+    /**
+     * Message
+     */
+    message: string;
+};
+
+/**
+ * BackupRead
+ *
+ * A backup file in the backup folder. `created_at` is the local wall-clock time it was
+ * taken, from its file name.
+ */
+export type BackupRead = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Size
+     *
+     * Bytes
+     */
+    size: number;
+};
+
+/**
+ * BackupsRead
+ *
+ * The backup folder and what is in it, newest first.
+ */
+export type BackupsRead = {
+    /**
+     * Folder
+     */
+    folder: string;
+    /**
+     * Folder Found
+     */
+    folder_found: boolean;
+    /**
+     * Backups
+     */
+    backups: Array<BackupRead>;
+    /**
+     * The last backup that failed, if none has worked since
+     */
+    last_failure: BackupFailureRead | null;
+    /**
+     * Auto Backup Hour
+     *
+     * Automatic backups run daily from this hour
+     */
+    auto_backup_hour: number;
 };
 
 /**
@@ -1658,6 +1741,16 @@ export type OccurrenceRead = {
 };
 
 /**
+ * OpenFolderRequest
+ */
+export type OpenFolderRequest = {
+    /**
+     * Folder
+     */
+    folder: 'backups' | 'database';
+};
+
+/**
  * OutcomeRead
  *
  * An area-owned metric over the period.
@@ -2606,6 +2699,27 @@ export type PushProjectRead = {
      * Days
      */
     days: number;
+};
+
+/**
+ * RestoreRead
+ */
+export type RestoreRead = {
+    restored: BackupRead;
+    /**
+     * The backup of the data the restore replaced
+     */
+    current_data_backup: BackupRead;
+};
+
+/**
+ * RestoreRequest
+ */
+export type RestoreRequest = {
+    /**
+     * Name
+     */
+    name: string;
 };
 
 /**
@@ -4425,6 +4539,120 @@ export type GetArchiveResponses = {
 };
 
 export type GetArchiveResponse = GetArchiveResponses[keyof GetArchiveResponses];
+
+export type ListBackupsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/backups';
+};
+
+export type ListBackupsResponses = {
+    /**
+     * Successful Response
+     */
+    200: BackupsRead;
+};
+
+export type ListBackupsResponse = ListBackupsResponses[keyof ListBackupsResponses];
+
+export type BackUpNowData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/backups';
+};
+
+export type BackUpNowResponses = {
+    /**
+     * Successful Response
+     */
+    201: BackupRead;
+};
+
+export type BackUpNowResponse = BackUpNowResponses[keyof BackUpNowResponses];
+
+export type RestoreBackupData = {
+    body: RestoreRequest;
+    path?: never;
+    query?: never;
+    url: '/api/backups/restore';
+};
+
+export type RestoreBackupErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RestoreBackupError = RestoreBackupErrors[keyof RestoreBackupErrors];
+
+export type RestoreBackupResponses = {
+    /**
+     * Successful Response
+     */
+    200: RestoreRead;
+};
+
+export type RestoreBackupResponse = RestoreBackupResponses[keyof RestoreBackupResponses];
+
+export type OpenFolderData = {
+    body: OpenFolderRequest;
+    path?: never;
+    query?: never;
+    url: '/api/folders/open';
+};
+
+export type OpenFolderErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type OpenFolderError = OpenFolderErrors[keyof OpenFolderErrors];
+
+export type OpenFolderResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type OpenFolderResponse = OpenFolderResponses[keyof OpenFolderResponses];
+
+export type ExportDataData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/export';
+};
+
+export type ExportDataResponses = {
+    /**
+     * A zip with one CSV per table
+     */
+    200: Blob | File;
+};
+
+export type ExportDataResponse = ExportDataResponses[keyof ExportDataResponses];
+
+export type GetAboutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/about';
+};
+
+export type GetAboutResponses = {
+    /**
+     * Successful Response
+     */
+    200: AboutRead;
+};
+
+export type GetAboutResponse = GetAboutResponses[keyof GetAboutResponses];
 
 export type GetHomeData = {
     body?: never;

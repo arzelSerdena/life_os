@@ -1,3 +1,4 @@
+import tomllib
 from functools import lru_cache
 from pathlib import Path
 
@@ -15,8 +16,16 @@ class Settings(BaseSettings):
     )
 
     database_url: str = f"sqlite:///{DEFAULT_DATABASE_PATH.as_posix()}"
+    # The daily automatic backup. Tests turn it off.
+    backup_scheduler: bool = True
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+@lru_cache
+def app_version() -> str:
+    with (BACKEND_DIR / "pyproject.toml").open("rb") as file:
+        return tomllib.load(file)["project"]["version"]

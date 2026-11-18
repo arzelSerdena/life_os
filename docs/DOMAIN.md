@@ -344,7 +344,8 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 
 - Settings live in a single-row `settings` table: `open_on_start` (home, tasks or calendar), `time_format` (12h or 24h), `day_ends_at` (an hour from 0 to 4), `auto_backup`, `keep_backups` (7, 14 or 30) and `backup_folder`. Window layout (sidebar width, card sizes) stays in the browser's `localStorage`.
 - **Day ends at** shifts "today": until that hour, the previous date is still today. It applies to Home, rollover, routine logs (which day a check-off counts for), completed dates and streaks and runs. The backend reads today from `app.clock.today()`, which applies the setting.
-- **Restore from backup** replaces the data with a chosen backup, after a confirmation that shows its date and size; the app backs up the current data first.
+- **Backups** are copies of the database named by their local time, in the backup folder (by default `backups/` next to the database; a chosen folder must exist). With automatic backups on, one is made each day from 3 AM, or the next time the app runs after a missed 3 AM; any backup since the last 3 AM counts. Keep last (7, 14 or 30) trims to the newest backups, only while automatic backups are on.
+- **Restore from backup** replaces the data with a chosen backup, after a confirmation that shows its date and size; the app backs up the current data first. An older backup is migrated to the current version; one from a newer version is refused. The settings stay as they are.
 
 ### Time and text
 
