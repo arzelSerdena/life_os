@@ -10,8 +10,13 @@ from app.schemas.common import ErrorResponse
 from app.schemas.overview import OverviewPeriod
 from app.schemas.preview import RoutineDeletePreview
 from app.schemas.routine import (
+    LongestRunRead,
     MetricRef,
+    MissedStepRead,
+    OverviewRoutineRead,
+    OverviewStepRead,
     PauseRead,
+    PickUpRead,
     RoutineBucketRead,
     RoutineChange,
     RoutineCreate,
@@ -23,6 +28,7 @@ from app.schemas.routine import (
     RoutineRead,
     RoutineReorder,
     RoutinesHistoryRead,
+    RoutinesOverviewRead,
     RoutineStepChange,
     RoutineStepCreate,
     RoutineStepDay,
@@ -41,6 +47,7 @@ from app.schemas.routine import (
 from app.services import previews
 from app.services import routine_page as page_service
 from app.services import routines as service
+from app.services import routines_overview as overview_service
 
 router = APIRouter(prefix="/api", tags=["routines"])
 
@@ -145,6 +152,80 @@ def get_routines_history(
                 ],
             )
             for found in service.history(session, first, last)
+        ],
+    )
+
+
+@router.get("/routines/overview")
+def get_routines_overview(
+    session: SessionDep, period: OverviewPeriod = "quarter", date: date | None = None
+) -> RoutinesOverviewRead:
+    """Every active routine over the week, month, quarter or year containing `date` (default:
+    today): totals across routines, each routine's step days, the most-missed steps and
+    Pick up."""
+    found = overview_service.get_overview(session, period, date or clock.today())
+
+    def ref(step: RoutineStep, routine: Routine) -> dict[str, Any]:
+        return {
+            "step_id": step.id,
+            "title": step.title,
+            "life_area_id": step.life_area_id,
+            "routine_id": routine.id,
+            "routine_title": routine.title,
+        }
+
+    longest = found.longest_run
+    return RoutinesOverviewRead(
+        period=found.period,
+        start=found.view.start,
+        end=found.view.end,
+        today=found.today,
+        totals=_totals(found.totals),
+        previous=_totals(found.previous) if found.previous else None,
+        longest_run=LongestRunRead(
+            length=longest.length,
+            routine_id=longest.routine.id,
+            routine_title=longest.routine.title,
+        )
+        if longest
+        else None,
+        started=found.started,
+        buckets=[
+            RoutineBucketRead(
+                start=bucket.start, end=bucket.end, totals=_totals(bucket.totals), run=bucket.run
+            )
+            for bucket in found.buckets
+        ],
+        routines=[
+            OverviewRoutineRead(
+                id=row.routine.id,
+                title=row.routine.title,
+                rrule=row.rrule,
+                schedule_starts_on=row.schedule_starts_on,
+                paused_since=row.paused_since,
+                totals=_totals(row.totals),
+                today_done=row.today_done,
+                today_due=row.today_due,
+                steps=[
+                    OverviewStepRead(
+                        id=item.step.id,
+                        title=item.step.title,
+                        life_area_id=item.step.life_area_id,
+                        project_id=item.step.project_id,
+                        days=[StepDayState(day=day, state=state) for day, state in item.days],
+                    )
+                    for item in row.steps
+                ],
+            )
+            for row in found.routines
+        ],
+        most_missed=[
+            MissedStepRead(**ref(row.step, row.routine), missed=row.missed)
+            for row in found.most_missed
+        ],
+        pick_up=[
+            PickUpRead(**ref(row.step, row.routine), run=row.run, ended_on=row.ended_on)
+            for row in found.pick_up
         ],
     )
 

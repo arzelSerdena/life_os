@@ -325,3 +325,73 @@ class RoutinePageRead(BaseModel):
     best_run: RunRead
     buckets: list[RoutineBucketRead]
     steps: list[RoutinePageStepRead]
+
+
+class OverviewStepRead(BaseModel):
+    id: int
+    title: str
+    life_area_id: int
+    project_id: int | None
+    days: list[StepDayState]
+
+
+class OverviewRoutineRead(BaseModel):
+    """One routine in the Routines overview: its totals over the period, today's due steps
+    (skipped ones left out) and how many are done, and each active step's days."""
+
+    id: int
+    title: str
+    # The schedule in force today, and the day it began.
+    rrule: str
+    schedule_starts_on: date
+    paused_since: date | None
+    totals: RoutineTotalsRead
+    today_done: int
+    today_due: int
+    steps: list[OverviewStepRead]
+
+
+class LongestRunRead(BaseModel):
+    """The longest current run across routines (at the period's end, or today)."""
+
+    length: int
+    routine_id: int
+    routine_title: str
+
+
+class OverviewStepRef(BaseModel):
+    step_id: int
+    title: str
+    life_area_id: int
+    routine_id: int
+    routine_title: str
+
+
+class MissedStepRead(OverviewStepRef):
+    missed: int
+
+
+class PickUpRead(OverviewStepRef):
+    """A step whose run of 4 or more done days ended with a miss this week."""
+
+    run: int
+    ended_on: date
+
+
+class RoutinesOverviewRead(BaseModel):
+    """Every active routine over a calendar period (docs/DOMAIN.md, section 8). Totals add up
+    each routine's; buckets carry the longest current run at their end."""
+
+    period: str
+    start: date
+    end: date
+    today: date
+    totals: RoutineTotalsRead
+    previous: RoutineTotalsRead | None
+    longest_run: LongestRunRead | None
+    # The earliest routine's first day; None with no routines.
+    started: date | None
+    buckets: list[RoutineBucketRead]
+    routines: list[OverviewRoutineRead]
+    most_missed: list[MissedStepRead]
+    pick_up: list[PickUpRead]

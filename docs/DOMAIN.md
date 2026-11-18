@@ -313,7 +313,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Step days**: each step's status for every day: done, skipped, missed, paused, to do (today), upcoming, not due, or not started (before the step's `starts_on`).
   - **History**: the schedules and pauses that touch the period, and each step's completion (done of done + missed).
   - An archived routine reads the same way, read-only, opened on the period that holds its archive date; its current run is the final run.
-- The **Routines overview** (`GET /api/routines/overview?period=&date=`) shows the same totals across all active routines (the longest run names its routine), each routine's daily share of due steps done, the 3 most-missed steps in the period, and **Pick up**: steps whose run of 4 or more done days ended with a miss this week.
+- The **Routines overview** (`GET /api/routines/overview?period=&date=`) shows the same totals across all active routines (the longest run names its routine), each routine's daily share of due steps done and today's done and due steps (skipped ones left out; routines with steps left are **Open today**), the 3 most-missed steps in the period, and **Pick up**: steps whose run of 4 or more done days ended with a miss this week (skipped, paused and not-due days don't break a run; each step once, for its latest such miss).
 - **Home** (`GET /api/home`) covers today only, with no period:
   - **Today**: open tasks the placement rule puts on today, plus overdue tasks; events that cover today; project due dates and reach-by target deadlines that fall today; tasks completed today.
   - **Routines today**: routine steps due today with their status and step streak.

@@ -131,7 +131,7 @@ def steps_for_days(
 ) -> dict[date, list[StepDay]]:
     """Every active step due on each of `days`, loading the routines once."""
     found: dict[date, list[StepDay]] = {day: [] for day in days}
-    for routine in _active_routines(session):
+    for routine in active_routines(session):
         for step in _active_steps(routine):
             if life_area_id is not None and step.life_area_id != life_area_id:
                 continue
@@ -177,7 +177,7 @@ def history(session: Session, first: date, last: date) -> list[RoutineHistory]:
             paused_since=paused_since(routine),
             steps=[_step_history(routine, step, first, last) for step in _active_steps(routine)],
         )
-        for routine in _active_routines(session)
+        for routine in active_routines(session)
     ]
 
 
@@ -241,7 +241,7 @@ def step_states(
     return days
 
 
-def _active_routines(session: Session) -> Sequence[Routine]:
+def active_routines(session: Session) -> Sequence[Routine]:
     return session.scalars(
         select(Routine)
         .options(

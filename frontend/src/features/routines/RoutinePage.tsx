@@ -31,11 +31,10 @@ import {
   type ScheduleHistory,
   scheduleHistory,
   stepAreaIds,
-  type Tile,
   tiles,
 } from "./routine";
-import { Sparkline } from "./Sparkline";
 import { SquarePopover, type SquareTarget } from "./SquarePopover";
+import { StatTiles } from "./StatTiles";
 import { StepLabel, StepsHeatmap } from "./StepsHeatmap";
 
 /** One routine over the selected period (Approved: routine page). Routines and their steps
@@ -104,7 +103,7 @@ function RoutineView({
         {isArchived && (
           <p className="type-body text-(--text-tertiary)">This routine is archived.</p>
         )}
-        {hasSteps && <Tiles tiles={tiles(page, period)} />}
+        {hasSteps && <StatTiles tiles={tiles(page, period)} />}
         <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-4">
           <div className="flex min-w-0 flex-col gap-4">
             <SectionCard title="Steps" description={hasSteps ? stepsSubtitle(page) : undefined}>
@@ -209,38 +208,6 @@ function stepsSubtitle(page: RoutinePageRead): string {
   const steps = page.steps.length;
   const areas = stepAreaIds(page).length;
   return `${steps} ${steps === 1 ? "step" : "steps"} in ${areas} ${areas === 1 ? "area" : "areas"}`;
-}
-
-function Tiles({ tiles }: { tiles: Tile[] }) {
-  return (
-    <div className="grid grid-cols-5 gap-4">
-      {tiles.map((tile) => (
-        <article
-          key={tile.label}
-          aria-label={tile.label}
-          className="flex min-w-0 flex-col gap-1 rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface) px-4 py-3"
-        >
-          <h3 className="truncate text-xs leading-4 font-medium text-(--text-tertiary)">
-            {tile.label}
-          </h3>
-          <div className="flex h-8 items-end gap-0.5">
-            <span
-              className={`text-2xl leading-8 font-semibold tabular-nums ${tile.value === "—" ? "text-(--text-disabled)" : "text-(--text-primary)"}`}
-            >
-              {tile.value}
-            </span>
-            {tile.unit && (
-              <span className="text-[13px] leading-6 font-medium text-(--text-tertiary)">
-                {tile.unit}
-              </span>
-            )}
-            <Sparkline points={tile.points} tips={tile.tips} good={tile.good} />
-          </div>
-          <p className="min-h-4 truncate type-meta text-(--text-tertiary)">{tile.line}</p>
-        </article>
-      ))}
-    </div>
-  );
 }
 
 function CompletionCard({

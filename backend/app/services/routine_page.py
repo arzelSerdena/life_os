@@ -39,6 +39,19 @@ class Totals:
         counted = self.done + self.missed
         return round(100 * self.done / counted) if counted else None
 
+    def __add__(self, other: Totals) -> Totals:
+        """Two routines' totals together: days count once per routine."""
+        return Totals(
+            self.done + other.done,
+            self.missed + other.missed,
+            self.skipped + other.skipped,
+            self.due_days + other.due_days,
+            self.full_days + other.full_days,
+        )
+
+
+NO_TOTALS = Totals(0, 0, 0, 0, 0)
+
 
 @dataclass(frozen=True)
 class Run:
@@ -89,41 +102,71 @@ class RoutinePage:
     steps: list[StepRow]
 
 
+@dataclass(frozen=True)
+class Tracked:
+    """One routine's active steps with their state on every day from the routine's start
+    (or an earlier day asked for) to the later of the day asked for and the last counted
+    day, and its full days and runs. Shared by the routine page and the Routines overview."""
+
+    routine: Routine
+    steps: list[RoutineStep]
+    states: dict[int, dict[date, HistoryState]]
+    started: date
+    # The last counted day: today, or the archive day of an archived routine.
+    last: date
+    runs: dict[date, Run]
+    verdicts: dict[date, bool | None]
+
+    def totals(self, span: DateRange) -> Totals:
+        return _totals(self.steps, self.states, self.verdicts, span, self.last)
+
+    def run_on(self, day: date) -> Run:
+        """The current run as of `day` (capped at the last counted day)."""
+        return self.runs.get(min(day, self.last), NO_RUN)
+
+
+def routine_start(routine: Routine) -> date:
+    """The routine's first day: its first schedule, or an earlier active step."""
+    steps = [step for step in routine.steps if step.archived_at is None]
+    return min([routine.schedules[0].starts_on, *(step.starts_on for step in steps)])
+
+
+def track(routine: Routine, first: date, end: date) -> Tracked:
+    """Track the routine over at least `first` to `end`; runs reach back to its start."""
+    steps = [step for step in routine.steps if step.archived_at is None]
+    # An archived routine stops on its archive day: its current run is its final run.
+    last = clock.today()
+    if routine.archived_at is not None:
+        last = min(last, clock.local_date(routine.archived_at))
+    started = routine_start(routine)
+    first = min(started, first)
+    end = max(end, last)
+    states = {step.id: dict(step_states(routine, step, first, end)) for step in steps}
+    verdicts = _verdicts(steps, states, started, last)
+    return Tracked(routine, steps, states, started, last, _runs(verdicts), verdicts)
+
+
 def get_routine_page(session: Session, routine_id: int, period: str, day: date) -> RoutinePage:
     routine = get_routine(session, routine_id)
     today = clock.today()
     view = period_range(period, day)
-    steps = [step for step in routine.steps if step.archived_at is None]
-    # An archived routine stops on its archive day: its current run is its final run.
-    last = today
-    if routine.archived_at is not None:
-        last = min(today, clock.local_date(routine.archived_at))
-    started = min([routine.schedules[0].starts_on, *(step.starts_on for step in steps)])
+    started = routine_start(routine)
 
     # The previous period, for the comparisons; none for a year, or before the start.
     before = previous_range(period, view) if period != "year" else None
     if before is not None and before.end < started:
         before = None
 
-    # Each step's state on every day from the routine's start (or the earliest day shown,
-    # if earlier) to the later of the view's end and the last counted day: runs reach back
-    # to the start.
-    first = min(started, before.start if before else view.start, view.start)
-    end = max(view.end, last)
-    states = {step.id: dict(step_states(routine, step, first, end)) for step in steps}
-    verdicts = _verdicts(steps, states, started, last)
-    runs = _runs(verdicts)
-
-    def totals(span: DateRange) -> Totals:
-        return _totals(steps, states, verdicts, span, last)
-
+    found = track(routine, before.start if before else view.start, view.end)
+    steps, states, last, runs = found.steps, found.states, found.last, found.runs
+    totals = found.totals
     previous = totals(before) if before else None
 
     used = metrics_using(session, [step.id for step in steps])
     feeding = {metric.routine_step_id: metric for metric in used}
     rows = []
     for step in steps:
-        days: list[tuple[date, HistoryState]] = [(d, states[step.id][d]) for d in _days(view)]
+        days: list[tuple[date, HistoryState]] = [(d, states[step.id][d]) for d in days_in(view)]
         rows.append(
             StepRow(
                 step=step,
@@ -149,14 +192,14 @@ def get_routine_page(session: Session, routine_id: int, period: str, day: date) 
         best_run=_best(runs, view),
         buckets=[
             Bucket(span.start, span.end, totals(span), runs.get(min(span.end, last), NO_RUN).length)
-            for span in _buckets(period, view)
+            for span in bucket_ranges(period, view)
             if span.start <= last and span.end >= started
         ],
         steps=rows,
     )
 
 
-def _days(span: DateRange) -> list[date]:
+def days_in(span: DateRange) -> list[date]:
     count = (span.end - span.start).days + 1
     return [span.start + timedelta(days=offset) for offset in range(count)]
 
@@ -216,7 +259,7 @@ def _totals(
     last: date,
 ) -> Totals:
     done = missed = skipped = due_days = full_days = 0
-    for day in _days(span):
+    for day in days_in(span):
         if day > last:
             break
         day_states = [states[step.id][day] for step in steps]
@@ -229,11 +272,11 @@ def _totals(
     return Totals(done, missed, skipped, due_days, full_days)
 
 
-def _buckets(period: str, view: DateRange) -> list[DateRange]:
+def bucket_ranges(period: str, view: DateRange) -> list[DateRange]:
     """Days in a week, Monday-to-Sunday weeks in a month or quarter (clipped to it), months
     in a year."""
     if period == "week":
-        return [DateRange(day, day) for day in _days(view)]
+        return [DateRange(day, day) for day in days_in(view)]
     step = "month" if period == "year" else "week"
     found: list[DateRange] = []
     start = targets.period_start(view.start, step)
