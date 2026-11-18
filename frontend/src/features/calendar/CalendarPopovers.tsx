@@ -10,9 +10,10 @@ import { areaDataAttribute } from "../life-areas/palette";
 import { dayDate } from "../pickers/dates";
 import type { RoutineDay } from "../tasks/next7";
 import { ProgressRing } from "../tasks/RoutinesPage";
-import { EntryRow, type RowContext } from "./AgendaRow";
+import { EntryRow, ProjectSpanRow, type RowContext } from "./AgendaRow";
 import type { Entry } from "./calendar";
 import type { ColorOf } from "./GridEntry";
+import type { LinearBar } from "./linear";
 
 /** A day's routines with their steps; checking a step logs it for that day. */
 export function RoutinePopover({
@@ -148,6 +149,9 @@ export function DayPopover({
           <EntryRow key={entry.key} entry={entry} context={context} />
         ))}
       </ul>
+      {entries.length === 0 && (
+        <p className="px-2 pt-1 pb-2 type-meta text-(--text-tertiary)">Nothing on this day.</p>
+      )}
     </>
   );
 }
@@ -177,6 +181,50 @@ export function AddMenu({
         <SquareCheck aria-hidden strokeWidth={2} />
         Task
       </button>
+    </>
+  );
+}
+
+/** Year's "+n" under a month name: the bars that didn't fit its three lanes. */
+export function HiddenBarsPopover({
+  month,
+  bars,
+  context,
+  onClose,
+}: {
+  /** "November" */
+  month: string;
+  bars: LinearBar[];
+  context: RowContext;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="-mx-1.5 -mt-1.5 mb-1.5 flex items-center gap-1.5 border-b border-(--border-default) py-2 pr-2 pl-3.5">
+        <span className="text-[13px] font-semibold text-(--text-primary)">{month}</span>
+        <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-(--color-neutral-200) px-1.5 text-[11px] font-medium text-(--text-secondary)">
+          {bars.length}
+        </span>
+        <span className="ml-auto">
+          <IconButton label="Close" onPress={onClose}>
+            <X />
+          </IconButton>
+        </span>
+      </div>
+      <ul className="flex max-h-[420px] flex-col overflow-auto">
+        {bars.map((bar) =>
+          bar.kind === "event" ? (
+            <EntryRow key={bar.key} entry={bar.entry} context={context} />
+          ) : (
+            <ProjectSpanRow
+              key={bar.key}
+              project={bar.project}
+              start={bar.start}
+              context={context}
+            />
+          ),
+        )}
+      </ul>
     </>
   );
 }

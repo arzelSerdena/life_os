@@ -334,6 +334,8 @@ def test_each_day_lists_its_due_routine_steps(client: TestClient, session: Sessi
     assert steps["2026-11-20"] == {"Stretch": "todo", "Plan day": "todo"}
     health_only = _week(client, life_area_id=health.id)
     assert [s["title"] for s in health_only["days"][2]["routine_steps"]] == ["Stretch"]
+    without = _days(client, start="2026-11-16", count=7, include_routines=False)
+    assert all(day["routine_steps"] == [] for day in without["days"])
 
 
 # ---------- Next 7 days (/api/days) ----------
@@ -362,7 +364,13 @@ def test_days_take_a_start_and_a_count(client: TestClient) -> None:
     assert [day["day"] for day in found["days"]] == ["2026-11-20", "2026-11-21", "2026-11-22"]
 
 
-@pytest.mark.parametrize("count", [0, 43])
+def test_days_cover_a_whole_year(client: TestClient) -> None:
+    found = _days(client, start="2028-01-01", count=366)
+
+    assert (found["start"], found["end"]) == ("2028-01-01", "2028-12-31")
+
+
+@pytest.mark.parametrize("count", [0, 372])
 def test_days_refuse_a_count_out_of_range(client: TestClient, count: int) -> None:
     assert client.get("/api/days", params={"count": count}).status_code == 422
 

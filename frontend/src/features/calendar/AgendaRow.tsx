@@ -14,7 +14,7 @@ import { formatTime, useTimeFormat } from "../tasks/format";
 import type { RoutineDay } from "../tasks/next7";
 import { ProgressRing } from "../tasks/RoutinesPage";
 import { SubtaskRow } from "../tasks/TaskCard";
-import { type Entry, eventSpan } from "./calendar";
+import { type Entry, eventSpan, spanLabel } from "./calendar";
 import type { ColorOf } from "./GridEntry";
 
 export type RowContext = {
@@ -117,6 +117,35 @@ function EventRow({ event, color }: { event: OccurrenceRead; color: string | nul
         </span>
       </span>
     </li>
+  );
+}
+
+/** A project's bar as a row (Year's "+n" list): folder, name, then its dates. */
+export function ProjectSpanRow({
+  project,
+  start,
+  context,
+}: {
+  project: ProjectRead;
+  start: string;
+  context: RowContext;
+}) {
+  const end = project.due_date ?? start;
+  return (
+    <Row
+      color={context.colorOf(project.life_area_id)}
+      icon={<Folder aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />}
+      title={
+        <PanelLink
+          stretched
+          target={{ kind: "project", id: project.id }}
+          className={`truncate text-sm font-medium ${end < context.today ? "text-(--text-tertiary)" : "text-(--text-primary)"}`}
+        >
+          {project.title}
+        </PanelLink>
+      }
+      meta={spanLabel(start, end)}
+    />
   );
 }
 

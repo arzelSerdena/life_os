@@ -11,7 +11,7 @@ export type CalendarPanel = "agenda" | "inbox";
 
 type CalendarState = {
   view: CalendarView;
-  /** Any day inside the shown week or month; null shows today's. Not remembered. */
+  /** Any day inside the shown period; null shows today's. Not remembered. */
   anchor: string | null;
   /** The right panel, or null when it is hidden. */
   panel: CalendarPanel | null;

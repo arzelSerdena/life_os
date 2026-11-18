@@ -7351,6 +7351,10 @@ export type GetDaysData = {
          * Include Cancelled
          */
         include_cancelled?: boolean;
+        /**
+         * Include Routines
+         */
+        include_routines?: boolean;
     };
     url: '/api/days';
 };

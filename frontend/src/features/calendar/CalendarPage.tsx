@@ -22,7 +22,7 @@ import { useChangeToast } from "../../stores/changeToastStore";
 import { useNewEvent } from "../../stores/newEventStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
-import { shortDate } from "../life-areas/overview/format";
+import { monthName, shortDate } from "../life-areas/overview/format";
 import { usePageSpot } from "../tasks/newTaskShortcut";
 import type { RoutineDay } from "../tasks/next7";
 import { dayName } from "../tasks/useFileTask";
@@ -30,7 +30,7 @@ import type { RowContext } from "./AgendaRow";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarHeader } from "./CalendarHeader";
 import { AgendaPanel, InboxPanel } from "./CalendarPanel";
-import { AddMenu, DayPopover, RoutinePopover } from "./CalendarPopovers";
+import { AddMenu, DayPopover, HiddenBarsPopover, RoutinePopover } from "./CalendarPopovers";
 import { CalendarSidebar } from "./CalendarSidebar";
 import {
   agendaDays,
@@ -40,16 +40,23 @@ import {
   type Entry,
   inboxPanelTasks,
   isFiltered,
+  isLinear,
   routineTotals,
   shiftEvent,
   spanLabel,
   viewRange,
 } from "./calendar";
+import { LinearCalendar } from "./LinearCalendar";
+import { type MonthRow, projectBars, splitEntries } from "./linear";
 
-/** What is open over the grid: a day's routines, "+3 more", or the add menu of a day. */
+/**
+ * What is open over the grid: a day's routines, "+3 more" (or a day of Quarter and Year), the
+ * bars Year had no room for, or the add menu of a day.
+ */
 type Open =
   | { kind: "routine"; day: string; routineId: number | null; anchor: HTMLElement }
   | { kind: "day"; day: string; anchor: HTMLElement }
+  | { kind: "hidden"; row: MonthRow; anchor: HTMLElement }
   | { kind: "add"; day: string; x: number; y: number };
 
 /**
@@ -83,8 +90,15 @@ export function CalendarPage() {
   const today = serverToday ?? localToday();
   const anchor = chosen ?? today;
   const range = viewRange(view, anchor);
+  const linear = isLinear(view);
+  // Quarter and Year show no routines, so they don't load them.
   const daysQuery = {
-    query: { start: range.start, count: range.count, include_cancelled: filters.show.cancelled },
+    query: {
+      start: range.start,
+      count: range.count,
+      include_cancelled: filters.show.cancelled,
+      include_routines: !linear,
+    },
   };
   const days = useQuery(getDaysOptions(daysQuery));
   if (days.data && days.data.today !== serverToday) setServerToday(days.data.today);
@@ -110,6 +124,10 @@ export function CalendarPage() {
   }));
   const entries = buildEntries(loadedDays, activeProjects, filters);
   const rings = routineTotals(loadedDays, filters);
+  const split = splitEntries(entries);
+  const bars = linear
+    ? [...split.bars, ...projectBars(projects.data ?? [], filters, range, today)]
+    : [];
   const inboxTasks = (mode: typeof inboxMode) =>
     inboxPanelTasks(
       (openTasks.data ?? []).filter((task) => !isPendingDelete(pending, "task", task.id)),
@@ -236,6 +254,23 @@ export function CalendarPage() {
 
   const popover = (() => {
     if (!open || !ready) return null;
+    if (open.kind === "hidden") {
+      return (
+        <AnchoredPopover
+          anchor={open.anchor}
+          label={`More bars in ${monthName(`${open.row.month}-01`)}`}
+          width={300}
+          onClose={close}
+        >
+          <HiddenBarsPopover
+            month={monthName(`${open.row.month}-01`)}
+            bars={open.row.hidden}
+            context={context}
+            onClose={close}
+          />
+        </AnchoredPopover>
+      );
+    }
     if (open.kind === "add") {
       return (
         addAnchor && (
@@ -273,7 +308,7 @@ export function CalendarPage() {
         anchor={open.anchor}
         label={`Everything on ${open.day}`}
         width={320}
-        placement="bottom"
+        placement={linear ? "right top" : "bottom"}
         onClose={close}
       >
         <DayPopover
@@ -291,7 +326,7 @@ export function CalendarPage() {
 
   return (
     <>
-      <CalendarSidebar lifeAreas={areas} inboxCount={inboxScheduled} />
+      <CalendarSidebar lifeAreas={areas} inboxCount={inboxScheduled} view={view} />
       <main aria-label="Calendar" className="flex min-w-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
           <CalendarHeader anchor={anchor} today={today} />
@@ -317,6 +352,19 @@ export function CalendarPage() {
               <QueryError error={error} />
             ) : !ready ? (
               <p className="type-meta text-(--text-tertiary)">Loading…</p>
+            ) : linear ? (
+              <LinearCalendar
+                view={view}
+                range={range}
+                today={today}
+                bars={bars}
+                marks={split.marks}
+                weekends={filters.show.weekends}
+                colorOf={colorOf}
+                openDay={open?.kind === "day" ? open.day : null}
+                onDay={(day, element) => setOpen({ kind: "day", day, anchor: element })}
+                onHidden={(row, element) => setOpen({ kind: "hidden", row, anchor: element })}
+              />
             ) : (
               <CalendarGrid
                 view={view}
@@ -346,9 +394,12 @@ export function CalendarPage() {
             days={agendaDays(entries, range)}
             context={context}
             rangeKey={`${view}:${range.start}`}
-            emptyText={isFiltered(filters) ? "Nothing matches the filters." : "Nothing scheduled."}
+            monthHeadings={linear}
+            emptyText={
+              isFiltered(filters, view) ? "Nothing matches the filters." : "Nothing scheduled."
+            }
             onClearFilters={
-              isFiltered(filters)
+              isFiltered(filters, view)
                 ? () =>
                     setFilters({
                       ...DEFAULT_FILTERS,

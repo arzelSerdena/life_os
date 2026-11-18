@@ -21,6 +21,7 @@ class WeekFilters:
     life_area_id: int | None = None
     project_id: int | None = None
     include_cancelled: bool = False
+    include_routines: bool = True
 
 
 @dataclass(frozen=True)
@@ -87,8 +88,12 @@ def get_days(session: Session, start: date, count: int, filters: WeekFilters) ->
     )
 
     week_days = [start + timedelta(days=offset) for offset in range(count)]
-    due_steps = routines.steps_for_days(
-        session, week_days, life_area_id=filters.life_area_id, project_id=filters.project_id
+    due_steps = (
+        routines.steps_for_days(
+            session, week_days, life_area_id=filters.life_area_id, project_id=filters.project_id
+        )
+        if filters.include_routines
+        else {day: [] for day in week_days}
     )
 
     days = []

@@ -153,3 +153,302 @@
   background: var(--color-neutral-100);
   color: var(--text-primary);
 }
+
+/*
+ * Quarter and Year: the linear calendar (LinearCalendar.tsx). One grid row per month: the
+ * month label in a 48 px column, then 37 weekday slots. Inside a row, grid row 1 holds the
+ * day numbers, the next rows the lanes of bars, and the last row each day's marks; a day's
+ * button spans them all and shares their lines through subgrid.
+ */
+.linear-grid {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--bg-surface);
+}
+.linear-head {
+  height: 28px;
+  flex: none;
+  display: grid;
+}
+.linear-head span {
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+.linear-head .is-monday {
+  box-shadow: inset 1px 0 0 var(--border-default);
+}
+.linear-head .linear-head-label {
+  border-right: 1px solid var(--border-default);
+}
+.linear-row {
+  flex: 1 1 0;
+  display: grid;
+  border-top: 1px solid var(--border-default);
+}
+.linear-month {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 5px 0 0 10px;
+  border-right: 1px solid var(--border-default);
+}
+.linear-month > span {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+.linear-more {
+  border-radius: 5px;
+  padding: 0 5px;
+  background: var(--color-neutral-100);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+}
+.linear-more:hover,
+.linear-more[aria-expanded="true"] {
+  background: var(--color-neutral-200);
+  color: var(--text-primary);
+}
+.linear-more:focus-visible,
+.linear-day:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+.linear-day {
+  grid-row: 1 / -1;
+  display: grid;
+  grid-template-rows: subgrid;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+}
+.linear-day:hover {
+  background: var(--color-neutral-50);
+}
+.linear-day.is-monday {
+  box-shadow: inset 1px 0 0 var(--border-default);
+}
+.linear-day.is-out {
+  cursor: default;
+}
+.linear-day.is-out:hover {
+  background: none;
+}
+.linear-day.is-strip,
+.linear-day.is-strip:hover {
+  background: var(--color-neutral-50);
+  cursor: default;
+}
+.linear-day.is-open {
+  background: var(--color-brand-100);
+}
+.linear-num {
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+.linear-num i {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  font-style: normal;
+  font-weight: 500;
+}
+.linear-day.is-past .linear-num {
+  color: var(--text-tertiary);
+}
+.linear-day.is-today .linear-num i {
+  background: var(--color-brand-600);
+  color: var(--color-white);
+  font-weight: 600;
+}
+.linear-bar {
+  position: relative;
+  z-index: 1;
+  align-self: start;
+  height: 20px;
+  margin: 0 1px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 7px;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 4px;
+  background: var(--event-area-bg-upcoming);
+  box-shadow: inset 3px 0 0 var(--area-solid);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.linear-bar:hover {
+  filter: brightness(0.97);
+}
+.linear-bar.is-past {
+  background: var(--event-area-bg-past);
+  box-shadow: inset 3px 0 0 var(--area-border);
+  color: var(--text-tertiary);
+}
+.linear-bar.is-project {
+  padding-left: 5px;
+  background: var(--bg-surface);
+  border: 1px solid var(--area-border);
+  box-shadow: none;
+}
+.linear-bar.is-project.is-past {
+  background: var(--event-area-bg-past);
+}
+.linear-bar svg {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  color: var(--area-solid);
+}
+.linear-bar.is-past svg {
+  color: var(--area-border);
+}
+.linear-bar.is-cut-start {
+  margin-left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  box-shadow: none;
+}
+.linear-bar.is-project.is-cut-start {
+  border-left-style: none;
+}
+.linear-bar.is-cut-end {
+  margin-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.linear-bar.is-project.is-cut-end {
+  border-right-style: none;
+}
+.linear-since {
+  /* The title keeps its room first; "since Oct 24" gives way. */
+  min-width: 0;
+  flex-shrink: 100;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.linear-marks {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 0;
+  padding: 3px 2px 2px;
+  overflow: hidden;
+}
+.linear-mark {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  box-sizing: border-box;
+  border-radius: 2px;
+}
+.linear-mark.is-event {
+  background: var(--area-solid);
+}
+.linear-mark.is-event.is-past {
+  background: var(--area-border);
+}
+.linear-mark.is-task {
+  border: 1.5px solid var(--checkbox-area-todo);
+}
+.linear-mark.is-task.is-finished {
+  background: var(--area-border);
+  border-color: var(--area-border);
+}
+.linear-mark.is-project {
+  display: grid;
+  place-items: center;
+  color: var(--area-solid);
+}
+.linear-mark.is-project svg {
+  width: 10px;
+  height: 10px;
+}
+.linear-marks-more {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+/* Year: smaller numbers, bars and marks so twelve months fit. */
+.is-year .linear-month {
+  padding-top: 2px;
+}
+.is-year .linear-day .linear-num {
+  font-size: 10px;
+}
+.is-year .linear-day .linear-num i {
+  min-width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+.is-year .linear-bar {
+  height: 14px;
+  padding: 0 4px 0 6px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+.is-year .linear-bar.is-project {
+  padding-left: 4px;
+}
+.is-year .linear-bar svg {
+  width: 9px;
+  height: 9px;
+}
+.is-year .linear-marks {
+  gap: 2px;
+  padding-top: 2px;
+  align-items: center;
+}
+.is-year .linear-mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 1.5px;
+}
+.is-year .linear-mark.is-task {
+  border-width: 1px;
+}
+.is-year .linear-mark.is-project svg {
+  width: 7px;
+  height: 7px;
+}
+.is-year .linear-marks-more {
+  flex-basis: auto;
+  font-size: 9px;
+  line-height: 10px;
+}

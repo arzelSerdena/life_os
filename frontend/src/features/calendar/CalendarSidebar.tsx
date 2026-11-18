@@ -5,17 +5,21 @@ import { SIDEBAR_ROW, SIDEBAR_ROW_ACTIVE, Sidebar } from "../../components/Sideb
 import { type CalendarPanel, useCalendarStore } from "../../stores/calendarStore";
 import { areaDataAttribute } from "../life-areas/palette";
 import type { Priority } from "../tasks/board";
-import type { CalendarFilters, ShowKey } from "./calendar";
+import { type CalendarFilters, type CalendarView, isLinear, type ShowKey } from "./calendar";
 
-const SHOW: { key: ShowKey; label: string }[] = [
-  { key: "events", label: "Events" },
-  { key: "tasks", label: "Tasks" },
-  { key: "routines", label: "Routine steps" },
-  { key: "projects", label: "Project due dates" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
-  { key: "weekends", label: "Weekends" },
-];
+/** SHOW follows the view: Quarter and Year have no routines, and projects show as bars. */
+function showOptions(view: CalendarView): { key: ShowKey; label: string }[] {
+  const linear = isLinear(view);
+  return [
+    { key: "events", label: "Events" },
+    { key: "tasks", label: "Tasks" },
+    ...(linear ? [] : [{ key: "routines" as const, label: "Routine steps" }]),
+    { key: "projects", label: linear ? "Projects" : "Project due dates" },
+    { key: "completed", label: "Completed" },
+    { key: "cancelled", label: "Cancelled" },
+    { key: "weekends", label: "Weekends" },
+  ];
+}
 
 const PRIORITIES: { key: Priority; label: string; flag: string | null }[] = [
   { key: "high", label: "High", flag: "text-(--priority-high)" },
@@ -31,9 +35,11 @@ const PRIORITIES: { key: Priority; label: string; flag: string | null }[] = [
 export function CalendarSidebar({
   lifeAreas,
   inboxCount,
+  view,
 }: {
   lifeAreas: readonly LifeAreaRead[];
   inboxCount: number | undefined;
+  view: CalendarView;
 }) {
   const { panel, setPanel, filters, setFilters } = useCalendarStore();
   const toggleIn = <T,>(list: T[], value: T) =>
@@ -80,7 +86,7 @@ export function CalendarSidebar({
         </Group>
         <Divider />
         <Group title="Show">
-          {SHOW.map(({ key, label }) => (
+          {showOptions(view).map(({ key, label }) => (
             <FilterRow
               key={key}
               label={label}
