@@ -204,7 +204,8 @@ export function tiles(page: RoutinePageRead, period: Period): Tile[] {
   const steps = totals.done + totals.missed + totals.skipped;
 
   if (steps === 0) {
-    return ["Completion rate", "Full days", "Current run", "Missed", "Skipped"].map((label) => ({
+    const run = page.archived_on ? "Final run" : "Current run";
+    return ["Completion rate", "Full days", run, "Missed", "Skipped"].map((label) => ({
       label,
       value: "—",
       unit: "",
