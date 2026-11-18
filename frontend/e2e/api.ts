@@ -24,6 +24,7 @@ export type Project = {
   title: string;
   status: string;
   archived_at: string | null;
+  sections: { id: number; title: string }[];
 };
 export type Task = { id: number; title: string; status: string; archived_at: string | null };
 

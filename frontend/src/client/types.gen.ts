@@ -1626,6 +1626,83 @@ export type ProjectMove = {
 };
 
 /**
+ * ProjectPageRead
+ *
+ * One project over one calendar period, in the area page's shape: life_area is the
+ * project's area, projects holds only the project itself, and every list holds only the
+ * project's own items. pace is the share of its time from start to due date that has
+ * passed (null with no due date); pace_status compares it with the share of tasks done,
+ * within 5 points counting as on pace.
+ */
+export type ProjectPageRead = {
+    life_area: LifeAreaRead;
+    /**
+     * Period
+     */
+    period: 'week' | 'month' | 'quarter' | 'year';
+    range: DateRangeRead;
+    /**
+     * Today
+     */
+    today: string;
+    contents: ContentsRead;
+    /**
+     * Metrics
+     */
+    metrics: Array<OutcomeRead>;
+    /**
+     * Projects
+     */
+    projects: Array<AreaProjectRead>;
+    /**
+     * Events
+     */
+    events: Array<OccurrenceRead>;
+    /**
+     * Routines
+     */
+    routines: Array<RoutineGroupRead>;
+    /**
+     * Overdue Tasks
+     */
+    overdue_tasks: Array<TaskRead>;
+    /**
+     * Rolled Over Tasks
+     */
+    rolled_over_tasks: Array<TaskRead>;
+    /**
+     * Unscheduled Tasks
+     */
+    unscheduled_tasks: Array<TaskRead>;
+    /**
+     * Recurring
+     */
+    recurring: Array<TaskTemplateRead>;
+    /**
+     * Completed Tasks
+     */
+    completed_tasks: Array<TaskRead>;
+    agenda_range: DateRangeRead | null;
+    /**
+     * Agenda Tasks
+     */
+    agenda_tasks: Array<TaskRead>;
+    /**
+     * Deadlines
+     */
+    deadlines: Array<DeadlineRead>;
+    project: ProjectRead;
+    /**
+     * Pace
+     */
+    pace: number | null;
+    /**
+     * Pace Status
+     */
+    pace_status: 'ahead' | 'behind' | 'on_pace' | null;
+};
+
+/**
  * ProjectProgress
  *
  * Done one-off tasks out of those not cancelled or archived. Calculated, never stored.
@@ -4240,6 +4317,49 @@ export type UpdateSectionResponses = {
 };
 
 export type UpdateSectionResponse = UpdateSectionResponses[keyof UpdateSectionResponses];
+
+export type GetProjectPageData = {
+    body?: never;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: {
+        /**
+         * Period
+         */
+        period?: 'week' | 'month' | 'quarter' | 'year';
+        /**
+         * Date
+         */
+        date?: string | null;
+    };
+    url: '/api/projects/{project_id}/page';
+};
+
+export type GetProjectPageErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetProjectPageError = GetProjectPageErrors[keyof GetProjectPageErrors];
+
+export type GetProjectPageResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectPageRead;
+};
+
+export type GetProjectPageResponse = GetProjectPageResponses[keyof GetProjectPageResponses];
 
 export type PreviewProjectChangeData = {
     body?: never;

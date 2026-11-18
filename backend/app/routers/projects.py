@@ -1,10 +1,14 @@
+import datetime as dt
 from typing import Any, Literal
 
 from fastapi import APIRouter, status
 
+from app import clock
 from app.db import SessionDep
 from app.models import Project
+from app.schemas.area_page import ProjectPageRead
 from app.schemas.common import ErrorResponse
+from app.schemas.overview import OverviewPeriod
 from app.schemas.preview import ConfirmPreview
 from app.schemas.project import (
     ProjectChange,
@@ -17,7 +21,7 @@ from app.schemas.project import (
     SectionRead,
     SectionUpdate,
 )
-from app.services import cascades, previews
+from app.services import area_page, cascades, previews
 from app.services import projects as service
 
 router = APIRouter(prefix="/api", tags=["projects"])
@@ -113,6 +117,25 @@ def delete_section(session: SessionDep, section_id: int) -> None:
 
 
 # ---------- Status and archiving (cascades) ----------
+
+
+@router.get("/projects/{project_id}/page", responses=NOT_FOUND)
+def get_project_page(
+    session: SessionDep,
+    project_id: int,
+    period: OverviewPeriod = "quarter",
+    date: dt.date | None = None,
+) -> ProjectPageRead:
+    """One project over the week, month, quarter or year containing `date` (default:
+    today): its metrics, timeline, routine steps, task lists, agenda and pace."""
+    page = area_page.get_project_page(session, project_id, period, date or clock.today())
+    assert page.project is not None
+    return ProjectPageRead.from_page(  # type: ignore[return-value]
+        page,
+        project=_read(session, page.project),
+        pace=page.pace,
+        pace_status=page.pace_status,
+    )
 
 
 @router.get("/projects/{project_id}/preview", responses=NOT_FOUND)

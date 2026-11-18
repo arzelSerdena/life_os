@@ -18,7 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, Folder, GripVertical, Pause, Plus } from "lucide-react";
-import { type ReactNode, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate, useOutletContext } from "react-router";
 import {
   getRoutinesHistoryOptions,
@@ -29,9 +29,9 @@ import {
 } from "../../client/@tanstack/react-query.gen";
 import type { RoutineHistoryRead, RoutinesHistoryRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
-import { SIDEBAR_ROW, SIDEBAR_ROW_ACTIVE, Sidebar, SidebarLink } from "../../components/Sidebar";
-import { useDetailPanel } from "../../stores/detailPanelStore";
+import { SIDEBAR_ROW, Sidebar, SidebarLink } from "../../components/Sidebar";
 import { NewProjectModal } from "../projects/NewProjectModal";
+import { projectPath } from "../projects/paths";
 import { NewRoutineModal } from "../routines/NewRoutineModal";
 import { moveRoutine } from "../routines/newRoutine";
 import { ProgressRing } from "../tasks/RoutinesPage";
@@ -66,8 +66,6 @@ export function AreasLayout() {
   const lifeAreas = useQuery(listLifeAreasOptions());
   const activeAreas = lifeAreas.data ?? [];
   const projects = useQuery(listProjectsOptions());
-  const panelTarget = useDetailPanel((state) => state.target);
-  const openPanel = useDetailPanel((state) => state.open);
 
   // Active projects in active areas, in area order.
   const areaOrder = new Map(activeAreas.map((area, index) => [area.id, index]));
@@ -140,11 +138,7 @@ export function AreasLayout() {
             <p className="px-2 py-1 type-meta text-(--text-secondary)">No projects yet.</p>
           )}
           {activeProjects.map((project) => (
-            <SidebarButton
-              key={project.id}
-              isActive={panelTarget?.kind === "project" && panelTarget.id === project.id}
-              onPress={() => openPanel({ kind: "project", id: project.id })}
-            >
+            <SidebarLink key={project.id} to={projectPath(project.id)}>
               <Folder
                 aria-hidden
                 data-area={areaDataAttribute(colorOf(project.life_area_id))}
@@ -152,7 +146,7 @@ export function AreasLayout() {
                 strokeWidth={2}
               />
               <span className="truncate">{project.title}</span>
-            </SidebarButton>
+            </SidebarLink>
           ))}
         </nav>
 
@@ -187,8 +181,7 @@ export function AreasLayout() {
           lifeAreas={activeAreas}
           lifeAreaId={newProject.lifeAreaId}
           onClose={() => setNewProject(null)}
-          // Until the project page exists, a new project opens in the detail panel.
-          onCreated={(project) => openPanel({ kind: "project", id: project.id })}
+          onCreated={(project) => navigate(projectPath(project.id))}
         />
       )}
 
@@ -358,26 +351,4 @@ function RoutineMark({ routine, today }: { routine: RoutineHistoryRead; today: s
   }
   const column = routineColumn(routine, today);
   return <ProgressRing done={column.done} total={column.total} className="size-4" />;
-}
-
-/** A sidebar row that opens something in place instead of going to a page. */
-function SidebarButton({
-  isActive,
-  onPress,
-  children,
-}: {
-  isActive: boolean;
-  onPress: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-current={isActive || undefined}
-      onClick={onPress}
-      className={`${SIDEBAR_ROW} w-full text-left ${isActive ? SIDEBAR_ROW_ACTIVE : "text-(--sidebar-item-text)"}`}
-    >
-      {children}
-    </button>
-  );
 }

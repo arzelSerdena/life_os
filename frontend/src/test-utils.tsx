@@ -2,7 +2,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { App } from "./App";
-import type { AreaPageRead, LifeAreaRead, OverviewRead, TaskRead } from "./client/types.gen";
+import type {
+  AreaPageRead,
+  LifeAreaRead,
+  OverviewRead,
+  ProjectPageRead,
+  ProjectRead,
+  TaskRead,
+} from "./client/types.gen";
 import { createQueryClient } from "./queryClient";
 
 export function renderApp(path = "/areas") {
@@ -124,6 +131,33 @@ export function emptyAreaPage(
     agenda_range: { start: "2026-11-14", end: "2026-12-31" },
     agenda_tasks: [],
     deadlines: [],
+    ...overrides,
+  };
+}
+
+/** A project's page with nothing in it: the project itself is its one project item. */
+export function emptyProjectPage(
+  lifeArea: LifeAreaRead,
+  project: ProjectRead,
+  overrides: Partial<ProjectPageRead> = {},
+): ProjectPageRead {
+  return {
+    ...emptyAreaPage(lifeArea),
+    project,
+    projects: [
+      {
+        id: project.id,
+        title: project.title,
+        status: project.status,
+        start: project.start_date ?? project.created_at.slice(0, 10),
+        due_date: project.due_date,
+        completed_on: null,
+        done: project.progress.done,
+        total: project.progress.total,
+      },
+    ],
+    pace: null,
+    pace_status: null,
     ...overrides,
   };
 }

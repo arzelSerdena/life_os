@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, Circle, X } from "lucide-react";
+import { Check, ChevronDown, Circle, Folder, X } from "lucide-react";
 import { Fragment, type ReactNode, useState } from "react";
 import {
   createMetricMutation,
@@ -42,10 +42,13 @@ type Aggregation = MetricCreate["aggregation"];
  */
 export function NewMetricModal({
   lifeArea,
+  project,
   stepId: fedBy,
   onClose,
 }: {
   lifeArea: LifeAreaRead;
+  /** Opened on a project page: the project owns the metric. */
+  project?: { id: number; title: string };
   /** Opened from a routine step's "Feeds metric": counts that step's days. */
   stepId?: number;
   onClose: () => void;
@@ -110,7 +113,7 @@ export function NewMetricModal({
     event.preventDefault();
     if (missing || busy) return;
     setError(null);
-    const owner = { life_area_id: lifeArea.id };
+    const owner = { life_area_id: lifeArea.id, ...(project && { project_id: project.id }) };
     const body: MetricCreate = fromStep
       ? {
           title: title.trim(),
@@ -185,8 +188,16 @@ export function NewMetricModal({
                       data-area={areaDataAttribute(lifeArea.color)}
                       className="flex h-5 items-center gap-1 rounded-full bg-(--area-tint-active) px-2 text-[11px] font-medium text-(--area-text)"
                     >
-                      <span aria-hidden className="size-1.5 rounded-full bg-(--area-solid)" />
-                      {lifeArea.title}
+                      {project ? (
+                        <Folder
+                          aria-hidden
+                          className="size-3 text-(--area-solid)"
+                          strokeWidth={2}
+                        />
+                      ) : (
+                        <span aria-hidden className="size-1.5 rounded-full bg-(--area-solid)" />
+                      )}
+                      {project?.title ?? lifeArea.title}
                     </span>
                   </span>
                 </div>
