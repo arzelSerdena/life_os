@@ -1048,6 +1048,20 @@ export type NewRoutineStep = {
 };
 
 /**
+ * NoNextStepRead
+ */
+export type NoNextStepRead = {
+    /**
+     * Project Id
+     */
+    project_id: number;
+    /**
+     * Open
+     */
+    open: number;
+};
+
+/**
  * OccurrenceCancel
  */
 export type OccurrenceCancel = {
@@ -1289,6 +1303,64 @@ export type OutcomeTargetRead = {
      * End Date
      */
     end_date: string | null;
+};
+
+/**
+ * OverviewProjectRead
+ *
+ * An active project, or one finished in the period. start is its start date, or the
+ * day it was created; done and total count as project progress does; pace_status is null
+ * without a due date, without tasks, and for finished projects.
+ */
+export type OverviewProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Status
+     */
+    status: 'active' | 'done' | 'cancelled';
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Completed On
+     */
+    completed_on: string | null;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Open
+     */
+    open: number;
+    /**
+     * Overdue
+     */
+    overdue: number;
+    /**
+     * Pace Status
+     */
+    pace_status: 'ahead' | 'behind' | 'on_pace' | null;
 };
 
 /**
@@ -1786,6 +1858,40 @@ export type ProjectRead = {
 };
 
 /**
+ * ProjectTotalsRead
+ *
+ * Project tasks done in a span (one-off tasks, as project progress counts them), those
+ * of them with a due date and those done by it, the rollovers they collected, and the
+ * projects finished (on time: by their due date, or with none).
+ */
+export type ProjectTotalsRead = {
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Done With Due
+     */
+    done_with_due: number;
+    /**
+     * Done On Time
+     */
+    done_on_time: number;
+    /**
+     * Rollovers
+     */
+    rollovers: number;
+    /**
+     * Finished
+     */
+    finished: number;
+    /**
+     * Finished On Time
+     */
+    finished_on_time: number;
+};
+
+/**
  * ProjectUpdate
  *
  * Only the fields sent are changed. Moving and status changes have their own endpoints.
@@ -1844,6 +1950,93 @@ export type ProjectsAreaRead = {
      * Pace Status
      */
     pace_status: 'ahead' | 'behind' | 'on_pace' | null;
+};
+
+/**
+ * ProjectsBucketRead
+ *
+ * One point of the tiles' lines: a day (week), a week (month, quarter) or a month
+ * (year). open and overdue are counted at the bucket's end, or today if that is earlier.
+ */
+export type ProjectsBucketRead = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    totals: ProjectTotalsRead;
+    /**
+     * Open
+     */
+    open: number;
+    /**
+     * Overdue
+     */
+    overdue: number;
+};
+
+/**
+ * ProjectsOverviewRead
+ *
+ * Every project over one calendar period. due_next, stalled and no_next_step refer to
+ * projects in `projects`.
+ */
+export type ProjectsOverviewRead = {
+    /**
+     * Period
+     */
+    period: 'week' | 'month' | 'quarter' | 'year';
+    range: DateRangeRead;
+    previous_range: DateRangeRead;
+    /**
+     * Today
+     */
+    today: string;
+    /**
+     * Has Projects
+     */
+    has_projects: boolean;
+    totals: ProjectTotalsRead;
+    previous: ProjectTotalsRead;
+    /**
+     * Open
+     */
+    open: number;
+    /**
+     * Open Projects
+     */
+    open_projects: number;
+    /**
+     * Overdue
+     */
+    overdue: number;
+    /**
+     * Overdue Projects
+     */
+    overdue_projects: number;
+    /**
+     * Buckets
+     */
+    buckets: Array<ProjectsBucketRead>;
+    /**
+     * Projects
+     */
+    projects: Array<OverviewProjectRead>;
+    /**
+     * Due Next
+     */
+    due_next: Array<number>;
+    /**
+     * Stalled
+     */
+    stalled: Array<StalledProjectRead>;
+    /**
+     * No Next Step
+     */
+    no_next_step: Array<NoNextStepRead>;
 };
 
 /**
@@ -2750,6 +2943,20 @@ export type SettingsUpdate = {
      * Backup Folder
      */
     backup_folder?: string | null;
+};
+
+/**
+ * StalledProjectRead
+ */
+export type StalledProjectRead = {
+    /**
+     * Project Id
+     */
+    project_id: number;
+    /**
+     * Days
+     */
+    days: number;
 };
 
 /**
@@ -4067,6 +4274,40 @@ export type CreateProjectResponses = {
 };
 
 export type CreateProjectResponse = CreateProjectResponses[keyof CreateProjectResponses];
+
+export type GetProjectsOverviewData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Period
+         */
+        period?: 'week' | 'month' | 'quarter' | 'year';
+        /**
+         * Date
+         */
+        date?: string | null;
+    };
+    url: '/api/projects/overview';
+};
+
+export type GetProjectsOverviewErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetProjectsOverviewError = GetProjectsOverviewErrors[keyof GetProjectsOverviewErrors];
+
+export type GetProjectsOverviewResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectsOverviewRead;
+};
+
+export type GetProjectsOverviewResponse = GetProjectsOverviewResponses[keyof GetProjectsOverviewResponses];
 
 export type DeleteProjectData = {
     body?: never;

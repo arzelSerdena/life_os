@@ -8,7 +8,7 @@ from app.db import SessionDep
 from app.models import Project
 from app.schemas.area_page import ProjectPageRead
 from app.schemas.common import ErrorResponse
-from app.schemas.overview import OverviewPeriod
+from app.schemas.overview import DateRangeRead, OverviewPeriod
 from app.schemas.preview import ConfirmPreview
 from app.schemas.project import (
     ProjectChange,
@@ -21,8 +21,17 @@ from app.schemas.project import (
     SectionRead,
     SectionUpdate,
 )
+from app.schemas.projects_overview import (
+    NoNextStepRead,
+    OverviewProjectRead,
+    ProjectsBucketRead,
+    ProjectsOverviewRead,
+    ProjectTotalsRead,
+    StalledProjectRead,
+)
 from app.services import area_page, cascades, previews
 from app.services import projects as service
+from app.services import projects_overview as overview_service
 
 router = APIRouter(prefix="/api", tags=["projects"])
 
@@ -60,6 +69,68 @@ def list_projects(
         session, life_area_id=life_area_id, include_archived=include_archived
     )
     return [_read(session, project) for project in found]
+
+
+@router.get("/projects/overview")
+def get_projects_overview(
+    session: SessionDep, period: OverviewPeriod = "quarter", date: dt.date | None = None
+) -> ProjectsOverviewRead:
+    """Every project over the week, month, quarter or year containing `date` (default:
+    today): execution stats from project tasks, the active projects and those finished in
+    the period, and the ones due next, stalled or without a next step."""
+    found = overview_service.get_overview(session, period, date or clock.today())
+
+    def totals(found_totals: overview_service.Totals) -> ProjectTotalsRead:
+        return ProjectTotalsRead(**vars(found_totals))
+
+    return ProjectsOverviewRead(
+        period=found.period,  # type: ignore[arg-type]
+        range=DateRangeRead(start=found.view.start, end=found.view.end),
+        previous_range=DateRangeRead(start=found.previous_view.start, end=found.previous_view.end),
+        today=found.today,
+        has_projects=found.has_projects,
+        totals=totals(found.totals),
+        previous=totals(found.previous),
+        open=found.open,
+        open_projects=found.open_projects,
+        overdue=found.overdue,
+        overdue_projects=found.overdue_projects,
+        buckets=[
+            ProjectsBucketRead(
+                start=bucket.start,
+                end=bucket.end,
+                totals=totals(bucket.totals),
+                open=bucket.open,
+                overdue=bucket.overdue,
+            )
+            for bucket in found.buckets
+        ],
+        projects=[
+            OverviewProjectRead(
+                id=row.project.id,
+                life_area_id=row.project.life_area_id,
+                title=row.project.title,
+                status=row.project.status,  # type: ignore[arg-type]
+                start=row.start,
+                due_date=row.project.due_date,
+                completed_on=row.completed_on,
+                done=row.done,
+                total=row.total,
+                open=row.open,
+                overdue=row.overdue,
+                pace_status=row.pace_status,  # type: ignore[arg-type]
+            )
+            for row in found.projects
+        ],
+        due_next=[row.project.id for row in found.due_next],
+        stalled=[
+            StalledProjectRead(project_id=item.project.id, days=item.days) for item in found.stalled
+        ],
+        no_next_step=[
+            NoNextStepRead(project_id=item.project.id, open=item.open)
+            for item in found.no_next_step
+        ],
+    )
 
 
 @router.post("/projects", status_code=status.HTTP_201_CREATED, responses=CONFLICT)

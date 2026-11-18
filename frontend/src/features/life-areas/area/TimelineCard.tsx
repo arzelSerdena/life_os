@@ -1,13 +1,18 @@
 import { CalendarDays, ChartLine, ChevronDown } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import type { AreaPageRead, OutcomeRead } from "../../../client/types.gen";
+import type {
+  AreaPageRead,
+  AreaProjectRead,
+  DateRangeRead,
+  OutcomeRead,
+} from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
 import { formatValue } from "../../metrics/format";
 import { plural, shortDate } from "../overview/format";
 import { addDays, earlierDate, laterDate, scaleTicks, timeScale } from "./timeScale";
 
-const LABEL_WIDTH = "140px";
+export const LABEL_WIDTH = "140px";
 
 /** Projects, events and metrics across the period, with a mark for today. On a project page
  * the one project is the project itself. */
@@ -36,84 +41,17 @@ export function TimelineCard({
     );
   }
 
-  const today =
-    page.today >= page.range.start && page.today <= page.range.end ? scale.at(page.today) : null;
-  const { months, ticks } = scaleTicks(page.range, period);
-
   return (
     <SectionCard title="Timeline" description={`${description} in ${name}`}>
       <div className="relative">
-        {/* Scale */}
-        <div className="grid" style={{ gridTemplateColumns: `${LABEL_WIDTH} 1fr` }}>
-          <span />
-          <div className="relative h-10 border-b border-(--border-default) text-xs">
-            {months.map((month) => (
-              <span
-                key={month.date}
-                className="absolute top-0 border-l border-(--border-default) pl-1 font-medium text-(--text-secondary)"
-                style={{ left: `${scale.at(month.date)}%` }}
-              >
-                {month.label}
-              </span>
-            ))}
-            {ticks.map((tick) => (
-              <span
-                key={tick.date}
-                className="absolute top-5 -translate-x-1/2 text-(--text-tertiary)"
-                style={{ left: `${scale.at(tick.date) + 50 / scale.total}%` }}
-              >
-                {tick.label}
-              </span>
-            ))}
-          </div>
-        </div>
+        <TimelineScale range={page.range} period={period} />
 
         <Section title={onProjectPage ? "Project" : "Projects"} count={projects.length}>
-          {projects.map((project) => {
-            const start = laterDate(project.start, page.range.start);
-            const end = project.completed_on ?? project.due_date ?? page.range.end;
-            // A project finished before its recorded start still shows as a one-day bar.
-            const barStart = earlierDate(start, end);
-            if (end < page.range.start || barStart > page.range.end) return null;
-            const left = scale.at(barStart);
-            const width = Math.max(scale.after(earlierDate(end, page.range.end)) - left, 2);
-            const share = project.total ? Math.round((project.done / project.total) * 100) : 0;
-            const done = project.status === "done";
-            return (
-              <Row key={project.id} label="">
-                <div
-                  className={`absolute top-1 flex h-[22px] items-center overflow-hidden rounded-(--radius-4) px-2 text-xs ${
-                    done
-                      ? "bg-neutral-200 text-(--text-secondary)"
-                      : "bg-(--area-tint-active) text-(--area-ink)"
-                  }`}
-                  style={{
-                    left: `${left}%`,
-                    width: `${width}%`,
-                    maskImage:
-                      project.due_date || done
-                        ? undefined
-                        : "linear-gradient(to right, #000 75%, transparent)",
-                  }}
-                  title={`${project.title}: ${project.done} of ${project.total} tasks done${
-                    project.due_date ? `, due ${shortDate(project.due_date)}` : ""
-                  }`}
-                >
-                  {!done && (
-                    <span
-                      aria-hidden
-                      className="absolute inset-y-0 left-0 bg-(--area-border)"
-                      style={{ width: `${share}%` }}
-                    />
-                  )}
-                  <span className="relative truncate">{project.title}</span>
-                  {!done && project.total > 0 && (
-                    <span className="relative ml-auto pl-2 font-semibold">{share}%</span>
-                  )}
-                </div>
-              </Row>
-            );
-          })}
+          {projects.map((project) => (
+            <Row key={project.id} label="">
+              <ProjectBar project={project} range={page.range} />
+            </Row>
+          ))}
         </Section>
 
         <Section title="Events" count={events.length}>
@@ -164,24 +102,113 @@ export function TimelineCard({
           ))}
         </Section>
 
-        {today !== null && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute top-0 bottom-0 grid"
-            style={{ left: LABEL_WIDTH, right: 0 }}
-          >
-            <span
-              className="absolute top-0 bottom-0 w-px bg-(--color-neutral-900)"
-              style={{ left: `${today + 50 / scale.total}%` }}
-            >
-              <span className="absolute -top-0.5 -translate-x-1/2 rounded-[4px] bg-(--color-neutral-900) px-1.5 text-[11px] leading-4 font-semibold text-white">
-                Today
-              </span>
-            </span>
-          </div>
-        )}
+        <TodayLine range={page.range} today={page.today} />
       </div>
     </SectionCard>
+  );
+}
+
+/** Month names along the top, and smaller ticks under them, right of the label column. */
+export function TimelineScale({ range, period }: { range: DateRangeRead; period: Period }) {
+  const scale = timeScale(range);
+  const { months, ticks } = scaleTicks(range, period);
+  return (
+    <div className="grid" style={{ gridTemplateColumns: `${LABEL_WIDTH} 1fr` }}>
+      <span />
+      <div className="relative h-10 border-b border-(--border-default) text-xs">
+        {months.map((month) => (
+          <span
+            key={month.date}
+            className="absolute top-0 border-l border-(--border-default) pl-1 font-medium text-(--text-secondary)"
+            style={{ left: `${scale.at(month.date)}%` }}
+          >
+            {month.label}
+          </span>
+        ))}
+        {ticks.map((tick) => (
+          <span
+            key={tick.date}
+            className="absolute top-5 -translate-x-1/2 text-(--text-tertiary)"
+            style={{ left: `${scale.at(tick.date) + 50 / scale.total}%` }}
+          >
+            {tick.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The black Today line across a timeline whose parent is `relative`; none outside the range. */
+export function TodayLine({ range, today }: { range: DateRangeRead; today: string }) {
+  if (today < range.start || today > range.end) return null;
+  const scale = timeScale(range);
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute top-0 bottom-0 grid"
+      style={{ left: LABEL_WIDTH, right: 0 }}
+    >
+      <span
+        className="absolute top-0 bottom-0 w-px bg-(--color-neutral-900)"
+        style={{ left: `${scale.at(today) + 50 / scale.total}%` }}
+      >
+        <span className="absolute -top-0.5 -translate-x-1/2 rounded-[4px] bg-(--color-neutral-900) px-1.5 text-[11px] leading-4 font-semibold text-white">
+          Today
+        </span>
+      </span>
+    </div>
+  );
+}
+
+type BarProject = Pick<
+  AreaProjectRead,
+  "title" | "status" | "start" | "due_date" | "completed_on" | "done" | "total"
+>;
+
+/** One project's bar from its start to its due date (fading out without one) or the day it
+ * was finished (grey), filled to its progress. Inside a `relative` lane, in an area's
+ * `data-area`. Nothing when the project falls outside the range. */
+export function ProjectBar({ project, range }: { project: BarProject; range: DateRangeRead }) {
+  const scale = timeScale(range);
+  const start = laterDate(project.start, range.start);
+  const end = project.completed_on ?? project.due_date ?? range.end;
+  // A project finished before its recorded start still shows as a one-day bar.
+  const barStart = earlierDate(start, end);
+  if (end < range.start || barStart > range.end) return null;
+  const left = scale.at(barStart);
+  const width = Math.max(scale.after(earlierDate(end, range.end)) - left, 2);
+  const share = project.total ? Math.round((project.done / project.total) * 100) : 0;
+  const done = project.status === "done";
+  return (
+    <div
+      className={`absolute top-1 flex h-[22px] items-center overflow-hidden rounded-(--radius-4) px-2 text-xs ${
+        done
+          ? "bg-neutral-200 text-(--text-secondary)"
+          : "bg-(--area-tint-active) text-(--area-ink)"
+      }`}
+      style={{
+        left: `${left}%`,
+        width: `${width}%`,
+        maskImage:
+          project.due_date || done ? undefined : "linear-gradient(to right, #000 75%, transparent)",
+      }}
+      title={`${project.title}: ${project.done} of ${project.total} tasks done${
+        project.due_date ? `, due ${shortDate(project.due_date)}` : ""
+      }`}
+    >
+      {!done && (
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 bg-(--area-border)"
+          style={{ width: `${share}%` }}
+        />
+      )}
+      <span className="relative truncate">{project.title}</span>
+      {!done && project.total > 0 && (
+        <span className="relative ml-auto pl-2 font-semibold">{share}%</span>
+      )}
+    </div>
   );
 }
 

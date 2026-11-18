@@ -123,10 +123,14 @@ export function AreasLayout() {
 
         <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
 
-        <div className="mb-0.5 flex h-8 items-center gap-2 pr-1">
-          <h2 className="flex-1 pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase">
+        <div className="mb-0.5 flex h-8 items-center gap-2 rounded-(--radius-6) pr-1 has-[a:hover]:bg-(--bg-hover) has-[a[aria-current=page]]:bg-(--bg-hover) has-[a[aria-current=page]]:shadow-[inset_2px_0_0_var(--color-brand-600)]">
+          <NavLink
+            to="/areas/projects"
+            end
+            className="flex h-full flex-1 items-center pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          >
             Projects
-          </h2>
+          </NavLink>
           {activeAreas.length > 0 && (
             <IconButton label="New project" onPress={() => context.openNewProject()}>
               <Plus />

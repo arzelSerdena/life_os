@@ -1,11 +1,14 @@
 import type { Tile } from "./routine";
 import { Sparkline } from "./Sparkline";
 
-/** Five calculated tiles in the execution-stats style: the routine page's and the Routines
- * overview's. */
+/** Calculated tiles in the execution-stats style, one row: the routine page's and the
+ * Routines overview's five, the Projects overview's six. */
 export function StatTiles({ tiles }: { tiles: Tile[] }) {
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div
+      className="grid gap-4"
+      style={{ gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))` }}
+    >
       {tiles.map((tile) => (
         <article
           key={tile.label}
