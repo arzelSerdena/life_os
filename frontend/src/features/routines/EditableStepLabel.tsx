@@ -1,19 +1,16 @@
 import { useMutation } from "@tanstack/react-query";
-import { Archive, ChartLine, Folder, Pause, Play, Trash2 } from "lucide-react";
+import { ChartLine, Folder } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import {
-  archiveRoutineStepMutation,
   moveRoutineStepMutation,
-  pauseRoutineStepMutation,
-  resumeRoutineStepMutation,
   updateRoutineStepMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead, ProjectRead, RoutinePageStepRead } from "../../client/types.gen";
 import { errorMessage } from "../../errors";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { useDetailPanel } from "../../stores/detailPanelStore";
-import { DeleteStepDialog } from "../deleting/deleteDialogs";
-import { type PanelAction, PanelMenu } from "../detail-panel/PanelParts";
+import { PanelMenu } from "../detail-panel/PanelParts";
+import { useStepActions } from "../item-menu/routineActions";
 import { NewMetricModal } from "../life-areas/area/NewMetricModal";
 import { Chip } from "../pickers/chips";
 import { OwnerChip } from "../pickers/OwnerPicker";
@@ -41,7 +38,7 @@ export function EditableStepLabel({
   const path = { step_id: step.id };
   const [draft, setDraft] = useState<string | null>(null);
   const [focusTitle, setFocusTitle] = useState(false);
-  const [dialog, setDialog] = useState<"delete" | "metric" | null>(null);
+  const [isAddingMetric, setIsAddingMetric] = useState(false);
   const cancelled = useRef(false);
   const container = useRef<HTMLDivElement>(null);
   const showToast = useChangeToast((state) => state.show);
@@ -57,13 +54,8 @@ export function EditableStepLabel({
       showToast(`Moved “${step.title}” · ${target ?? ""}`, change.batch_id);
     },
   });
-  const pause = useMutation(pauseRoutineStepMutation());
-  const resume = useMutation(resumeRoutineStepMutation());
-  const archive = useMutation({
-    ...archiveRoutineStepMutation(),
-    onSuccess: (change) => showToast(`Archived “${step.title}”`, change.batch_id),
-  });
-  const error = rename.error ?? move.error ?? pause.error ?? resume.error ?? archive.error;
+  const menu = useStepActions(row);
+  const error = rename.error ?? move.error ?? menu.error;
 
   const project = projects.find((item) => item.id === step.project_id);
   const area = areas.find((item) => item.id === step.life_area_id);
@@ -90,7 +82,7 @@ export function EditableStepLabel({
 
   // A click outside the row (and outside its pickers and dialogs) finishes editing.
   useEffect(() => {
-    if (!isEditing || dialog) return;
+    if (!isEditing || isAddingMetric || menu.dialogs) return;
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Element | null;
       if (!target || container.current?.contains(target) || target.closest(OVERLAYS)) return;
@@ -98,7 +90,7 @@ export function EditableStepLabel({
     };
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [isEditing, dialog]);
+  }, [isEditing, isAddingMetric, menu.dialogs]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -111,37 +103,6 @@ export function EditableStepLabel({
       setDraft(null);
     }
   };
-
-  const actions: PanelAction[] = [
-    step.is_paused
-      ? {
-          id: "resume",
-          label: "Resume step",
-          icon: Play,
-          onAction: () => resume.mutate({ path }),
-        }
-      : {
-          id: "pause",
-          label: "Pause step",
-          icon: Pause,
-          onAction: () => pause.mutate({ path }),
-        },
-    {
-      id: "archive",
-      label: "Archive step",
-      icon: Archive,
-      onAction: () => archive.mutate({ path }),
-    },
-    {
-      id: "delete",
-      label: "Delete step",
-      icon: Trash2,
-      isDanger: true,
-      isDisabled: row.metric !== null,
-      hint: row.metric ? `Feeds ${row.metric.title}. Archive it instead.` : undefined,
-      onAction: () => setDialog("delete"),
-    },
-  ];
 
   return (
     <div ref={container} className="group/step flex min-w-0 flex-col pr-2">
@@ -177,7 +138,7 @@ export function EditableStepLabel({
           }`}
         >
           <PanelMenu
-            actions={actions}
+            actions={menu.actions}
             label={`Actions for ${step.title}`}
             placement="bottom start"
             onOpenChange={(isOpen) => isOpen && startEditing(false)}
@@ -214,7 +175,7 @@ export function EditableStepLabel({
             </Chip>
           ) : (
             area && (
-              <Chip icon={ChartLine} tone="ghost" onPress={() => setDialog("metric")}>
+              <Chip icon={ChartLine} tone="ghost" onPress={() => setIsAddingMetric(true)}>
                 Feeds metric
               </Chip>
             )
@@ -241,15 +202,15 @@ export function EditableStepLabel({
           </span>
         )
       )}
-      {error && (
+      {error ? (
         <span role="alert" className="pl-5 type-meta text-(--text-danger)">
           {errorMessage(error)}
         </span>
-      )}
+      ) : null}
 
-      {dialog === "delete" && <DeleteStepDialog step={step} onClose={() => setDialog(null)} />}
-      {dialog === "metric" && area && (
-        <NewMetricModal lifeArea={area} stepId={step.id} onClose={() => setDialog(null)} />
+      {menu.dialogs}
+      {isAddingMetric && area && (
+        <NewMetricModal lifeArea={area} stepId={step.id} onClose={() => setIsAddingMetric(false)} />
       )}
     </div>
   );

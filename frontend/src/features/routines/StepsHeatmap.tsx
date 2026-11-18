@@ -2,6 +2,7 @@ import { ChartLine, Folder } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import type { LifeAreaRead, ProjectRead, RoutinePageStepRead } from "../../client/types.gen";
 import type { Period } from "../../period";
+import { itemMenuProps } from "../item-menu/target";
 import { areaDataAttribute } from "../life-areas/palette";
 import type { DayState, HeatCell, Heatmap } from "./routine";
 import { canEditSquare, type SquareTarget } from "./SquarePopover";
@@ -164,6 +165,7 @@ export function StepsHeatmap({
   onSelect,
   onSquare,
   label,
+  routineId,
   areas,
   projects,
 }: {
@@ -173,8 +175,11 @@ export function StepsHeatmap({
   onSelect: (day: string) => void;
   /** Left out for an archived routine, whose days can't change. */
   onSquare?: (target: SquareTarget) => void;
-  /** Each step's label, such as one that edits in place; StepLabel by default. */
+  /** Each step's label, such as one that edits in place; StepLabel by default. A step with
+   * its own label has a ⋯ menu, which right-clicking its row (label or squares) opens. */
   label?: (row: RoutinePageStepRead) => ReactNode;
+  /** Right-clicking the All steps row opens the routine's ⋯ menu. */
+  routineId: number;
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
@@ -182,7 +187,10 @@ export function StepsHeatmap({
     <div className="flex flex-col">
       <HeatmapHeader map={map} period={period} />
 
-      <div className={`${ROW} mt-1.5 border-b border-(--color-neutral-100) pb-1.5`}>
+      <div
+        {...itemMenuProps({ kind: "routine", id: routineId })}
+        className={`${ROW} mt-1.5 border-b border-(--color-neutral-100) pb-1.5`}
+      >
         <span className="text-[13px] leading-[18px] font-semibold text-(--text-primary)">
           All steps
         </span>
@@ -199,6 +207,7 @@ export function StepsHeatmap({
       {map.steps.map(({ row, cells }) => (
         <div
           key={row.step.id}
+          {...(label ? itemMenuProps({ kind: "step", id: row.step.id, routineId }) : {})}
           data-area={areaDataAttribute(
             areas.find((area) => area.id === row.step.life_area_id)?.color,
           )}

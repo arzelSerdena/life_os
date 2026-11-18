@@ -110,7 +110,11 @@ export function AreasLayout() {
             </p>
           )}
           {activeAreas.map((lifeArea) => (
-            <SidebarLink key={lifeArea.id} to={`/areas/${lifeArea.id}`}>
+            <SidebarLink
+              key={lifeArea.id}
+              to={`/areas/${lifeArea.id}`}
+              item={{ kind: "area", id: lifeArea.id }}
+            >
               <span
                 aria-hidden
                 data-area={areaDataAttribute(lifeArea.color)}
@@ -142,7 +146,11 @@ export function AreasLayout() {
             <p className="px-2 py-1 type-meta text-(--text-secondary)">No projects yet.</p>
           )}
           {activeProjects.map((project) => (
-            <SidebarLink key={project.id} to={projectPath(project.id)}>
+            <SidebarLink
+              key={project.id}
+              to={projectPath(project.id)}
+              item={{ kind: "project", id: project.id }}
+            >
               <Folder
                 aria-hidden
                 data-area={areaDataAttribute(colorOf(project.life_area_id))}
@@ -335,7 +343,7 @@ function SortableRoutine({ routine, today }: { routine: RoutineHistoryRead; toda
   const { role: _role, tabIndex: _tabIndex, ...handle } = attributes;
   return (
     <div ref={setNodeRef} style={style} {...handle} {...listeners}>
-      <SidebarLink to={`/areas/routines/${routine.id}`}>
+      <SidebarLink to={`/areas/routines/${routine.id}`} item={{ kind: "routine", id: routine.id }}>
         <RoutineMark routine={routine} today={today} />
         <span className="truncate">{routine.title}</span>
       </SidebarLink>

@@ -19,6 +19,7 @@ import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import type { Period } from "../../period";
 import { usePeriodStore } from "../../stores/periodStore";
 import { PanelMenu } from "../detail-panel/PanelParts";
+import { type ItemTarget, itemMenuProps } from "../item-menu/target";
 import { useAreasContext } from "../life-areas/AreasLayout";
 import { CardMenu, type MenuOption } from "../life-areas/overview/CardMenu";
 import { areaDataAttribute } from "../life-areas/palette";
@@ -210,7 +211,11 @@ function RoutinesHeatmap({
         <CardEmpty>Every routine is paused.</CardEmpty>
       ) : (
         routines.map((routine) => (
-          <div key={routine.id} className={`${ROW} mt-2.5`}>
+          <div
+            key={routine.id}
+            {...itemMenuProps({ kind: "routine", id: routine.id })}
+            className={`${ROW} mt-2.5`}
+          >
             <RoutineLabel routine={routine} />
             <Cells
               cells={routineCells(routine, overview, period)}
@@ -254,6 +259,7 @@ function CompletionByRoutine({
           return (
             <li
               key={routine.id}
+              {...itemMenuProps({ kind: "routine", id: routine.id })}
               className="grid min-h-9 grid-cols-[240px_minmax(0,1fr)_40px_96px] items-center gap-3"
             >
               <RoutineLabel routine={routine} />
@@ -305,6 +311,7 @@ function PickUpCard({
         <PickUpRow
           key={routine.id}
           to={routine.id}
+          item={{ kind: "routine", id: routine.id }}
           marker={
             <ProgressRing done={routine.today_done} total={routine.today_due} className="size-4" />
           }
@@ -319,6 +326,7 @@ function PickUpCard({
         <PickUpRow
           key={step.step_id}
           to={step.routine_id}
+          item={{ kind: "step", id: step.step_id, routineId: step.routine_id }}
           area={colorOf(step.life_area_id)}
           title={step.title}
           meta={step.routine_title}
@@ -332,6 +340,7 @@ function PickUpCard({
         <PickUpRow
           key={step.step_id}
           to={step.routine_id}
+          item={{ kind: "step", id: step.step_id, routineId: step.routine_id }}
           area={colorOf(step.life_area_id)}
           title={step.title}
           meta={step.routine_title}
@@ -366,6 +375,7 @@ function PickUpCard({
 
 function PickUpRow({
   to,
+  item,
   marker,
   area,
   title,
@@ -374,6 +384,8 @@ function PickUpRow({
 }: {
   /** The routine whose page the row opens. */
   to: number;
+  /** The routine or step the row stands for: right-click opens its ⋯ menu. */
+  item: ItemTarget;
   marker?: ReactNode;
   /** A step's area colour, for its round marker. */
   area?: string | null;
@@ -382,7 +394,10 @@ function PickUpRow({
   trailing?: string;
 }) {
   return (
-    <li data-area={area === undefined ? undefined : areaDataAttribute(area)}>
+    <li
+      {...itemMenuProps(item)}
+      data-area={area === undefined ? undefined : areaDataAttribute(area)}
+    >
       <Link
         to={`/areas/routines/${to}`}
         className="flex items-start gap-2.5 rounded-(--radius-6) px-2 py-1.5 outline-none hover:bg-(--bg-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"

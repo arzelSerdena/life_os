@@ -31,6 +31,8 @@ export function DetailPanel() {
     };
     // Pop-ups render outside #root, so clicks in them don't count as clicking away.
     const onPointerDown = (event: PointerEvent) => {
+      // A right-click opens an item's menu; it doesn't count as clicking away.
+      if (event.button === 2) return;
       const clicked = event.target as Element | null;
       if (!clicked || !document.getElementById("root")?.contains(clicked)) return;
       if (panel.current?.contains(clicked) || clicked.closest("[data-panel-opener]")) return;

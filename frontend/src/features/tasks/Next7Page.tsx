@@ -35,6 +35,7 @@ import { QueryError } from "../../components/QueryError";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { PanelLink } from "../detail-panel/PanelLink";
+import { itemMenuProps } from "../item-menu/target";
 import { areaDataAttribute } from "../life-areas/palette";
 import { splitTasks } from "./board";
 import { FilterMenu, useViewFilters } from "./FilterMenu";
@@ -465,7 +466,10 @@ function RoutineCard({
   const [open, setOpen] = useState(routine.day === today && routine.done < total);
   const listId = `routine-${routine.routineId}-${routine.day}`;
   return (
-    <li className="flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2">
+    <li
+      {...itemMenuProps({ kind: "routine", id: routine.routineId })}
+      className="flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2"
+    >
       <button
         type="button"
         aria-expanded={open}
@@ -495,6 +499,7 @@ function RoutineCard({
           {routine.steps.map((step) => (
             <RoutineStepRow
               key={step.step_id}
+              routineId={routine.routineId}
               step={step}
               color={colorOf(step.life_area_id)}
               future={step.day > today}
@@ -508,10 +513,12 @@ function RoutineCard({
 
 /** A step: round checkbox in its area colour. Days that haven't come can't be checked. */
 function RoutineStepRow({
+  routineId,
   step,
   color,
   future,
 }: {
+  routineId: number;
   step: RoutineStepDay;
   color: string | null;
   future: boolean;
@@ -527,6 +534,7 @@ function RoutineStepRow({
   };
   return (
     <li
+      {...itemMenuProps({ kind: "step", id: step.step_id, routineId })}
       data-area={areaDataAttribute(color)}
       className={`flex items-center gap-2 text-xs leading-[22px] ${
         done

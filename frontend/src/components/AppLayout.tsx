@@ -13,6 +13,7 @@ import { useCommandShortcuts } from "../features/commands/commandShortcuts";
 import { ShortcutsHost } from "../features/commands/ShortcutsDialog";
 import { UndoToast } from "../features/deleting/UndoToast";
 import { NewEventHost } from "../features/events/NewEventModal";
+import { ItemMenuHost } from "../features/item-menu/ItemMenuHost";
 import { NewTaskHost } from "../features/tasks/NewTaskModal";
 import { useNewTaskShortcut } from "../features/tasks/newTaskShortcut";
 import { useDetailPanel } from "../stores/detailPanelStore";
@@ -65,6 +66,7 @@ export function AppLayout() {
       <NewEventHost />
       <CommandPaletteHost />
       <ShortcutsHost />
+      <ItemMenuHost />
     </div>
   );
 }

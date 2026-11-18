@@ -1,6 +1,7 @@
 import { PanelLeftClose } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 import { NavLink } from "react-router";
+import { type ItemTarget, itemMenuProps } from "../features/item-menu/target";
 import { isModKey } from "../keyboard";
 import {
   SIDEBAR_COLLAPSE_WIDTH,
@@ -109,16 +110,20 @@ export const SIDEBAR_ROW_ACTIVE =
 export function SidebarLink({
   to,
   end,
+  item,
   children,
 }: {
   to: string;
   end?: boolean;
+  /** The area, project or routine the row stands for: right-click opens its ⋯ menu. */
+  item?: ItemTarget;
   children: ReactNode;
 }) {
   return (
     <NavLink
       to={to}
       end={end}
+      {...(item ? itemMenuProps(item) : {})}
       className={({ isActive }) =>
         `${SIDEBAR_ROW} ${isActive ? SIDEBAR_ROW_ACTIVE : "text-(--sidebar-item-text)"}`
       }

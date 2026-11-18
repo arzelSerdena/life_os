@@ -12,6 +12,7 @@ import type { LifeAreaRead, ProjectRead, RoutinePageRead } from "../../client/ty
 import { IconButton } from "../../components/IconButton";
 import { QueryError } from "../../components/QueryError";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { itemMenuProps } from "../item-menu/target";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { ProgressRing } from "../tasks/RoutinesPage";
@@ -117,6 +118,7 @@ export function DayCard({
                   day={day}
                   today={page.today}
                   isArchived={isArchived}
+                  routineId={isArchived ? undefined : page.routine.id}
                   color={
                     areas.find((area) => area.id === item.row.step.life_area_id)?.color ?? undefined
                   }
@@ -158,10 +160,13 @@ export function StepRow({
   day,
   today,
   isArchived = false,
+  routineId,
   color,
   project,
 }: {
   step: { id: number; title: string; streak: number };
+  /** The step's routine, where the step has a ⋯ menu: right-clicking the row opens it. */
+  routineId?: number;
   metric: { title: string } | null;
   state: DayRow["state"];
   day: string;
@@ -188,6 +193,7 @@ export function StepRow({
   const muted = state === "skipped" || state === "missed";
   return (
     <li
+      {...(routineId === undefined ? {} : itemMenuProps({ kind: "step", id: step.id, routineId }))}
       data-area={areaDataAttribute(color)}
       className="group relative flex items-start gap-2.5 rounded-(--radius-6) px-2 py-[7px] hover:bg-(--bg-hover)"
     >

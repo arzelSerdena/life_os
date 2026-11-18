@@ -8,6 +8,7 @@ import {
 } from "../../client/@tanstack/react-query.gen";
 import type { StepDayState } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
+import { itemMenuProps } from "../item-menu/target";
 import { areaDataAttribute } from "../life-areas/palette";
 import {
   type DayState,
@@ -74,7 +75,7 @@ function RoutineColumnView({
       aria-labelledby={headingId}
       className="flex min-h-0 min-w-[260px] flex-[0_0_calc((100cqw_-_64px)/5)] flex-col"
     >
-      <header className="shrink-0 px-0.5">
+      <header className="shrink-0 px-0.5" {...itemMenuProps({ kind: "routine", id: routine.id })}>
         <div className="flex h-7 items-center gap-2">
           {routine.paused_since ? (
             <Pause
@@ -110,6 +111,7 @@ function RoutineColumnView({
             key={view.step.id}
             view={view}
             today={today}
+            routineId={routine.id}
             color={colorOf(view.step.life_area_id)}
           />
         ))}
@@ -123,7 +125,17 @@ function RoutineColumnView({
  * due today, the last seven days as squares and the done count. Routine steps never open
  * the detail panel.
  */
-function StepCard({ view, today, color }: { view: StepView; today: string; color: string | null }) {
+function StepCard({
+  view,
+  today,
+  routineId,
+  color,
+}: {
+  view: StepView;
+  today: string;
+  routineId: number;
+  color: string | null;
+}) {
   const check = useMutation(setRoutineStepDayMutation());
   const clear = useMutation(clearRoutineStepDayMutation());
   const { step, done, dueToday } = view;
@@ -135,6 +147,7 @@ function StepCard({ view, today, color }: { view: StepView; today: string; color
   const active = dueToday && view.todayState !== "skipped";
   return (
     <li
+      {...itemMenuProps({ kind: "step", id: step.id, routineId })}
       data-area={areaDataAttribute(color)}
       className="flex flex-col gap-0.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2"
     >

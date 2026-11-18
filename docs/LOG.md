@@ -177,3 +177,14 @@
 - Phase 6: right-click on any row, card, bar or heatmap square opens that item's ⋯ menu.
 - Phase 6: FastAPI serves the built frontend, and `just` commands (one command runs the app).
 - Phase 6: 1–2 weeks of daily use, with `docs/FEEDBACK.md`.
+
+## 2026-11-18
+
+**Done**
+
+- Right-click menus (frontend only; `features/item-menu/`). Right-clicking any row, card, bar or heatmap square opens that item's ⋯ menu at the pointer, with the same items as its ⋯ button: tasks, recurring tasks, events and metrics get the detail panel's (Complete or Mark not done, Archive, Cancel or Delete; Delete), areas and projects their page header's (Edit, status, Archive or Restore, Delete), routines the routine page's (Skip today, Pause or Resume, Archive or Restore, Delete) and routine steps their heatmap row's (Pause or Resume, Archive, Delete). Each item's actions and dialogs now come from one hook (`entityActions.tsx`, `routineActions.tsx`) that the detail panel, the routine header, the step labels and the right-click menu all use. One listener (`ItemMenuHost`, in `AppLayout`) finds the item from a `data-item-menu` attribute (`itemMenuProps`): every `PanelLink` carries it, so every card and row that opens the panel has it, and a control over a stretched row (a card's checkbox) finds the row's link. The rest are marked by hand: the Plan sidebar's areas, projects and routines; Projects overview rows, cards and timeline bars; the area page's Timeline lanes and routine heatmap rows; Routines overview and routine page heatmap rows (label or any square), the Day card, Pick up, Tasks › Routines, Next 7 days and Calendar routines, Home's step rows, and the Life areas overview's per-area rows, Effort segments and Wins. Rows that hold their own ⋯ actions (Finished & archived, Home's routine headers) open that menu (`useRowContextMenu`). Text fields and unmarked places keep the browser's menu; Shift F10 and the menu key open it under the focused item (added to the `?` list); a right-click doesn't count as clicking away from the detail panel. The panel's Complete, Archive and Cancel task now show the change toast with Undo, as the cards do. No mock-up draws it, so it is flagged for review in the PR. Tests in `ItemMenuHost.test.tsx` (4); browser tests in `frontend/e2e/context-menus.spec.ts` (3).
+
+**Next** (code, one branch and PR each, in this order)
+
+- Phase 6: FastAPI serves the built frontend, and `just` commands (one command runs the app).
+- Phase 6: 1–2 weeks of daily use, with `docs/FEEDBACK.md`.

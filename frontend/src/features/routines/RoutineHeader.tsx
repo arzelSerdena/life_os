@@ -1,25 +1,11 @@
 import { Button } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  Archive,
-  ArchiveRestore,
-  CalendarDays,
-  CircleMinus,
-  Pause,
-  Play,
-  Plus,
-  Repeat,
-  Trash2,
-} from "lucide-react";
+import { Archive, ArchiveRestore, CalendarDays, Pause, Plus, Repeat } from "lucide-react";
 import { type KeyboardEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  archiveRoutineMutation,
   changeRoutineScheduleMutation,
   listRoutineStepsForDayOptions,
-  pauseRoutineMutation,
-  resumeRoutineMutation,
-  skipRoutineDayMutation,
   unarchiveRoutineMutation,
   updateRoutineMutation,
 } from "../../client/@tanstack/react-query.gen";
@@ -29,8 +15,8 @@ import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { ConfirmDialog } from "../confirming/ConfirmDialog";
-import { DeleteRoutineDialog, metricNames } from "../deleting/deleteDialogs";
-import { type PanelAction, PanelMenu } from "../detail-panel/PanelParts";
+import { PanelMenu } from "../detail-panel/PanelParts";
+import { useRoutineActions } from "../item-menu/routineActions";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { chipClass } from "../pickers/chips";
@@ -372,98 +358,15 @@ function ChangeScheduleDialog({
   );
 }
 
-/** ⋯: Skip today, Pause or Resume, Archive or Restore, then Delete. Delete is disabled
- * while a step feeds a metric. */
+/** ⋯: Skip today, Pause or Resume, Archive or Restore, then Delete (`useRoutineActions`). */
 function RoutineMenu({ page }: { page: RoutinePageRead }) {
   const navigate = useNavigate();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const showToast = useChangeToast((state) => state.show);
-  const { routine, today } = page;
-  const path = { routine_id: routine.id };
-  const due = useQuery(listRoutineStepsForDayOptions({ query: { day: today } }));
-  const skip = useMutation({
-    ...skipRoutineDayMutation(),
-    onSuccess: (change) => showToast(`Skipped day · ${weekdayDate(today)}`, change.batch_id),
-  });
-  const pause = useMutation(pauseRoutineMutation());
-  const resume = useMutation(resumeRoutineMutation());
-  const archive = useMutation({
-    ...archiveRoutineMutation(),
-    onSuccess: (change) => showToast(`Archived “${routine.title}”`, change.batch_id),
-  });
-  const restore = useMutation({
-    ...unarchiveRoutineMutation(),
-    onSuccess: (change) => showToast(`Restored “${routine.title}”`, change.batch_id),
-  });
-  const error = skip.error ?? pause.error ?? resume.error ?? archive.error ?? restore.error;
-
-  const leftToday = (due.data ?? []).some(
-    (item) => item.routine_id === routine.id && item.status === "todo",
-  );
-  const metrics = page.steps.flatMap((row) => (row.metric ? [row.metric] : []));
-  const isArchived = routine.archived_at !== null;
-
-  const actions: PanelAction[] = isArchived
-    ? [
-        {
-          id: "restore",
-          label: "Restore routine",
-          icon: ArchiveRestore,
-          onAction: () => restore.mutate({ path }),
-        },
-      ]
-    : [
-        {
-          id: "skip",
-          label: "Skip today",
-          icon: CircleMinus,
-          isDisabled: !leftToday,
-          onAction: () => skip.mutate({ path: { ...path, day: today } }),
-        },
-        page.paused_since
-          ? {
-              id: "resume",
-              label: "Resume routine",
-              icon: Play,
-              onAction: () => resume.mutate({ path }),
-            }
-          : {
-              id: "pause",
-              label: "Pause routine",
-              icon: Pause,
-              onAction: () => pause.mutate({ path }),
-            },
-        {
-          id: "archive",
-          label: "Archive routine",
-          icon: Archive,
-          onAction: () => archive.mutate({ path }),
-        },
-      ];
-  actions.push({
-    id: "delete",
-    label: "Delete routine",
-    icon: Trash2,
-    isDanger: true,
-    isDisabled: metrics.length > 0,
-    hint:
-      metrics.length > 0
-        ? `${metrics.length === 1 ? "A step feeds" : "Steps feed"} ${metricNames(metrics)}. Archive it instead.`
-        : undefined,
-    onAction: () => setIsDeleting(true),
-  });
-
+  const menu = useRoutineActions(page, { onDeleted: () => navigate("/areas") });
   return (
     <>
-      <PanelMenu actions={actions} />
-      {error && <QueryError error={error} />}
-      {isDeleting && (
-        <DeleteRoutineDialog
-          routine={routine}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={() => navigate("/areas")}
-        />
-      )}
+      <PanelMenu actions={menu.actions} />
+      {menu.error ? <QueryError error={menu.error} /> : null}
+      {menu.dialogs}
     </>
   );
 }
