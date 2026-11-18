@@ -2,16 +2,23 @@ import { expect, test } from "vitest";
 import { taskRead as task } from "../../test-utils";
 import { addMonths, fileCounts, inboxList, monthGrid, nextMonday } from "./inbox";
 
-test("the Inbox lists open tasks with no life area, oldest first", () => {
-  const older = task({ title: "Call the bank" });
-  const newer = task({ title: "Buy groceries", scheduled_date: "2026-11-16" });
-  const owned = task({ life_area_id: 1 });
+test("the Inbox lists open tasks still to be sorted, oldest first", () => {
+  const sorted = { life_area_id: 1, scheduled_date: "2026-11-16", priority: "low" as const };
+  const noArea = task({ title: "No area", scheduled_date: "2026-11-16", priority: "high" });
+  const noDate = task({
+    ...sorted,
+    title: "No date",
+    scheduled_date: null,
+    due_date: "2026-11-20",
+  });
+  const noPriority = task({ ...sorted, title: "No priority", priority: "none" });
   const done = task({ status: "done" });
+  const filed = task({ ...sorted, title: "Sorted" });
+  const occurrence = task({ ...sorted, title: "Occurrence", template_id: 3, priority: "none" });
 
-  expect(inboxList([newer, owned, done, older]).map((t) => t.title)).toEqual([
-    "Call the bank",
-    "Buy groceries",
-  ]);
+  expect(
+    inboxList([noPriority, filed, done, noDate, occurrence, noArea]).map((t) => t.title),
+  ).toEqual(["No area", "No date", "No priority"]);
 });
 
 test("the drop panels count open tasks by area, project, scheduled date and priority", () => {

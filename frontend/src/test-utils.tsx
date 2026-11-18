@@ -1,5 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { App } from "./App";
 import type {
@@ -187,4 +188,12 @@ export function emptyHome(overrides: Partial<HomeRead> = {}): HomeRead {
     },
     ...overrides,
   };
+}
+
+/** Opens a date field's picker, types an ISO date into it and picks it with Enter. */
+export async function pickDate(user: UserEvent, field: HTMLElement, isoDate: string) {
+  await user.click(field);
+  const input = await screen.findByRole("textbox", { name: "Date" });
+  await user.clear(input);
+  await user.type(input, `${isoDate}{Enter}`);
 }

@@ -29,6 +29,7 @@ import {
   parseValue,
 } from "../../metrics/format";
 import { CURRENCIES, PRESETS, type Preset } from "../../metrics/presets";
+import { DatePickerField } from "../../pickers/DatePicker";
 import { areaDataAttribute } from "../palette";
 
 type Source = "manual" | "routine_step";
@@ -94,9 +95,11 @@ export function NewMetricModal({
           ? "Enter a target"
           : kind === "reach_by" && !endDate
             ? "Pick the date to reach it by"
-            : kind === "per_period" && !startDate
-              ? "Pick the start date"
-              : null;
+            : kind === "reach_by" && endDate < today()
+              ? "Pick a date from today on"
+              : kind === "per_period" && !startDate
+                ? "Pick the start date"
+                : null;
 
   const changeSource = (next: Source) => {
     setSource(next);
@@ -399,25 +402,20 @@ export function NewMetricModal({
                           <option value="month">month</option>
                         </select>
                         starting
-                        <input
-                          type="date"
-                          aria-label="Starting"
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          className={FIELD}
-                        />
+                        <span className="w-[150px]">
+                          <DatePickerField
+                            label="Starting"
+                            value={startDate}
+                            onChange={setStartDate}
+                          />
+                        </span>
                       </>
                     ) : (
                       <>
                         by
-                        <input
-                          type="date"
-                          aria-label="Reach by"
-                          value={endDate}
-                          min={today()}
-                          onChange={(e) => setEndDate(e.target.value)}
-                          className={FIELD}
-                        />
+                        <span className="w-[150px]">
+                          <DatePickerField label="Reach by" value={endDate} onChange={setEndDate} />
+                        </span>
                       </>
                     )}
                   </div>

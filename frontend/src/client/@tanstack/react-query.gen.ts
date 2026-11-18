@@ -1079,8 +1079,10 @@ export const listTasksQueryKey = (options?: Options<ListTasksData>) => createQue
  * Tasks by the placement rule: each sits on its scheduled date, else its due date.
  *
  * `date_from`/`date_to` bound that date; `unscheduled` means neither date; `overdue` means
- * to-do with a due date before today; `with_life_area` leaves the Inbox out (the
- * Unscheduled view is `unscheduled` + `with_life_area` + `status=todo`).
+ * to-do with a due date before today; `inbox` means still to sort (no life area, or a
+ * one-off task with no scheduled date or no priority); `with_life_area` leaves out tasks
+ * with no life area (the Unscheduled view is `unscheduled` + `with_life_area` +
+ * `status=todo`).
  */
 export const listTasksOptions = (options?: Options<ListTasksData>) => queryOptions<ListTasksResponse, ListTasksError, ListTasksResponse, ReturnType<typeof listTasksQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

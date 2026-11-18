@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app import clock
 from app.models import Metric, Project, Task, TaskTemplate
+from app.models.base import utc_now
 from tests.factories import make_life_area, make_project
 
 TODAY = date(2026, 11, 18)
@@ -38,6 +39,12 @@ def add(session: Session, *rows: Any) -> None:
 
 def task(project: Project, title: str, **fields: Any) -> Task:
     return Task(project_id=project.id, life_area_id=project.life_area_id, title=title, **fields)
+
+
+def stamped_today() -> str:
+    """The day an action taken now counts for. Archive and status timestamps come from the
+    real clock, not the pinned `clock.today`, so they fall on today's real date."""
+    return clock.local_date(utc_now()).isoformat()
 
 
 def test_nothing_finished_or_archived_lists_nothing(client: TestClient, session: Session) -> None:
@@ -71,7 +78,7 @@ def test_an_area_row_counts_what_restoring_it_brings_back(
     language = rows[1]
     assert (language["projects"], language["tasks"], language["metrics"]) == (1, 2, 1)
     assert language["has_items"] is True
-    assert language["archived_on"] == TODAY.isoformat()
+    assert language["archived_on"] == stamped_today()
     assert rows[0]["has_items"] is False
     assert (rows[0]["projects"], rows[0]["tasks"], rows[0]["metrics"]) == (0, 0, 0)
 
@@ -112,7 +119,7 @@ def test_projects_list_done_cancelled_and_archived_with_their_task_counts(
     assert paint_row["status"] == "cancelled" and paint_row["archived_at"] is None
     # The open task was cancelled with the project and still counts.
     assert (run_row["done"], run_row["total"], run_row["has_items"]) == (1, 2, True)
-    assert run_row["on"] == TODAY.isoformat()
+    assert run_row["on"] == stamped_today()
     assert paint_row["has_items"] is False
 
 
@@ -168,7 +175,7 @@ def test_an_archived_routine_lists_its_steps_best_run_and_metrics(
     (row,) = archive(client)["routines"]
 
     assert (row["title"], row["rrule"], row["steps"]) == ("Study sprint", "FREQ=DAILY", 2)
-    assert row["archived_on"] == TODAY.isoformat()
+    assert row["archived_on"] == stamped_today()
     assert row["schedule_starts_on"] == "2026-11-09"
     assert row["best_run"] == 4
     assert row["feeds"] == ["Reading days"]

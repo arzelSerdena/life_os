@@ -509,8 +509,10 @@ export const deleteMetricTarget = <ThrowOnError extends boolean = false>(options
  * Tasks by the placement rule: each sits on its scheduled date, else its due date.
  *
  * `date_from`/`date_to` bound that date; `unscheduled` means neither date; `overdue` means
- * to-do with a due date before today; `with_life_area` leaves the Inbox out (the
- * Unscheduled view is `unscheduled` + `with_life_area` + `status=todo`).
+ * to-do with a due date before today; `inbox` means still to sort (no life area, or a
+ * one-off task with no scheduled date or no priority); `with_life_area` leaves out tasks
+ * with no life area (the Unscheduled view is `unscheduled` + `with_life_area` +
+ * `status=todo`).
  */
 export const listTasks = <ThrowOnError extends boolean = false>(options?: Options<ListTasksData, ThrowOnError>): RequestResult<ListTasksResponses, ListTasksErrors, ThrowOnError> => (options?.client ?? client).get<ListTasksResponses, ListTasksErrors, ThrowOnError>({ url: '/api/tasks', ...options });
 

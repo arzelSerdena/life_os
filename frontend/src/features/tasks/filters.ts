@@ -87,11 +87,11 @@ export const VIEW_MENUS: Record<FilterView, ViewMenu> = {
     areas: "areas-only",
     show: { completed: false, cancelled: false },
   },
-  // The Inbox is tasks with no life area, so a Life areas filter would have nothing to pick.
+  // The Inbox also holds area tasks with no scheduled date or priority, so it filters by area.
   inbox: {
     subgroups: {},
     sorts: ["created", "priority", "due"],
-    areas: false,
+    areas: "with-no-area",
     show: {},
   },
   next7: {

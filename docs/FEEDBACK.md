@@ -30,10 +30,18 @@ For a bug, add the steps if they aren't obvious, and the URL or a screenshot (`d
 
 Each note that will be acted on gets a row. **Status** is `open`, `branch` (being built), `done` (merged) or `won't` (with the reason in Notes).
 
-| #   | Date       | Kind     | Sev | Screen          | Summary                                          | Status | Branch / PR | Notes                                       |
-| --- | ---------- | -------- | --- | --------------- | ------------------------------------------------ | ------ | ----------- | ------------------------------------------- |
-| 1   | 2026-11-18 | friction | —   | Right-click     | Review the right-click menu's design (no mock-up) | open   | #70         | Flagged for review in the PR                |
-| 2   | 2026-11-18 | friction | —   | Command palette | Review the `Ctrl K` palette's design              | open   | #69         | Flagged for review in the PR                |
+| #   | Date       | Kind     | Sev   | Screen          | Summary                                                                                                   | Status | Branch / PR              | Notes                                                                                                                                                                                |
+| --- | ---------- | -------- | ----- | --------------- | --------------------------------------------------------------------------------------------------------- | ------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | 2026-11-18 | friction | —     | Right-click     | Review the right-click menu's design (no mock-up)                                                         | open   | #70                      | Flagged for review in the PR                                                                                                                                                         |
+| 2   | 2026-11-18 | friction | —     | Command palette | Review the `Ctrl K` palette's design                                                                      | open   | #69                      | Flagged for review in the PR                                                                                                                                                         |
+| 3   | 2026-11-18 | friction | —     | Area            | No way to archive a metric                                                                                | open   |                          | Check the detail panel's ⋯ menu for metrics                                                                                                                                          |
+| 4   | 2026-11-18 | idea     | —     | Plan sidebar    | Reorder areas and projects by dragging them                                                               | open   |                          | Areas reorder today only in Reorder areas                                                                                                                                            |
+| 5   | 2026-11-18 | bug      | —     | Pickers         | Date pickers start on Sunday, not Monday                                                                  | branch | feat/inbox-needs-sorting | Weeks start on Monday (CLAUDE.md); the Calendar already does                                                                                                                         |
+| 6   | 2026-11-18 | friction | —     | Area, Project   | No way to add a log to a metric                                                                           | open   |                          |                                                                                                                                                                                      |
+| 7   | 2026-11-18 | friction | —     | Area, Project   | Only a metric's title can be edited                                                                       | open   |                          |                                                                                                                                                                                      |
+| 8   | 2026-11-18 | idea     | —     | All pop-ups     | Clicking outside a pop-up with edits asks to discard them                                                 | open   |                          | Applies to New task, New event, New metric, etc.                                                                                                                                     |
+| 9   | 2026-11-18 | idea     | —     | Tasks › Inbox   | The Inbox lists every open task that still needs sorting: no life area, no scheduled date, or no priority | branch | feat/inbox-needs-sorting | Changes the rule in DOMAIN.md (Inbox = no life area): update it and the decision log. Also check Home's Needs a push count, the Inbox badge, and whether recurring occurrences count |
+| 10  | 2026-11-18 | bug      | minor | `just app`      | Quitting with Ctrl C prints "recipe `serve` failed … exit code 1"                                         | branch | feat/inbox-needs-sorting | Harmless: PowerShell reports any interrupted command as exit 1. Fix: ignore the exit in the recipe                                                                                   |
 
 ## Notes
 
@@ -41,6 +49,15 @@ Each note that will be acted on gets a row. **Status** is `open`, `branch` (bein
 
 - [friction] Right-click menus — review the design in daily use; no mock-up draws it (#70).
 - [friction] Command palette — review the design in daily use (#69).
+- [friction] Area - no option to archive a metric
+- [idea] Area sidebar - I want to be able to arrange Areas and Projects by dragging them
+- [friction] Pickers - date pickers must also start with Monday
+- [friction] Area, Projects - No way to add logs to metrics
+- [friction] Area, Projects - No way to edits other metrics information aside from the title
+- [friction] All - clicking out an input popup must have a confirm popup like exit without saving
+- [bug] Tasks (Inbox) - unscheduled tasks doesn't show in inbox
+- [idea] Tasks (Inbox) — show tasks with an area but no scheduled date, and tasks with no priority, in the Inbox too.
+- [bug] `just app` / startup — quitting the app with Ctrl C printed "error: recipe `serve` failed on line 15 with exit code 1". (minor)
 
 ## Summary
 

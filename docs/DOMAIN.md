@@ -28,7 +28,7 @@ The business rules of Life OS: what each thing is, who owns it, how its status c
 | **Full day**       | A day on which every due step of a routine was done (section 6).                                          |
 | **Run**            | A routine's full days in a row: current run, best run, longest run.                                       |
 | **Streak**         | One routine step's done days in a row. Never used for a whole routine.                                    |
-| **Inbox**          | Tasks and task templates with no life area. The Inbox screen lists the open tasks among them.            |
+| **Inbox**          | What still needs sorting: tasks and task templates with no life area, plus one-off tasks with no scheduled date or no priority (Nov 19). The Inbox screen lists the open tasks among them. |
 | **Unscheduled**    | The Tasks view of open tasks that have a life area and neither a scheduled nor a due date.                |
 | **Overdue**        | An open task whose due date is before today. Listed in Today.                                             |
 | **Today**          | The local date, shifted by the `day_ends_at` setting (section 8).                                        |
@@ -51,13 +51,13 @@ Life area
 │   └── Routine step
 └── Task, Task template, Event, Metric, Routine step   (owned directly)
 
-Inbox: Tasks and Task templates with no life area
+Inbox: Tasks and Task templates with no life area, plus one-off tasks with no scheduled date or no priority
 Routine (no owner) ──< Schedule, Pause, Routine step ──< Routine log, Pause
 ```
 
 ### One rule for every owned item
 
-Tasks, task templates, events, metrics and routine steps are each owned by **a project or a life area, never both**. Only tasks and task templates may have neither, which puts them in the Inbox.
+Tasks, task templates, events, metrics and routine steps are each owned by **a project or a life area, never both**. Only tasks and task templates may have neither, which puts them in the Inbox. (The Inbox also lists owned one-off tasks that have no scheduled date or no priority; see the glossary.)
 
 - The item stores `life_area_id`, plus `project_id` when a project owns it.
 - A project-owned item **inherits** its project's life area. `life_area_id` is a copy kept for fast filtering, not a second owner, and it always equals the project's.

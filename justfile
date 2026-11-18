@@ -10,9 +10,10 @@ default:
 app port="8000": build migrate (serve port)
 
 # Run the app from the last build, without rebuilding or migrating
+# (`-` ignores the exit code: PowerShell reports Ctrl C as a failure, exit code 1)
 [working-directory: 'backend']
 serve port="8000":
-    uv run uvicorn app.main:app --host 127.0.0.1 --port {{port}}
+    -uv run uvicorn app.main:app --host 127.0.0.1 --port {{port}}
 
 # Run the API (8000, reloading) and the Vite dev server (5173) together
 [parallel]

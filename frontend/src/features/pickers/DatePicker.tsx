@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { today as localToday } from "../../period";
-import { type ChipTone, PickerRow, PickerSeparator, PopoverChip } from "./chips";
+import { type ChipTone, PickerRow, PickerSeparator, PopoverChip, PopoverField } from "./chips";
 import {
   addDays,
   addMonths,
@@ -24,6 +24,52 @@ import {
 } from "./dates";
 
 const WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+
+/**
+ * A form field that opens the date picker, so every date in a form uses the same Monday-first
+ * picker instead of the browser's own (whose week start follows the system's locale).
+ * An empty value is "": `placeholder` shows, and `clearLabel` adds the row that clears it.
+ */
+export function DatePickerField({
+  label,
+  value,
+  onChange,
+  today = localToday(),
+  placeholder = "Pick a date",
+  clearLabel,
+  isInvalid = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  today?: string;
+  placeholder?: string;
+  clearLabel?: string;
+  isInvalid?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <PopoverField
+      icon={CalendarDays}
+      label={label}
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      isPlaceholder={!value}
+      isInvalid={isInvalid}
+      value={value ? dayDate(value) : placeholder}
+    >
+      <DatePanel
+        value={value || null}
+        today={today}
+        clearLabel={clearLabel}
+        onPick={(next) => {
+          setIsOpen(false);
+          if ((next ?? "") !== value) onChange(next ?? "");
+        }}
+      />
+    </PopoverField>
+  );
+}
 
 /**
  * The date picker (Approved: Pickers, as changed by Approved: Tasks): a typed date field, then

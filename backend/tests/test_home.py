@@ -135,7 +135,8 @@ def test_today_lists_overdue_tasks_apart_from_those_placed_today_and_those_done_
     assert titles(data["overdue"]) == ["Update resume", "Late but scheduled"]
     assert titles(data["tasks"]) == ["Draft the pitch", "Due today", "Buy groceries"]
     assert titles(data["completed"]) == ["Run 5 km"]
-    assert data["inbox"] == 1  # Buy groceries has no owner
+    # The Inbox count: every open task here still needs sorting (none has a priority).
+    assert data["inbox"] == 7
 
 
 def test_unfinished_tasks_from_past_days_roll_over_to_today(

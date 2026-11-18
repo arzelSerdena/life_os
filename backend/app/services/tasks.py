@@ -21,7 +21,7 @@ from app.schemas.task import (
 from app.services import templates
 from app.services.history import ChangeRecorder
 from app.services.ownership import ensure_owner_open, resolve_owner
-from app.services.task_rules import cancel_open_subtasks, next_position, on_day
+from app.services.task_rules import cancel_open_subtasks, in_inbox, next_position, on_day
 
 PRIORITY_RANK = case({"high": 0, "medium": 1, "low": 2, "none": 3}, value=Task.priority, else_=3)
 
@@ -50,10 +50,6 @@ class TaskChange:
 def list_tasks(session: Session, filters: TaskFilters) -> Sequence[Task]:
     """Tasks, filtered and dated by the placement rule: a task sits on its scheduled date,
     else on its due date, else it is Unscheduled. Overdue means open with a past due date."""
-    if filters.inbox and (
-        filters.life_area_id is not None or filters.project_id is not None or filters.with_life_area
-    ):
-        raise UnprocessableError("The Inbox has no life area or project to filter by.")
     if filters.unscheduled and (filters.date_from or filters.date_to or filters.overdue):
         raise UnprocessableError("Unscheduled tasks have no date.")
     if filters.overdue and filters.status not in (None, "todo"):
@@ -61,7 +57,7 @@ def list_tasks(session: Session, filters: TaskFilters) -> Sequence[Task]:
 
     query = select(Task).options(selectinload(Task.subtasks))
     if filters.inbox:
-        query = query.where(Task.life_area_id.is_(None))
+        query = query.where(in_inbox())
     if filters.with_life_area:
         query = query.where(Task.life_area_id.is_not(None))
     if filters.life_area_id is not None:

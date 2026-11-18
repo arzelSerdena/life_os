@@ -24,6 +24,7 @@ This section sums up the rules in force as of Nov 16. Where it and an older sect
 - **Dashed borders** = a placeholder, an unset value or a drop spot.
 - **Undo:** the shared toast (white, green check, message, Undo, Ctrl Z), bottom centre, 6 s. Deletes that can't be undone ask first in the red confirmation.
 - **Screens:** see the Approved sections below for each screen, as changed by the Nov 16 decisions.
+- **Inbox** (Nov 19): open tasks still to sort: no life area, or a one-off task with no scheduled date or no priority. Cards show their area colour and project; a filed card stays until all three are set.
 
 ## Purpose
 
@@ -1075,3 +1076,12 @@ Decided. Arzel accepted the recommendations of the UX review (Claude doc "Life O
 - Next 7 days fits all 8 columns in the width.
 - Missing states for every screen: loading, error, long content, many items, keyboard focus, 1440 and 1280 px.
 - Week stays untimed. A Day view with hours for today is a later item, not decided.
+
+## Update: Inbox (Nov 19)
+
+From daily use. This replaces the Inbox line in "Inbox and priority" (Nov 16).
+
+- **Inbox** = open tasks still to sort: tasks with no life area, plus one-off tasks with no scheduled date or no priority. Recurring occurrences count only when they have no life area. The Unscheduled view stays.
+- Inbox cards show their area colour and their project. Filing a card (an area, a date or a priority) removes it only once it has all three.
+- The Inbox's filter menu has the Life areas filter, with No area.
+- Date fields in pop-ups open the shared date picker (weeks start on Monday), never the browser's own.

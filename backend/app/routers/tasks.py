@@ -49,8 +49,10 @@ def list_tasks(
     """Tasks by the placement rule: each sits on its scheduled date, else its due date.
 
     `date_from`/`date_to` bound that date; `unscheduled` means neither date; `overdue` means
-    to-do with a due date before today; `with_life_area` leaves the Inbox out (the
-    Unscheduled view is `unscheduled` + `with_life_area` + `status=todo`)."""
+    to-do with a due date before today; `inbox` means still to sort (no life area, or a
+    one-off task with no scheduled date or no priority); `with_life_area` leaves out tasks
+    with no life area (the Unscheduled view is `unscheduled` + `with_life_area` +
+    `status=todo`)."""
     filters = service.TaskFilters(
         life_area_id=life_area_id,
         project_id=project_id,

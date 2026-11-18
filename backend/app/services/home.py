@@ -17,6 +17,7 @@ from app.services import projects_overview, rollover, routines, templates
 from app.services.events import Occurrence, OccurrenceFilters, list_occurrences
 from app.services.metric_entries import entries_of
 from app.services.overview import DateRange, outcome_for, target_for
+from app.services.task_rules import in_inbox
 
 # Needs a push lists projects due within this many days (overdue ones included), and
 # Coming up covers this many days after today.
@@ -121,11 +122,7 @@ def get_home(session: Session) -> Home:
     ).all()
     home.completed = _completed_today(session, today)
     home.inbox = (
-        session.scalar(
-            select(func.count()).select_from(
-                open_tasks.where(Task.life_area_id.is_(None)).subquery()
-            )
-        )
+        session.scalar(select(func.count()).select_from(open_tasks.where(in_inbox()).subquery()))
         or 0
     )
 

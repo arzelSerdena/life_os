@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import type { AreaPageRead, RoutineRead, TaskRead } from "../../client/types.gen";
-import { emptyAreaPage, lifeArea, renderApp } from "../../test-utils";
+import { emptyAreaPage, lifeArea, pickDate, renderApp } from "../../test-utils";
 
 const career = lifeArea({ id: 1, title: "Career", color: "blue", notes: "Aim for a senior role." });
 
@@ -348,7 +348,7 @@ test("New metric's presets set the format and unit, and the current value is sen
   await user.click(within(dialog).getByRole("radio", { name: "Reach by a date" }));
   await user.type(within(dialog).getByLabelText("Target number"), "100000");
   expect(create).toBeDisabled();
-  await user.type(within(dialog).getByLabelText("Reach by"), "2026-12-31");
+  await pickDate(user, within(dialog).getByRole("button", { name: "Reach by" }), "2099-12-31");
   await user.click(create);
 
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -369,7 +369,7 @@ test("New metric's presets set the format and unit, and the current value is sen
   expect(target?.body).toMatchObject({
     kind: "reach_by",
     target_value: 100000,
-    end_date: "2026-12-31",
+    end_date: "2099-12-31",
   });
 });
 

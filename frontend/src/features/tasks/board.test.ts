@@ -36,14 +36,14 @@ test("Today holds open tasks placed today and overdue ones, nothing else", () =>
   );
 });
 
-test("Unscheduled needs a life area and neither date; Inbox tasks stay out", () => {
+test("Unscheduled needs a life area and neither date; tasks with no area stay out", () => {
   const undated = task({ life_area_id: 1 });
   const dueOnly = task({ life_area_id: 1, due_date: "2026-11-20" });
   const inbox = task({});
   expect(tasksForView("unscheduled", [undated, dueOnly, inbox], TODAY)).toEqual([undated]);
   expect(sidebarCounts([undated, dueOnly, inbox], TODAY)).toEqual({
     all: 3,
-    inbox: 1,
+    inbox: 3, // undated and dueOnly have no scheduled date, so they still need sorting
     today: 0,
     unscheduled: 1,
   });

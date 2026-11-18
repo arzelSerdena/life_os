@@ -109,9 +109,9 @@ def test_list_filters(client: TestClient, session: Session) -> None:
     life_area = make_life_area(session)
     project = make_project(session, life_area)
     _create(client, "Inbox")
-    _create(client, "Area", life_area_id=life_area.id, scheduled_date="2026-11-16")
-    _create(client, "Project", project_id=project.id, scheduled_date="2026-11-20")
-    _create(client, "Later", life_area_id=life_area.id, scheduled_date="2026-11-30")
+    _create(client, "Area", life_area_id=life_area.id, scheduled_date="2026-11-16", priority="low")
+    _create(client, "Project", project_id=project.id, scheduled_date="2026-11-20", priority="low")
+    _create(client, "Later", life_area_id=life_area.id, scheduled_date="2026-11-30", priority="low")
 
     assert _titles(client, inbox=True) == ["Inbox"]
     assert _titles(client, life_area_id=life_area.id) == ["Area", "Project", "Later"]
@@ -121,6 +121,58 @@ def test_list_filters(client: TestClient, session: Session) -> None:
         "Project",
     ]
     assert _titles(client, unscheduled=True) == ["Inbox"]
+
+
+def test_the_inbox_holds_tasks_that_still_need_sorting(
+    client: TestClient, session: Session
+) -> None:
+    life_area = make_life_area(session)
+    area = {"life_area_id": life_area.id}
+    _create(client, "No area", scheduled_date="2026-11-16", priority="high")
+    _create(client, "No date", priority="high", **area)
+    _create(client, "Due only", due_date="2026-11-20", priority="high", **area)
+    _create(client, "No priority", scheduled_date="2026-11-16", **area)
+    _create(client, "Sorted", scheduled_date="2026-11-16", priority="low", **area)
+    done = _create(client, "Done", **area)
+    _action(client, done["id"], "complete")
+
+    assert set(_titles(client, inbox=True, status="todo")) == {
+        "No area",
+        "No date",
+        "Due only",
+        "No priority",
+    }
+    assert set(_titles(client, inbox=True, life_area_id=life_area.id, status="todo")) == {
+        "No date",
+        "Due only",
+        "No priority",
+    }
+
+
+def test_recurring_occurrences_are_in_the_inbox_only_without_a_life_area(
+    client: TestClient, session: Session
+) -> None:
+    life_area = make_life_area(session)
+    template = TaskTemplate(
+        title="Water plants",
+        life_area_id=life_area.id,
+        rrule="FREQ=DAILY",
+        starts_on=date(2026, 11, 16),
+    )
+    session.add(template)
+    session.flush()
+    session.add(
+        Task(
+            title="Water plants",
+            life_area_id=life_area.id,
+            template_id=template.id,
+            occurrence_date=date(2026, 11, 16),
+            scheduled_date=date(2026, 11, 16),
+        )
+    )
+    session.commit()
+
+    assert _titles(client, inbox=True) == []
 
 
 def test_lists_follow_the_placement_rule(
@@ -172,8 +224,6 @@ def test_cancelled_and_archived_tasks_are_hidden_unless_asked_for(client: TestCl
 @pytest.mark.parametrize(
     "params",
     [
-        {"inbox": True, "life_area_id": 1},
-        {"inbox": True, "with_life_area": True},
         {"unscheduled": True, "date_from": "2026-11-16"},
         {"unscheduled": True, "overdue": True},
         {"overdue": True, "status": "done"},
