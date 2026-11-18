@@ -1,5 +1,11 @@
 import { Folder } from "lucide-react";
-import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { PanelTarget } from "../../stores/detailPanelStore";
 import { PanelLink } from "../detail-panel/PanelLink";
 import { shortDate } from "../life-areas/overview/format";
@@ -18,6 +24,8 @@ import {
   SLOTS,
   slotDay,
 } from "./linear";
+import { canDragBar, type DragSubject } from "./linearDrag";
+import { dayAt, type LinearDrag } from "./useLinearDrag";
 
 /** Every slot of a row, 0 to 36. */
 const SLOT_LIST = Array.from({ length: SLOTS }, (_, slot) => slot);
@@ -45,6 +53,10 @@ export type LinearProps = {
   onDay: (day: string, anchor: HTMLElement) => void;
   /** Year: "+n" under a month name lists the bars that didn't fit. */
   onHidden: (row: MonthRow, anchor: HTMLElement) => void;
+  /** The drag going on, if any: its days are shaded and the day under the pointer outlined. */
+  drag: LinearDrag | null;
+  /** A press on a bar or one of its ends, which becomes a drag once the pointer moves. */
+  onDragStart: (subject: DragSubject, event: ReactPointerEvent) => void;
 };
 
 /**
@@ -122,12 +134,21 @@ function Month({ row, columns, ...props }: LinearProps & { row: MonthRow; column
           );
         if (strip)
           return (
-            <div key={day} aria-hidden className={`linear-day is-strip${monday}`} style={column} />
+            <div
+              key={day}
+              aria-hidden
+              data-date={day}
+              className={`linear-day is-strip${monday}`}
+              style={column}
+            />
           );
         const marks = row.marks.get(day) ?? [];
+        const span = props.drag?.span;
         const state =
           (day === today ? " is-today" : day < today ? " is-past" : "") +
-          (day === props.openDay ? " is-open" : "");
+          (day === props.openDay ? " is-open" : "") +
+          (span && span.start <= day && day <= span.end ? " is-in-range" : "") +
+          (day === props.drag?.over ? " is-drop" : "");
         return (
           <button
             key={day}
@@ -161,6 +182,10 @@ function Month({ row, columns, ...props }: LinearProps & { row: MonthRow; column
           placed={placed}
           colorOf={props.colorOf}
           since={view === "quarter" && placed.cutStart && placed.bar.start < props.range.start}
+          dragging={
+            props.drag?.subject.kind === "bar" && props.drag.subject.bar.key === placed.bar.key
+          }
+          onDragStart={props.onDragStart}
         />
       ))}
     </div>
@@ -168,7 +193,19 @@ function Month({ row, columns, ...props }: LinearProps & { row: MonthRow; column
 }
 
 /** A bar: an event (area tint, coloured edge) or a project (white, area border, folder). */
-function Bar({ placed, colorOf, since }: { placed: PlacedBar; colorOf: ColorOf; since: boolean }) {
+function Bar({
+  placed,
+  colorOf,
+  since,
+  dragging,
+  onDragStart,
+}: {
+  placed: PlacedBar;
+  colorOf: ColorOf;
+  since: boolean;
+  dragging: boolean;
+  onDragStart: LinearProps["onDragStart"];
+}) {
   const { bar, lane, from, to, cutStart, cutEnd } = placed;
   const item = bar.kind === "event" ? bar.entry.event : bar.project;
   // Bars of 1–2 days show only their colour, with the title on hover.
@@ -182,18 +219,48 @@ function Bar({ placed, colorOf, since }: { placed: PlacedBar; colorOf: ColorOf; 
           day: bar.entry.event.is_repeating ? bar.entry.event.occurrence_date : null,
         };
   const cancelled = bar.kind === "event" && bar.entry.event.is_cancelled;
+  const draggable = canDragBar(bar);
+  // An end can be dragged where the bar really ends, not where a month row cuts it.
+  const grip = (how: "start" | "end") =>
+    draggable && (
+      <span
+        aria-hidden
+        data-edge={how}
+        className={`linear-grip is-${how}`}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          onDragStart({ kind: "bar", bar, how, grab: bar[how] }, event);
+        }}
+      />
+    );
   return (
     <div
       data-area={areaDataAttribute(colorOf(item.life_area_id))}
       title={`${item.title} · ${spanLabel(bar.start, bar.end)}`}
-      className={`linear-bar is-${bar.kind}${bar.past ? " is-past" : ""}${cutStart ? " is-cut-start" : ""}${cutEnd ? " is-cut-end" : ""}${cancelled ? " line-through" : ""}`}
+      className={`linear-bar is-${bar.kind}${bar.past ? " is-past" : ""}${cutStart ? " is-cut-start" : ""}${cutEnd ? " is-cut-end" : ""}${cancelled ? " line-through" : ""}${draggable ? " is-draggable" : ""}${dragging ? " is-dragging" : ""}`}
       style={{ gridColumn: `${from + 2} / ${to + 3}`, gridRow: lane + 2 }}
+      onPointerDown={
+        draggable
+          ? (event) =>
+              onDragStart(
+                {
+                  kind: "bar",
+                  bar,
+                  how: "move",
+                  grab: dayAt(event.clientX, event.clientY) ?? bar.start,
+                },
+                event,
+              )
+          : undefined
+      }
     >
+      {!cutStart && grip("start")}
       {bar.kind === "project" && !short && <Folder aria-hidden strokeWidth={2} />}
       <PanelLink stretched target={target} className="min-w-0 truncate">
         <span className={short ? "sr-only" : ""}>{item.title}</span>
       </PanelLink>
       {since && !short && <span className="linear-since">since {shortDate(bar.start)}</span>}
+      {!cutEnd && grip("end")}
     </div>
   );
 }

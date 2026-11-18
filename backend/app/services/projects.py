@@ -23,6 +23,7 @@ from app.models import (
 from app.schemas.project import (
     ProjectCreate,
     ProjectMove,
+    ProjectReschedule,
     ProjectUpdate,
     SectionCreate,
     SectionUpdate,
@@ -122,6 +123,23 @@ def update_project(session: Session, project_id: int, data: ProjectUpdate) -> Pr
 def _check_dates(start_date: date | None, due_date: date | None) -> None:
     if start_date is not None and due_date is not None and due_date < start_date:
         raise UnprocessableError("The due date can't be before the start date.")
+
+
+def reschedule_project(
+    session: Session, project_id: int, data: ProjectReschedule
+) -> tuple[Project, str | None]:
+    """New start and due dates (a bar dragged or resized on the calendar), recorded so the
+    change can be undone. An archived or finished project keeps its dates."""
+    project = get_project(session, project_id)
+    if project.archived_at is not None or project.status != "active":
+        raise ConflictError(f"Project {project_id} isn't active. Reopen or restore it first.")
+    changes = data.model_dump(exclude_unset=True)
+    start_date = changes.get("start_date", project.start_date)
+    _check_dates(start_date, data.due_date)
+    history = ChangeRecorder(session)
+    history.set(project, "start_date", start_date)
+    history.set(project, "due_date", data.due_date)
+    return _save(session, project), history.batch_id
 
 
 def move_project(

@@ -14,6 +14,7 @@ import { EntryRow, ProjectSpanRow, type RowContext } from "./AgendaRow";
 import type { Entry } from "./calendar";
 import type { ColorOf } from "./GridEntry";
 import type { LinearBar } from "./linear";
+import { canDragEntry } from "./linearDrag";
 
 /** A day's routines with their steps; checking a step logs it for that day. */
 export function RoutinePopover({
@@ -124,12 +125,15 @@ export function DayPopover({
   context,
   onAdd,
   onClose,
+  onDragStart,
 }: {
   day: string;
   entries: Entry[];
   context: RowContext;
   onAdd: () => void;
   onClose: () => void;
+  /** Quarter and Year: a press on a row that can move, which becomes a drag onto a day. */
+  onDragStart?: (entry: Entry, event: React.PointerEvent) => void;
 }) {
   return (
     <>
@@ -144,9 +148,26 @@ export function DayPopover({
           </IconButton>
         </span>
       </div>
-      <ul className="flex max-h-[420px] flex-col overflow-auto">
+      <ul
+        className="flex max-h-[420px] flex-col overflow-auto"
+        onPointerDown={
+          onDragStart &&
+          ((event) => {
+            // The rows are the list's items, in the entries' order.
+            const row = (event.target as HTMLElement).closest("li");
+            const index = row ? [...event.currentTarget.children].indexOf(row) : -1;
+            const entry = entries[index];
+            if (entry && canDragEntry(entry)) onDragStart(entry, event);
+          })
+        }
+      >
         {entries.map((entry) => (
-          <EntryRow key={entry.key} entry={entry} context={context} />
+          <EntryRow
+            key={entry.key}
+            entry={entry}
+            context={context}
+            draggable={!!onDragStart && canDragEntry(entry)}
+          />
         ))}
       </ul>
       {entries.length === 0 && (

@@ -82,6 +82,16 @@ class ProjectMove(BaseModel):
     life_area_id: int
 
 
+class ProjectReschedule(BaseModel):
+    """New dates for a project, as when its bar is dragged or resized on the calendar.
+    `start_date` left out keeps the project's start."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    start_date: date | None = None
+    due_date: date
+
+
 class ProjectChange(BaseModel):
     project: ProjectRead
     batch_id: str | None

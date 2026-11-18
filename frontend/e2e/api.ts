@@ -31,8 +31,12 @@ export type Task = { id: number; title: string; status: string; archived_at: str
 export const createArea = (request: APIRequestContext, title: string, color = "blue") =>
   send<Area>(request, "post", "/api/life-areas", { title, color });
 
-export const createProject = (request: APIRequestContext, area: Area, title: string) =>
-  send<Project>(request, "post", "/api/projects", { life_area_id: area.id, title });
+export const createProject = (
+  request: APIRequestContext,
+  area: Area,
+  title: string,
+  fields: Record<string, unknown> = {},
+) => send<Project>(request, "post", "/api/projects", { life_area_id: area.id, title, ...fields });
 
 export const createTask = (request: APIRequestContext, project: Project, title: string) =>
   send<Task>(request, "post", "/api/tasks", { project_id: project.id, title });
