@@ -14,6 +14,7 @@ from app.backup_scheduler import run_backup_scheduler
 from app.config import get_settings
 from app.db import SessionDep
 from app.errors import ConflictError, NotFoundError, UnprocessableError
+from app.frontend import add_frontend_route
 from app.routers import (
     app_settings,
     archive,
@@ -103,3 +104,7 @@ class HealthResponse(BaseModel):
 def health(session: SessionDep) -> HealthResponse:
     session.execute(text("SELECT 1"))
     return HealthResponse(status="ok")
+
+
+# Last, so it never shadows an API route.
+add_frontend_route(app)

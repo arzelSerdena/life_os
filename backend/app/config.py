@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DATABASE_PATH = BACKEND_DIR / "data" / "life_os.db"
+DEFAULT_FRONTEND_DIST = BACKEND_DIR.parent / "frontend" / "dist"
 
 
 class Settings(BaseSettings):
@@ -18,6 +19,8 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite:///{DEFAULT_DATABASE_PATH.as_posix()}"
     # The daily automatic backup. Tests turn it off.
     backup_scheduler: bool = True
+    # The built frontend the API serves outside /api (`pnpm build` writes it).
+    frontend_dist: Path = DEFAULT_FRONTEND_DIST
 
 
 @lru_cache
