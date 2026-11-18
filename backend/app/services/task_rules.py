@@ -2,7 +2,7 @@
 
 from datetime import date, timedelta
 
-from sqlalchemy import ColumnElement, func, select
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import Subtask, Task, TaskTemplate
@@ -13,6 +13,19 @@ from app.services.history import ChangeRecorder
 def on_day(day: date | None) -> ColumnElement[bool]:
     """Tasks the placement rule puts on `day`, or in Unscheduled when `day` is None."""
     return Task.placement_date.is_(None) if day is None else Task.placement_date == day
+
+
+def in_inbox() -> ColumnElement[bool]:
+    """The Inbox: tasks that still need sorting. That is any task with no life area, and a
+    one-off task with no scheduled date or no priority. Recurring occurrences are dated and
+    prioritised by their series, so only a missing life area puts them here."""
+    return or_(
+        Task.life_area_id.is_(None),
+        and_(
+            Task.template_id.is_(None),
+            or_(Task.scheduled_date.is_(None), Task.priority == "none"),
+        ),
+    )
 
 
 def next_position(session: Session, day: date | None) -> int:

@@ -191,3 +191,16 @@
 **Next**
 
 - Phase 6: 1–2 weeks of daily use with `just app`, writing notes in `docs/FEEDBACK.md`; then one `fix/` or `feat/` branch per triaged note, blockers first.
+
+## 2026-11-19
+
+**Done**
+
+- Triaged the first daily-use notes into `docs/FEEDBACK.md` (#3–#10).
+- The Inbox is everything still to sort (FEEDBACK #9): open tasks with no life area, plus one-off tasks with no scheduled date or no priority; recurring occurrences only when they have no area. One rule per side: `in_inbox()` in `services/task_rules.py` (used by `GET /api/tasks?inbox=true` and Home's Needs a push count) and `needsSorting` in `features/tasks/board.ts` (the Inbox page and the Tasks sidebar count). `inbox` can be combined with the area and project filters now. Inbox cards show their area colour and project, and the Inbox's filter menu has the Life areas filter. DOMAIN.md, the decision log and STYLE_GUIDE.md ("Update: Inbox (Nov 19)") record the new rule. Tests in `test_tasks.py` (2 new), `inbox.test.ts` and `board.test.ts`.
+- Date fields in New project and New metric use the shared Monday-first date picker instead of the browser's (FEEDBACK #5): `DatePickerField` in `features/pickers/DatePicker.tsx`, also used by New event. `PopoverField` takes `isInvalid`.
+- `just serve` (and so `just app`) no longer prints "recipe `serve` failed … exit code 1" when you quit with Ctrl C (FEEDBACK #10).
+
+**Next**
+
+- The other open notes in `docs/FEEDBACK.md`: metrics (#3 archive, #6 add a log, #7 edit every field), #8 ask before discarding a pop-up's edits, #4 drag areas and projects in the Plan sidebar.

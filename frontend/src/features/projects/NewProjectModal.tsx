@@ -1,7 +1,7 @@
 import { Alert, Button, FieldError, Input, Label, Modal, TextArea, TextField } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { CalendarDays, Folder, X } from "lucide-react";
+import { Folder, X } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { createProjectMutation } from "../../client/@tanstack/react-query.gen";
@@ -10,6 +10,7 @@ import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
 import { today } from "../../period";
 import { areaDataAttribute } from "../life-areas/palette";
+import { DatePickerField } from "../pickers/DatePicker";
 
 // These limits mirror the API's, so mistakes show up beside the field.
 const schema = z
@@ -254,26 +255,17 @@ function DateField({
       render={({ field, fieldState }) => (
         <div className="flex flex-col gap-1.5">
           <span className={FIELD_LABEL}>{label}</span>
-          <div
-            className={`flex h-8 items-center gap-1.5 rounded-(--radius-6) border px-2 focus-within:ring-2 focus-within:ring-(--focus-ring) ${
-              fieldState.invalid ? "border-(--text-danger)" : "border-(--border-default)"
-            }`}
-          >
-            <CalendarDays
-              aria-hidden
-              className="size-3.5 shrink-0 text-(--text-tertiary)"
-              strokeWidth={2}
-            />
-            <input
-              type="date"
-              aria-label={label}
-              aria-invalid={fieldState.invalid || undefined}
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              className="min-w-0 flex-1 bg-transparent text-[13px] text-(--text-primary) outline-none"
-            />
-          </div>
+          <DatePickerField
+            label={label}
+            value={field.value}
+            placeholder="No date"
+            clearLabel={`No ${label.toLowerCase()} date`}
+            isInvalid={fieldState.invalid}
+            onChange={(value) => {
+              field.onChange(value);
+              field.onBlur();
+            }}
+          />
           {fieldState.error && (
             <span className="type-meta text-(--text-danger)">{fieldState.error.message}</span>
           )}

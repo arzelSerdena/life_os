@@ -63,8 +63,17 @@ test("New project won't save a due date before the start", async ({ page, reques
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByRole("textbox", { name: "Name" }).fill(title);
   await dialog.getByText(area.title, { exact: true }).click();
-  await dialog.getByLabel("Start").fill("2026-12-01");
-  await dialog.getByLabel("Due").fill("2026-11-30");
+  // The shared date picker: open the field, type a date, Enter.
+  for (const [field, date] of [
+    ["Start", "2026-12-01"],
+    ["Due", "2026-11-30"],
+  ]) {
+    await dialog.getByRole("button", { name: field }).click();
+    const picker = page.getByRole("dialog", { name: field });
+    await picker.getByRole("textbox", { name: "Date" }).fill(date);
+    await picker.getByRole("textbox", { name: "Date" }).press("Enter");
+    await expect(picker).toHaveCount(0);
+  }
   await dialog.getByRole("button", { name: "Create project" }).click();
 
   await expect(dialog.getByText("Due can't be before the start.")).toBeVisible();

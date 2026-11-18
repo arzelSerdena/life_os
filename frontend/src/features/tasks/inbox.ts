@@ -1,17 +1,15 @@
 import type { TaskRead } from "../../client/types.gen";
-import type { Priority } from "./board";
+import { needsSorting, type Priority } from "./board";
 
 /**
- * The Inbox screen, as pure functions. The Inbox is open tasks with no life area
- * (STYLE_GUIDE.md, "Inbox and priority", Nov 16); the right container files them by area,
- * project, scheduled date or priority.
+ * The Inbox screen, as pure functions. The Inbox is open tasks still to be sorted: no life
+ * area, or (one-off tasks) no scheduled date or no priority (`needsSorting`, decided Nov 19);
+ * the right container files them by area, project, scheduled date or priority.
  */
 
-/** Open tasks with no life area, oldest first, so the list is worked through in order. */
+/** Open tasks still to be sorted, oldest first, so the list is worked through in order. */
 export function inboxList(tasks: readonly TaskRead[]): TaskRead[] {
-  return tasks
-    .filter((task) => task.status === "todo" && task.life_area_id === null)
-    .sort((a, b) => a.id - b.id);
+  return tasks.filter(needsSorting).sort((a, b) => a.id - b.id);
 }
 
 /** What a drop target, a menu item or a key files a task into. */

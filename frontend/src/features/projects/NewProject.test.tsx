@@ -4,7 +4,8 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import type { ProjectRead } from "../../client/types.gen";
 import { today } from "../../period";
 import { useDetailPanel } from "../../stores/detailPanelStore";
-import { emptyAreaPage, emptyProjectPage, lifeArea, renderApp } from "../../test-utils";
+import { emptyAreaPage, emptyProjectPage, lifeArea, pickDate, renderApp } from "../../test-utils";
+import { dayDate } from "../pickers/dates";
 
 const career = lifeArea({ id: 1, title: "Career", color: "blue", sort_order: 0 });
 const health = lifeArea({ id: 2, title: "Health", color: "teal", sort_order: 1 });
@@ -107,7 +108,7 @@ test("New project needs a name and an area, starts today and opens the new proje
   expect(create.parentElement).toHaveAttribute("title", "Enter a name");
   await user.type(within(dialog).getByRole("textbox", { name: "Name" }), "Portfolio site");
   expect(create.parentElement).toHaveAttribute("title", "Choose a life area");
-  expect(within(dialog).getByLabelText("Start")).toHaveValue(today());
+  expect(within(dialog).getByRole("button", { name: "Start" })).toHaveTextContent(dayDate(today()));
 
   await user.click(within(dialog).getByRole("radio", { name: "Career" }));
   await user.type(within(dialog).getByRole("textbox", { name: "Notes" }), "Two case studies");
@@ -141,10 +142,8 @@ test("the due date can't be before the start", async () => {
   const dialog = await screen.findByRole("dialog", { name: "New project" });
   await user.type(within(dialog).getByRole("textbox", { name: "Name" }), "Portfolio site");
   await user.click(within(dialog).getByRole("radio", { name: "Health" }));
-  const start = within(dialog).getByLabelText("Start");
-  await user.clear(start);
-  await user.type(start, "2026-12-01");
-  await user.type(within(dialog).getByLabelText("Due"), "2026-11-30");
+  await pickDate(user, within(dialog).getByRole("button", { name: "Start" }), "2026-12-01");
+  await pickDate(user, within(dialog).getByRole("button", { name: "Due" }), "2026-11-30");
   await user.click(within(dialog).getByRole("button", { name: "Create project" }));
 
   expect(await within(dialog).findByText("Due can't be before the start.")).toBeInTheDocument();

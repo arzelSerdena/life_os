@@ -42,8 +42,9 @@ import { useFileTask } from "./useFileTask";
 type File = (task: TaskRead, target: FileTarget) => void;
 
 /**
- * The Inbox: open tasks with no life area on the left, and a container on the right to file
- * them into (Approved: Tasks › Inbox, with the Nov 16 decisions). Drag a card onto an area or
+ * The Inbox: open tasks still to be sorted (no area, date or priority) on the left, and a
+ * container on the right to file them into (Approved: Tasks › Inbox, with the Nov 16 and
+ * Nov 19 decisions). Drag a card onto an area or
  * a project, a day or a priority; or use the card's hover actions, or A, T and D.
  */
 export function InboxPage() {
@@ -141,16 +142,25 @@ function Inbox({ data }: { data: TasksData }) {
             <TaskCard
               task={dragged}
               today={data.today}
-              areaColor={null}
-              project={undefined}
+              areaColor={areaColorOf(data, dragged)}
+              project={projectOf(data, dragged)}
               showFlag
-              showProject={false}
+              showProject
             />
           </ul>
         )}
       </DragOverlay>
     </DndContext>
   );
+}
+
+/** The task's area colour, so a card that already has an area shows it. */
+function areaColorOf(data: TasksData, task: TaskRead) {
+  return data.lifeAreas.find((area) => area.id === task.life_area_id)?.color ?? null;
+}
+
+function projectOf(data: TasksData, task: TaskRead) {
+  return data.projects.find((project) => project.id === task.project_id);
 }
 
 /** A task card that can be dragged, with Area ▾, Today and Date on hover (keys A, T, D). */
@@ -185,10 +195,10 @@ function InboxCard({
     <TaskCard
       task={task}
       today={data.today}
-      areaColor={null}
-      project={undefined}
+      areaColor={areaColorOf(data, task)}
+      project={projectOf(data, task)}
       showFlag
-      showProject={false}
+      showProject
       containerProps={{
         ref: setNodeRef,
         ...listeners,

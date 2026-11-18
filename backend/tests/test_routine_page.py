@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app import clock
 from app.models import RoutinePause
+from app.models.base import utc_now
 from tests.factories import make_life_area
 
 TODAY = date(2026, 11, 18)  # a Wednesday; its week is Nov 16 to 22
@@ -57,6 +58,12 @@ def _two_steps(client: TestClient, area: int) -> tuple[dict[str, Any], dict[str,
     read = _step(client, routine, area, "Read", "2026-11-09")
     stretch = _step(client, routine, area, "Stretch", "2026-11-09")
     return routine, read, stretch
+
+
+def stamped_today() -> str:
+    """The day an action taken now counts for. Archive and status timestamps come from the
+    real clock, not the pinned `clock.today`, so they fall on today's real date."""
+    return clock.local_date(utc_now()).isoformat()
 
 
 def test_totals_and_runs_over_a_week(client: TestClient, area: int) -> None:
@@ -218,7 +225,7 @@ def test_an_archived_routine_names_its_archive_day(client: TestClient) -> None:
 
     assert client.post(f"/api/routines/{routine['id']}/archive").status_code == 200
 
-    assert _page(client, routine)["archived_on"] == TODAY.isoformat()
+    assert _page(client, routine)["archived_on"] == stamped_today()
 
 
 def test_an_unknown_routine_is_not_found(client: TestClient) -> None:

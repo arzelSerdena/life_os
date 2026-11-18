@@ -69,9 +69,20 @@ export function tasksForView(
   }
 }
 
-/** Open tasks with no life area: the Inbox (inbox.ts lists them in order). */
+/**
+ * Whether an open task is in the Inbox, still to be sorted: it has no life area, or it is a
+ * one-off task with no scheduled date or no priority. Recurring occurrences take their date and
+ * priority from the series, so only a missing life area puts them here (as the API's `inbox`).
+ */
+export function needsSorting(task: TaskRead): boolean {
+  if (task.status !== "todo") return false;
+  if (task.life_area_id === null) return true;
+  return task.template_id === null && (task.scheduled_date === null || task.priority === "none");
+}
+
+/** The Inbox's tasks (inbox.ts lists them in order). */
 export function inboxTasks(tasks: readonly TaskRead[]): TaskRead[] {
-  return tasks.filter((task) => task.status === "todo" && task.life_area_id === null);
+  return tasks.filter(needsSorting);
 }
 
 /** Manual order: by placement date (undated last), then the day's order, then creation. */

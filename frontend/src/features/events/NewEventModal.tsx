@@ -1,6 +1,6 @@
 import { Alert, Button, Input, Label, Modal, Switch, TextField } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, CalendarDays, Clock3, Folder, X } from "lucide-react";
+import { ArrowRight, Clock3, Folder, X } from "lucide-react";
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import {
   createEventMutation,
@@ -14,8 +14,7 @@ import { today as localToday } from "../../period";
 import { useNewEvent } from "../../stores/newEventStore";
 import { areaDataAttribute } from "../life-areas/palette";
 import { PickerRow, PopoverField } from "../pickers/chips";
-import { DatePanel } from "../pickers/DatePicker";
-import { dayDate } from "../pickers/dates";
+import { DatePickerField } from "../pickers/DatePicker";
 import { type Owner, OwnerPanel } from "../pickers/OwnerPicker";
 import { RepeatField } from "../pickers/RepeatPicker";
 import { formatTime, type TimeFormat, useTimeFormat } from "../tasks/format";
@@ -167,7 +166,7 @@ export function NewEventModal({
 
               <div className="flex items-end gap-2">
                 <Field label="Starts">
-                  <DateField
+                  <DatePickerField
                     label="Start date"
                     value={values.startDate}
                     today={today}
@@ -190,7 +189,7 @@ export function NewEventModal({
                   <ArrowRight className="size-4" />
                 </span>
                 <Field label="Ends">
-                  <DateField
+                  <DatePickerField
                     label="End date"
                     value={values.endDate}
                     today={today}
@@ -326,39 +325,6 @@ function OwnerField({
         onPick={(owner) => {
           setIsOpen(false);
           onChange(owner);
-        }}
-      />
-    </PopoverField>
-  );
-}
-
-/** A date field opening the date picker. */
-function DateField({
-  label,
-  value,
-  today,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  today: string;
-  onChange: (value: string) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <PopoverField
-      icon={CalendarDays}
-      label={label}
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      value={dayDate(value)}
-    >
-      <DatePanel
-        value={value}
-        today={today}
-        onPick={(next) => {
-          setIsOpen(false);
-          if (next && next !== value) onChange(next);
         }}
       />
     </PopoverField>

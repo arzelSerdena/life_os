@@ -180,6 +180,7 @@ export function PopoverField({
   width = 252,
   placement = "bottom start",
   isPlaceholder = false,
+  isInvalid = false,
   value,
   children,
 }: {
@@ -193,6 +194,8 @@ export function PopoverField({
   placement?: "bottom start" | "bottom end";
   /** The value is a prompt ("Pick an area or project"), shown in the placeholder colour. */
   isPlaceholder?: boolean;
+  /** A form error: the border turns the danger colour. */
+  isInvalid?: boolean;
   value: ReactNode;
   children: ReactNode;
 }) {
@@ -200,8 +203,9 @@ export function PopoverField({
     <Popover isOpen={isOpen} onOpenChange={onOpenChange}>
       <Popover.Trigger
         aria-label={label}
+        aria-invalid={isInvalid || undefined}
         data-open={isOpen}
-        className={`flex h-8 w-full min-w-0 cursor-pointer items-center gap-1.5 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-left text-[13px] whitespace-nowrap outline-none hover:border-(--color-neutral-300) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:border-(--color-brand-600) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)] [&_svg]:shrink-0 ${
+        className={`flex h-8 w-full min-w-0 cursor-pointer items-center gap-1.5 rounded-(--radius-6) border ${isInvalid ? "border-(--text-danger)" : "border-(--border-default)"} bg-(--bg-surface) px-2.5 text-left text-[13px] whitespace-nowrap outline-none hover:border-(--color-neutral-300) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:border-(--color-brand-600) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)] [&_svg]:shrink-0 ${
           isPlaceholder ? "text-(--text-tertiary)" : "text-(--text-primary)"
         }`}
       >
