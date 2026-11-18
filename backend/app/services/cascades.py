@@ -213,11 +213,9 @@ def _apply(plan: Plan, history: ChangeRecorder) -> None:
             history.set(item, "repeat_ends_on", yesterday)
 
 
-def _restore_with_batch(
-    session: Session, owner: LifeArea | Project, history: ChangeRecorder
-) -> None:
-    """Un-archive the owner and every item archived in the same batch that is still
-    archived from it."""
+def taken_by_last_archive(session: Session, owner: LifeArea | Project) -> list[Base]:
+    """The items the owner's last archive took with it that are still archived from it:
+    what restoring the owner brings back."""
     archived = session.scalars(
         select(StatusChange)
         .where(
@@ -228,21 +226,33 @@ def _restore_with_batch(
         )
         .order_by(StatusChange.id.desc())
     ).first()
-    if archived is not None:
-        rows = session.scalars(
-            select(StatusChange).where(
-                StatusChange.batch_id == archived.batch_id,
-                StatusChange.field == "archived_at",
-                StatusChange.new_value.is_not(None),
-            )
-        ).all()
-        for row in rows:
-            item = session.get(ENTITY_MODELS[row.entity_type], row.entity_id)
-            if item is None or item is owner:
-                continue
-            stamp = item.archived_at  # type: ignore[attr-defined]
-            if stamp is not None and stamp.isoformat() == row.new_value:
-                history.set(item, "archived_at", None)
+    if archived is None:
+        return []
+    rows = session.scalars(
+        select(StatusChange).where(
+            StatusChange.batch_id == archived.batch_id,
+            StatusChange.field == "archived_at",
+            StatusChange.new_value.is_not(None),
+        )
+    ).all()
+    found: list[Base] = []
+    for row in rows:
+        item = session.get(ENTITY_MODELS[row.entity_type], row.entity_id)
+        if item is None or item is owner:
+            continue
+        stamp = item.archived_at  # type: ignore[attr-defined]
+        if stamp is not None and stamp.isoformat() == row.new_value:
+            found.append(item)
+    return found
+
+
+def _restore_with_batch(
+    session: Session, owner: LifeArea | Project, history: ChangeRecorder
+) -> None:
+    """Un-archive the owner and every item archived in the same batch that is still
+    archived from it."""
+    for item in taken_by_last_archive(session, owner):
+        history.set(item, "archived_at", None)
     history.set(owner, "archived_at", None)
 
 

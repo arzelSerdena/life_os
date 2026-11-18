@@ -5,6 +5,111 @@ export type ClientOptions = {
 };
 
 /**
+ * ArchiveRead
+ *
+ * Finished & archived: archived areas, done, cancelled or archived projects, and
+ * archived routines, each newest first.
+ */
+export type ArchiveRead = {
+    /**
+     * Areas
+     */
+    areas: Array<ArchivedAreaRead>;
+    /**
+     * Projects
+     */
+    projects: Array<FinishedProjectRead>;
+    /**
+     * Routines
+     */
+    routines: Array<ArchivedRoutineRead>;
+};
+
+/**
+ * ArchivedAreaRead
+ */
+export type ArchivedAreaRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Color
+     */
+    color: string | null;
+    /**
+     * Archived At
+     */
+    archived_at: string;
+    /**
+     * Archived On
+     */
+    archived_on: string;
+    /**
+     * Projects
+     */
+    projects: number;
+    /**
+     * Tasks
+     */
+    tasks: number;
+    /**
+     * Metrics
+     */
+    metrics: number;
+    /**
+     * Has Items
+     */
+    has_items: boolean;
+};
+
+/**
+ * ArchivedRoutineRead
+ */
+export type ArchivedRoutineRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Archived At
+     */
+    archived_at: string;
+    /**
+     * Archived On
+     */
+    archived_on: string;
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Schedule Starts On
+     */
+    schedule_starts_on: string;
+    /**
+     * Steps
+     */
+    steps: number;
+    /**
+     * Best Run
+     */
+    best_run: number;
+    /**
+     * Feeds
+     */
+    feeds: Array<string>;
+};
+
+/**
  * AreaPageRead
  *
  * One area over one calendar period. Tasks and events include those of the area's
@@ -625,6 +730,48 @@ export type EventUpdate = {
      * Repeat Ends On
      */
     repeat_ends_on?: string | null;
+};
+
+/**
+ * FinishedProjectRead
+ */
+export type FinishedProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Status
+     */
+    status: 'active' | 'done' | 'cancelled';
+    /**
+     * Archived At
+     */
+    archived_at: string | null;
+    /**
+     * On
+     */
+    on: string;
+    /**
+     * Done
+     */
+    done: number;
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Has Items
+     */
+    has_items: boolean;
 };
 
 /**
@@ -2232,6 +2379,10 @@ export type RoutinePageRead = {
      * Today
      */
     today: string;
+    /**
+     * Archived On
+     */
+    archived_on: string | null;
     totals: RoutineTotalsRead;
     previous: RoutineTotalsRead | null;
     current_run: RunRead;
@@ -3836,6 +3987,22 @@ export type UpdateSettingsResponses = {
 };
 
 export type UpdateSettingsResponse = UpdateSettingsResponses[keyof UpdateSettingsResponses];
+
+export type GetArchiveData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/archive';
+};
+
+export type GetArchiveResponses = {
+    /**
+     * Successful Response
+     */
+    200: ArchiveRead;
+};
+
+export type GetArchiveResponse = GetArchiveResponses[keyof GetArchiveResponses];
 
 export type ListLifeAreasData = {
     body?: never;

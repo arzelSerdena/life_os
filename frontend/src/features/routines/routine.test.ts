@@ -93,6 +93,7 @@ function page(fields: Partial<RoutinePageRead> = {}): RoutinePageRead {
     start: WEEK[0],
     end: WEEK[6],
     today: TODAY,
+    archived_on: null,
     totals: totals(),
     previous: null,
     current_run: { length: 0, start: null, end: null },
@@ -117,6 +118,10 @@ describe("parseRRule", () => {
 });
 
 describe("scheduleLabel", () => {
+  it("gives an archived routine's schedule its date range", () => {
+    expect(scheduleLabel(page({ archived_on: "2026-11-17" }))).toBe("Every day · Nov 9 – Nov 17");
+  });
+
   it("names the schedule in force and when it began", () => {
     expect(scheduleLabel(page())).toBe("Every day · since Nov 9");
     const today = page({
@@ -167,6 +172,20 @@ describe("tiles", () => {
       "days",
       "Oct 26 – 29 · current 0",
     ]);
+  });
+
+  it("calls an archived routine's current run its final run", () => {
+    const [, , run] = tiles(
+      page({
+        archived_on: "2026-11-17",
+        totals: totals({ done: 10, missed: 2, completion_rate: 83 }),
+        current_run: { length: 3, start: "2026-11-15", end: "2026-11-17" },
+        best_run: { length: 3, start: "2026-11-15", end: "2026-11-17" },
+      }),
+      "quarter",
+    );
+
+    expect(run.label).toBe("Final run");
   });
 
   it("shows dashes before anything was due", () => {

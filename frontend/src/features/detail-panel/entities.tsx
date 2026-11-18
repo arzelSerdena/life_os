@@ -26,6 +26,7 @@ import {
   cancelTaskMutation,
   completeTaskMutation,
   createSubtaskMutation,
+  getArchiveOptions,
   getAreaPageOptions,
   getEventOptions,
   getEventQueryKey,
@@ -77,6 +78,7 @@ import { useChangeToast } from "../../stores/changeToastStore";
 import { type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
+import { archiveDate, areaContents, restoredAreaMessage } from "../archive/archive";
 import {
   DeleteEventDialog,
   DeleteMetricDialog,
@@ -320,6 +322,12 @@ function AreaPanel({ id }: { id: number }) {
   const lifeAreas = useQuery(listLifeAreasOptions()).data ?? [];
   const update = useMutation(updateLifeAreaMutation());
   const restore = useMutation(unarchiveLifeAreaMutation());
+  const showToast = useChangeToast((state) => state.show);
+  const isArchived = query.data ? query.data.archived_at !== null : false;
+  // An archived area reads as it does in Finished & archived: what Restore brings back.
+  const archived = useQuery({ ...getArchiveOptions(), enabled: isArchived }).data?.areas.find(
+    (row) => row.id === id,
+  );
   const saveNotes = useNotesSave();
   const [isArchiving, setIsArchiving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -329,7 +337,6 @@ function AreaPanel({ id }: { id: number }) {
   const path = { life_area_id: id };
   const save = (body: Parameters<typeof updateLifeArea>[0]["body"]) =>
     update.mutateAsync({ path, body });
-  const isArchived = area.archived_at !== null;
   const contents = page?.contents;
 
   const actions: PanelAction[] = [
@@ -338,7 +345,19 @@ function AreaPanel({ id }: { id: number }) {
           id: "restore",
           label: "Restore area",
           icon: ArchiveRestore,
-          onAction: () => restore.mutate({ path }),
+          onAction: () =>
+            restore.mutate(
+              { path },
+              {
+                onSuccess: (change) => {
+                  showToast(
+                    archived ? restoredAreaMessage(archived) : `Restored “${area.title}”`,
+                    change.batch_id,
+                  );
+                  close();
+                },
+              },
+            ),
         }
       : {
           id: "archive",
@@ -351,7 +370,10 @@ function AreaPanel({ id }: { id: number }) {
       ...deleteAction(
         "Delete area",
         () => setIsDeleting(true),
-        contents?.has_items && "Only empty areas can be deleted. Archive it instead.",
+        contents?.has_items &&
+          (isArchived
+            ? "Only empty areas can be deleted."
+            : "Only empty areas can be deleted. Archive it instead."),
       ),
       // Until the contents load it isn't known whether the area is empty.
       isDisabled: !contents || contents.has_items,
@@ -364,52 +386,72 @@ function AreaPanel({ id }: { id: number }) {
         crumbs={["Life areas"]}
         marker={<Marker />}
         title={area.title}
-        onRename={(title) => save({ title })}
+        onRename={isArchived ? undefined : (title) => save({ title })}
         lead={
-          <EditableLine
-            label="Vision"
-            placeholder="Add a vision…"
-            maxLength={2000}
-            value={area.vision}
-            onSave={(vision) => save({ vision })}
-          />
+          isArchived ? (
+            area.vision && (
+              <p className="-mt-1.5 text-[13px] leading-[19px] text-(--text-secondary)">
+                {area.vision}
+              </p>
+            )
+          ) : (
+            <EditableLine
+              label="Vision"
+              placeholder="Add a vision…"
+              maxLength={2000}
+              value={area.vision}
+              onSave={(vision) => save({ vision })}
+            />
+          )
         }
         chips={
-          <>
-            <MenuChip
-              icon={Palette}
-              label="Color"
-              value={area.color ?? ""}
-              onChange={(color) => save({ color })}
-              options={AREA_PALETTES.map((palette) => ({
-                id: palette.key,
-                label: palette.name,
-                leading: (
-                  <span
-                    aria-hidden
-                    className="size-3 shrink-0 rounded-[3px]"
-                    style={{ background: palette.swatch }}
-                  />
-                ),
-                note: lifeAreas.find((other) => other.id !== id && other.color === palette.key)
-                  ?.title,
-              }))}
-            >
-              {AREA_PALETTES.find((palette) => palette.key === area.color)?.name ?? "No color"}
-            </MenuChip>
-            {contents && (
-              <>
-                <Chip icon={Folder}>{plural(contents.active_projects, "project")}</Chip>
-                <Chip icon={ListChecks}>{plural(contents.open_tasks, "open task")}</Chip>
-                <Chip icon={ChartLine}>{plural(contents.metrics, "metric")}</Chip>
-              </>
-            )}
-            {isArchived && <Chip icon={Archive}>Archived</Chip>}
-          </>
+          isArchived ? (
+            <>
+              <Chip icon={Archive}>
+                Archived
+                {archived ? ` ${archiveDate(archived.archived_on, new Date().getFullYear())}` : ""}
+              </Chip>
+              {archived && areaContents(archived) && (
+                <Chip icon={Folder}>{areaContents(archived)}</Chip>
+              )}
+            </>
+          ) : (
+            <>
+              <MenuChip
+                icon={Palette}
+                label="Color"
+                value={area.color ?? ""}
+                onChange={(color) => save({ color })}
+                options={AREA_PALETTES.map((palette) => ({
+                  id: palette.key,
+                  label: palette.name,
+                  leading: (
+                    <span
+                      aria-hidden
+                      className="size-3 shrink-0 rounded-[3px]"
+                      style={{ background: palette.swatch }}
+                    />
+                  ),
+                  note: lifeAreas.find((other) => other.id !== id && other.color === palette.key)
+                    ?.title,
+                }))}
+              >
+                {AREA_PALETTES.find((palette) => palette.key === area.color)?.name ?? "No color"}
+              </MenuChip>
+              {contents && (
+                <>
+                  <Chip icon={Folder}>{plural(contents.active_projects, "project")}</Chip>
+                  <Chip icon={ListChecks}>{plural(contents.open_tasks, "open task")}</Chip>
+                  <Chip icon={ChartLine}>{plural(contents.metrics, "metric")}</Chip>
+                </>
+              )}
+            </>
+          )
         }
         notes={{
-          key: `area-${id}`,
+          key: `area-${id}-${isArchived}`,
           markdown: area.notes,
+          readOnly: isArchived,
           save: (notes) =>
             saveNotes(
               () => updateLifeArea({ path, body: { notes }, throwOnError: true }),

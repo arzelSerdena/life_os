@@ -244,14 +244,21 @@ def _count(session: Session, query: Select[int]) -> int:
     return session.scalar(select(func.count()).select_from(query.subquery())) or 0
 
 
-def contents(session: Session, life_area_id: int, today: date) -> Contents:
+def area_has_items(session: Session, life_area_id: int) -> bool:
+    """Whether anything belongs to the area, archived items included: only an empty area
+    can be deleted."""
     owner = Owner(life_area_id)
     projects = select(Project.id).where(Project.life_area_id == life_area_id)
-    has_any = _count(session, projects) > 0 or any(
+    return _count(session, projects) > 0 or any(
         _count(session, select(model.id).where(owner.owns(model)))
         for model in (Task, TaskTemplate, Event, Metric, RoutineStep)
     )
-    found = _contents(session, owner, today, has_any)
+
+
+def contents(session: Session, life_area_id: int, today: date) -> Contents:
+    owner = Owner(life_area_id)
+    projects = select(Project.id).where(Project.life_area_id == life_area_id)
+    found = _contents(session, owner, today, area_has_items(session, life_area_id))
     active = projects.where(Project.status == "active", Project.archived_at.is_(None))
     return replace(found, active_projects=_count(session, active))
 

@@ -44,6 +44,8 @@ type NotesEditorProps = {
   /** "card": a page's Notes card (the routine page), with its title and save state in the
    * card's header. */
   variant?: "panel" | "card";
+  /** Shown, not edited: an archived item's notes. */
+  readOnly?: boolean;
 };
 
 /**
@@ -57,6 +59,7 @@ export function NotesEditor({
   toolbarContainer,
   header,
   variant = "panel",
+  readOnly = false,
 }: NotesEditorProps) {
   const latest = useRef(initialMarkdown ?? "");
   const saved = useRef(initialMarkdown ?? "");
@@ -100,6 +103,7 @@ export function NotesEditor({
 
   const slash = useSlashMenu();
   const editor = useEditor({
+    editable: !readOnly,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
@@ -160,6 +164,7 @@ export function NotesEditor({
       {showSource ? (
         <textarea
           aria-label="Notes in Markdown"
+          readOnly={readOnly}
           value={source}
           onChange={(event) => {
             setSource(event.target.value);
@@ -175,6 +180,7 @@ export function NotesEditor({
       )}
       {editor &&
         !showSource &&
+        !readOnly &&
         toolbarContainer &&
         createPortal(<Toolbar editor={editor} />, toolbarContainer)}
     </>

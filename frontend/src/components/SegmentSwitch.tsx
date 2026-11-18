@@ -1,6 +1,7 @@
 import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 
-/** The grey segmented switch of the approved mock-ups: Priority | Area, Areas | Calendar. */
+/** The grey segmented switch of the approved mock-ups: Priority | Area, Areas | Calendar,
+ * Areas | Projects | Routines with their counters. */
 export function SegmentSwitch<T extends string>({
   label,
   value,
@@ -9,7 +10,8 @@ export function SegmentSwitch<T extends string>({
 }: {
   label: string;
   value: T;
-  options: { key: T; label: string }[];
+  /** A count shows as a grey counter after the label, and not at all when it is 0. */
+  options: { key: T; label: string; count?: number }[];
   onChange: (value: T) => void;
 }) {
   return (
@@ -31,6 +33,11 @@ export function SegmentSwitch<T extends string>({
           className="h-6 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 text-xs font-medium text-(--switch-default-text) hover:bg-white/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
         >
           {option.label}
+          {option.count ? (
+            <span className="ml-1.5 text-[11px] font-medium text-(--text-tertiary) tabular-nums">
+              {option.count}
+            </span>
+          ) : null}
         </ToggleButton>
       ))}
     </ToggleButtonGroup>

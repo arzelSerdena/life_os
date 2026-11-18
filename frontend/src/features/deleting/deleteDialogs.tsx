@@ -98,7 +98,7 @@ export function DeleteRoutineDialog({
   routine,
   onClose,
   onDeleted,
-}: { routine: RoutineRead } & Callbacks) {
+}: { routine: Pick<RoutineRead, "id" | "title"> } & Callbacks) {
   const path = { routine_id: routine.id };
   const preview = useQuery(previewRoutineDeleteOptions({ path }));
   const toast = useDeletedToast();

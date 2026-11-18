@@ -72,7 +72,7 @@ export function ProjectsOverviewPage() {
                   id: "archived",
                   label: "Finished & archived",
                   icon: Archive,
-                  onAction: () => navigate("/areas/archived"),
+                  onAction: () => navigate("/areas/archived?tab=projects"),
                 },
               ]}
             />

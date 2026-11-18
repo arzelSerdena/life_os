@@ -10,6 +10,7 @@ from app.db import SessionDep
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.routers import (
     app_settings,
+    archive,
     events,
     life_areas,
     metrics,
@@ -39,6 +40,7 @@ app = FastAPI(
     dependencies=[Depends(_apply_settings)],
 )
 app.include_router(app_settings.router)
+app.include_router(archive.router)
 app.include_router(life_areas.router)
 app.include_router(projects.router)
 app.include_router(metrics.router)

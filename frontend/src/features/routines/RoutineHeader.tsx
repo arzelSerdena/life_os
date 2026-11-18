@@ -74,10 +74,16 @@ export function RoutineHeader({
             </span>
           )}
           {isArchived ? (
-            <span className={chipClass("default")}>
-              <Repeat aria-hidden strokeWidth={2} />
-              {scheduleLabel(page)}
-            </span>
+            <>
+              <span className={chipClass("default", false)}>
+                <Archive aria-hidden strokeWidth={2} />
+                Archived {page.archived_on ? shortDate(page.archived_on) : ""}
+              </span>
+              <span className={chipClass("default", false)}>
+                <Repeat aria-hidden strokeWidth={2} />
+                {scheduleLabel(page)}
+              </span>
+            </>
           ) : (
             <ScheduleChip page={page} />
           )}
@@ -99,15 +105,45 @@ export function RoutineHeader({
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <PeriodSwitch isDisabled={!hasSteps} />
-        <RoutineMenu page={page} />
-        {!isArchived && (
-          <Button onPress={onAddStep} className="ml-2">
-            <Plus aria-hidden strokeWidth={2} />
-            Add step
-          </Button>
+        {isArchived ? (
+          <RestoreButton routine={routine} steps={page.steps.length} />
+        ) : (
+          <>
+            <RoutineMenu page={page} />
+            <Button onPress={onAddStep} className="ml-2">
+              <Plus aria-hidden strokeWidth={2} />
+              Add step
+            </Button>
+          </>
         )}
       </div>
     </header>
+  );
+}
+
+/** An archived routine's page is read-only: Restore (brand 700) takes Add step's place and
+ * there is no ⋯ menu. Restoring brings back its steps. */
+function RestoreButton({ routine, steps }: { routine: RoutineRead; steps: number }) {
+  const showToast = useChangeToast((state) => state.show);
+  const restore = useMutation({
+    ...unarchiveRoutineMutation(),
+    onSuccess: (change) =>
+      showToast(
+        `Restored “${routine.title}”${steps > 0 ? ` · ${steps} ${steps === 1 ? "step" : "steps"} back` : ""}`,
+        change.batch_id,
+      ),
+  });
+  return (
+    <span className="ml-2 flex items-center gap-2">
+      {restore.isError && <QueryError error={restore.error} />}
+      <Button
+        isDisabled={restore.isPending}
+        onPress={() => restore.mutate({ path: { routine_id: routine.id } })}
+      >
+        <ArchiveRestore aria-hidden strokeWidth={2} />
+        Restore
+      </Button>
+    </span>
   );
 }
 

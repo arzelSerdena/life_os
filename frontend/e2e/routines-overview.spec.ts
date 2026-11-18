@@ -106,10 +106,11 @@ test("the ⋯ menu exports the period as CSV and opens archived routines", async
 
   await page.getByRole("button", { name: "More actions" }).click();
   await page.getByRole("menuitem", { name: "Archived routines" }).click();
-  await expect(page).toHaveURL(/\/areas\/archived/);
+  await expect(page).toHaveURL(/\/areas\/archived\?tab=routines/);
   await expect(
-    page.getByRole("region", { name: "Archived routines" }).getByRole("link", {
+    page.getByRole("region", { name: "Routines" }).getByRole("button", {
       name: archived.title,
+      exact: true,
     }),
   ).toBeVisible();
 });
