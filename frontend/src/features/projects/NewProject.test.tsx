@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import type { ProjectRead } from "../../client/types.gen";
 import { today } from "../../period";
 import { useDetailPanel } from "../../stores/detailPanelStore";
-import { emptyAreaPage, lifeArea, renderApp } from "../../test-utils";
+import { emptyAreaPage, emptyProjectPage, lifeArea, renderApp } from "../../test-utils";
 
 const career = lifeArea({ id: 1, title: "Career", color: "blue", sort_order: 0 });
 const health = lifeArea({ id: 2, title: "Health", color: "teal", sort_order: 1 });
@@ -64,6 +64,8 @@ beforeEach(() => {
           return json(projects);
         case "/api/projects/20":
           return json(project({ id: 20, title: "Portfolio site" }));
+        case "/api/projects/20/page":
+          return json(emptyProjectPage(career, project({ id: 20, title: "Portfolio site" })));
         default:
           return json([]);
       }
@@ -82,12 +84,14 @@ test("the sidebar lists active projects in area order", async () => {
   await waitFor(() =>
     expect(
       within(nav)
-        .getAllByRole("button")
+        .getAllByRole("link")
         .map((row) => row.textContent),
     ).toEqual(["Resume & portfolio", "5K training"]),
   );
-  await userEvent.setup().click(within(nav).getByRole("button", { name: "5K training" }));
-  expect(useDetailPanel.getState().target).toEqual({ kind: "project", id: 8 });
+  expect(within(nav).getByRole("link", { name: "5K training" })).toHaveAttribute(
+    "href",
+    "/areas/projects/8",
+  );
 });
 
 test("New project needs a name and an area, starts today and opens the new project", async () => {
@@ -124,7 +128,8 @@ test("New project needs a name and an area, starts today and opens the new proje
   await waitFor(() =>
     expect(screen.queryByRole("dialog", { name: "New project" })).not.toBeInTheDocument(),
   );
-  expect(useDetailPanel.getState().target).toEqual({ kind: "project", id: 20 });
+  // A new project opens its page.
+  expect(await screen.findByRole("heading", { name: "Portfolio site" })).toBeInTheDocument();
 });
 
 test("the due date can't be before the start", async () => {

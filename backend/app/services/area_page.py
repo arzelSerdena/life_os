@@ -1,11 +1,11 @@
-"""One life area's page over a calendar period: its metrics, timeline, projects, routine
-steps, task lists and agenda. Derived on read; nothing is stored."""
+"""One life area's or one project's page over a calendar period: its metrics, timeline,
+projects, routine steps, task lists and agenda. Derived on read; nothing is stored."""
 
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time, timedelta
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app import clock
@@ -27,15 +27,37 @@ from app.services.overview import (
     area_metrics,
     local_date,
     outcome_for,
+    pace_status,
     period_range,
 )
-from app.services.projects import progress_of
+from app.services.projects import get_project, has_items, progress_of
 from app.services.routines import due_days
 
 # Needs attention: a task rolled over this many times, or a project due within this many days.
 ROLLOVERS_TO_FLAG = 3
 PROJECT_DUE_SOON_DAYS = 14
 COMPLETED_LIMIT = 100
+
+
+@dataclass(frozen=True)
+class Owner:
+    """Whose page it is: a life area (with its projects' items), or one project."""
+
+    life_area_id: int
+    project_id: int | None = None
+
+    def owns(
+        self,
+        model: type[Task] | type[TaskTemplate] | type[Event] | type[Metric] | type[RoutineStep],
+    ) -> ColumnElement[bool]:
+        if self.project_id is not None:
+            return model.project_id == self.project_id
+        return model.life_area_id == self.life_area_id
+
+    def owns_step(self, step: RoutineStep) -> bool:
+        if self.project_id is not None:
+            return step.project_id == self.project_id
+        return step.life_area_id == self.life_area_id
 
 
 @dataclass(frozen=True)
@@ -102,22 +124,78 @@ class AreaPage:
     deadlines: list[Deadline] = field(default_factory=list)
 
 
+@dataclass
+class ProjectPage(AreaPage):
+    """A project's page: the area page's parts for the project's own items. Its one
+    project item is the project itself, for the timeline."""
+
+    project: Project | None = None
+    pace: float | None = None  # share of the project's time that has passed, 0 to 1
+    pace_status: str | None = None  # ahead, behind or on_pace
+
+
 def get_area_page(session: Session, life_area_id: int, period: str, day: date) -> AreaPage:
     area = get_life_area(session, life_area_id)
     view = period_range(period, day)
     today = clock.today()
     page = AreaPage(area, period, view, today, contents(session, area.id, today))
-
-    metrics = area_metrics(session, [area.id])
-    page.metrics = [outcome_for(metric, period, view, today) for metric in metrics]
+    _fill(session, page, Owner(area.id), area_metrics(session, [area.id]))
     page.projects = _projects(session, area.id, view)
-    page.events = list_occurrences(
-        session, view.start, view.end, OccurrenceFilters(life_area_id=area.id)
+    return page
+
+
+def get_project_page(session: Session, project_id: int, period: str, day: date) -> ProjectPage:
+    project = get_project(session, project_id)
+    view = period_range(period, day)
+    today = clock.today()
+    owner = Owner(project.life_area_id, project.id)
+    page = ProjectPage(
+        get_life_area(session, project.life_area_id),
+        period,
+        view,
+        today,
+        _contents(session, owner, today, has_items(session, project)),
+        project=project,
     )
-    page.routines = _routines(session, area.id, view, today)
+    metrics = session.scalars(
+        select(Metric)
+        .options(selectinload(Metric.entries), selectinload(Metric.targets))
+        .where(Metric.project_id == project.id, Metric.archived_at.is_(None))
+        .order_by(Metric.sort_order, Metric.id)
+    ).all()
+    _fill(session, page, owner, metrics)
+    item = _project_item(session, project)
+    page.projects = [item]
+    page.pace = project_pace(project, item.start, today)
+    page.pace_status = pace_status(item.done, item.total, page.pace)
+    return page
+
+
+def project_pace(project: Project, start: date, today: date) -> float | None:
+    """The share of a project's time, from its start to its due date, that has passed.
+    None with no due date, or a due date on its start."""
+    if project.due_date is None:
+        return None
+    length = (project.due_date - start).days
+    if length <= 0:
+        return None
+    return min(max((today - start).days, 0), length) / length
+
+
+def _fill(session: Session, page: AreaPage, owner: Owner, metrics: Sequence[Metric]) -> None:
+    """Everything but the projects: metrics, events, routines, task lists and the agenda."""
+    view, today, period = page.range, page.today, page.period
+    page.metrics = [outcome_for(metric, period, view, today) for metric in metrics]
+    page.events = list_occurrences(
+        session,
+        view.start,
+        view.end,
+        OccurrenceFilters(life_area_id=owner.life_area_id, project_id=owner.project_id),
+    )
+    page.routines = _routines(session, owner, view, today)
 
     open_tasks = select(Task).where(
-        Task.life_area_id == area.id, Task.status == "todo", Task.archived_at.is_(None)
+        owner.owns(Task), Task.status == "todo", Task.archived_at.is_(None)
     )
     page.overdue_tasks = session.scalars(
         open_tasks.where(Task.due_date < today).order_by(Task.due_date, Task.id)
@@ -134,13 +212,13 @@ def get_area_page(session: Session, life_area_id: int, period: str, day: date) -
     page.recurring = session.scalars(
         select(TaskTemplate)
         .where(
-            TaskTemplate.life_area_id == area.id,
+            owner.owns(TaskTemplate),
             TaskTemplate.rrule.is_not(None),
             TaskTemplate.archived_at.is_(None),
         )
         .order_by(TaskTemplate.title, TaskTemplate.id)
     ).all()
-    page.completed_tasks = _completed(session, area.id, view)
+    page.completed_tasks = _completed(session, owner, view)
 
     # The agenda runs from today (or the period's start, if later) to the period's end.
     first = max(today, view.start)
@@ -160,33 +238,44 @@ def get_area_page(session: Session, life_area_id: int, period: str, day: date) -
             and first <= outcome.target.end_date <= view.end
             and outcome.status != "met"
         ]
-    return page
+
+
+def _count(session: Session, query: Select[int]) -> int:
+    return session.scalar(select(func.count()).select_from(query.subquery())) or 0
 
 
 def contents(session: Session, life_area_id: int, today: date) -> Contents:
-    def count(query: Select[int]) -> int:
-        return session.scalar(select(func.count()).select_from(query.subquery())) or 0
-
-    of_area = {
-        "projects": select(Project.id).where(Project.life_area_id == life_area_id),
-        "tasks": select(Task.id).where(Task.life_area_id == life_area_id),
-        "templates": select(TaskTemplate.id).where(TaskTemplate.life_area_id == life_area_id),
-        "events": select(Event.id).where(Event.life_area_id == life_area_id),
-        "metrics": select(Metric.id).where(Metric.life_area_id == life_area_id),
-        "steps": select(RoutineStep.id).where(RoutineStep.life_area_id == life_area_id),
-    }
-    upcoming = list_occurrences(
-        session, today, today + timedelta(days=365), OccurrenceFilters(life_area_id=life_area_id)
+    owner = Owner(life_area_id)
+    projects = select(Project.id).where(Project.life_area_id == life_area_id)
+    has_any = _count(session, projects) > 0 or any(
+        _count(session, select(model.id).where(owner.owns(model)))
+        for model in (Task, TaskTemplate, Event, Metric, RoutineStep)
     )
+    found = _contents(session, owner, today, has_any)
+    active = projects.where(Project.status == "active", Project.archived_at.is_(None))
+    return replace(found, active_projects=_count(session, active))
+
+
+def _contents(session: Session, owner: Owner, today: date, has_any: bool) -> Contents:
+    """What an owner holds (a project holds no projects)."""
+    upcoming = list_occurrences(
+        session,
+        today,
+        today + timedelta(days=365),
+        OccurrenceFilters(life_area_id=owner.life_area_id, project_id=owner.project_id),
+    )
+    open_tasks = select(Task.id).where(
+        owner.owns(Task), Task.status == "todo", Task.archived_at.is_(None)
+    )
+    metrics = select(Metric.id).where(owner.owns(Metric), Metric.archived_at.is_(None))
+    steps = select(RoutineStep.id).where(owner.owns(RoutineStep), RoutineStep.archived_at.is_(None))
     return Contents(
-        active_projects=count(
-            of_area["projects"].where(Project.status == "active", Project.archived_at.is_(None))
-        ),
-        open_tasks=count(of_area["tasks"].where(Task.status == "todo", Task.archived_at.is_(None))),
+        active_projects=0,
+        open_tasks=_count(session, open_tasks),
         upcoming_events=len({occurrence.event.id for occurrence in upcoming}),
-        metrics=count(of_area["metrics"].where(Metric.archived_at.is_(None))),
-        routine_steps=count(of_area["steps"].where(RoutineStep.archived_at.is_(None))),
-        has_items=any(count(query) for query in of_area.values()),
+        metrics=_count(session, metrics),
+        routine_steps=_count(session, steps),
+        has_items=has_any,
     )
 
 
@@ -206,16 +295,19 @@ def _projects(session: Session, life_area_id: int, view: DateRange) -> list[Proj
         completed_on = local_date(project.completed_at) if project.completed_at else None
         if project.status == "done" and (completed_on is None or completed_on not in view):
             continue
-        progress = progress_of(session, project)
-        start = project.start_date or local_date(project.created_at)
-        items.append(ProjectItem(project, start, progress.done, progress.total, completed_on))
+        items.append(_project_item(session, project))
     return items
 
 
-def _routines(
-    session: Session, life_area_id: int, view: DateRange, today: date
-) -> list[RoutineGroup]:
-    """Each routine with steps in this area, and every such step's status day by day:
+def _project_item(session: Session, project: Project) -> ProjectItem:
+    completed_on = local_date(project.completed_at) if project.completed_at else None
+    progress = progress_of(session, project)
+    start = project.start_date or local_date(project.created_at)
+    return ProjectItem(project, start, progress.done, progress.total, completed_on)
+
+
+def _routines(session: Session, owner: Owner, view: DateRange, today: date) -> list[RoutineGroup]:
+    """Each routine with steps the owner owns, and every such step's status day by day:
     done, skipped, missed, paused, todo (today), upcoming or not_due."""
     routines = session.scalars(
         select(Routine)
@@ -234,7 +326,7 @@ def _routines(
     groups: list[RoutineGroup] = []
     for routine in routines:
         active = [step for step in routine.steps if step.archived_at is None]
-        own = [step for step in active if step.life_area_id == life_area_id]
+        own = [step for step in active if owner.owns_step(step)]
         if not own:
             continue
         rows = []
@@ -260,12 +352,12 @@ def _routines(
     return groups
 
 
-def _completed(session: Session, life_area_id: int, view: DateRange) -> list[Task]:
+def _completed(session: Session, owner: Owner, view: DateRange) -> list[Task]:
     """Tasks done in the period, newest first."""
     tasks = session.scalars(
         select(Task)
         .where(
-            Task.life_area_id == life_area_id,
+            owner.owns(Task),
             Task.status == "done",
             Task.archived_at.is_(None),
             # A day of margin covers any time zone; local_date does the exact cut.

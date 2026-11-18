@@ -136,10 +136,10 @@ export function AreaPage() {
 }
 
 /** Leaves out tasks waiting to be deleted: any change refetches the page, and they'd be back. */
-function withoutPending(
-  page: AreaPageRead,
+export function withoutPending<Page extends AreaPageRead>(
+  page: Page,
   pending: ReturnType<typeof usePendingDeletes.getState>["pending"],
-): AreaPageRead {
+): Page {
   if (!pending.some((item) => item.kind === "task")) return page;
   const keep = (tasks: AreaPageRead["agenda_tasks"]) =>
     tasks.filter((task) => !isPendingDelete(pending, "task", task.id));

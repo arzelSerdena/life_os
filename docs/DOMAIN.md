@@ -289,6 +289,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - `due_date` doesn't change, and rollovers aren't recorded for undo.
 - Derived values are never stored:
   - **Project progress**: done one-off tasks out of those that aren't cancelled or archived. Recurring occurrences don't count.
+  - **Project pace** (the project page, `GET /api/projects/{id}/page`): the share of the project's time, from its start date (or creation) to its due date, that has passed; none without a due date. Progress within 5 points of it is on pace, else ahead or behind.
   - **Target state**: in progress, met or missed (see section 7).
   - **Life areas** have no progress.
 - The **life areas overview** (`GET /api/life-areas/overview?period=&date=`) compares the active areas over one calendar week, month, quarter or year, all derived on read:

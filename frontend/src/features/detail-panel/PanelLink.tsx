@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { PANEL_OPENER, type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore";
+import { projectPath } from "../projects/paths";
 
 /**
- * An item's title that opens it in the detail panel. `stretched` makes the whole row or
- * card clickable: give that container `relative`, and controls inside it `relative z-10`.
+ * An item's title that opens it in the detail panel, or a project's that opens its project
+ * page. `stretched` makes the whole row or card clickable: give that container `relative`,
+ * and controls inside it `relative z-10`.
  */
 export function PanelLink({
   target,
@@ -17,11 +20,18 @@ export function PanelLink({
   children: ReactNode;
 }) {
   const open = useDetailPanel((state) => state.open);
+  const close = useDetailPanel((state) => state.close);
+  const navigate = useNavigate();
+  const onClick = () => {
+    if (target.kind !== "project") return open(target);
+    close();
+    navigate(projectPath(target.id));
+  };
   return (
     <button
       type="button"
-      {...PANEL_OPENER}
-      onClick={() => open(target)}
+      {...(target.kind === "project" ? {} : PANEL_OPENER)}
+      onClick={onClick}
       className={`min-w-0 cursor-pointer text-left outline-none ${
         stretched
           ? "after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-(--focus-ring)"

@@ -19,13 +19,22 @@ type Row = {
   danger?: boolean;
 };
 
+/** Where a task sits, leading its row's note: its project on an area page, its section on a
+ * project page. */
+export type TaskPlace = (task: TaskRead) => string | undefined;
+
+const projectOf =
+  (page: AreaPageRead): TaskPlace =>
+  (task) =>
+    page.projects.find((project) => project.id === task.project_id)?.title;
+
 /** Needs attention, Unscheduled, Recurring and Completed, one 36 px row per item. Notes live
- * in the detail panel. */
-export function TasksCard({ page }: { page: AreaPageRead }) {
-  const projectTitle = (id: number | null) =>
-    page.projects.find((project) => project.id === id)?.title;
+ * in the detail panel. On a project page (`place` given) the project's own due date isn't a
+ * row: the header shows it. */
+export function TasksCard({ page, place }: { page: AreaPageRead; place?: TaskPlace }) {
+  const placeOf = place ?? projectOf(page);
   const withProject = (task: TaskRead, note: string) =>
-    [projectTitle(task.project_id), note].filter(Boolean).join(" · ");
+    [placeOf(task), note].filter(Boolean).join(" · ");
 
   const attention: Row[] = [
     ...page.overdue_tasks.map(
@@ -50,7 +59,11 @@ export function TasksCard({ page }: { page: AreaPageRead }) {
     ),
     ...page.projects
       .filter(
-        (p) => p.status === "active" && p.due_date && daysBetween(page.today, p.due_date) <= 14,
+        (p) =>
+          !place &&
+          p.status === "active" &&
+          p.due_date &&
+          daysBetween(page.today, p.due_date) <= 14,
       )
       .map(
         (p): Row => ({
@@ -228,10 +241,10 @@ type AgendaItem =
   | { kind: "deadline"; id: number; title: string; note: string };
 
 /** Overdue first, then each day from today to the period's end. */
-export function AgendaCard({ page }: { page: AreaPageRead }) {
+export function AgendaCard({ page, place }: { page: AreaPageRead; place?: TaskPlace }) {
   const complete = useMutation(completeTaskMutation());
   const range = page.agenda_range;
-  const projectTitle = (id: number | null) => page.projects.find((p) => p.id === id)?.title;
+  const placeOf = place ?? projectOf(page);
 
   const byDay = new Map<string, AgendaItem[]>();
   const put = (day: string, item: AgendaItem) => byDay.set(day, [...(byDay.get(day) ?? []), item]);
@@ -273,10 +286,7 @@ export function AgendaCard({ page }: { page: AreaPageRead }) {
     : "";
 
   const taskNote = (task: TaskRead, day?: string) =>
-    [
-      task.due_date && (task.due_date === day ? "Due" : shortDate(task.due_date)),
-      projectTitle(task.project_id),
-    ]
+    [task.due_date && (task.due_date === day ? "Due" : shortDate(task.due_date)), placeOf(task)]
       .filter(Boolean)
       .join(" · ");
 

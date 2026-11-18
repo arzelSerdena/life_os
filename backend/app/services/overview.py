@@ -450,13 +450,14 @@ def _projects(session: Session, area_ids: list[int], today: date) -> list[Projec
                 done=done,
                 total=total,
                 pace=pace,
-                pace_status=_pace_status(done, total, pace),
+                pace_status=pace_status(done, total, pace),
             )
         )
     return results
 
 
-def _pace_status(done: int, total: int, pace: float | None) -> str | None:
+def pace_status(done: int, total: int, pace: float | None) -> str | None:
+    """On pace within ON_PACE_POINTS of the share of time passed; else ahead or behind."""
     if pace is None or total == 0:
         return None
     points = (done / total - pace) * 100

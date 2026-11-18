@@ -7,7 +7,7 @@ from app.schemas.event import OccurrenceRead
 from app.schemas.life_area import LifeAreaRead
 from app.schemas.metric import Format
 from app.schemas.overview import DateRangeRead, OutcomeRead, OverviewPeriod
-from app.schemas.project import ProjectStatus
+from app.schemas.project import ProjectRead, ProjectStatus
 from app.schemas.task import TaskRead
 from app.schemas.task_template import TaskTemplateRead
 from app.services import area_page as service
@@ -86,7 +86,7 @@ class AreaPageRead(BaseModel):
     deadlines: list[DeadlineRead]
 
     @classmethod
-    def from_page(cls, page: service.AreaPage) -> AreaPageRead:
+    def from_page(cls, page: service.AreaPage, **extra: object) -> AreaPageRead:
         def tasks(rows: object) -> list[TaskRead]:
             return [TaskRead.model_validate(task) for task in rows]  # type: ignore[attr-defined]
 
@@ -149,4 +149,20 @@ class AreaPageRead(BaseModel):
                 )
                 for deadline in page.deadlines
             ],
+            **extra,  # type: ignore[arg-type]
         )
+
+
+PaceStatus = Literal["ahead", "behind", "on_pace"]
+
+
+class ProjectPageRead(AreaPageRead):
+    """One project over one calendar period, in the area page's shape: life_area is the
+    project's area, projects holds only the project itself, and every list holds only the
+    project's own items. pace is the share of its time from start to due date that has
+    passed (null with no due date); pace_status compares it with the share of tasks done,
+    within 5 points counting as on pace."""
+
+    project: ProjectRead
+    pace: float | None
+    pace_status: PaceStatus | None

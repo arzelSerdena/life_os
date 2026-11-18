@@ -4,6 +4,7 @@ import type { AreaPageRead, StepRowRead } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
 import { PanelLink } from "../../detail-panel/PanelLink";
+import { RoutineKey } from "../../routines/StepsHeatmap";
 import { daysBetween, plural, shortDate } from "../overview/format";
 import { describeRule, eachDay, scaleTicks, timeScale } from "./timeScale";
 
@@ -97,8 +98,9 @@ const DAY_NAMES: Record<StepRowRead["days"][number], string> = {
   not_due: "not due",
 };
 
-/** One heatmap row per step in this area, grouped under its routine; one square per day. */
-export function RoutinesCard({ page }: { page: AreaPageRead }) {
+/** One heatmap row per step in this area (or project, named by `owner`), grouped under its
+ * routine; one square per day, with the routine key. */
+export function RoutinesCard({ page, owner }: { page: AreaPageRead; owner?: string }) {
   const steps = page.routines.reduce((sum, group) => sum + group.steps.length, 0);
   if (steps === 0) {
     return (
@@ -145,7 +147,7 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
             <span className="text-(--text-tertiary)">{describeRule(group.rrule)}</span>
             <span className="ml-auto text-(--text-tertiary)">
               {group.steps.length} of its {plural(group.total_steps, "step")}{" "}
-              {group.steps.length === 1 ? "is" : "are"} in {page.life_area.title}
+              {group.steps.length === 1 ? "is" : "are"} in {owner ?? page.life_area.title}
             </span>
           </p>
           {group.steps.map((row) => (
@@ -176,6 +178,7 @@ export function RoutinesCard({ page }: { page: AreaPageRead }) {
           ))}
         </div>
       ))}
+      <RoutineKey />
     </SectionCard>
   );
 }

@@ -9,8 +9,15 @@ import { addDays, earlierDate, laterDate, scaleTicks, timeScale } from "./timeSc
 
 const LABEL_WIDTH = "140px";
 
-/** Projects, events and metrics across the period, with a mark for today. */
-export function TimelineCard({ page }: { page: AreaPageRead }) {
+/** Projects, events and metrics across the period, with a mark for today. On a project page
+ * the one project is the project itself. */
+export function TimelineCard({
+  page,
+  onProjectPage = false,
+}: {
+  page: AreaPageRead;
+  onProjectPage?: boolean;
+}) {
   const period = page.period as Period;
   const name = periodInSentence(period, page.range.start);
   const { projects, events, metrics } = page;
@@ -61,7 +68,7 @@ export function TimelineCard({ page }: { page: AreaPageRead }) {
           </div>
         </div>
 
-        <Section title="Projects" count={projects.length}>
+        <Section title={onProjectPage ? "Project" : "Projects"} count={projects.length}>
           {projects.map((project) => {
             const start = laterDate(project.start, page.range.start);
             const end = project.completed_on ?? project.due_date ?? page.range.end;
