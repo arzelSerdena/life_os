@@ -243,6 +243,25 @@ export type ChartPointRead = {
 };
 
 /**
+ * ComingUpRead
+ */
+export type ComingUpRead = {
+    range: DateRangeRead;
+    /**
+     * Events
+     */
+    events: Array<OccurrenceRead>;
+    /**
+     * Projects
+     */
+    projects: Array<HomeProjectRead>;
+    /**
+     * Deadlines
+     */
+    deadlines: Array<HomeDeadlineRead>;
+};
+
+/**
  * ConfirmPreview
  *
  * What the change also does, grouped by effect, for the user to confirm. Empty groups
@@ -398,6 +417,19 @@ export type EffortAreaRead = {
      * Previous Done
      */
     previous_done: number;
+};
+
+/**
+ * EntryChange
+ *
+ * The logged entry, and the batch to pass to undo (which removes it).
+ */
+export type EntryChange = {
+    entry: EntryRead;
+    /**
+     * Batch Id
+     */
+    batch_id: string | null;
 };
 
 /**
@@ -795,6 +827,215 @@ export type HealthResponse = {
 };
 
 /**
+ * HomeDeadlineRead
+ *
+ * A reach-by target not met yet whose deadline is `day`.
+ */
+export type HomeDeadlineRead = {
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration';
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower';
+    /**
+     * Target Kind
+     */
+    target_kind: 'reach_by' | 'per_period';
+    /**
+     * Target Period
+     */
+    target_period: 'day' | 'week' | 'month' | null;
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Day
+     */
+    day: string;
+};
+
+/**
+ * HomeProjectRead
+ */
+export type HomeProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+};
+
+/**
+ * HomeRead
+ *
+ * Today only. overdue: open tasks due before today; tasks: open tasks placed on today
+ * (scheduled, else due) that aren't overdue; completed: tasks done today, newest first.
+ * events cover today; projects_due and deadlines fall today. routines: each routine with
+ * steps due today. Coming up: the next 7 days' events, project due dates and deadlines.
+ */
+export type HomeRead = {
+    /**
+     * Today
+     */
+    today: string;
+    setup: HomeSetupRead;
+    /**
+     * Overdue
+     */
+    overdue: Array<TaskRead>;
+    /**
+     * Tasks
+     */
+    tasks: Array<TaskRead>;
+    /**
+     * Completed
+     */
+    completed: Array<TaskRead>;
+    /**
+     * Events
+     */
+    events: Array<OccurrenceRead>;
+    /**
+     * Projects Due
+     */
+    projects_due: Array<HomeProjectRead>;
+    /**
+     * Deadlines
+     */
+    deadlines: Array<HomeDeadlineRead>;
+    /**
+     * Routines
+     */
+    routines: Array<HomeRoutineRead>;
+    /**
+     * Log
+     */
+    log: Array<LogMetricRead>;
+    /**
+     * Inbox
+     */
+    inbox: number;
+    /**
+     * Push Projects
+     */
+    push_projects: Array<PushProjectRead>;
+    /**
+     * Push Metrics
+     */
+    push_metrics: Array<PushMetricRead>;
+    coming_up: ComingUpRead;
+};
+
+/**
+ * HomeRoutineRead
+ */
+export type HomeRoutineRead = {
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Steps
+     */
+    steps: Array<HomeStepRead>;
+};
+
+/**
+ * HomeSetupRead
+ *
+ * The first life area, routine and task by name (null when there is none). Home shows
+ * its first-run message until there is an area and at least one task or routine.
+ */
+export type HomeSetupRead = {
+    /**
+     * Life Area
+     */
+    life_area: string | null;
+    /**
+     * Routine
+     */
+    routine: string | null;
+    /**
+     * Task
+     */
+    task: string | null;
+};
+
+/**
+ * HomeStepRead
+ */
+export type HomeStepRead = {
+    /**
+     * Step Id
+     */
+    step_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Status
+     */
+    status: 'todo' | 'done' | 'skipped' | 'missed';
+    /**
+     * Streak
+     */
+    streak: number;
+    metric: MetricRef | null;
+};
+
+/**
  * LifeAreaChange
  *
  * The area after the change, and the batch to pass to undo (None if nothing changed).
@@ -909,6 +1150,72 @@ export type LifeAreaUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * LogMetricRead
+ *
+ * A manual metric with a per-day or per-week target and no entry today. value is the
+ * week so far (per-week targets); days_met of days_counted are this week's days before
+ * today that met a per-day target.
+ */
+export type LogMetricRead = {
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration';
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower';
+    /**
+     * Target Kind
+     */
+    target_kind: 'reach_by' | 'per_period';
+    /**
+     * Target Period
+     */
+    target_period: 'day' | 'week' | 'month' | null;
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Value
+     */
+    value: number | null;
+    /**
+     * Days Met
+     */
+    days_met: number;
+    /**
+     * Days Counted
+     */
+    days_counted: number;
 };
 
 /**
@@ -2201,6 +2508,104 @@ export type ProjectsOverviewRead = {
      * No Next Step
      */
     no_next_step: Array<NoNextStepRead>;
+};
+
+/**
+ * PushMetricRead
+ *
+ * A metric behind its current target; ends_on is the target period's end, or the
+ * reach-by deadline.
+ */
+export type PushMetricRead = {
+    /**
+     * Metric Id
+     */
+    metric_id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Format
+     */
+    format: 'number' | 'currency' | 'percent' | 'duration';
+    /**
+     * Unit
+     */
+    unit: string | null;
+    /**
+     * Aggregation
+     */
+    aggregation: 'sum' | 'average' | 'latest';
+    /**
+     * Direction
+     */
+    direction: 'higher' | 'lower';
+    /**
+     * Target Kind
+     */
+    target_kind: 'reach_by' | 'per_period';
+    /**
+     * Target Period
+     */
+    target_period: 'day' | 'week' | 'month' | null;
+    /**
+     * Target Value
+     */
+    target_value: number;
+    /**
+     * Value
+     */
+    value: number | null;
+    /**
+     * Ends On
+     */
+    ends_on: string | null;
+};
+
+/**
+ * PushProjectRead
+ *
+ * due: due within 7 days, overdue included. stalled: open tasks and nothing done for
+ * `days` days. no_next_step: nothing placed in the next 7 days (open 0: no tasks yet).
+ */
+export type PushProjectRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Due Date
+     */
+    due_date: string | null;
+    /**
+     * Reason
+     */
+    reason: 'due' | 'stalled' | 'no_next_step';
+    /**
+     * Open
+     */
+    open: number;
+    /**
+     * Days
+     */
+    days: number;
 };
 
 /**
@@ -4021,6 +4426,22 @@ export type GetArchiveResponses = {
 
 export type GetArchiveResponse = GetArchiveResponses[keyof GetArchiveResponses];
 
+export type GetHomeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/home';
+};
+
+export type GetHomeResponses = {
+    /**
+     * Successful Response
+     */
+    200: HomeRead;
+};
+
+export type GetHomeResponse = GetHomeResponses[keyof GetHomeResponses];
+
 export type ListLifeAreasData = {
     body?: never;
     path?: never;
@@ -5442,7 +5863,7 @@ export type CreateMetricEntryResponses = {
     /**
      * Successful Response
      */
-    201: EntryRead;
+    201: EntryChange;
 };
 
 export type CreateMetricEntryResponse = CreateMetricEntryResponses[keyof CreateMetricEntryResponses];

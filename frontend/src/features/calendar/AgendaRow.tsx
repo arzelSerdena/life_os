@@ -96,17 +96,22 @@ export function EntryRow({
 }
 
 /** An event: the area tint, a calendar badge, the title and when it happens. */
-function EventRow({
+export function EventRow({
   event,
   color,
   className = "",
+  when,
+  past = event.is_past,
 }: {
   event: OccurrenceRead;
   color: string | null;
   className?: string;
+  /** Home says when as seen on one day ("Until 3 PM"); the span by default. */
+  when?: string;
+  /** Home greys an event out once it is over at the current time. */
+  past?: boolean;
 }) {
   const timeFormat = useTimeFormat();
-  const past = event.is_past;
   return (
     <li
       data-area={areaDataAttribute(color)}
@@ -138,7 +143,7 @@ function EventRow({
         <span
           className={`type-meta ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
         >
-          {eventSpan(event, (value) => formatTime(value, timeFormat))}
+          {when ?? eventSpan(event, (value) => formatTime(value, timeFormat))}
         </span>
       </span>
     </li>
@@ -211,6 +216,7 @@ export function TaskRow({
   showArea = false,
   showScheduled = false,
   containerProps,
+  actions,
 }: {
   task: TaskRead;
   context: RowContext;
@@ -219,6 +225,8 @@ export function TaskRow({
   /** The Inbox panel's Due tab shows the scheduled date instead of the due date. */
   showScheduled?: boolean;
   containerProps?: ComponentPropsWithRef<"li"> & Record<`data-${string}`, string>;
+  /** Shown on the right while the row is hovered or holds focus (Home's Tomorrow, Pick date). */
+  actions?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const pending = usePendingDeletes((state) => state.pending);
@@ -262,8 +270,13 @@ export function TaskRow({
     <li
       {...containerProps}
       data-area={areaDataAttribute(context.colorOf(task.life_area_id))}
-      className={`relative mb-1.5 flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:bg-(--color-neutral-50) ${containerProps?.className ?? ""}`}
+      className={`group/row relative mb-1.5 flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:bg-(--color-neutral-50) ${containerProps?.className ?? ""}`}
     >
+      {actions && (
+        <div className="absolute top-1.5 right-1.5 z-20 hidden items-center gap-0.5 bg-(--color-neutral-50) pl-2 shadow-[-10px_0_8px_-2px_var(--color-neutral-50)] group-focus-within/row:flex group-hover/row:flex">
+          {actions}
+        </div>
+      )}
       <div className="flex items-start gap-2">
         <label className="relative z-10 -m-1 mt-px grid size-6 shrink-0 cursor-pointer place-items-center">
           <input

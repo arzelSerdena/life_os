@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { AppLayout } from "./components/AppLayout";
 import { ArchivePage } from "./features/archive/ArchivePage";
+import { HomePage } from "./features/home/HomePage";
 import { AreaPage } from "./features/life-areas/AreaPage";
 import { AreasLayout } from "./features/life-areas/AreasLayout";
 import { AreasOverviewPage } from "./features/life-areas/AreasOverviewPage";
@@ -24,6 +25,8 @@ export function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
+        <Route index element={<Navigate to="/home" replace />} />
+        <Route path="home" element={<HomePage />} />
         <Route path="areas" element={<AreasLayout />}>
           <Route index element={<AreasOverviewPage />} />
           <Route path="archived" element={<ArchivePage />} />
@@ -48,7 +51,7 @@ export function App() {
             </Suspense>
           }
         />
-        <Route path="*" element={<Navigate to="/areas" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Route>
     </Routes>
   );

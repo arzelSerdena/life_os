@@ -7,6 +7,7 @@ from app.db import SessionDep
 from app.models import Metric, MetricEntry, MetricTarget
 from app.schemas.common import ErrorResponse
 from app.schemas.metric import (
+    EntryChange,
     EntryCreate,
     EntryRead,
     EntryUpdate,
@@ -178,8 +179,10 @@ def list_metric_entries(
     status_code=status.HTTP_201_CREATED,
     responses={**NOT_FOUND, **CONFLICT},
 )
-def create_metric_entry(session: SessionDep, metric_id: int, data: EntryCreate) -> EntryRead:
-    return EntryRead.model_validate(service.add_entry(session, metric_id, data))
+def create_metric_entry(session: SessionDep, metric_id: int, data: EntryCreate) -> EntryChange:
+    """Logs a value; the batch undoes it."""
+    entry, batch_id = service.add_entry(session, metric_id, data)
+    return EntryChange(entry=EntryRead.model_validate(entry), batch_id=batch_id)
 
 
 @router.patch("/metric-entries/{entry_id}", responses={**NOT_FOUND, **CONFLICT})

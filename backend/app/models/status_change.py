@@ -14,6 +14,7 @@ ENTITY_TYPES = (
     "event",
     "event_exception",
     "metric",
+    "metric_entry",
     "routine",
     "routine_step",
     "routine_log",

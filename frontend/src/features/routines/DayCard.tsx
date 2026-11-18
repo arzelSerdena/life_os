@@ -107,7 +107,13 @@ export function DayCard({
               {card.rows.map((item) => (
                 <StepRow
                   key={item.row.step.id}
-                  item={item}
+                  step={{
+                    id: item.row.step.id,
+                    title: item.row.step.title,
+                    streak: item.row.step.current_streak,
+                  }}
+                  metric={item.row.metric}
+                  state={item.state}
                   day={day}
                   today={page.today}
                   isArchived={isArchived}
@@ -143,18 +149,24 @@ const STATE_LABEL: Partial<Record<DayRow["state"], string>> = {
   missed: "Missed",
 };
 
-function StepRow({
-  item,
+/** A due step with a round checkbox in its area colour, its project, the metric it feeds and
+ * its streak (today only), and Skip on hover. Also Home's Routines today. */
+export function StepRow({
+  step,
+  metric,
+  state,
   day,
   today,
-  isArchived,
+  isArchived = false,
   color,
   project,
 }: {
-  item: DayRow;
+  step: { id: number; title: string; streak: number };
+  metric: { title: string } | null;
+  state: DayRow["state"];
   day: string;
   today: string;
-  isArchived: boolean;
+  isArchived?: boolean;
   color: string | undefined;
   project: ProjectRead | undefined;
 }) {
@@ -163,8 +175,6 @@ function StepRow({
   const clear = useMutation(clearRoutineStepDayMutation());
   const isToday = day === today;
   const isPast = day < today;
-  const { row, state } = item;
-  const { step } = row;
   const path = { step_id: step.id, day };
   const isDone = state === "done";
   const busy = set.isPending || clear.isPending;
@@ -233,7 +243,7 @@ function StepRow({
         >
           {step.title}
         </span>
-        {(project || row.metric || (isToday && step.current_streak > 1)) && (
+        {(project || metric || (isToday && step.streak > 1)) && (
           <span className="flex flex-wrap gap-2.5 text-xs leading-4 text-(--text-tertiary)">
             {project && (
               <span className="inline-flex items-center gap-[3px]">
@@ -241,13 +251,13 @@ function StepRow({
                 {project.title}
               </span>
             )}
-            {row.metric && (
+            {metric && (
               <span className="inline-flex items-center gap-[3px]">
                 <ChartLine aria-hidden className="size-[11px]" />
-                {row.metric.title}
+                {metric.title}
               </span>
             )}
-            {isToday && step.current_streak > 1 && <span>Streak {step.current_streak}</span>}
+            {isToday && step.streak > 1 && <span>Streak {step.streak}</span>}
           </span>
         )}
         {(set.isError || clear.isError) && (

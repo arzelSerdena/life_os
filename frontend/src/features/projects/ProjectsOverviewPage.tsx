@@ -235,23 +235,12 @@ function NextUpCard({
       rows: overview.due_next.flatMap((id) => {
         const project = projectOf(id);
         if (!project?.due_date) return [];
-        const badge = daysLeft(project.due_date, overview.today);
         return [
           <NextUpRow
             key={id}
             project={project}
             color={colorOf(project)}
-            leading={
-              <span
-                className={`grid h-6 min-w-10 place-items-center rounded-(--radius-6) px-1.5 text-xs font-semibold tabular-nums ${
-                  badge.urgent
-                    ? "bg-(--color-negative-50) text-(--color-negative-600)"
-                    : "bg-(--color-neutral-100) text-(--text-primary)"
-                }`}
-              >
-                {badge.label}
-              </span>
-            }
+            leading={<DueBadge due={project.due_date} today={overview.today} />}
             meta={
               <>
                 {shortDate(project.due_date)}
@@ -344,14 +333,32 @@ function NextUpCard({
   );
 }
 
-function NextUpRow({
+/** Days left to a due date: "6d", "Today", "3d late"; red within a week. */
+export function DueBadge({ due, today }: { due: string; today: string }) {
+  const badge = daysLeft(due, today);
+  return (
+    <span
+      className={`grid h-6 min-w-10 place-items-center rounded-(--radius-6) px-1.5 text-xs font-semibold tabular-nums ${
+        badge.urgent
+          ? "bg-(--color-negative-50) text-(--color-negative-600)"
+          : "bg-(--color-neutral-100) text-(--text-primary)"
+      }`}
+    >
+      {badge.label}
+    </span>
+  );
+}
+
+/** A project in a "needs a push" list: its folder and name (opening its page), one meta
+ * line, an optional badge before and a quick action after. Also Home's Needs a push. */
+export function NextUpRow({
   project,
   color,
   leading,
   meta,
   action,
 }: {
-  project: OverviewProjectRead;
+  project: { id: number; title: string };
   color: string | null;
   leading?: ReactNode;
   meta: ReactNode;
@@ -380,7 +387,7 @@ function NextUpRow({
 }
 
 /** A 28 px solid accent button with an icon and a word: Plan task, Schedule, Add task. */
-function QuickAction({
+export function QuickAction({
   icon: Icon,
   onPress,
   children,

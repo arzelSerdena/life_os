@@ -26,7 +26,7 @@ type RailGroup = { label: string; icon: LucideIcon; to?: string };
 
 // Groups without a route aren't built yet; they show as disabled so the rail keeps its shape.
 const GROUPS: RailGroup[] = [
-  { label: "Home", icon: House },
+  { label: "Home", icon: House, to: "/home" },
   { label: "Tasks", icon: SquareKanban, to: "/tasks" },
   { label: "Calendar", icon: CalendarDays, to: "/calendar" },
   { label: "Plan", icon: LayoutGrid, to: "/areas" },

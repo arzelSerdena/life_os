@@ -147,6 +147,13 @@ class EntryRead(BaseModel):
     updated_at: UtcDatetime | None
 
 
+class EntryChange(BaseModel):
+    """The logged entry, and the batch to pass to undo (which removes it)."""
+
+    entry: EntryRead
+    batch_id: str | None
+
+
 class EntryCreate(BaseModel):
     """A value for a day up to today (default: today)."""
 
