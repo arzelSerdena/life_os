@@ -765,6 +765,26 @@ export type LifeAreaUpdate = {
 };
 
 /**
+ * LongestRunRead
+ *
+ * The longest current run across routines (at the period's end, or today).
+ */
+export type LongestRunRead = {
+    /**
+     * Length
+     */
+    length: number;
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Routine Title
+     */
+    routine_title: string;
+};
+
+/**
  * MetricChange
  */
 export type MetricChange = {
@@ -974,6 +994,36 @@ export type MetricUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * MissedStepRead
+ */
+export type MissedStepRead = {
+    /**
+     * Step Id
+     */
+    step_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Routine Title
+     */
+    routine_title: string;
+    /**
+     * Missed
+     */
+    missed: number;
 };
 
 /**
@@ -1285,6 +1335,74 @@ export type OverviewRead = {
 };
 
 /**
+ * OverviewRoutineRead
+ *
+ * One routine in the Routines overview: its totals over the period, today's due steps
+ * (skipped ones left out) and how many are done, and each active step's days.
+ */
+export type OverviewRoutineRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Rrule
+     */
+    rrule: string;
+    /**
+     * Schedule Starts On
+     */
+    schedule_starts_on: string;
+    /**
+     * Paused Since
+     */
+    paused_since: string | null;
+    totals: RoutineTotalsRead;
+    /**
+     * Today Done
+     */
+    today_done: number;
+    /**
+     * Today Due
+     */
+    today_due: number;
+    /**
+     * Steps
+     */
+    steps: Array<OverviewStepRead>;
+};
+
+/**
+ * OverviewStepRead
+ */
+export type OverviewStepRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Days
+     */
+    days: Array<StepDayState>;
+};
+
+/**
  * PauseRead
  *
  * A paused stretch: from starts_on up to, not including, ends_on (None: still paused).
@@ -1320,6 +1438,42 @@ export type PeriodRead = {
      * Status
      */
     status: 'in_progress' | 'met' | 'missed';
+};
+
+/**
+ * PickUpRead
+ *
+ * A step whose run of 4 or more done days ended with a miss this week.
+ */
+export type PickUpRead = {
+    /**
+     * Step Id
+     */
+    step_id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number;
+    /**
+     * Routine Id
+     */
+    routine_id: number;
+    /**
+     * Routine Title
+     */
+    routine_title: string;
+    /**
+     * Run
+     */
+    run: number;
+    /**
+     * Ended On
+     */
+    ended_on: string;
 };
 
 /**
@@ -2236,6 +2390,54 @@ export type RoutinesHistoryRead = {
      * Routines
      */
     routines: Array<RoutineHistoryRead>;
+};
+
+/**
+ * RoutinesOverviewRead
+ *
+ * Every active routine over a calendar period (docs/DOMAIN.md, section 8). Totals add up
+ * each routine's; buckets carry the longest current run at their end.
+ */
+export type RoutinesOverviewRead = {
+    /**
+     * Period
+     */
+    period: string;
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Today
+     */
+    today: string;
+    totals: RoutineTotalsRead;
+    previous: RoutineTotalsRead | null;
+    longest_run: LongestRunRead | null;
+    /**
+     * Started
+     */
+    started: string | null;
+    /**
+     * Buckets
+     */
+    buckets: Array<RoutineBucketRead>;
+    /**
+     * Routines
+     */
+    routines: Array<OverviewRoutineRead>;
+    /**
+     * Most Missed
+     */
+    most_missed: Array<MissedStepRead>;
+    /**
+     * Pick Up
+     */
+    pick_up: Array<PickUpRead>;
 };
 
 /**
@@ -6773,6 +6975,40 @@ export type GetRoutinesHistoryResponses = {
 };
 
 export type GetRoutinesHistoryResponse = GetRoutinesHistoryResponses[keyof GetRoutinesHistoryResponses];
+
+export type GetRoutinesOverviewData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Period
+         */
+        period?: 'week' | 'month' | 'quarter' | 'year';
+        /**
+         * Date
+         */
+        date?: string | null;
+    };
+    url: '/api/routines/overview';
+};
+
+export type GetRoutinesOverviewErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRoutinesOverviewError = GetRoutinesOverviewErrors[keyof GetRoutinesOverviewErrors];
+
+export type GetRoutinesOverviewResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinesOverviewRead;
+};
+
+export type GetRoutinesOverviewResponse = GetRoutinesOverviewResponses[keyof GetRoutinesOverviewResponses];
 
 export type ReorderRoutinesData = {
     body: RoutineReorder;

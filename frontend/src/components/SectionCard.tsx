@@ -5,15 +5,23 @@ type SectionCardProps = {
   description?: string;
   /** The card's one corner icon, such as its sort and filter menu. */
   action?: ReactNode;
+  /** Extra classes for the card, such as h-full to match a neighbour's height. */
+  className?: string;
   children: ReactNode;
 };
 
 /** A page section card: white, 1 px border, 12 px radius, 16 px title with one line under it. */
-export function SectionCard({ title, description, action, children }: SectionCardProps) {
+export function SectionCard({
+  title,
+  description,
+  action,
+  className = "",
+  children,
+}: SectionCardProps) {
   return (
     <section
       aria-label={title}
-      className="flex min-w-0 flex-col rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface)"
+      className={`flex min-w-0 flex-col rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface) ${className}`}
     >
       <header className="flex min-h-12 items-start gap-2 pt-3 pr-2 pb-1 pl-4">
         <div className="flex min-w-0 flex-1 flex-col">

@@ -60,7 +60,7 @@ function cellStyle(cell: HeatCell, isAll: boolean, selected: string | null) {
   return { className, style };
 }
 
-function Cells({
+export function Cells({
   cells,
   columns,
   period,
@@ -74,7 +74,8 @@ function Cells({
   period: Period;
   isAll: boolean;
   selected: string | null;
-  onSelect: (day: string) => void;
+  /** Left out where squares only show (the Routines overview). */
+  onSelect?: (day: string) => void;
   /** A step's square with a state that can be changed: opens its popover. */
   onSquare?: (anchor: HTMLElement, day: string, state: DayState) => void;
 }) {
@@ -96,7 +97,7 @@ function Cells({
             key={cell.key}
             title={cell.label}
             onClick={
-              day
+              day && onSelect
                 ? (event) => {
                     onSelect(day);
                     if (onSquare && state !== "share" && canEditSquare(state)) {
@@ -105,7 +106,7 @@ function Cells({
                   }
                 : undefined
             }
-            className={`block h-full ${day ? "cursor-pointer hover:outline-[1.5px] hover:outline-offset-1 hover:outline-(--color-neutral-500) hover:outline-solid" : ""} ${className}`}
+            className={`block h-full ${day && onSelect ? "cursor-pointer hover:outline-[1.5px] hover:outline-offset-1 hover:outline-(--color-neutral-500) hover:outline-solid" : ""} ${className}`}
             style={style}
           />
         );
@@ -114,7 +115,7 @@ function Cells({
   );
 }
 
-const ROW = "grid grid-cols-[240px_minmax(0,1fr)] items-center gap-3";
+export const ROW = "grid grid-cols-[240px_minmax(0,1fr)] items-center gap-3";
 
 /** A step's name with its round marker, then its project and the metric it feeds. */
 export function StepLabel({
@@ -177,48 +178,9 @@ export function StepsHeatmap({
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
-  const isDaily = period === "week" || period === "month";
   return (
     <div className="flex flex-col">
-      <div className={ROW}>
-        <span />
-        <div className="relative isolate h-4 text-[11px] text-(--text-tertiary)">
-          {map.header.map((label) =>
-            isDaily ? (
-              <span
-                key={label.key}
-                className={`absolute top-0 text-center font-medium leading-4 ${
-                  label.key === map.todayKey ? "text-white" : ""
-                }`}
-                style={{ left: `${label.left}%`, width: `${label.width}%` }}
-              >
-                {label.key === map.todayKey && (
-                  <span
-                    aria-hidden
-                    className="absolute inset-y-[-1px] left-1/2 -z-10 w-[min(100%,48px)] -translate-x-1/2 rounded-(--radius-4) bg-(--color-brand-600)"
-                  />
-                )}
-                {label.label}
-                {label.bold && (
-                  <b
-                    className={`ml-1 font-semibold ${label.key === map.todayKey ? "text-white" : "text-(--text-secondary)"}`}
-                  >
-                    {label.bold}
-                  </b>
-                )}
-              </span>
-            ) : (
-              <span
-                key={label.key}
-                className="absolute top-0 border-l border-(--border-default) pl-1 leading-4"
-                style={{ left: `${label.left}%` }}
-              >
-                {label.label}
-              </span>
-            ),
-          )}
-        </div>
-      </div>
+      <HeatmapHeader map={map} period={period} />
 
       <div className={`${ROW} mt-1.5 border-b border-(--color-neutral-100) pb-1.5`}>
         <span className="text-[13px] leading-[18px] font-semibold text-(--text-primary)">
@@ -271,6 +233,58 @@ export function StepsHeatmap({
   );
 }
 
+/** The day or month labels over the squares, today's in the accent. */
+export function HeatmapHeader({
+  map,
+  period,
+}: {
+  map: Pick<Heatmap, "header" | "todayKey">;
+  period: Period;
+}) {
+  const isDaily = period === "week" || period === "month";
+  return (
+    <div className={ROW}>
+      <span />
+      <div className="relative isolate h-4 text-[11px] text-(--text-tertiary)">
+        {map.header.map((label) =>
+          isDaily ? (
+            <span
+              key={label.key}
+              className={`absolute top-0 text-center font-medium leading-4 ${
+                label.key === map.todayKey ? "text-white" : ""
+              }`}
+              style={{ left: `${label.left}%`, width: `${label.width}%` }}
+            >
+              {label.key === map.todayKey && (
+                <span
+                  aria-hidden
+                  className="absolute inset-y-[-1px] left-1/2 -z-10 w-[min(100%,48px)] -translate-x-1/2 rounded-(--radius-4) bg-(--color-brand-600)"
+                />
+              )}
+              {label.label}
+              {label.bold && (
+                <b
+                  className={`ml-1 font-semibold ${label.key === map.todayKey ? "text-white" : "text-(--text-secondary)"}`}
+                >
+                  {label.bold}
+                </b>
+              )}
+            </span>
+          ) : (
+            <span
+              key={label.key}
+              className="absolute top-0 border-l border-(--border-default) pl-1 leading-4"
+              style={{ left: `${label.left}%` }}
+            >
+              {label.label}
+            </span>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
+
 const KEY: [string, string][] = [
   ["Done", "bg-(--color-neutral-700)"],
   ["Skipped", "bg-(--color-neutral-400)"],
@@ -282,7 +296,7 @@ const KEY: [string, string][] = [
 ];
 
 /** The routine key: the one legend the style guide allows. */
-function RoutineKey() {
+export function RoutineKey() {
   return (
     <ul aria-label="Key" className="mt-3 flex flex-wrap gap-4 text-xs text-(--text-secondary)">
       {KEY.map(([label, className]) => (

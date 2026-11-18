@@ -173,3 +173,13 @@
 **Next** (code, one branch and PR each, in this order)
 
 - Phase 3 to 6 screens as in the roadmap: Routines overview, project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.
+
+## 2026-11-18
+
+**Done**
+
+- Routines overview (`/areas/routines`; `features/routines/RoutinesOverviewPage.tsx`, rules in `overview.ts`). New `GET /api/routines/overview?period&date` (`services/routines_overview.py`): totals across every active routine over the period and the one before, one point per day, week or month with the longest current run, the longest run and its routine, each routine's totals, today's done and due steps, and each active step's state on every day, the three most-missed steps in the period, and Pick up (steps whose run of 4 or more done days ended with a miss this week). The routine page's tracking moved into `routine_page.track()`, which both reads share. The page has the header (Routines, the period switch, ⋯ with Archived routines and Export as CSV, New routine), five tiles (Completion rate, Steps done, Full days, Missed, Longest run with its routine), the Routines card (one row per routine shaded by its share of due steps done, with today's ring, the name linking to the routine page, "Every day · 4 steps", and the routine key), Completion by routine, and Pick up on the right (Open today, Most missed, Streaks ended this week; "Nothing to pick up." when all are empty). The card menu sorts by Manual, Completion rate or Name and shows or hides paused routines. The first-run state stays. Export as CSV downloads one line per step and day due (Date, Routine, Step, Life area, Status); Archived routines opens Finished & archived, which now lists archived routines under the areas. `StatTiles`, `heatHeader`, `shareRow` and the heatmap's `HeatmapHeader`, `Cells` and `RoutineKey` are shared with the routine page. Tests in `test_routines_overview.py` (5) and `overview.test.ts` (8); browser tests in `frontend/e2e/routines-overview.spec.ts` (3).
+
+**Next** (code, one branch and PR each, in this order)
+
+- Phase 3 to 6 screens as in the roadmap: project page with Board view, projects overview, Finished & archived, Calendar Quarter and Year, Home, Settings with Restore from backup, `Ctrl K` palette and shortcuts.

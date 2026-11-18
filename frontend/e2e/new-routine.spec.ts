@@ -6,10 +6,12 @@ import { createArea, createRoutine, unique } from "./api.ts";
 
 test("the routines page offers the first routine when there are none", async ({ page }) => {
   // Other specs share the database, so the page sees no routines through a stub.
-  await page.route("**/api/routines/history*", async (route) => {
-    const response = await route.fetch();
-    await route.fulfill({ response, json: { ...(await response.json()), routines: [] } });
-  });
+  for (const url of ["**/api/routines/history*", "**/api/routines/overview*"]) {
+    await page.route(url, async (route) => {
+      const response = await route.fetch();
+      await route.fulfill({ response, json: { ...(await response.json()), routines: [] } });
+    });
+  }
   await page.goto("/areas");
   await page.getByRole("link", { name: "Routines", exact: true }).click();
 

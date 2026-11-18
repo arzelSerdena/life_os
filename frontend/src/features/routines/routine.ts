@@ -49,7 +49,7 @@ export function dayRange(start: string, end: string): string {
   return `${shortDate(start)} – ${sameMonth ? Number(end.slice(8)) : shortDate(end)}`;
 }
 
-function plural(count: number, one: string, many = `${one}s`): string {
+export function plural(count: number, one: string, many = `${one}s`): string {
   return count === 1 ? one : many;
 }
 
@@ -161,7 +161,7 @@ export type Tile = {
 };
 
 /** What the previous period is called in "vs …": "last week", "October", "Q3". */
-function previousName(period: Period, start: string): string {
+export function previousName(period: Period, start: string): string {
   const before = addDays(start, -1);
   const month = Number(before.slice(5, 7)) - 1;
   if (period === "week") return "last week";
@@ -170,14 +170,14 @@ function previousName(period: Period, start: string): string {
 }
 
 /** "+4 pts vs last week", "−3 vs Q3", "±0 vs October". */
-function delta(current: number, previous: number, name: string, unit = ""): string {
+export function delta(current: number, previous: number, name: string, unit = ""): string {
   const change = current - previous;
   const sign = change > 0 ? "+" : change < 0 ? "−" : "±";
   return `${sign}${Math.abs(change)}${unit} vs ${name}`;
 }
 
 /** A bucket's name in a tile's tip: "Mon, Nov 16", "Week of Nov 9", "November". */
-function bucketName(period: Period, start: string, end: string, today: string): string {
+export function bucketName(period: Period, start: string, end: string, today: string): string {
   if (period === "week") return weekdayDate(start);
   if (period === "year") return FULL_MONTHS[Number(start.slice(5, 7)) - 1];
   if (start <= today && today <= end) return "This week";
@@ -380,35 +380,27 @@ function weekAggregate(
   return { ...base, state: "not_due" };
 }
 
-export function heatmap(page: RoutinePageRead, period: Period): Heatmap {
-  const { today } = page;
-  const days = each(page.start, page.end);
-  const stateOn = (row: RoutinePageStepRead) =>
-    new Map(row.days.map((item) => [item.day, item.state]));
-  const lookups = page.steps.map((row) => ({ row, states: stateOn(row) }));
+/** The Mondays of the weeks that touch the period (the Year view's columns). */
+function weeksOf(start: string, end: string): string[] {
+  const weeks: string[] = [];
+  for (let week = monday(start); week <= end; week = addDays(week, 7)) weeks.push(week);
+  return weeks;
+}
 
+/** The columns over the period and their labels: a week per column in the Year view
+ * (month names), a day otherwise (month names for a quarter, day numbers for a month,
+ * "Mon 16" for a week). */
+export function heatHeader(
+  period: Period,
+  start: string,
+  end: string,
+  today: string,
+): Pick<Heatmap, "columns" | "header" | "todayKey"> {
   if (period === "year") {
-    const weeks: string[] = [];
-    for (let start = monday(page.start); start <= page.end; start = addDays(start, 7)) {
-      weeks.push(start);
-    }
-    const weekStates = (states: Map<string, DayState>[], start: string) =>
-      each(start, addDays(start, 6)).flatMap((day) =>
-        states.map((map) => map.get(day)).filter((state) => state !== undefined),
-      );
-    const weekCell = (name: string, states: Map<string, DayState>[], start: string): HeatCell => {
-      const cell = weekAggregate(weekStates(states, start), start, today);
-      const share = cell.state === "share" ? ` · ${Math.round(cell.share * 100)}% done` : "";
-      return {
-        ...cell,
-        key: start,
-        day: null,
-        label: `${name} · Week of ${shortDate(start)}${share}`,
-      };
-    };
-    const header = weeks.flatMap((start, index) => {
-      const firstOfMonth = each(start, addDays(start, 6)).find(
-        (day) => day.endsWith("-01") && day >= page.start && day <= page.end,
+    const weeks = weeksOf(start, end);
+    const header = weeks.flatMap((week, index) => {
+      const firstOfMonth = each(week, addDays(week, 6)).find(
+        (day) => day.endsWith("-01") && day >= start && day <= end,
       );
       if (!firstOfMonth) return [];
       return [
@@ -420,19 +412,9 @@ export function heatmap(page: RoutinePageRead, period: Period): Heatmap {
         },
       ];
     });
-    const all = lookups.map((item) => item.states);
-    return {
-      columns: weeks.length,
-      header,
-      todayKey: null,
-      all: weeks.map((start) => weekCell("All steps", all, start)),
-      steps: lookups.map(({ row, states }) => ({
-        row,
-        cells: weeks.map((start) => weekCell(row.step.title, [states], start)),
-      })),
-    };
+    return { columns: weeks.length, header, todayKey: null };
   }
-
+  const days = each(start, end);
   const n = days.length;
   const header: HeatHeader[] =
     period === "quarter"
@@ -455,10 +437,41 @@ export function heatmap(page: RoutinePageRead, period: Period): Heatmap {
           left: (100 * index) / n,
           width: 100 / n,
         }));
+  return {
+    columns: n,
+    header,
+    todayKey: period === "quarter" || !days.includes(today) ? null : today,
+  };
+}
 
-  const all = days.map((day): HeatCell => {
+/** One row of shares across several steps (the All steps row, or a routine in the Routines
+ * overview): each day's share of due steps done, or each week's in the Year view. */
+export function shareRow(
+  name: string,
+  states: Map<string, DayState>[],
+  period: Period,
+  start: string,
+  end: string,
+  today: string,
+): HeatCell[] {
+  if (period === "year") {
+    return weeksOf(start, end).map((week) => {
+      const found = each(week, addDays(week, 6)).flatMap((day) =>
+        states.map((map) => map.get(day)).filter((state) => state !== undefined),
+      );
+      const cell = weekAggregate(found, week, today);
+      const share = cell.state === "share" ? ` · ${Math.round(cell.share * 100)}% done` : "";
+      return {
+        ...cell,
+        key: week,
+        day: null,
+        label: `${name} · Week of ${shortDate(week)}${share}`,
+      };
+    });
+  }
+  return each(start, end).map((day): HeatCell => {
     const cell = dayAggregate(
-      lookups.map(({ states }) => states.get(day) ?? "none"),
+      states.map((map) => map.get(day) ?? "none"),
       day,
       today,
     );
@@ -472,14 +485,43 @@ export function heatmap(page: RoutinePageRead, period: Period): Heatmap {
       share: cell.share,
       isCurrent: cell.isCurrent,
       day,
-      label: `All steps · ${weekdayDate(day)} · ${words}`,
+      label: `${name} · ${weekdayDate(day)} · ${words}`,
     };
   });
+}
+
+/** Each day's state, looked up by date. */
+export function statesByDay(days: StepDayState[]): Map<string, DayState> {
+  return new Map(days.map((item) => [item.day, item.state]));
+}
+
+export function heatmap(page: RoutinePageRead, period: Period): Heatmap {
+  const { today } = page;
+  const days = each(page.start, page.end);
+  const lookups = page.steps.map((row) => ({ row, states: statesByDay(row.days) }));
+  const head = heatHeader(period, page.start, page.end, today);
+  const all = shareRow(
+    "All steps",
+    lookups.map((item) => item.states),
+    period,
+    page.start,
+    page.end,
+    today,
+  );
+
+  if (period === "year") {
+    return {
+      ...head,
+      all,
+      steps: lookups.map(({ row, states }) => ({
+        row,
+        cells: shareRow(row.step.title, [states], period, page.start, page.end, today),
+      })),
+    };
+  }
 
   return {
-    columns: n,
-    header,
-    todayKey: period === "quarter" || !days.includes(today) ? null : today,
+    ...head,
     all,
     steps: lookups.map(({ row, states }) => ({
       row,

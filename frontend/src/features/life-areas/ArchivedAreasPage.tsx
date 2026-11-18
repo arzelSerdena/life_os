@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import {
   listLifeAreasOptions,
+  listRoutinesOptions,
   unarchiveLifeAreaMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead } from "../../client/types.gen";
@@ -67,10 +68,43 @@ export function ArchivedAreasPage() {
             ))}
           </ul>
         )}
+        <ArchivedRoutines />
       </div>
       {deleteTarget && (
         <DeleteLifeAreaDialog lifeArea={deleteTarget} onClose={() => setDeleteTarget(null)} />
       )}
     </>
+  );
+}
+
+/** Archived routines; each opens its page, read-only, where it can be restored. */
+function ArchivedRoutines() {
+  const routines = useQuery(listRoutinesOptions({ query: { include_archived: true } }));
+  const archived = (routines.data ?? []).filter((routine) => routine.archived_at !== null);
+  return (
+    <section id="archived-routines" aria-label="Archived routines" className="flex flex-col gap-2">
+      <h2 className="type-column-title text-(--text-primary)">Routines</h2>
+      {routines.isError && <QueryError error={routines.error} onRetry={routines.refetch} />}
+      {routines.isSuccess && archived.length === 0 && (
+        <p className="type-body text-(--text-tertiary)">No archived routines.</p>
+      )}
+      {archived.length > 0 && (
+        <ul className="max-w-[760px] divide-y divide-(--border-default) rounded-(--radius-12) border border-(--border-default)">
+          {archived.map((routine) => (
+            <li key={routine.id} className="flex h-12 items-center gap-3 px-4">
+              <Link
+                to={`/areas/routines/${routine.id}`}
+                className="truncate type-card-title text-(--text-primary) hover:underline"
+              >
+                {routine.title}
+              </Link>
+              <span className="type-meta text-(--text-tertiary)">
+                Archived {archivedDate.format(new Date(routine.archived_at as string))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
