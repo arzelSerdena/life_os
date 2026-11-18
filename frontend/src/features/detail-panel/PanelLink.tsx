@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { PANEL_OPENER, type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore";
+import { itemMenuProps } from "../item-menu/target";
 import { projectPath } from "../projects/paths";
 
 /**
  * An item's title that opens it in the detail panel, or a project's that opens its project
  * page. `stretched` makes the whole row or card clickable: give that container `relative`,
- * and controls inside it `relative z-10`.
+ * and controls inside it `relative z-10`. Right-clicking it (or anywhere in a stretched row)
+ * opens the item's ⋯ menu.
  */
 export function PanelLink({
   target,
@@ -31,6 +33,8 @@ export function PanelLink({
     <button
       type="button"
       {...(target.kind === "project" ? {} : PANEL_OPENER)}
+      {...itemMenuProps(target)}
+      data-stretched={stretched ? "" : undefined}
       onClick={onClick}
       className={`min-w-0 cursor-pointer text-left outline-none ${
         stretched

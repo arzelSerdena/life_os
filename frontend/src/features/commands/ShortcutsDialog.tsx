@@ -15,6 +15,7 @@ export const SHORTCUT_GROUPS: { title: string; shortcuts: Shortcut[] }[] = [
       { keys: [["Ctrl", "N"], ["N"]], label: "New task" },
       { keys: [["Ctrl", "B"]], label: "Show or hide the sidebar" },
       { keys: [["Ctrl", "Z"]], label: "Undo" },
+      { keys: [["Shift", "F10"]], label: "Open the focused item's menu" },
       { keys: [["Esc"]], label: "Close the pop-up or detail panel" },
       { keys: [["?"]], label: "Keyboard shortcuts" },
     ],

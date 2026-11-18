@@ -1,11 +1,9 @@
 import { type QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
-  ArchiveRestore,
   CalendarDays,
   ChartLine,
   CircleCheck,
-  CircleX,
   Flag,
   Folder,
   ListChecks,
@@ -13,17 +11,13 @@ import {
   Palette,
   Pause,
   Repeat,
-  RotateCcw,
   Sun,
   Target,
-  Trash2,
   X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  archiveTaskMutation,
-  cancelTaskMutation,
   completeTaskMutation,
   createSubtaskMutation,
   getArchiveOptions,
@@ -44,10 +38,7 @@ import {
   listEventOccurrencesQueryKey,
   listLifeAreasOptions,
   listProjectsOptions,
-  reopenProjectMutation,
   reopenTaskMutation,
-  unarchiveLifeAreaMutation,
-  unarchiveProjectMutation,
   updateEventMutation,
   updateLifeAreaMutation,
   updateMetricMutation,
@@ -58,7 +49,6 @@ import {
 } from "../../client/@tanstack/react-query.gen";
 import {
   deleteSubtask,
-  deleteTask,
   editEventOccurrence,
   moveEvent,
   moveMetric,
@@ -78,29 +68,27 @@ import { useChangeToast } from "../../stores/changeToastStore";
 import { type PanelTarget, useDetailPanel } from "../../stores/detailPanelStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
-import { archiveDate, areaContents, restoredAreaMessage } from "../archive/archive";
-import {
-  DeleteEventDialog,
-  DeleteMetricDialog,
-  DeleteTemplateDialog,
-} from "../deleting/deleteDialogs";
+import { archiveDate, areaContents } from "../archive/archive";
 import { useDeleteWithUndo } from "../deleting/UndoToast";
-import { ArchiveAreaDialog } from "../life-areas/ArchiveAreaDialog";
+import {
+  useAreaActions,
+  useEventActions,
+  useMetricActions,
+  useProjectActions,
+  useTaskActions,
+  useTemplateActions,
+} from "../item-menu/entityActions";
 import { describeRule } from "../life-areas/area/timeScale";
-import { DeleteLifeAreaDialog } from "../life-areas/DeleteLifeAreaDialog";
 import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
 import { formatValue } from "../metrics/format";
 import { OwnerCrumb, SectionCrumb } from "../pickers/OwnerPicker";
-import { DeleteProjectDialog } from "../projects/DeleteProjectDialog";
-import { type ProjectChange, ProjectChangeDialog } from "../projects/ProjectChangeDialog";
 import {
   Chip,
   DateChip,
   EditableLine,
   Marker,
   MenuChip,
-  type PanelAction,
   PanelView,
   TaskMarker,
 } from "./PanelParts";
@@ -162,23 +150,6 @@ function useNotesSave() {
   return async (request: () => Promise<unknown>, key: QueryKey) => {
     await request();
     await queryClient.invalidateQueries({ queryKey: key });
-  };
-}
-
-/** Delete, last in the ⋯ menu and in red. A hint disables it and says why. */
-function deleteAction(
-  label: string,
-  onAction: () => void,
-  blockedHint?: string | false,
-): PanelAction {
-  return {
-    id: "delete",
-    label,
-    icon: Trash2,
-    isDanger: true,
-    onAction,
-    isDisabled: Boolean(blockedHint),
-    hint: blockedHint || undefined,
   };
 }
 
@@ -321,16 +292,23 @@ function AreaPanel({ id }: { id: number }) {
   ).data;
   const lifeAreas = useQuery(listLifeAreasOptions()).data ?? [];
   const update = useMutation(updateLifeAreaMutation());
-  const restore = useMutation(unarchiveLifeAreaMutation());
-  const showToast = useChangeToast((state) => state.show);
   const isArchived = query.data ? query.data.archived_at !== null : false;
   // An archived area reads as it does in Finished & archived: what Restore brings back.
   const archived = useQuery({ ...getArchiveOptions(), enabled: isArchived }).data?.areas.find(
     (row) => row.id === id,
   );
   const saveNotes = useNotesSave();
-  const [isArchiving, setIsArchiving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const menu = useAreaActions(query.data, {
+    onArchived: () => {
+      close();
+      navigate("/areas");
+    },
+    onDeleted: () => {
+      close();
+      navigate("/areas", { replace: true });
+    },
+    onRestored: close,
+  });
 
   const area = query.data;
   if (!area) return <Loading error={query.error} />;
@@ -338,47 +316,6 @@ function AreaPanel({ id }: { id: number }) {
   const save = (body: Parameters<typeof updateLifeArea>[0]["body"]) =>
     update.mutateAsync({ path, body });
   const contents = page?.contents;
-
-  const actions: PanelAction[] = [
-    isArchived
-      ? {
-          id: "restore",
-          label: "Restore area",
-          icon: ArchiveRestore,
-          onAction: () =>
-            restore.mutate(
-              { path },
-              {
-                onSuccess: (change) => {
-                  showToast(
-                    archived ? restoredAreaMessage(archived) : `Restored “${area.title}”`,
-                    change.batch_id,
-                  );
-                  close();
-                },
-              },
-            ),
-        }
-      : {
-          id: "archive",
-          label: "Archive area",
-          icon: Archive,
-          onAction: () => setIsArchiving(true),
-          isDisabled: !contents,
-        },
-    {
-      ...deleteAction(
-        "Delete area",
-        () => setIsDeleting(true),
-        contents?.has_items &&
-          (isArchived
-            ? "Only empty areas can be deleted."
-            : "Only empty areas can be deleted. Archive it instead."),
-      ),
-      // Until the contents load it isn't known whether the area is empty.
-      isDisabled: !contents || contents.has_items,
-    },
-  ];
 
   return (
     <AreaScope color={area.color}>
@@ -458,29 +395,10 @@ function AreaPanel({ id }: { id: number }) {
               getLifeAreaQueryKey({ path }),
             ),
         }}
-        actions={actions}
-        error={update.error ?? restore.error}
+        actions={menu.actions}
+        error={update.error ?? menu.error}
       />
-      {isArchiving && (
-        <ArchiveAreaDialog
-          lifeArea={area}
-          onClose={() => setIsArchiving(false)}
-          onArchived={() => {
-            close();
-            navigate("/areas");
-          }}
-        />
-      )}
-      {isDeleting && (
-        <DeleteLifeAreaDialog
-          lifeArea={area}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={() => {
-            close();
-            navigate("/areas", { replace: true });
-          }}
-        />
-      )}
+      {menu.dialogs}
     </AreaScope>
   );
 }
@@ -493,12 +411,9 @@ function ProjectPanel({ id }: { id: number }) {
   const query = useQuery(getProjectOptions({ path: { project_id: id } }));
   const area = useLifeArea(query.data?.life_area_id);
   const update = useMutation(updateProjectMutation());
-  const reopen = useMutation(reopenProjectMutation());
-  const restore = useMutation(unarchiveProjectMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [change, setChange] = useState<ProjectChange | null>(null);
+  const menu = useProjectActions(query.data, { onDeleted: close });
 
   const project = query.data;
   if (!project) return <Loading error={query.error} />;
@@ -516,48 +431,6 @@ function ProjectPanel({ id }: { id: number }) {
         : ` · ${left}d left`
   }`;
   const isArchived = project.archived_at !== null;
-
-  // Complete, Cancel and Archive ask first; an archived project can only be restored.
-  const statusActions: PanelAction[] = isArchived
-    ? [
-        {
-          id: "restore",
-          label: "Restore project",
-          icon: ArchiveRestore,
-          onAction: () => restore.mutate({ path }),
-        },
-      ]
-    : [
-        ...(project.status === "active"
-          ? [
-              {
-                id: "complete",
-                label: "Complete project",
-                icon: CircleCheck,
-                onAction: () => setChange("complete"),
-              },
-              {
-                id: "cancel",
-                label: "Cancel project",
-                icon: CircleX,
-                onAction: () => setChange("cancel"),
-              },
-            ]
-          : [
-              {
-                id: "reopen",
-                label: "Reopen project",
-                icon: RotateCcw,
-                onAction: () => reopen.mutate({ path }),
-              },
-            ]),
-        {
-          id: "archive",
-          label: "Archive project",
-          icon: Archive,
-          onAction: () => setChange("archive"),
-        },
-      ];
 
   return (
     <AreaScope color={area?.color}>
@@ -597,26 +470,10 @@ function ProjectPanel({ id }: { id: number }) {
               getProjectQueryKey({ path }),
             ),
         }}
-        actions={[
-          ...statusActions,
-          deleteAction(
-            "Delete project",
-            () => setIsDeleting(true),
-            project.has_items && "Only empty projects can be deleted. Archive it instead.",
-          ),
-        ]}
-        error={update.error ?? reopen.error ?? restore.error}
+        actions={menu.actions}
+        error={update.error ?? menu.error}
       />
-      {change && (
-        <ProjectChangeDialog project={project} change={change} onClose={() => setChange(null)} />
-      )}
-      {isDeleting && (
-        <DeleteProjectDialog
-          project={project}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={close}
-        />
-      )}
+      {menu.dialogs}
     </AreaScope>
   );
 }
@@ -633,52 +490,17 @@ function TaskPanel({ id }: { id: number }) {
     enabled: task?.template_id != null,
   }).data;
   const update = useMutation(updateTaskMutation());
+  // The marker checks the task off in place; the ⋯ menu's Complete also offers Undo.
   const complete = useMutation(completeTaskMutation());
   const reopen = useMutation(reopenTaskMutation());
-  const archive = useMutation(archiveTaskMutation());
-  const cancel = useMutation(cancelTaskMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
-  const deleteWithUndo = useDeleteWithUndo();
+  const menu = useTaskActions(task, { onDeleted: close });
 
   if (!task) return <Loading error={query.error} />;
   const path = { task_id: id };
   const isDone = task.status === "done";
   const toggleDone = () => (isDone ? reopen : complete).mutate({ path });
-
-  const actions: PanelAction[] = [
-    isDone
-      ? { id: "reopen", label: "Mark not done", icon: RotateCcw, onAction: toggleDone }
-      : {
-          id: "complete",
-          label: "Complete task",
-          icon: CircleCheck,
-          onAction: toggleDone,
-          isDisabled: task.status === "cancelled",
-        },
-    {
-      id: "archive",
-      label: "Archive task",
-      icon: Archive,
-      onAction: () => archive.mutate({ path }),
-      isDisabled: task.archived_at !== null,
-    },
-    // A recurring occurrence would be generated again, so it can only be cancelled.
-    task.occurrence_date !== null
-      ? {
-          id: "cancel",
-          label: "Cancel task",
-          icon: X,
-          onAction: () => cancel.mutate({ path }),
-          isDisabled: task.status !== "todo",
-        }
-      : deleteAction("Delete task", () => {
-          close();
-          deleteWithUndo({ kind: "task", id, label: task.title }, () =>
-            deleteTask({ path, throwOnError: true, keepalive: true }),
-          );
-        }),
-  ];
 
   return (
     <AreaScope color={area?.color}>
@@ -704,15 +526,8 @@ function TaskPanel({ id }: { id: number }) {
               getTaskQueryKey({ path }),
             ),
         }}
-        actions={actions}
-        error={
-          owner.error ??
-          update.error ??
-          complete.error ??
-          reopen.error ??
-          archive.error ??
-          cancel.error
-        }
+        actions={menu.actions}
+        error={owner.error ?? update.error ?? complete.error ?? reopen.error ?? menu.error}
       />
     </AreaScope>
   );
@@ -879,7 +694,7 @@ function TemplatePanel({ id }: { id: number }) {
   const update = useMutation(updateTaskTemplateMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const menu = useTemplateActions(template, { onDeleted: close });
 
   if (!template) return <Loading error={query.error} />;
   const path = { template_id: id };
@@ -943,20 +758,10 @@ function TemplatePanel({ id }: { id: number }) {
               getTaskTemplateQueryKey({ path }),
             ),
         }}
-        actions={[
-          deleteAction(template.rrule ? "Delete recurring task" : "Delete template", () =>
-            setIsDeleting(true),
-          ),
-        ]}
+        actions={menu.actions}
         error={owner.error ?? update.error}
       />
-      {isDeleting && (
-        <DeleteTemplateDialog
-          template={template}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={close}
-        />
-      )}
+      {menu.dialogs}
     </AreaScope>
   );
 }
@@ -980,7 +785,7 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
   const saveNotes = useNotesSave();
   const [scope, setScope] = useState<"this" | "all">("this");
   const close = useDetailPanel((state) => state.close);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const menu = useEventActions(event, day, { onDeleted: close });
 
   if (!event || (isRepeating && !occurrence)) return <Loading error={query.error} />;
   const path = { event_id: id };
@@ -1067,17 +872,10 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
                   getEventQueryKey({ path }),
                 ),
         }}
-        actions={[deleteAction("Delete event", () => setIsDeleting(true))]}
+        actions={menu.actions}
         error={owner.error ?? update.error}
       />
-      {isDeleting && (
-        <DeleteEventDialog
-          event={event}
-          day={day}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={close}
-        />
-      )}
+      {menu.dialogs}
     </AreaScope>
   );
 }
@@ -1102,7 +900,7 @@ function MetricPanel({ id }: { id: number }) {
   const update = useMutation(updateMetricMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const menu = useMetricActions(metric, { onDeleted: close });
 
   if (!metric) return <Loading error={query.error} />;
   const path = { metric_id: id };
@@ -1145,16 +943,10 @@ function MetricPanel({ id }: { id: number }) {
               getMetricQueryKey({ path }),
             ),
         }}
-        actions={[deleteAction("Delete metric", () => setIsDeleting(true))]}
+        actions={menu.actions}
         error={owner.error ?? update.error}
       />
-      {isDeleting && (
-        <DeleteMetricDialog
-          metric={metric}
-          onClose={() => setIsDeleting(false)}
-          onDeleted={close}
-        />
-      )}
+      {menu.dialogs}
     </AreaScope>
   );
 }

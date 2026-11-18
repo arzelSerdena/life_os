@@ -114,6 +114,7 @@ function RoutineView({
             <SectionCard title="Steps" description={hasSteps ? stepsSubtitle(page) : undefined}>
               {hasSteps ? (
                 <StepsHeatmap
+                  routineId={routine.id}
                   map={heatmap(page, period)}
                   period={period}
                   selected={selected === lastDay ? null : selected}

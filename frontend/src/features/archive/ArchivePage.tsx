@@ -36,6 +36,7 @@ import { useChangeToast } from "../../stores/changeToastStore";
 import { PANEL_OPENER, useDetailPanel } from "../../stores/detailPanelStore";
 import { DeleteRoutineDialog } from "../deleting/deleteDialogs";
 import { type PanelAction, PanelMenu } from "../detail-panel/PanelParts";
+import { useRowContextMenu } from "../item-menu/PointMenu";
 import { DeleteLifeAreaDialog } from "../life-areas/DeleteLifeAreaDialog";
 import { areaDataAttribute } from "../life-areas/palette";
 import { DeleteProjectDialog } from "../projects/DeleteProjectDialog";
@@ -401,6 +402,7 @@ function Row({
   actions: PanelAction[];
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const rowMenu = useRowContextMenu(actions, `More actions for “${title}”`);
   const onRowClick = (event: MouseEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest("button, a, [role=menu]")) return;
     onOpen();
@@ -412,6 +414,7 @@ function Row({
       data-area={areaDataAttribute(color)}
       {...(opensPanel ? PANEL_OPENER : {})}
       onClick={onRowClick}
+      onContextMenu={rowMenu.onContextMenu}
       className="group relative flex h-11 cursor-pointer items-center gap-2.5 pr-3 pl-4 not-first-of-type:shadow-[inset_0_1px_0_var(--color-neutral-100)] hover:bg-(--color-neutral-50) has-focus-visible:bg-(--color-neutral-50)"
     >
       <span aria-hidden className="grid size-4 shrink-0 place-items-center">
@@ -429,7 +432,7 @@ function Row({
       </span>
       <span
         className={`ml-auto flex shrink-0 items-center gap-1 group-hover:visible group-has-focus-visible:visible ${
-          menuOpen ? "visible" : "invisible"
+          menuOpen || rowMenu.isOpen ? "visible" : "invisible"
         }`}
       >
         <Tooltip delay={0} isDisabled={!quick.blocked}>
@@ -458,6 +461,7 @@ function Row({
           onOpenChange={setMenuOpen}
         />
       </span>
+      {rowMenu.menu}
     </div>
   );
 }

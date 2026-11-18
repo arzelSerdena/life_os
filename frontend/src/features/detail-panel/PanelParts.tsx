@@ -139,7 +139,6 @@ export function PanelMenu({
   placement?: "bottom end" | "bottom start";
   onOpenChange?: (isOpen: boolean) => void;
 }) {
-  const firstDanger = actions.find((action) => action.isDanger)?.id;
   return (
     <Dropdown onOpenChange={onOpenChange}>
       <Button
@@ -150,43 +149,54 @@ export function PanelMenu({
       >
         <Ellipsis aria-hidden />
       </Button>
-      <Dropdown.Popover placement={placement} className="min-w-[200px] max-w-[250px]">
-        <Dropdown.Menu
-          aria-label={label}
-          disabledKeys={actions.filter((a) => a.isDisabled).map((a) => a.id)}
-          onAction={(key) => actions.find((action) => action.id === key)?.onAction()}
-        >
-          {actions.map((action) => (
-            <Fragment key={action.id}>
-              {action.id === firstDanger && <Separator />}
-              <Dropdown.Item
-                id={action.id}
-                textValue={action.label}
-                variant={action.isDanger ? "danger" : undefined}
-                className={action.hint ? "items-start" : undefined}
-              >
-                <action.icon
-                  aria-hidden
-                  className={`size-4 shrink-0 ${action.hint ? "mt-1" : ""} ${
-                    action.isDanger ? "" : "text-(--text-tertiary)"
-                  }`}
-                />
-                {action.hint ? (
-                  <span className="flex flex-col py-1">
-                    <Label>{action.label}</Label>
-                    <span className="text-[11px] leading-[14px] text-(--text-tertiary)">
-                      {action.hint}
-                    </span>
-                  </span>
-                ) : (
-                  <Label>{action.label}</Label>
-                )}
-              </Dropdown.Item>
-            </Fragment>
-          ))}
-        </Dropdown.Menu>
+      <Dropdown.Popover placement={placement} className={ACTION_MENU_WIDTH}>
+        <ActionMenuList actions={actions} label={label} />
       </Dropdown.Popover>
     </Dropdown>
+  );
+}
+
+export const ACTION_MENU_WIDTH = "min-w-[200px] max-w-[250px]";
+
+/** A ⋯ menu's items: each with its icon; Delete last, in red, after a separator. Shared by the
+ * ⋯ button and the right-click menu. */
+export function ActionMenuList({ actions, label }: { actions: PanelAction[]; label: string }) {
+  const firstDanger = actions.find((action) => action.isDanger)?.id;
+  return (
+    <Dropdown.Menu
+      aria-label={label}
+      disabledKeys={actions.filter((a) => a.isDisabled).map((a) => a.id)}
+      onAction={(key) => actions.find((action) => action.id === key)?.onAction()}
+    >
+      {actions.map((action) => (
+        <Fragment key={action.id}>
+          {action.id === firstDanger && <Separator />}
+          <Dropdown.Item
+            id={action.id}
+            textValue={action.label}
+            variant={action.isDanger ? "danger" : undefined}
+            className={action.hint ? "items-start" : undefined}
+          >
+            <action.icon
+              aria-hidden
+              className={`size-4 shrink-0 ${action.hint ? "mt-1" : ""} ${
+                action.isDanger ? "" : "text-(--text-tertiary)"
+              }`}
+            />
+            {action.hint ? (
+              <span className="flex flex-col py-1">
+                <Label>{action.label}</Label>
+                <span className="text-[11px] leading-[14px] text-(--text-tertiary)">
+                  {action.hint}
+                </span>
+              </span>
+            ) : (
+              <Label>{action.label}</Label>
+            )}
+          </Dropdown.Item>
+        </Fragment>
+      ))}
+    </Dropdown.Menu>
   );
 }
 

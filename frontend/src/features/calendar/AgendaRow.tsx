@@ -6,6 +6,7 @@ import type { OccurrenceRead, ProjectRead, TaskRead } from "../../client/types.g
 import { useChangeToast } from "../../stores/changeToastStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { PanelLink } from "../detail-panel/PanelLink";
+import { itemMenuProps } from "../item-menu/target";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { dayDate } from "../pickers/dates";
@@ -50,7 +51,10 @@ export function EntryRow({
     case "routine": {
       const { routine } = entry;
       return (
-        <li className="relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--color-neutral-50)">
+        <li
+          {...itemMenuProps({ kind: "routine", id: routine.routineId })}
+          className="relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--color-neutral-50)"
+        >
           <span className="mt-0.5 grid size-4 shrink-0 place-items-center [&_svg]:size-4!">
             <ProgressRing done={routine.done} total={routine.steps.length} />
           </span>

@@ -12,6 +12,7 @@ import { QueryError } from "../../../components/QueryError";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
 import { usePeriodStore } from "../../../stores/periodStore";
+import { itemMenuProps } from "../../item-menu/target";
 import { formatValue } from "../../metrics/format";
 import { areaDataAttribute } from "../palette";
 import { monthName, plural, shortDate } from "./format";
@@ -91,6 +92,7 @@ function EffortCard({ overview, name, isCurrent }: CardProps) {
         {shares.map(({ area, done, share }) => (
           <div
             key={area.id}
+            {...itemMenuProps({ kind: "area", id: area.id })}
             data-area={areaDataAttribute(area.color)}
             style={{ flex: done }}
             title={`${area.title}: ${plural(done, "task")}, ${share}%`}
@@ -102,7 +104,12 @@ function EffortCard({ overview, name, isCurrent }: CardProps) {
       </div>
       <div className="mt-1 flex gap-0.5">
         {shares.map(({ area, done, change }) => (
-          <div key={area.id} style={{ flex: done }} className="flex min-w-0 flex-col px-2">
+          <div
+            key={area.id}
+            {...itemMenuProps({ kind: "area", id: area.id })}
+            style={{ flex: done }}
+            className="flex min-w-0 flex-col px-2"
+          >
             <span className="truncate text-[13px] font-semibold text-(--text-primary)">
               {area.title}
             </span>
@@ -155,6 +162,7 @@ function ProjectsRow({ row, area }: { row: ProjectsAreaRead; area: LifeAreaRead 
           : { text: row.total === 0 ? "No tasks yet" : "No due dates", good: null };
   return (
     <div
+      {...itemMenuProps({ kind: "area", id: area.id })}
       data-area={areaDataAttribute(area.color)}
       title={`${area.title}: ${row.done} of ${row.total} project tasks done (${share}%)${pace === null ? "" : `; ${pace}% of the time has passed`}`}
       className="grid h-10 grid-cols-[minmax(0,1fr)_64px_112px] items-center gap-2.5"
@@ -241,6 +249,7 @@ function RoutinesRow({
         : [null, "nothing due"];
   return (
     <div
+      {...itemMenuProps({ kind: "area", id: area.id })}
       data-area={areaDataAttribute(area.color)}
       className="grid h-10 grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_64px] items-center gap-2.5"
     >
@@ -303,6 +312,11 @@ function WinsCard({ overview, name, isCurrent }: CardProps) {
           return (
             <li
               key={`${win.kind}-${win.project_id ?? win.metric_id}-${win.day}`}
+              {...(win.project_id
+                ? itemMenuProps({ kind: "project", id: win.project_id })
+                : win.metric_id
+                  ? itemMenuProps({ kind: "metric", id: win.metric_id })
+                  : {})}
               className="flex min-h-10 items-center gap-2.5"
             >
               <CircleCheck

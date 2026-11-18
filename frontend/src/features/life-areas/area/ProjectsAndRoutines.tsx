@@ -4,6 +4,7 @@ import type { AreaPageRead, StepRowRead } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
 import { PanelLink } from "../../detail-panel/PanelLink";
+import { itemMenuProps } from "../../item-menu/target";
 import { RoutineKey } from "../../routines/StepsHeatmap";
 import { daysBetween, plural, shortDate } from "../overview/format";
 import { describeRule, eachDay, scaleTicks, timeScale } from "./timeScale";
@@ -137,7 +138,10 @@ export function RoutinesCard({ page, owner }: { page: AreaPageRead; owner?: stri
           key={group.routine_id}
           className="border-b border-(--border-default) py-2 last:border-b-0"
         >
-          <p className="flex h-7 items-center gap-2 text-xs">
+          <p
+            {...itemMenuProps({ kind: "routine", id: group.routine_id })}
+            className="flex h-7 items-center gap-2 text-xs"
+          >
             <Link
               to={`/areas/routines/${group.routine_id}`}
               className="rounded-[4px] font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
@@ -151,7 +155,12 @@ export function RoutinesCard({ page, owner }: { page: AreaPageRead; owner?: stri
             </span>
           </p>
           {group.steps.map((row) => (
-            <div key={row.step_id} className="grid h-7 items-center" style={columns}>
+            <div
+              key={row.step_id}
+              {...itemMenuProps({ kind: "step", id: row.step_id, routineId: group.routine_id })}
+              className="grid h-7 items-center"
+              style={columns}
+            >
               <Link
                 to={`/areas/routines/${group.routine_id}`}
                 className="truncate rounded-[4px] pr-2 text-left text-[13px] text-(--text-primary) outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"

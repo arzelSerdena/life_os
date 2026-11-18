@@ -6,7 +6,8 @@ import { skipRoutineDayMutation } from "../../client/@tanstack/react-query.gen";
 import type { HomeRead, HomeRoutineRead, ProjectRead } from "../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import { useChangeToast } from "../../stores/changeToastStore";
-import { PanelMenu } from "../detail-panel/PanelParts";
+import { type PanelAction, PanelMenu } from "../detail-panel/PanelParts";
+import { useRowContextMenu } from "../item-menu/PointMenu";
 import { StepRow } from "../routines/DayCard";
 import { weekdayDate } from "../routines/routine";
 import { ProgressRing } from "../tasks/RoutinesPage";
@@ -78,13 +79,28 @@ function RoutineBlock({
     onSuccess: (change) => showToast(`Skipped day · ${weekdayDate(today)}`, change.batch_id),
   });
   const canSkipDay = routine.steps.some((step) => step.status === "todo");
+  const actions: PanelAction[] = [
+    {
+      id: "skip",
+      label: "Skip day",
+      icon: CircleMinus,
+      isDisabled: !canSkipDay || skipDay.isPending,
+      onAction: () => skipDay.mutate({ path: { routine_id: routine.routine_id, day: today } }),
+    },
+  ];
+  const menuLabel = `More for ${routine.title}`;
+  const rowMenu = useRowContextMenu(actions, menuLabel);
 
   return (
     <section
       aria-label={routine.title}
       className="group/routine border-(--color-neutral-100) not-first:mt-1.5 not-first:border-t not-first:pt-1.5"
     >
-      <div className="flex h-9 items-center gap-2 rounded-(--radius-6) px-2 hover:bg-(--color-neutral-50)">
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: right-click opens the ⋯ menu, which the keyboard reaches by its button */}
+      <div
+        onContextMenu={rowMenu.onContextMenu}
+        className="flex h-9 items-center gap-2 rounded-(--radius-6) px-2 hover:bg-(--color-neutral-50)"
+      >
         <button
           type="button"
           aria-expanded={isOpen}
@@ -108,21 +124,10 @@ function RoutineBlock({
           {done}/{total}
         </span>
         <span className="opacity-0 group-focus-within/routine:opacity-100 group-hover/routine:opacity-100 has-[[aria-expanded=true]]:opacity-100">
-          <PanelMenu
-            label={`More for ${routine.title}`}
-            actions={[
-              {
-                id: "skip",
-                label: "Skip day",
-                icon: CircleMinus,
-                isDisabled: !canSkipDay || skipDay.isPending,
-                onAction: () =>
-                  skipDay.mutate({ path: { routine_id: routine.routine_id, day: today } }),
-              },
-            ]}
-          />
+          <PanelMenu label={menuLabel} actions={actions} />
         </span>
       </div>
+      {rowMenu.menu}
       {isOpen && (
         <ul aria-label={`Steps of ${routine.title}`} className="flex flex-col pl-5">
           {routine.steps.map((step) => (
@@ -133,6 +138,7 @@ function RoutineBlock({
               state={step.status}
               day={today}
               today={today}
+              routineId={routine.routine_id}
               color={colorOf(step.life_area_id) ?? undefined}
               project={projects.find((project) => project.id === step.project_id)}
             />

@@ -21,6 +21,7 @@ import { useNewTask } from "../../stores/newTaskStore";
 import { usePeriodStore } from "../../stores/periodStore";
 import { useProjectsOverviewStore } from "../../stores/projectsOverviewStore";
 import { PanelMenu } from "../detail-panel/PanelParts";
+import { itemMenuProps } from "../item-menu/target";
 import { useAreasContext } from "../life-areas/AreasLayout";
 import { LABEL_WIDTH, ProjectBar, TimelineScale, TodayLine } from "../life-areas/area/TimelineCard";
 import { CardMenu, type MenuOption } from "../life-areas/overview/CardMenu";
@@ -194,7 +195,11 @@ function TimelineLane({
       </button>
       <div className="flex flex-col">
         {(isOpen ? projects : []).map((project) => (
-          <div key={project.id} className="relative h-7">
+          <div
+            key={project.id}
+            {...itemMenuProps({ kind: "project", id: project.id })}
+            className="relative h-7"
+          >
             <ProjectBar project={project} range={overview.range} />
           </div>
         ))}
@@ -365,7 +370,11 @@ export function NextUpRow({
   action?: ReactNode;
 }) {
   return (
-    <li data-area={areaDataAttribute(color)} className="flex items-center gap-2.5 py-1">
+    <li
+      {...itemMenuProps({ kind: "project", id: project.id })}
+      data-area={areaDataAttribute(color)}
+      className="flex items-center gap-2.5 py-1"
+    >
       {leading}
       <Folder
         aria-hidden
@@ -512,6 +521,7 @@ function ProjectCard({
   return (
     <Link
       to={projectPath(project.id)}
+      {...itemMenuProps({ kind: "project", id: project.id })}
       data-area={areaDataAttribute(color)}
       className="flex flex-col gap-2 rounded-(--radius-8) border border-(--card-border) bg-(--bg-surface) px-3 py-2 outline-none hover:bg-(--bg-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
     >

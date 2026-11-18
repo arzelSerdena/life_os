@@ -8,6 +8,7 @@ import type {
 } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
+import { type ItemTarget, itemMenuProps } from "../../item-menu/target";
 import { formatValue } from "../../metrics/format";
 import { plural, shortDate } from "../overview/format";
 import { addDays, earlierDate, laterDate, scaleTicks, timeScale } from "./timeScale";
@@ -48,7 +49,7 @@ export function TimelineCard({
 
         <Section title={onProjectPage ? "Project" : "Projects"} count={projects.length}>
           {projects.map((project) => (
-            <Row key={project.id} label="">
+            <Row key={project.id} label="" item={{ kind: "project", id: project.id }}>
               <ProjectBar project={project} range={page.range} />
             </Row>
           ))}
@@ -59,7 +60,15 @@ export function TimelineCard({
             const left = scale.at(event.start_date);
             const multiDay = event.end_date > event.start_date;
             return (
-              <Row key={`${event.event_id}-${event.occurrence_date}`} label="">
+              <Row
+                key={`${event.event_id}-${event.occurrence_date}`}
+                label=""
+                item={{
+                  kind: "event",
+                  id: event.event_id,
+                  day: event.is_repeating ? event.occurrence_date : null,
+                }}
+              >
                 {multiDay && (
                   <span
                     aria-hidden
@@ -86,6 +95,7 @@ export function TimelineCard({
           {metrics.map((outcome) => (
             <Row
               key={outcome.metric_id}
+              item={{ kind: "metric", id: outcome.metric_id }}
               label={
                 <span className="flex min-w-0 items-center gap-1.5">
                   <ChartLine
@@ -243,9 +253,22 @@ function Section({
   );
 }
 
-function Row({ label, children }: { label: ReactNode; children: ReactNode }) {
+/** One lane; right-clicking it (label or bar) opens its item's ⋯ menu. */
+function Row({
+  label,
+  item,
+  children,
+}: {
+  label: ReactNode;
+  item: ItemTarget;
+  children: ReactNode;
+}) {
   return (
-    <div className="grid h-7 items-center" style={{ gridTemplateColumns: `${LABEL_WIDTH} 1fr` }}>
+    <div
+      {...itemMenuProps(item)}
+      className="grid h-7 items-center"
+      style={{ gridTemplateColumns: `${LABEL_WIDTH} 1fr` }}
+    >
       <span className="min-w-0 pr-2 text-[13px] text-(--text-primary)">{label}</span>
       <div className="relative h-full">{children}</div>
     </div>

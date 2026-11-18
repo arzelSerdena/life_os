@@ -6,6 +6,7 @@ import type { OccurrenceRead, TaskRead } from "../../client/types.gen";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { PanelLink } from "../detail-panel/PanelLink";
+import { itemMenuProps } from "../item-menu/target";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { formatTime, useTimeFormat } from "../tasks/format";
@@ -163,6 +164,7 @@ function RoutineEntry({
     <button
       type="button"
       aria-haspopup="dialog"
+      {...itemMenuProps({ kind: "routine", id: routine.routineId })}
       aria-label={`${routine.title}, ${routine.done} of ${routine.steps.length} steps done`}
       onClick={(event) => onOpen(routine, event.currentTarget)}
       className="flex h-6 w-full min-w-0 items-center gap-1.5 rounded-[5px] border border-(--border-default) bg-(--bg-surface) px-1.5 text-left text-xs outline-none hover:bg-(--color-neutral-50) focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-3.5!"
