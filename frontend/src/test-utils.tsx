@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router";
 import { App } from "./App";
 import type {
   AreaPageRead,
+  HomeRead,
   LifeAreaRead,
   OverviewRead,
   ProjectPageRead,
@@ -158,6 +159,32 @@ export function emptyProjectPage(
     ],
     pace: null,
     pace_status: null,
+    ...overrides,
+  };
+}
+
+/** Home on Saturday, Nov 14 2026, past its first run, with nothing on. */
+export function emptyHome(overrides: Partial<HomeRead> = {}): HomeRead {
+  return {
+    today: "2026-11-14",
+    setup: { life_area: "Career", routine: null, task: "Buy groceries" },
+    overdue: [],
+    tasks: [],
+    completed: [],
+    events: [],
+    projects_due: [],
+    deadlines: [],
+    routines: [],
+    log: [],
+    inbox: 0,
+    push_projects: [],
+    push_metrics: [],
+    coming_up: {
+      range: { start: "2026-11-15", end: "2026-11-21" },
+      events: [],
+      projects: [],
+      deadlines: [],
+    },
     ...overrides,
   };
 }

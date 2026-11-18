@@ -12,6 +12,7 @@ from app.routers import (
     app_settings,
     archive,
     events,
+    home,
     life_areas,
     metrics,
     projects,
@@ -41,6 +42,7 @@ app = FastAPI(
 )
 app.include_router(app_settings.router)
 app.include_router(archive.router)
+app.include_router(home.router)
 app.include_router(life_areas.router)
 app.include_router(projects.router)
 app.include_router(metrics.router)

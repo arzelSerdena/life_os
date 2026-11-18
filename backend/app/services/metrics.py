@@ -181,7 +181,10 @@ def list_entries(
     ]
 
 
-def add_entry(session: Session, metric_id: int, data: EntryCreate) -> MetricEntry:
+def add_entry(
+    session: Session, metric_id: int, data: EntryCreate
+) -> tuple[MetricEntry, str | None]:
+    """Logs a value. Recorded for undo, which removes the entry if it is unchanged since."""
     metric = _get_active(session, metric_id)
     if metric.source != "manual":
         raise ConflictError(
@@ -191,7 +194,9 @@ def add_entry(session: Session, metric_id: int, data: EntryCreate) -> MetricEntr
     _check_entry_day(day)
     entry = MetricEntry(metric_id=metric.id, date=day, value=data.value, note=data.note)
     session.add(entry)
-    return _save_entry(session, entry)
+    history = ChangeRecorder(session)
+    history.created(entry)
+    return _save_entry(session, entry), history.batch_id
 
 
 def update_entry(session: Session, entry_id: int, data: EntryUpdate) -> MetricEntry:

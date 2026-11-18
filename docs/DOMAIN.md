@@ -138,6 +138,8 @@ Every cascade follows the same steps:
 
 **Routine check-offs and skips** apply immediately too and are recorded for undo: marking a step done or skipped on a day (`PUT /api/routine-steps/{id}/days/{day}`) and skipping a routine's day (`POST /api/routines/{id}/days/{day}/skip`) return a `batch_id`. Undo removes a log the change created (if unchanged since) or puts back the status it replaced; a skipped day's undo removes only the skips it added. Unchecking (back to to-do or missed) isn't recorded: checking again is its undo.
 
+**Logging a metric value** (`POST /api/metrics/{id}/entries`, Home's Log today) applies at once and returns a `batch_id`; undo removes the entry if it is unchanged since.
+
 Previews come from `GET /api/life-areas/{id}/archive/preview` and `GET /api/projects/{id}/preview?action=complete|cancel|archive`, which return every affected item grouped by what happens to it (archived, cancelled, or ends from today). An area's archive lists each project as one row with its contents as counts, then the items the area owns directly. Archiving and status changes return the `batch_id` to undo.
 
 **Confirming.** One confirm dialog serves every cascade and every delete with contents. Previews (cascade and delete) return per-item rows grouped by effect, not only counts: each group is one of cancelled, ends from today, archived, deleted, kept or stops updating, and each row carries the item's name, kind, owner colour and a date or meta line. An archive or status change with nothing going with it applies at once with the undo toast; Delete always asks. Archiving a life area shows the undo toast after the confirmation too.
@@ -330,6 +332,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **Header done count**: today's tasks (overdue included) plus today's due routine steps, with skipped steps left out of both counts.
   - **First run**: the setup message shows until there is a life area and at least one task or routine.
   - Quick add on Home creates a task scheduled today with no owner (so it is also in the Inbox).
+  - A metric shows once on Home: one in Log today isn't repeated under Needs a push. Per-day targets are never "behind" there (the day isn't over); a project is listed once, as due soon before stalled or no next step.
 - **Finished & archived** lists archived life areas, done, cancelled or archived projects, and archived routines. Areas and projects are deleted only when empty; a routine is deleted through the confirm dialog unless one of its steps feeds a metric.
   - Each list is newest first (`GET /api/archive`). Projects are grouped Done, Cancelled and Archived; an archived project is listed under Archived whatever its status, with the day it was archived; the others with the day they were done or cancelled.
   - **Area counts** are what Restore brings back: the projects, tasks and metrics its last archive took that are still archived. "Empty" means nothing belongs to the area, archived items included, so it can be deleted.

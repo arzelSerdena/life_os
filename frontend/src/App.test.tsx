@@ -2,18 +2,21 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import { SIDEBAR_DEFAULT_WIDTH, useSidebarStore } from "./stores/sidebarStore";
-import { renderApp } from "./test-utils";
+import { emptyHome, renderApp } from "./test-utils";
 
 beforeEach(() => {
   useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH });
   vi.stubGlobal(
     "fetch",
     vi.fn(async (request: Request) => {
-      // Every list is empty; Finished & archived reads one object with three lists.
+      // Every list is empty; Finished & archived and Home each read one object.
+      const path = new URL(request.url).pathname;
       const empty =
-        new URL(request.url).pathname === "/api/archive"
+        path === "/api/archive"
           ? { areas: [], projects: [], routines: [] }
-          : [];
+          : path === "/api/home"
+            ? emptyHome({ setup: { life_area: null, routine: null, task: null } })
+            : [];
       return new Response(JSON.stringify(empty), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -22,10 +25,11 @@ beforeEach(() => {
   );
 });
 
-test.each(["/", "/not-a-page"])("%s opens the life areas overview", async (path) => {
+test.each(["/", "/not-a-page"])("%s opens Home", async (path) => {
   renderApp(path);
 
-  expect(await screen.findByRole("heading", { name: "Life areas" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Set up Life OS" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
 });
 
 test("the rail and the sidebar mark the current page", async () => {
