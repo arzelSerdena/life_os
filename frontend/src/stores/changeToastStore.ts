@@ -11,6 +11,8 @@ export type AppliedChange = {
   batchId: string | null;
   /** Batches applied before `batchId` as part of the same change; Undo restores them after it. */
   earlierBatchIds: string[];
+  /** Undo for a change kept in the browser (Reset layout), with no batch. */
+  onUndo?: () => void;
 };
 
 type ChangeToastState = {
@@ -18,6 +20,8 @@ type ChangeToastState = {
   /** Undo failed: the message to show instead. */
   failure: { message: string; error: unknown } | null;
   show: (message: string, batchId: string | null, earlierBatchIds?: string[]) => void;
+  /** Shows a change made in the browser, which `onUndo` puts back. */
+  showLocal: (message: string, onUndo: () => void) => void;
   /** Hides the toast; with a key, only if that change is still the one shown. */
   dismiss: (key?: number) => void;
   fail: (message: string, error: unknown) => void;
@@ -36,6 +40,12 @@ export const useChangeToast = create<ChangeToastState>()((set, get) => ({
     clearTimeout(timer);
     const key = nextKey++;
     set({ change: { key, message, batchId, earlierBatchIds }, failure: null });
+    timer = setTimeout(() => get().dismiss(key), CHANGE_TOAST_MS);
+  },
+  showLocal: (message, onUndo) => {
+    clearTimeout(timer);
+    const key = nextKey++;
+    set({ change: { key, message, batchId: null, earlierBatchIds: [], onUndo }, failure: null });
     timer = setTimeout(() => get().dismiss(key), CHANGE_TOAST_MS);
   },
   dismiss: (key) => {

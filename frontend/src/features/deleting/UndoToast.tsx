@@ -43,6 +43,10 @@ function useUndoChange() {
   const fail = useChangeToast((state) => state.fail);
   return async (change: AppliedChange) => {
     dismiss(change.key);
+    if (change.onUndo) {
+      change.onUndo();
+      return;
+    }
     if (!change.batchId) return;
     try {
       // The latest batch first, then the ones before it.
@@ -72,7 +76,7 @@ export function UndoToast() {
   const dismissChange = useChangeToast((state) => state.dismiss);
   const undoChange = useUndoChange();
   const latest = pending.findLast((item) => !item.isSent);
-  const undoable = change?.batchId ? change : null;
+  const undoable = change?.batchId || change?.onUndo ? change : null;
 
   useEffect(() => {
     if (!latest && !undoable) return;
@@ -129,7 +133,7 @@ export function UndoToast() {
           <span className="max-w-80 truncate text-[13px] text-(--text-primary)">
             {change.message}
           </span>
-          {change.batchId && (
+          {undoable && (
             <>
               <button type="button" className={LINK} onClick={() => void undoChange(change)}>
                 Undo

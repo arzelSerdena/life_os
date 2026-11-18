@@ -1,3 +1,7 @@
+import asyncio
+import contextlib
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import Depends, FastAPI, Request, status
@@ -6,11 +10,14 @@ from fastapi.routing import APIRoute
 from pydantic import BaseModel
 from sqlalchemy import text
 
+from app.backup_scheduler import run_backup_scheduler
+from app.config import get_settings
 from app.db import SessionDep
 from app.errors import ConflictError, NotFoundError, UnprocessableError
 from app.routers import (
     app_settings,
     archive,
+    backups,
     events,
     home,
     life_areas,
@@ -35,13 +42,28 @@ def _apply_settings(session: SessionDep) -> None:
     apply_day_ends_at(session)
 
 
+@asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Runs the daily automatic backup in the background while the server is up."""
+    scheduler = (
+        asyncio.create_task(run_backup_scheduler()) if get_settings().backup_scheduler else None
+    )
+    yield
+    if scheduler:
+        scheduler.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await scheduler
+
+
 app = FastAPI(
     title="Life OS API",
+    lifespan=_lifespan,
     generate_unique_id_function=_operation_id,
     dependencies=[Depends(_apply_settings)],
 )
 app.include_router(app_settings.router)
 app.include_router(archive.router)
+app.include_router(backups.router)
 app.include_router(home.router)
 app.include_router(life_areas.router)
 app.include_router(projects.router)

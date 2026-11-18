@@ -7,9 +7,13 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
 from app import clock
+from app.config import get_settings
 from app.db import create_db_engine, get_session
 from app.main import app
 from app.models import Base
+
+# Tests never start the automatic backup; they call it directly.
+get_settings().backup_scheduler = False
 
 
 @pytest.fixture(autouse=True)

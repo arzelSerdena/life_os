@@ -1,6 +1,9 @@
+from pathlib import Path
+
 from sqlalchemy.orm import Session
 
 from app import clock
+from app.errors import UnprocessableError
 from app.models import AppSettings
 from app.schemas.app_settings import SettingsUpdate
 
@@ -20,7 +23,11 @@ def get_settings(session: Session) -> AppSettings:
 
 def update_settings(session: Session, data: SettingsUpdate) -> AppSettings:
     settings = get_settings(session)
-    for field, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    folder = changes.get("backup_folder")
+    if folder is not None and not Path(folder).is_dir():
+        raise UnprocessableError(f"Folder not found: {folder}")
+    for field, value in changes.items():
         setattr(settings, field, value)
     session.commit()
     session.refresh(settings)

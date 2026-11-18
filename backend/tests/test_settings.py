@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -33,21 +34,21 @@ def test_first_read_creates_the_defaults(client: TestClient, session: Session) -
     assert session.get(AppSettings, 1) is not None
 
 
-def test_update_changes_only_the_fields_sent(client: TestClient) -> None:
-    client.patch("/api/settings", json={"time_format": "24h", "backup_folder": "D:/Backups"})
+def test_update_changes_only_the_fields_sent(client: TestClient, tmp_path: Path) -> None:
+    client.patch("/api/settings", json={"time_format": "24h", "backup_folder": str(tmp_path)})
     response = client.patch("/api/settings", json={"keep_backups": 30, "auto_backup": False})
 
     assert response.status_code == 200
     body = response.json()
     assert body["time_format"] == "24h"
-    assert body["backup_folder"] == "D:/Backups"
+    assert body["backup_folder"] == str(tmp_path)
     assert body["keep_backups"] == 30
     assert body["auto_backup"] is False
     assert client.get("/api/settings").json() == body
 
 
-def test_null_backup_folder_means_the_default(client: TestClient) -> None:
-    client.patch("/api/settings", json={"backup_folder": "D:/Backups"})
+def test_null_backup_folder_means_the_default(client: TestClient, tmp_path: Path) -> None:
+    client.patch("/api/settings", json={"backup_folder": str(tmp_path)})
 
     response = client.patch("/api/settings", json={"backup_folder": None})
 

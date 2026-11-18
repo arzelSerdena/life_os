@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
+import { getSettingsOptions } from "./client/@tanstack/react-query.gen";
 import { AppLayout } from "./components/AppLayout";
 import { ArchivePage } from "./features/archive/ArchivePage";
 import { HomePage } from "./features/home/HomePage";
@@ -10,6 +12,8 @@ import { ProjectPage } from "./features/projects/ProjectPage";
 import { ProjectsOverviewPage } from "./features/projects/ProjectsOverviewPage";
 import { RoutinePage } from "./features/routines/RoutinePage";
 import { RoutinesOverviewPage } from "./features/routines/RoutinesOverviewPage";
+import { SettingsPage } from "./features/settings/SettingsPage";
+import { START_PATHS } from "./features/settings/settings";
 import { InboxPage } from "./features/tasks/InboxPage";
 import { Next7Page } from "./features/tasks/Next7Page";
 import { RoutinesPage } from "./features/tasks/RoutinesPage";
@@ -21,11 +25,19 @@ const CalendarPage = lazy(() =>
   import("./features/calendar/CalendarPage").then((module) => ({ default: module.CalendarPage })),
 );
 
+/** Opening the app goes where Settings › Open on start says; Home until the settings load
+ * or when they can't. */
+function StartPage() {
+  const settings = useQuery(getSettingsOptions());
+  if (settings.isPending) return null;
+  return <Navigate to={START_PATHS[settings.data?.open_on_start ?? "home"] ?? "/home"} replace />;
+}
+
 export function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route index element={<Navigate to="/home" replace />} />
+        <Route index element={<StartPage />} />
         <Route path="home" element={<HomePage />} />
         <Route path="areas" element={<AreasLayout />}>
           <Route index element={<AreasOverviewPage />} />
@@ -51,7 +63,8 @@ export function App() {
             </Suspense>
           }
         />
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
   );
