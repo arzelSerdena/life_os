@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
+import { CommandPaletteHost } from "../features/commands/CommandPalette";
+import { useCommandShortcuts } from "../features/commands/commandShortcuts";
+import { ShortcutsHost } from "../features/commands/ShortcutsDialog";
 import { UndoToast } from "../features/deleting/UndoToast";
 import { NewEventHost } from "../features/events/NewEventModal";
 import { NewTaskHost } from "../features/tasks/NewTaskModal";
@@ -36,6 +39,7 @@ const SETTINGS: RailGroup = { label: "Settings", icon: Settings, to: "/settings"
 export function AppLayout() {
   useSidebarShortcut();
   useNewTaskShortcut();
+  useCommandShortcuts();
   const hasPanel = useDetailPanel((state) => state.target !== null);
   return (
     <div className="relative flex h-screen min-h-[720px] min-w-[1280px]">
@@ -59,6 +63,8 @@ export function AppLayout() {
       <UndoToast />
       <NewTaskHost />
       <NewEventHost />
+      <CommandPaletteHost />
+      <ShortcutsHost />
     </div>
   );
 }

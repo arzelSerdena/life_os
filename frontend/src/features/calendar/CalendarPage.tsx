@@ -47,6 +47,7 @@ import {
   spanLabel,
   viewRange,
 } from "./calendar";
+import { useCalendarKeys } from "./calendarKeys";
 import { LinearCalendar } from "./LinearCalendar";
 import { type MonthRow, projectBars, splitEntries } from "./linear";
 import {
@@ -118,6 +119,7 @@ export function CalendarPage() {
   const anyEvents = useQuery(listEventsOptions({ query: { include_cancelled: true } }));
   const anyTasks = useQuery(listTasksOptions({ query: { include_cancelled: true } }));
   usePageSpot({}, days.data?.today);
+  useCalendarKeys(anchor);
 
   const update = useMutation(updateTaskMutation());
   const reschedule = useMutation(rescheduleEventMutation());

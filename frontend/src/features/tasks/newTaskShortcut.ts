@@ -1,11 +1,7 @@
 import { useEffect } from "react";
+import { isEditable, isOverlayOpen, type KeyInfo } from "../../keyboard";
 import { useNewTask } from "../../stores/newTaskStore";
 import type { TaskSpot } from "./newTask";
-
-type KeyInfo = Pick<
-  KeyboardEvent,
-  "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "repeat"
->;
 
 /**
  * Whether a key press asks for New task: Ctrl N (⌘ N on a Mac) anywhere, or N on its own
@@ -18,18 +14,6 @@ export function isNewTaskKey(event: KeyInfo, isTyping: boolean): boolean {
   }
   if (event.ctrlKey || event.metaKey) return true;
   return !isTyping;
-}
-
-function isEditable(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
-  );
-}
-
-/** A pop-up, picker or menu is open; New task waits until it closes. */
-function isOverlayOpen(): boolean {
-  return document.querySelector('[role="dialog"], [role="alertdialog"], [role="menu"]') !== null;
 }
 
 /** Ctrl N or N opens New task on every screen, with the page's spot where it has one. */
