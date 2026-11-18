@@ -100,6 +100,8 @@ test("routines are dragged into a new order in the sidebar", async ({ page, requ
   const nav = page.getByRole("navigation", { name: "Routines" });
   await expect.poll(() => sidebarOrder(page, titles)).toEqual(titles);
 
+  // Other specs fill the sidebar, so the rows may start below the window.
+  await nav.getByRole("link", { name: second.title }).scrollIntoViewIfNeeded();
   const from = await nav.getByRole("link", { name: second.title }).boundingBox();
   const to = await nav.getByRole("link", { name: first.title }).boundingBox();
   if (!from || !to) throw new Error("Rows not on screen");
