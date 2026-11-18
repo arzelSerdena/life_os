@@ -45,7 +45,10 @@ function useUndoChange() {
     dismiss(change.key);
     if (!change.batchId) return;
     try {
-      await undoBatch({ path: { batch_id: change.batchId }, throwOnError: true });
+      // The latest batch first, then the ones before it.
+      for (const batchId of [change.batchId, ...[...change.earlierBatchIds].reverse()]) {
+        await undoBatch({ path: { batch_id: batchId }, throwOnError: true });
+      }
     } catch (error) {
       fail("Couldn't undo.", error);
     } finally {

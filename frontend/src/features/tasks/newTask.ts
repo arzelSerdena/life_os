@@ -21,7 +21,8 @@ const PRIORITY_KEYS: readonly string[] = ["high", "medium", "low", "none"];
 
 /**
  * The spot a column or subgroup key stands for: "high" or "priority-high", "area-3",
- * "no-area" (the Inbox), "project-7" (and its area), a day ("2026-11-20"). "no-project",
+ * "no-area" (the Inbox), "project-7" (and its area), "section-4" or "no-section" (on a project
+ * board, whose base spot holds the project), a day ("2026-11-20"). "no-project",
  * "overdue", "all" and No date add nothing.
  */
 export function spotFromKey(key: string, projects: readonly ProjectRead[]): TaskSpot {
@@ -33,6 +34,8 @@ export function spotFromKey(key: string, projects: readonly ProjectRead[]): Task
     const project = projects.find((p) => p.id === Number(key.slice("project-".length)));
     return project ? { lifeAreaId: project.life_area_id, projectId: project.id } : {};
   }
+  if (key === "no-section") return { sectionId: null };
+  if (key.startsWith("section-")) return { sectionId: Number(key.slice("section-".length)) };
   if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return { scheduledDate: key };
   return {};
 }

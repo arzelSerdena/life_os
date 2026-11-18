@@ -244,7 +244,7 @@ export const PRIORITY_COLOR: Record<string, string> = {
   none: "bg-(--priority-none)",
 };
 
-function MarkerSquare({ marker, size }: { marker: Marker; size: "column" | "subgroup" }) {
+export function MarkerSquare({ marker, size }: { marker: Marker; size: "column" | "subgroup" }) {
   if (marker.kind === "none") return null;
   if (marker.kind === "project") {
     return (

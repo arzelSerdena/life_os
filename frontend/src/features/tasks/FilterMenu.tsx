@@ -1,10 +1,10 @@
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
 import { Check, ChevronDown, Flag, SlidersHorizontal, X } from "lucide-react";
 import type { ReactNode } from "react";
-import type { LifeAreaRead } from "../../client/types.gen";
+import type { LifeAreaRead, SectionRead } from "../../client/types.gen";
 import { useTaskBoard } from "../../stores/taskBoardStore";
 import { areaDataAttribute } from "../life-areas/palette";
-import { PRIORITIES, type Priority } from "./board";
+import { orderedSections, PRIORITIES, type Priority } from "./board";
 import {
   type AreaKey,
   type Filters,
@@ -12,6 +12,7 @@ import {
   filtersOn,
   type Layout,
   resolveFilters,
+  type SectionKey,
   SHOW_LABELS,
   type ShowKey,
   SORT_LABELS,
@@ -27,7 +28,7 @@ export function useViewFilters(view: FilterView, layout: Layout): Filters {
   return resolveFilters(view, layout, stored);
 }
 
-/** Clears a view's Priority, Life areas and Show filters; sort and subgroup stay. */
+/** Clears a view's Priority, Section, Life areas and Show filters; sort and subgroup stay. */
 export function useClearFilters(view: FilterView): () => void {
   const setFilters = useTaskBoard((state) => state.setFilters);
   return () => setFilters(view, ({ sort, subgroups }) => ({ sort, subgroups }));
@@ -49,10 +50,13 @@ export function FilterMenu({
   view,
   layout,
   lifeAreas,
+  sections = [],
 }: {
   view: FilterView;
   layout: Layout;
   lifeAreas: readonly LifeAreaRead[];
+  /** A project board's sections, for its Section filter. */
+  sections?: readonly SectionRead[];
 }) {
   const menu = VIEW_MENUS[view];
   const filters = useViewFilters(view, layout);
@@ -69,6 +73,10 @@ export function FilterMenu({
       ? [{ key: "none" as const, label: "No area", color: null }]
       : []),
     ...lifeAreas.map((area) => ({ key: area.id, label: area.title, color: area.color })),
+  ];
+  const sectionRows: { key: SectionKey; label: string }[] = [
+    { key: "none", label: "No section" },
+    ...orderedSections(sections).map((section) => ({ key: section.id, label: section.title })),
   ];
 
   return (
@@ -139,6 +147,24 @@ export function FilterMenu({
               </CheckRow>
             ))}
           </Section>
+
+          {menu.sections && (
+            <Section label="Section">
+              {sectionRows.map((row) => (
+                <CheckRow
+                  key={row.key}
+                  label={row.label}
+                  checked={!filters.hiddenSections.includes(row.key)}
+                  onChange={() =>
+                    setFilters(view, (current) => ({
+                      ...current,
+                      hiddenSections: toggle(filters.hiddenSections, row.key),
+                    }))
+                  }
+                />
+              ))}
+            </Section>
+          )}
 
           {menu.areas && (
             <Section label="Life areas">

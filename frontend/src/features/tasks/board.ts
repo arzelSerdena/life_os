@@ -1,4 +1,4 @@
-import type { LifeAreaRead, ProjectRead, TaskRead } from "../../client/types.gen";
+import type { LifeAreaRead, ProjectRead, SectionRead, TaskRead } from "../../client/types.gen";
 
 /**
  * The Tasks group's boards, as pure functions: which tasks a view lists and how they split
@@ -114,7 +114,7 @@ export type BoardContext = {
 };
 
 /** How a column splits into subgroups (picked in the filter-and-sort menu). */
-export type SubgroupBy = "area" | "project" | "priority" | "none";
+export type SubgroupBy = "area" | "project" | "priority" | "section" | "none";
 
 /**
  * The columns for a view. Priority group: High, Medium, Low, No priority. Area group: No area
@@ -201,9 +201,14 @@ function areaColumns(view: TaskView, { lifeAreas }: BoardContext): ColumnSpec[] 
 export function splitTasks(
   tasks: readonly TaskRead[],
   by: SubgroupBy,
-  context: Pick<BoardContext, "lifeAreas" | "projects">,
+  context: Pick<BoardContext, "lifeAreas" | "projects"> & {
+    /** A project's sections, for the project board's Section subgroups. */
+    sections?: readonly SectionRead[];
+  },
 ): Subgroup[] {
   switch (by) {
+    case "section":
+      return sectionSubgroups(tasks, context.sections ?? []);
     case "area":
       return areaSubgroups(tasks, context);
     case "project":
@@ -225,6 +230,30 @@ function prioritySubgroups(tasks: readonly TaskRead[]): Subgroup[] {
     marker: { kind: "priority" as const, priority: key },
     tasks: tasks.filter((task) => task.priority === key),
   })).filter((subgroup) => subgroup.tasks.length > 0);
+}
+
+/** A project's sections in their order. */
+export function orderedSections(sections: readonly SectionRead[]): SectionRead[] {
+  return [...sections].sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+}
+
+/** One subgroup per section in section order, then No section. Empty ones are left out. */
+function sectionSubgroups(tasks: readonly TaskRead[], sections: readonly SectionRead[]) {
+  const subgroups: Subgroup[] = orderedSections(sections).map((section) => ({
+    key: `section-${section.id}`,
+    label: section.title,
+    marker: { kind: "none" },
+    tasks: tasks.filter((task) => task.section_id === section.id),
+  }));
+  subgroups.push({
+    key: "no-section",
+    label: "No section",
+    marker: { kind: "none" },
+    tasks: tasks.filter(
+      (task) => task.section_id === null || !sections.some((s) => s.id === task.section_id),
+    ),
+  });
+  return subgroups.filter((subgroup) => subgroup.tasks.length > 0);
 }
 
 /** One subgroup per area in area order, then No area. Empty subgroups are left out. */

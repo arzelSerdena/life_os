@@ -9,13 +9,15 @@ export type AppliedChange = {
   /** Shown in the toast: Completed “Resume & portfolio”. */
   message: string;
   batchId: string | null;
+  /** Batches applied before `batchId` as part of the same change; Undo restores them after it. */
+  earlierBatchIds: string[];
 };
 
 type ChangeToastState = {
   change: AppliedChange | null;
   /** Undo failed: the message to show instead. */
   failure: { message: string; error: unknown } | null;
-  show: (message: string, batchId: string | null) => void;
+  show: (message: string, batchId: string | null, earlierBatchIds?: string[]) => void;
   /** Hides the toast; with a key, only if that change is still the one shown. */
   dismiss: (key?: number) => void;
   fail: (message: string, error: unknown) => void;
@@ -30,10 +32,10 @@ let nextKey = 0;
 export const useChangeToast = create<ChangeToastState>()((set, get) => ({
   change: null,
   failure: null,
-  show: (message, batchId) => {
+  show: (message, batchId, earlierBatchIds = []) => {
     clearTimeout(timer);
     const key = nextKey++;
-    set({ change: { key, message, batchId }, failure: null });
+    set({ change: { key, message, batchId, earlierBatchIds }, failure: null });
     timer = setTimeout(() => get().dismiss(key), CHANGE_TOAST_MS);
   },
   dismiss: (key) => {

@@ -19,7 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import {
   getProjectPageOptions,
   reopenProjectMutation,
@@ -29,11 +29,13 @@ import type { ProjectPageRead, ProjectRead, TaskRead } from "../../client/types.
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
 import { SectionCard } from "../../components/SectionCard";
+import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { useNewEvent } from "../../stores/newEventStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
+import { useTaskBoard } from "../../stores/taskBoardStore";
 import { withoutPending } from "../life-areas/AreaPage";
 import { NewMetricModal } from "../life-areas/area/NewMetricModal";
 import { RoutinesCard } from "../life-areas/area/ProjectsAndRoutines";
@@ -42,8 +44,10 @@ import { TimelineCard } from "../life-areas/area/TimelineCard";
 import { daysBetween, outcomeTone, plural, shortDate } from "../life-areas/overview/format";
 import { MetricTile } from "../life-areas/overview/OutcomesCard";
 import { areaDataAttribute } from "../life-areas/palette";
+import { FilterMenu } from "../tasks/FilterMenu";
 import { DeleteProjectDialog } from "./DeleteProjectDialog";
 import { NewSectionModal } from "./NewSectionModal";
+import { ProjectBoard } from "./ProjectBoard";
 import { type ProjectChange, ProjectChangeDialog } from "./ProjectChangeDialog";
 
 /** One project's page over the selected period: the area page's cards for its own items. */
@@ -57,6 +61,11 @@ export function ProjectPage() {
   const [adding, setAdding] = useState<"metric" | "section" | null>(null);
   const [change, setChange] = useState<ProjectChange | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Overview or Board, in the URL so links and Back keep it.
+  const [params, setParams] = useSearchParams();
+  const view: PageView = params.get("view") === "board" ? "board" : "overview";
+  const group = useTaskBoard((state) => state.projectGroup);
+  const setGroup = useTaskBoard((state) => state.setProjectGroup);
 
   const page = useQuery({
     ...getProjectPageOptions({ path: { project_id: projectId }, query: { period, date } }),
@@ -99,11 +108,41 @@ export function ProjectPage() {
               strokeWidth={2}
             />
             <h1 className="truncate type-page-title text-(--page-title)">{project.title}</h1>
+            <span aria-hidden className="mx-0.5 h-5 w-px shrink-0 bg-(--border-default)" />
+            <SegmentSwitch
+              label="Page view"
+              value={view}
+              options={[
+                { key: "overview", label: "Overview" },
+                { key: "board", label: "Board" },
+              ]}
+              onChange={(next) =>
+                setParams(next === "board" ? { view: "board" } : {}, { replace: true })
+              }
+            />
+            {view === "board" && (
+              <>
+                <span aria-hidden className="mx-0.5 h-5 w-px shrink-0 bg-(--border-default)" />
+                <SegmentSwitch
+                  label="Group by"
+                  value={group}
+                  options={[
+                    { key: "priority", label: "Priority" },
+                    { key: "section", label: "Section" },
+                  ]}
+                  onChange={setGroup}
+                />
+              </>
+            )}
           </div>
           <HeaderFacts page={shown} />
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          {!isArchived && <PeriodSwitch />}
+          {view === "board" ? (
+            <FilterMenu view="project" layout={group} lifeAreas={[]} sections={project.sections} />
+          ) : (
+            !isArchived && <PeriodSwitch />
+          )}
           <ProjectMenu
             project={project}
             onAction={(key) => {
@@ -125,21 +164,25 @@ export function ProjectPage() {
           )}
         </div>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
-        {isArchived && (
-          <p className="type-body text-(--text-tertiary)">
-            This project is archived. Restore it to plan in it again.
-          </p>
-        )}
-        {(reopen.error ?? restore.error) && <QueryError error={reopen.error ?? restore.error} />}
-        {page.isError && <QueryError error={page.error} onRetry={page.refetch} />}
-        <ProjectCards
-          page={shown}
-          onAddMetric={canAdd ? () => setAdding("metric") : undefined}
-          onAddEvent={canAdd ? () => openNewEvent(owner, shown.today) : undefined}
-          onAddTask={canAdd ? addTask : undefined}
-        />
-      </div>
+      {view === "board" ? (
+        <ProjectBoard project={project} area={area} today={shown.today} canAdd={canAdd} />
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+          {isArchived && (
+            <p className="type-body text-(--text-tertiary)">
+              This project is archived. Restore it to plan in it again.
+            </p>
+          )}
+          {(reopen.error ?? restore.error) && <QueryError error={reopen.error ?? restore.error} />}
+          {page.isError && <QueryError error={page.error} onRetry={page.refetch} />}
+          <ProjectCards
+            page={shown}
+            onAddMetric={canAdd ? () => setAdding("metric") : undefined}
+            onAddEvent={canAdd ? () => openNewEvent(owner, shown.today) : undefined}
+            onAddTask={canAdd ? addTask : undefined}
+          />
+        </div>
+      )}
       {adding === "metric" && (
         <NewMetricModal lifeArea={area} project={project} onClose={() => setAdding(null)} />
       )}
@@ -159,6 +202,8 @@ export function ProjectPage() {
     </div>
   );
 }
+
+type PageView = "overview" | "board";
 
 const STATUS = { active: "Active", done: "Done", cancelled: "Cancelled" } as const;
 const PACE = { on_pace: "on pace", ahead: "ahead of pace", behind: "behind pace" } as const;
