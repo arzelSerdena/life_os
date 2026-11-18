@@ -24,6 +24,7 @@ from app.routers import (
     metrics,
     projects,
     routines,
+    search,
     task_templates,
     tasks,
     undo,
@@ -73,6 +74,7 @@ app.include_router(task_templates.router)
 app.include_router(events.router)
 app.include_router(week.router)
 app.include_router(routines.router)
+app.include_router(search.router)
 app.include_router(undo.router)
 
 

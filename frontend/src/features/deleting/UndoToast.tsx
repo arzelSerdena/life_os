@@ -3,6 +3,7 @@ import { CircleAlert, CircleCheck, Trash2, X } from "lucide-react";
 import { useEffect } from "react";
 import { undoBatch } from "../../client/sdk.gen";
 import { errorMessage } from "../../errors";
+import { isEditable } from "../../keyboard";
 import { type AppliedChange, useChangeToast } from "../../stores/changeToastStore";
 import { type PendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 
@@ -22,13 +23,6 @@ export function useDeleteWithUndo() {
         await queryClient.invalidateQueries();
       }
     });
-}
-
-function isEditable(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
-  );
 }
 
 const LINK =

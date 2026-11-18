@@ -1,6 +1,7 @@
 import { PanelLeftClose } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 import { NavLink } from "react-router";
+import { isModKey } from "../keyboard";
 import {
   SIDEBAR_COLLAPSE_WIDTH,
   SIDEBAR_DEFAULT_WIDTH,
@@ -18,7 +19,7 @@ export function useSidebarVisibility(): { isHidden: boolean; show: () => void } 
 export function useSidebarShortcut(): void {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== "b" || !(event.ctrlKey || event.metaKey)) return;
+      if (!isModKey(event, "b")) return;
       event.preventDefault();
       const state = useSidebarStore.getState();
       state.setCollapsed(!state.collapsed);

@@ -3455,6 +3455,52 @@ export type ScheduleRead = {
 };
 
 /**
+ * SearchHitRead
+ *
+ * One item the palette can jump to. `status` is set for projects and tasks. The life
+ * area fields describe the item's area (an area's own, for an area); a task in the Inbox
+ * has none. `project_*` is set for a task in a project.
+ */
+export type SearchHitRead = {
+    /**
+     * Kind
+     */
+    kind: 'life_area' | 'project' | 'routine' | 'task';
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Status
+     */
+    status: string | null;
+    /**
+     * Life Area Id
+     */
+    life_area_id: number | null;
+    /**
+     * Life Area Title
+     */
+    life_area_title: string | null;
+    /**
+     * Life Area Color
+     */
+    life_area_color: string | null;
+    /**
+     * Project Id
+     */
+    project_id: number | null;
+    /**
+     * Project Title
+     */
+    project_title: string | null;
+};
+
+/**
  * SectionCreate
  */
 export type SectionCreate = {
@@ -9089,6 +9135,42 @@ export type SetRoutineStepDayResponses = {
 };
 
 export type SetRoutineStepDayResponse = SetRoutineStepDayResponses[keyof SetRoutineStepDayResponses];
+
+export type SearchData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Q
+         */
+        q: string;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/search';
+};
+
+export type SearchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SearchError = SearchErrors[keyof SearchErrors];
+
+export type SearchResponses = {
+    /**
+     * Response Search
+     *
+     * Successful Response
+     */
+    200: Array<SearchHitRead>;
+};
+
+export type SearchResponse = SearchResponses[keyof SearchResponses];
 
 export type UndoBatchData = {
     body?: never;
