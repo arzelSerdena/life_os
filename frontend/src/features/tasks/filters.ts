@@ -14,15 +14,20 @@ export type FilterView =
   | "inbox"
   | "next7"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  /** A project page's Board (one set of choices for every project). */
+  | "project";
 
 export type SortKey = "manual" | "priority" | "date" | "due" | "created";
-export type SubgroupKey = "area" | "project" | "priority" | "none";
+export type SubgroupKey = "area" | "project" | "priority" | "section" | "none";
 export type ShowKey = "events" | "routines" | "projects" | "completed" | "cancelled";
 /** A life area's id, or "none" for tasks with no area. */
 export type AreaKey = number | "none";
-/** Which columns a subgroup choice belongs to: a group, or Next 7 days' day columns. */
-export type Layout = BoardGroup | "days";
+/** A section's id, or "none" for a project's tasks with no section. */
+export type SectionKey = number | "none";
+/** Which columns a subgroup choice belongs to: a group, Next 7 days' day columns, or a
+ * project board's sections. */
+export type Layout = BoardGroup | "days" | "section";
 
 export const SORT_LABELS: Record<SortKey, string> = {
   manual: "Manual",
@@ -36,6 +41,7 @@ export const SUBGROUP_LABELS: Record<SubgroupKey, string> = {
   area: "Area",
   project: "Project",
   priority: "Priority",
+  section: "Section",
   none: "None",
 };
 
@@ -54,6 +60,8 @@ type ViewMenu = {
   sorts: SortKey[];
   /** Whether the Life areas filter is offered, and with a No area row. */
   areas: "with-no-area" | "areas-only" | false;
+  /** Whether the Section filter is offered (a project board). */
+  sections?: boolean;
   /** The SHOW toggles and whether each starts on. */
   show: Partial<Record<ShowKey, boolean>>;
 };
@@ -94,6 +102,14 @@ export const VIEW_MENUS: Record<FilterView, ViewMenu> = {
   },
   completed: { subgroups: {}, sorts: [], areas: "with-no-area", show: {} },
   cancelled: { subgroups: {}, sorts: [], areas: "with-no-area", show: {} },
+  // A project's tasks share one area, so Section takes the Life areas filter's place.
+  project: {
+    subgroups: { priority: ["section", "none"], section: ["priority", "none"] },
+    sorts: ["manual", "priority", "date", "due", "created"],
+    areas: false,
+    sections: true,
+    show: { completed: false, cancelled: false },
+  },
 };
 
 /** What is remembered for a view; anything missing takes the view's default. */
@@ -103,6 +119,8 @@ export type StoredFilters = {
   hiddenPriorities?: Priority[];
   /** Hidden rather than chosen areas, so a new area shows up by default. */
   hiddenAreas?: AreaKey[];
+  /** Hidden sections, so a new section shows up by default. */
+  hiddenSections?: SectionKey[];
   show?: Partial<Record<ShowKey, boolean>>;
 };
 
@@ -112,6 +130,7 @@ export type Filters = {
   subgroup: SubgroupKey;
   hiddenPriorities: Priority[];
   hiddenAreas: AreaKey[];
+  hiddenSections: SectionKey[];
   show: Record<ShowKey, boolean>;
 };
 
@@ -136,6 +155,7 @@ export function resolveFilters(
         : (subgroups[0] ?? "none"),
     hiddenPriorities: stored?.hiddenPriorities ?? [],
     hiddenAreas: menu.areas ? (stored?.hiddenAreas ?? []) : [],
+    hiddenSections: menu.sections ? (stored?.hiddenSections ?? []) : [],
     show,
   };
 }
@@ -146,6 +166,7 @@ export function filtersOn(view: FilterView, filters: Filters): boolean {
   return (
     filters.hiddenPriorities.length > 0 ||
     filters.hiddenAreas.length > 0 ||
+    filters.hiddenSections.length > 0 ||
     (Object.keys(menu.show) as ShowKey[]).some((key) => filters.show[key] !== menu.show[key])
   );
 }
@@ -158,6 +179,11 @@ export function areaShown(filters: Filters, lifeAreaId: number | null): boolean 
 /** Whether a task passes the Priority and Life areas filters. */
 export function taskShown(filters: Filters, task: TaskRead): boolean {
   return !filters.hiddenPriorities.includes(task.priority) && areaShown(filters, task.life_area_id);
+}
+
+/** Whether a project's task passes the Section filter. */
+export function sectionShown(filters: Filters, task: TaskRead): boolean {
+  return !filters.hiddenSections.includes(task.section_id ?? "none");
 }
 
 const PRIORITY_RANK: Record<Priority, number> = { high: 0, medium: 1, low: 2, none: 3 };
