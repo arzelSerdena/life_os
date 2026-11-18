@@ -146,24 +146,28 @@ export function InboxPanel({
   context,
   onMode,
   onHide,
+  onDragStart,
 }: {
   tasks: TaskRead[];
   mode: InboxMode;
   context: RowContext;
   onMode: (mode: InboxMode) => void;
   onHide: () => void;
+  /** Quarter and Year drag the rows themselves; Week and Month leave it to FullCalendar. */
+  onDragStart?: (task: TaskRead, event: React.PointerEvent) => void;
 }) {
   const listRef = useRef<HTMLUListElement>(null);
+  const ownDrag = !!onDragStart;
   // FullCalendar's own dragging takes the rows onto the grid; `drop` gets the task's id.
   useEffect(() => {
     const list = listRef.current;
-    if (!list) return;
+    if (!list || ownDrag) return;
     const draggable = new Draggable(list, {
       itemSelector: "[data-task-id]",
       eventData: (element: HTMLElement) => ({ title: element.dataset.title ?? "", create: false }),
     });
     return () => draggable.destroy();
-  }, []);
+  }, [ownDrag]);
 
   return (
     <PanelCard
@@ -202,6 +206,7 @@ export function InboxPanel({
               "data-task-id": String(task.id),
               "data-title": task.title,
               className: "cursor-grab",
+              onPointerDown: onDragStart && ((event) => onDragStart(task, event)),
             }}
           />
         ))}

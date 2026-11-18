@@ -2005,6 +2005,23 @@ export type ProjectRead = {
 };
 
 /**
+ * ProjectReschedule
+ *
+ * New dates for a project, as when its bar is dragged or resized on the calendar.
+ * `start_date` left out keeps the project's start.
+ */
+export type ProjectReschedule = {
+    /**
+     * Start Date
+     */
+    start_date?: string | null;
+    /**
+     * Due Date
+     */
+    due_date: string;
+};
+
+/**
  * ProjectTotalsRead
  *
  * Project tasks done in a span (one-off tasks, as project progress counts them), those
@@ -4581,6 +4598,44 @@ export type UpdateProjectResponses = {
 };
 
 export type UpdateProjectResponse = UpdateProjectResponses[keyof UpdateProjectResponses];
+
+export type RescheduleProjectData = {
+    body: ProjectReschedule;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/api/projects/{project_id}/reschedule';
+};
+
+export type RescheduleProjectErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RescheduleProjectError = RescheduleProjectErrors[keyof RescheduleProjectErrors];
+
+export type RescheduleProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: ProjectChange;
+};
+
+export type RescheduleProjectResponse = RescheduleProjectResponses[keyof RescheduleProjectResponses];
 
 export type MoveProjectData = {
     body: ProjectMove;

@@ -16,6 +16,7 @@ from app.schemas.project import (
     ProjectMove,
     ProjectProgress,
     ProjectRead,
+    ProjectReschedule,
     ProjectUpdate,
     SectionCreate,
     SectionRead,
@@ -146,6 +147,15 @@ def get_project(session: SessionDep, project_id: int) -> ProjectRead:
 @router.patch("/projects/{project_id}", responses=NOT_FOUND)
 def update_project(session: SessionDep, project_id: int, data: ProjectUpdate) -> ProjectRead:
     return _read(session, service.update_project(session, project_id, data))
+
+
+@router.post("/projects/{project_id}/reschedule", responses={**NOT_FOUND, **CONFLICT})
+def reschedule_project(
+    session: SessionDep, project_id: int, data: ProjectReschedule
+) -> ProjectChange:
+    """New start and due dates (dragged or resized on the calendar), with an undo batch."""
+    project, batch_id = service.reschedule_project(session, project_id, data)
+    return ProjectChange(project=_read(session, project), batch_id=batch_id)
 
 
 @router.post("/projects/{project_id}/move", responses={**NOT_FOUND, **CONFLICT})

@@ -93,6 +93,47 @@ def test_start_date_is_optional_and_comes_before_the_due_date(
     assert response.json()["start_date"] is None
 
 
+def test_rescheduling_changes_the_dates_and_undo_puts_them_back(
+    client: TestClient, session: Session
+) -> None:
+    area = make_life_area(session, "Home")
+    project = _project(client, area.id, start_date="2026-11-16", due_date="2026-12-20")
+    path = f"{URL}/{project['id']}/reschedule"
+
+    response = client.post(path, json={"start_date": "2026-11-23", "due_date": "2026-12-27"})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert (body["project"]["start_date"], body["project"]["due_date"]) == (
+        "2026-11-23",
+        "2026-12-27",
+    )
+    assert client.post(f"/api/undo/{body['batch_id']}").status_code == 200
+    restored = client.get(f"{URL}/{project['id']}").json()
+    assert (restored["start_date"], restored["due_date"]) == ("2026-11-16", "2026-12-20")
+
+    # Left out, the start stays; the same dates change nothing, so there is nothing to undo.
+    body = client.post(path, json={"due_date": "2026-12-23"}).json()
+    assert (body["project"]["start_date"], body["project"]["due_date"]) == (
+        "2026-11-16",
+        "2026-12-23",
+    )
+    assert client.post(path, json={"due_date": "2026-12-23"}).json()["batch_id"] is None
+
+
+def test_rescheduling_is_validated(client: TestClient, session: Session) -> None:
+    area = make_life_area(session, "Home")
+    project = _project(client, area.id, start_date="2026-11-16", due_date="2026-12-20")
+    path = f"{URL}/{project['id']}/reschedule"
+
+    response = client.post(path, json={"due_date": "2026-11-15"})
+    assert response.status_code == 422
+    assert response.json()["detail"] == "The due date can't be before the start date."
+    assert client.post(f"{URL}/999/reschedule", json={"due_date": "2026-12-01"}).status_code == 404
+
+    assert client.post(f"{URL}/{project['id']}/complete").status_code == 200
+    assert client.post(path, json={"due_date": "2026-12-21"}).status_code == 409
+
+
 def test_list_filters_by_life_area(client: TestClient, session: Session) -> None:
     health = make_life_area(session, "Health")
     career = make_life_area(session, "Career")

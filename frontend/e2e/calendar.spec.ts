@@ -2,9 +2,11 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 import {
   addDays,
   createArea,
+  createProject,
   createRoutine,
   createRoutineStep,
   getEvent,
+  getProject,
   getTask,
   listOccurrences,
   mondayOf,
@@ -314,4 +316,110 @@ test("Quarter and Year: bars, a day's popover and the bars Year has no room for"
   await page.getByRole("button", { name: "1 more bars in MAR" }).click();
   const hidden = page.getByRole("dialog", { name: /More bars in March/ });
   await expect(hidden.getByRole("button", { name: trips[3] })).toBeVisible();
+});
+
+test("Quarter: dragging a bar, a bar's end, a day popover's item and an Inbox task", async ({
+  page,
+  request,
+}) => {
+  const today = await serverToday(request);
+  const area = await createArea(request, unique("Garden"), "teal");
+  // May three years ahead: no other spec reaches it.
+  const year = Number(today.slice(0, 4)) + 3;
+  const may = (day: number) => `${year}-05-${String(day).padStart(2, "0")}`;
+  const trip = await postEvent(request, {
+    life_area_id: area.id,
+    title: unique("Camping"),
+    start_date: may(11),
+    end_date: may(13),
+  });
+  const beds = await createProject(request, area, unique("Raised beds"), {
+    start_date: may(4),
+    due_date: may(20),
+  });
+  const seeds = await postTask(request, {
+    life_area_id: area.id,
+    title: unique("Buy seeds"),
+    scheduled_date: may(14),
+  });
+  const hose = await postTask(request, { life_area_id: area.id, title: unique("New hose") });
+
+  await page.goto("/calendar");
+  await page.getByRole("radio", { name: "Quarter" }).click();
+  await page.getByRole("button", { name: /choose a quarter/ }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Next year" }).click();
+  await page.getByRole("button", { name: `Q2 ${year}` }).click();
+  const grid = page.getByRole("region", { name: "Quarter" });
+  const day = (date: string) => grid.locator(`.linear-day[data-date="${date}"]`);
+  const bar = (title: string) => grid.locator(".linear-bar", { hasText: title }).first();
+
+  // A moved event keeps its length; the label says its new dates while dragging.
+  const from = await box(bar(trip.title));
+  const target = await box(day(may(18)));
+  await page.mouse.move(from.x + 8, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 18, from.y + from.height / 2, { steps: 4 });
+  await page.mouse.move(target.x + 8, from.y + from.height / 2, { steps: 15 });
+  await expect(page.getByRole("status").filter({ hasText: "· 3 days" })).toHaveText(
+    `${short(may(18))} – ${short(may(20))} · 3 days`,
+  );
+  await expect(day(may(19))).toHaveClass(/is-in-range/);
+  await page.mouse.up();
+  await expect(page.getByText(`Moved “${trip.title}” · ${short(may(18))} – 20`)).toBeVisible();
+  await expect
+    .poll(async () => getEvent(request, trip.id))
+    .toMatchObject({ start_date: may(18), end_date: may(20) });
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect
+    .poll(async () => getEvent(request, trip.id))
+    .toMatchObject({ start_date: may(11), end_date: may(13) });
+
+  // A project bar's end changes only its due date.
+  const project = await box(bar(beds.title));
+  const grip = bar(beds.title).locator('[data-edge="end"]');
+  await bar(beds.title).hover();
+  const end = await box(grip);
+  const later = await box(day(may(27)));
+  await dragTo(
+    page,
+    { x: end.x + end.width / 2, y: end.y + end.height / 2 },
+    { x: later.x + later.width / 2, y: project.y + project.height / 2 },
+  );
+  await expect(page.getByText(`Changed “${beds.title}” · ${short(may(4))} – 27`)).toBeVisible();
+  await expect
+    .poll(async () => getProject(request, beds.id))
+    .toMatchObject({ start_date: may(4), due_date: may(27) });
+
+  // A day popover's task is dragged onto another day.
+  const busy = await box(day(may(14)));
+  await day(may(14)).click({ position: { x: busy.width / 2, y: busy.height - 6 } });
+  const popover = page.getByRole("dialog", { name: `Everything on ${may(14)}` });
+  const row = await box(popover.getByRole("listitem").filter({ hasText: seeds.title }));
+  const next = await box(day(may(15)));
+  await dragTo(
+    page,
+    { x: row.x + 60, y: row.y + 12 },
+    { x: next.x + next.width / 2, y: next.y + next.height - 8 },
+  );
+  await expect(page.getByText(`Scheduled “${seeds.title}” · ${short(may(15))}`)).toBeVisible();
+  await expect
+    .poll(async () => getTask(request, seeds.id))
+    .toMatchObject({ scheduled_date: may(15) });
+
+  // An Inbox task is dropped on a day.
+  await page.getByRole("button", { name: /^Inbox/ }).click();
+  const inbox = page.getByRole("complementary", { name: "Inbox" });
+  const task = await box(inbox.getByRole("listitem").filter({ hasText: hose.title }));
+  const drop = await box(day(may(21)));
+  await page.mouse.move(task.x + 60, task.y + 20);
+  await page.mouse.down();
+  await page.mouse.move(task.x + 70, task.y + 24, { steps: 4 });
+  await page.mouse.move(drop.x + drop.width / 2, drop.y + drop.height - 8, { steps: 20 });
+  await expect(page.getByRole("status").filter({ hasText: short(may(21)) })).toBeVisible();
+  await expect(day(may(21))).toHaveClass(/is-drop/);
+  await page.mouse.up();
+  await expect(page.getByText(`Scheduled “${hose.title}” · ${short(may(21))}`)).toBeVisible();
+  await expect
+    .poll(async () => getTask(request, hose.id))
+    .toMatchObject({ scheduled_date: may(21) });
 });

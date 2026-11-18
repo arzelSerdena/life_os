@@ -26,11 +26,27 @@ export type RowContext = {
 };
 
 /** An agenda row (the approved agenda design) for an entry of the grid. */
-export function EntryRow({ entry, context }: { entry: Entry; context: RowContext }) {
+export function EntryRow({
+  entry,
+  context,
+  draggable = false,
+}: {
+  entry: Entry;
+  context: RowContext;
+  /** Quarter and Year's day popover: the row can be dragged onto a day. */
+  draggable?: boolean;
+}) {
   const past = entry.end < context.today;
+  const grab = draggable ? "cursor-grab" : "";
   switch (entry.kind) {
     case "event":
-      return <EventRow event={entry.event} color={context.colorOf(entry.event.life_area_id)} />;
+      return (
+        <EventRow
+          event={entry.event}
+          color={context.colorOf(entry.event.life_area_id)}
+          className={grab}
+        />
+      );
     case "routine": {
       const { routine } = entry;
       return (
@@ -71,15 +87,24 @@ export function EntryRow({ entry, context }: { entry: Entry; context: RowContext
             </PanelLink>
           }
           meta="Project due"
+          className={grab}
         />
       );
     case "task":
-      return <TaskRow task={entry.task} context={context} />;
+      return <TaskRow task={entry.task} context={context} containerProps={{ className: grab }} />;
   }
 }
 
 /** An event: the area tint, a calendar badge, the title and when it happens. */
-function EventRow({ event, color }: { event: OccurrenceRead; color: string | null }) {
+function EventRow({
+  event,
+  color,
+  className = "",
+}: {
+  event: OccurrenceRead;
+  color: string | null;
+  className?: string;
+}) {
   const timeFormat = useTimeFormat();
   const past = event.is_past;
   return (
@@ -87,7 +112,7 @@ function EventRow({ event, color }: { event: OccurrenceRead; color: string | nul
       data-area={areaDataAttribute(color)}
       className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) px-3 py-2 ${
         past ? "bg-(--event-area-bg-past)" : "bg-(--event-area-bg-upcoming)"
-      }`}
+      } ${className}`}
     >
       <span
         className={`mt-0.5 grid size-4 shrink-0 place-items-center rounded-[4px] text-(--event-icon) ${
@@ -154,16 +179,18 @@ function Row({
   icon,
   title,
   meta,
+  className = "",
 }: {
   color: string | null;
   icon: ReactNode;
   title: ReactNode;
   meta: ReactNode;
+  className?: string;
 }) {
   return (
     <li
       data-area={areaDataAttribute(color)}
-      className="relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--color-neutral-50)"
+      className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--color-neutral-50) ${className}`}
     >
       <span className="mt-0.5 grid size-4 shrink-0 place-items-center">{icon}</span>
       <span className="flex min-w-0 flex-col">

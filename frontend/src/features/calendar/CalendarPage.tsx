@@ -11,9 +11,10 @@ import {
   listProjectsOptions,
   listTasksOptions,
   rescheduleEventMutation,
+  rescheduleProjectMutation,
   updateTaskMutation,
 } from "../../client/@tanstack/react-query.gen";
-import type { DaysRead, EventChange } from "../../client/types.gen";
+import type { DaysRead, EventChange, ProjectRead } from "../../client/types.gen";
 import { AnchoredPopover } from "../../components/AnchoredPopover";
 import { QueryError } from "../../components/QueryError";
 import { today as localToday } from "../../period";
@@ -48,6 +49,14 @@ import {
 } from "./calendar";
 import { LinearCalendar } from "./LinearCalendar";
 import { type MonthRow, projectBars, splitEntries } from "./linear";
+import {
+  changesDates,
+  type DaySpan,
+  type DragSubject,
+  projectDates,
+  withPreview,
+} from "./linearDrag";
+import { DragOverlay, useLinearDrag } from "./useLinearDrag";
 
 /**
  * What is open over the grid: a day's routines, "+3 more" (or a day of Quarter and Year), the
@@ -113,6 +122,7 @@ export function CalendarPage() {
   const update = useMutation(updateTaskMutation());
   const reschedule = useMutation(rescheduleEventMutation());
   const editOccurrence = useMutation(editEventOccurrenceMutation());
+  const rescheduleProject = useMutation(rescheduleProjectMutation());
 
   const areas = (lifeAreas.data ?? []).filter((area) => area.archived_at === null);
   const activeProjects = (projects.data ?? []).filter(
@@ -125,7 +135,7 @@ export function CalendarPage() {
   const entries = buildEntries(loadedDays, activeProjects, filters);
   const rings = routineTotals(loadedDays, filters);
   const split = splitEntries(entries);
-  const bars = linear
+  const loadedBars = linear
     ? [...split.bars, ...projectBars(projects.data ?? [], filters, range, today)]
     : [];
   const inboxTasks = (mode: typeof inboxMode) =>
@@ -184,7 +194,7 @@ export function CalendarPage() {
     } else if (entry.kind === "event") {
       const { event } = entry;
       const dates =
-        event.start_date === start
+        how === "resize" || event.start_date === start
           ? { start_date: start, end_date: end === start ? null : end }
           : shiftEvent(event, start);
       const handlers = {
@@ -237,6 +247,62 @@ export function CalendarPage() {
       },
     );
   };
+
+  const projectsKey = listProjectsOptions().queryKey;
+  /** New dates for a project (its bar, or its due date's mark), shown at once like `move`. */
+  const rescheduleProjectDates = (
+    project: ProjectRead,
+    dates: { start_date?: string; due_date: string },
+    text: string,
+  ) => {
+    setFailed(null);
+    void queryClient.cancelQueries({ queryKey: projectsKey });
+    const before = queryClient.getQueryData<ProjectRead[]>(projectsKey);
+    if (before)
+      queryClient.setQueryData<ProjectRead[]>(
+        projectsKey,
+        before.map((item) => (item.id === project.id ? { ...item, ...dates } : item)),
+      );
+    rescheduleProject.mutate(
+      { path: { project_id: project.id }, body: dates },
+      {
+        onSuccess: (change) => change.batch_id && showToast(text, change.batch_id),
+        onError: () => {
+          if (before) queryClient.setQueryData(projectsKey, before);
+          setFailed("Couldn't move it. Try again.");
+        },
+      },
+    );
+  };
+
+  /** Quarter and Year: a bar, a day popover's item or an Inbox task let go over a day. */
+  const dropLinear = (subject: DragSubject, span: DaySpan) => {
+    if (!changesDates(subject, span)) return;
+    if (subject.kind === "inbox") return dropFromInbox(subject.task.id, span.start);
+    const dates = projectDates(subject, span);
+    if (subject.kind === "entry") {
+      const { entry } = subject;
+      if (entry.kind === "project" && dates)
+        return rescheduleProjectDates(
+          entry.project,
+          dates,
+          `Set “${entry.project.title}” · Due ${shortDate(dates.due_date)}`,
+        );
+      return move(entry, span.start, span.start, "move", () => {});
+    }
+    const { bar, how } = subject;
+    const verb = how === "move" ? "Moved" : "Changed";
+    if (bar.kind === "project" && dates)
+      return rescheduleProjectDates(
+        bar.project,
+        dates,
+        `${verb} “${bar.project.title}” · ${spanLabel(span.start, span.end)}`,
+      );
+    if (bar.kind === "event")
+      move(bar.entry, span.start, span.end, how === "move" ? "move" : "resize", () => {});
+  };
+  const { drag, begin } = useLinearDrag(dropLinear);
+  const bars = withPreview(loadedBars, drag?.subject ?? null, drag?.span ?? null);
 
   const error = days.error ?? lifeAreas.error ?? projects.error ?? openTasks.error;
   const ready = days.data && lifeAreas.data && projects.data;
@@ -317,6 +383,9 @@ export function CalendarPage() {
           context={context}
           onAdd={() => newTaskOn(open.day)}
           onClose={close}
+          onDragStart={
+            linear ? (entry, event) => begin({ kind: "entry", entry }, event, close) : undefined
+          }
         />
       </AnchoredPopover>
     );
@@ -364,6 +433,8 @@ export function CalendarPage() {
                 openDay={open?.kind === "day" ? open.day : null}
                 onDay={(day, element) => setOpen({ kind: "day", day, anchor: element })}
                 onHidden={(row, element) => setOpen({ kind: "hidden", row, anchor: element })}
+                drag={drag}
+                onDragStart={(subject, event) => begin(subject, event, close)}
               />
             ) : (
               <CalendarGrid
@@ -421,6 +492,9 @@ export function CalendarPage() {
             context={context}
             onMode={setInboxMode}
             onHide={() => setPanel(null)}
+            onDragStart={
+              linear ? (task, event) => begin({ kind: "inbox", task }, event) : undefined
+            }
           />
         )}
       </main>
@@ -433,6 +507,7 @@ export function CalendarPage() {
         />
       )}
       {popover}
+      <DragOverlay drag={drag} />
     </>
   );
 }
