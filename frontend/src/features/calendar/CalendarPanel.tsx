@@ -1,9 +1,10 @@
 import { Draggable } from "@fullcalendar/react/interaction";
 import { PanelRightClose } from "lucide-react";
-import { type ReactNode, useEffect, useRef } from "react";
+import { Fragment, type ReactNode, useEffect, useRef } from "react";
 import type { TaskRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
+import { monthName } from "../life-areas/overview/format";
 import { EntryRow, type RowContext, TaskRow } from "./AgendaRow";
 import { type AgendaDay, agendaTitle, type InboxMode } from "./calendar";
 
@@ -44,20 +45,22 @@ function PanelCard({
 
 /**
  * The agenda: exactly what the grid shows, by day (Today and Tomorrow named), opening
- * scrolled to today.
+ * scrolled to today. Quarter and Year add month headings that stay in view.
  */
 export function AgendaPanel({
   days,
   context,
   rangeKey,
+  monthHeadings = false,
   emptyText,
   onClearFilters,
   onHide,
 }: {
   days: AgendaDay[];
   context: RowContext;
-  /** Changes with the shown week or month, to scroll to today again. */
+  /** Changes with the shown period, to scroll to today again. */
   rangeKey: string;
+  monthHeadings?: boolean;
   emptyText: string;
   onClearFilters?: () => void;
   onHide: () => void;
@@ -69,37 +72,50 @@ export function AgendaPanel({
     const body = bodyRef.current;
     if (!body) return;
     const first = body.querySelector<HTMLElement>("[data-from-today]");
-    body.scrollTop = first ? first.offsetTop - body.offsetTop - 8 : 0;
+    // A month heading stays over the top of the list, so today goes just under it.
+    const heading = body.querySelector<HTMLElement>("[data-month-heading]")?.offsetHeight ?? 0;
+    body.scrollTop = first ? first.offsetTop - body.offsetTop - 8 - heading : 0;
   }, [rangeKey, hasDays]);
 
   const fromToday = days.find((day) => day.day >= context.today)?.day;
   return (
     <PanelCard title="Agenda" onHide={onHide} bodyRef={bodyRef}>
-      {days.map(({ day, entries }) => {
+      {days.map(({ day, entries }, index) => {
         const { label, date } = agendaTitle(day, context.today);
+        const newMonth =
+          monthHeadings && (index === 0 || days[index - 1].day.slice(0, 7) !== day.slice(0, 7));
         return (
-          <section
-            key={day}
-            aria-label={`${label} ${date}`}
-            data-from-today={day === fromToday ? "" : undefined}
-            className="mt-3 first:mt-1"
-          >
-            <h3 className="flex h-6 items-center gap-2 px-2">
-              <span
-                className={`text-[11px] font-semibold tracking-[0.04em] uppercase ${
-                  day === context.today ? "text-brand-700" : "text-(--text-tertiary)"
-                }`}
+          <Fragment key={day}>
+            {newMonth && (
+              <h3
+                data-month-heading=""
+                className="sticky -top-2 z-10 -mx-2 mt-1 border-b border-(--border-default) bg-(--bg-surface) px-4 pt-2 pb-1.5 text-[13px] font-semibold text-(--text-primary) first:mt-0"
               >
-                {label}
-              </span>
-              <span className="type-meta text-(--text-tertiary)">{date}</span>
-            </h3>
-            <ul className="flex flex-col pt-1">
-              {entries.map((entry) => (
-                <EntryRow key={entry.key} entry={entry} context={context} />
-              ))}
-            </ul>
-          </section>
+                {monthName(day)}
+              </h3>
+            )}
+            <section
+              aria-label={`${label} ${date}`}
+              data-from-today={day === fromToday ? "" : undefined}
+              className="mt-3 first:mt-1"
+            >
+              <h3 className="flex h-6 items-center gap-2 px-2">
+                <span
+                  className={`text-[11px] font-semibold tracking-[0.04em] uppercase ${
+                    day === context.today ? "text-brand-700" : "text-(--text-tertiary)"
+                  }`}
+                >
+                  {label}
+                </span>
+                <span className="type-meta text-(--text-tertiary)">{date}</span>
+              </h3>
+              <ul className="flex flex-col pt-1">
+                {entries.map((entry) => (
+                  <EntryRow key={entry.key} entry={entry} context={context} />
+                ))}
+              </ul>
+            </section>
+          </Fragment>
         );
       })}
       {!hasDays && (

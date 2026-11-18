@@ -43,17 +43,23 @@ def get_week(
 def get_days(
     session: SessionDep,
     start: date | None = None,
-    count: Annotated[int, Query(ge=1, le=42)] = 7,
+    count: Annotated[int, Query(ge=1, le=371)] = 7,
     life_area_id: int | None = None,
     project_id: int | None = None,
     include_cancelled: bool = False,
+    include_routines: bool = True,
 ) -> DaysRead:
     """`count` days from `start` (default: today), placed as on the week board: Next 7 days.
+    Up to 371 days, so the Calendar's Year view fits; `include_routines=false` leaves out
+    the routine steps, which Quarter and Year don't show.
 
     Like the week board, it first rolls unfinished tasks over to today and creates the
     range's missing recurring tasks."""
     filters = service.WeekFilters(
-        life_area_id=life_area_id, project_id=project_id, include_cancelled=include_cancelled
+        life_area_id=life_area_id,
+        project_id=project_id,
+        include_cancelled=include_cancelled,
+        include_routines=include_routines,
     )
     found = service.get_days(session, start or clock.today(), count, filters)
     return DaysRead(

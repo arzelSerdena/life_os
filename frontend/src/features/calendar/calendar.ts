@@ -6,18 +6,30 @@ import type {
   TaskRead,
 } from "../../client/types.gen";
 import { shortDate } from "../life-areas/overview/format";
-import { addDays, daysFrom, monthTitle, WEEKDAY_NAMES, weekdayIndex } from "../pickers/dates";
+import {
+  addDays,
+  addMonths,
+  daysFrom,
+  monthTitle,
+  WEEKDAY_NAMES,
+  weekdayIndex,
+} from "../pickers/dates";
 import type { Priority } from "../tasks/board";
 import { type RoutineDay, routineDays } from "../tasks/next7";
 
 /**
- * The Calendar's Week and Month, as pure functions (Approved: Calendar). Both are day grids
+ * The Calendar's rules, as pure functions (Approved: Calendar). Week and Month are day grids
  * with no time axis: events over several days, and all-day events, are bars across the top;
- * each day then lists its timed events, routines, project due dates and tasks. The agenda
- * lists exactly what the grid shows.
+ * each day then lists its timed events, routines, project due dates and tasks. Quarter and
+ * Year are the linear calendar (`linear.ts`). The agenda lists exactly what the grid shows.
  */
 
-export type CalendarView = "week" | "month";
+export type CalendarView = "week" | "month" | "quarter" | "year";
+
+/** Quarter and Year: one row per month, with no routines. */
+export function isLinear(view: CalendarView): view is "quarter" | "year" {
+  return view === "quarter" || view === "year";
+}
 
 export type ShowKey =
   | "events"
@@ -50,15 +62,18 @@ export const DEFAULT_FILTERS: CalendarFilters = {
   },
 };
 
-/** Whether any filter hides something (Clear filters then has work to do). */
-export function isFiltered(filters: CalendarFilters): boolean {
+/**
+ * Whether any filter hides something (Clear filters then has work to do). Quarter and Year
+ * show no routines, so Routine steps doesn't count there.
+ */
+export function isFiltered(filters: CalendarFilters, view: CalendarView = "week"): boolean {
   const { show } = filters;
   return (
     filters.hiddenAreas.length > 0 ||
     filters.hiddenPriorities.length > 0 ||
     !show.events ||
     !show.tasks ||
-    !show.routines ||
+    (!show.routines && !isLinear(view)) ||
     !show.projects ||
     !show.completed
   );
@@ -68,11 +83,21 @@ export function isFiltered(filters: CalendarFilters): boolean {
 
 export type DayRange = { start: string; end: string; count: number };
 
-/** Week: Monday to Sunday around `anchor`. Month: the whole weeks that hold its days. */
+/**
+ * Week: Monday to Sunday around `anchor`. Month: the whole weeks that hold its days.
+ * Quarter and Year: their own days, first to last.
+ */
 export function viewRange(view: CalendarView, anchor: string): DayRange {
   if (view === "week") {
     const start = addDays(anchor, -weekdayIndex(anchor));
     return { start, end: addDays(start, 6), count: 7 };
+  }
+  if (isLinear(view)) {
+    const year = anchor.slice(0, 4);
+    const first = view === "year" ? 0 : Math.floor((Number(anchor.slice(5, 7)) - 1) / 3) * 3;
+    const start = `${year}-${String(first + 1).padStart(2, "0")}-01`;
+    const end = addDays(`${addMonths(start.slice(0, 7), view === "year" ? 12 : 3)}-01`, -1);
+    return { start, end, count: daysFrom(start, end) + 1 };
   }
   const first = `${anchor.slice(0, 7)}-01`;
   const last = addDays(`${nextMonth(anchor)}-01`, -1);
@@ -86,27 +111,35 @@ function nextMonth(day: string): string {
   return month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
-/** The next or previous week or month: the anchor moves to its first day. */
+/** The next or previous week, month, quarter or year: the anchor moves to its first day. */
 export function stepAnchor(view: CalendarView, anchor: string, steps: number): string {
   if (view === "week") return addDays(viewRange("week", anchor).start, 7 * steps);
-  const [year, month] = anchor.split("-").map(Number);
-  const index = year * 12 + (month - 1) + steps;
-  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}-01`;
+  const months = { month: 1, quarter: 3, year: 12 }[view];
+  const first = view === "month" ? anchor : viewRange(view, anchor).start;
+  return `${addMonths(first.slice(0, 7), months * steps)}-01`;
 }
 
-/** Whether today is inside the shown week, or the shown month itself. */
+/** Whether today is inside the shown period. */
 export function showsToday(view: CalendarView, anchor: string, today: string): boolean {
   if (view === "month") return anchor.slice(0, 7) === today.slice(0, 7);
-  const { start, end } = viewRange("week", anchor);
+  const { start, end } = view === "week" ? viewRange("week", anchor) : viewRange(view, anchor);
   return start <= today && today <= end;
+}
+
+/** "Q4": the quarter a day falls in. */
+export function quarterOf(day: string): number {
+  return Math.floor((Number(day.slice(5, 7)) - 1) / 3) + 1;
 }
 
 /**
  * The header: "Nov 9 – 15", "Nov 30 – Dec 6", "Jan 4 – 10, 2027" (another year),
- * "Dec 28, 2026 – Jan 3, 2027"; a month is "November 2026".
+ * "Dec 28, 2026 – Jan 3, 2027"; a month is "November 2026", a quarter "Q4 2026", a year
+ * "2026".
  */
 export function rangeLabel(view: CalendarView, anchor: string, today: string): string {
   if (view === "month") return monthTitle(anchor.slice(0, 7));
+  if (view === "quarter") return `Q${quarterOf(anchor)} ${anchor.slice(0, 4)}`;
+  if (view === "year") return anchor.slice(0, 4);
   const { start, end } = viewRange("week", anchor);
   const startYear = start.slice(0, 4);
   const endYear = end.slice(0, 4);

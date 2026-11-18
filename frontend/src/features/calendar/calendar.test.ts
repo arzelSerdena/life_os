@@ -78,6 +78,53 @@ const filters = (change: Partial<CalendarFilters> = {}, show = {}): CalendarFilt
   show: { ...DEFAULT_FILTERS.show, ...show },
 });
 
+// ---------------------------------------------------------------- Quarter and Year
+
+test("a quarter runs from its first day to its last, and a year from Jan 1 to Dec 31", () => {
+  expect(viewRange("quarter", "2026-11-14")).toEqual({
+    start: "2026-10-01",
+    end: "2026-12-31",
+    count: 92,
+  });
+  expect(viewRange("quarter", "2027-02-10")).toEqual({
+    start: "2027-01-01",
+    end: "2027-03-31",
+    count: 90,
+  });
+  expect(viewRange("year", "2028-06-01")).toEqual({
+    start: "2028-01-01",
+    end: "2028-12-31",
+    count: 366,
+  });
+});
+
+test("Quarter and Year step by three months and by a year, crossing years", () => {
+  expect(stepAnchor("quarter", "2026-11-14", 1)).toBe("2027-01-01");
+  expect(stepAnchor("quarter", "2026-11-14", -1)).toBe("2026-07-01");
+  expect(stepAnchor("year", "2026-11-14", 1)).toBe("2027-01-01");
+  expect(stepAnchor("year", "2026-11-14", -2)).toBe("2024-01-01");
+});
+
+test("the header names the quarter and the year", () => {
+  expect(rangeLabel("quarter", "2026-11-14", TODAY)).toBe("Q4 2026");
+  expect(rangeLabel("quarter", "2027-04-01", TODAY)).toBe("Q2 2027");
+  expect(rangeLabel("year", "2026-03-01", TODAY)).toBe("2026");
+});
+
+test("Today shows once today is out of the quarter or year", () => {
+  expect(showsToday("quarter", "2026-10-01", TODAY)).toBe(true);
+  expect(showsToday("quarter", "2027-01-01", TODAY)).toBe(false);
+  expect(showsToday("year", "2026-01-01", TODAY)).toBe(true);
+  expect(showsToday("year", "2025-01-01", TODAY)).toBe(false);
+});
+
+test("Routine steps doesn't count as a filter in Quarter and Year, which show no routines", () => {
+  const noRoutines = filters({}, { routines: false });
+  expect(isFiltered(noRoutines, "month")).toBe(true);
+  expect(isFiltered(noRoutines, "quarter")).toBe(false);
+  expect(isFiltered(noRoutines, "year")).toBe(false);
+});
+
 const time = (value: string) => value.slice(0, 5);
 const keys = (entries: Entry[]) => entries.map((entry) => entry.key);
 

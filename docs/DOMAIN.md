@@ -272,7 +272,7 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
 ## 8. Scheduling and derived values
 
 - **Placement rule**, everywhere (Tasks boards, Calendar, agendas, Home): a task sits on its scheduled date; if it has none, on its due date; if neither, it is Unscheduled. **Overdue** = an open task whose due date is before today; it is listed in Today. Tasks have no start time or duration.
-- **Calendar**: Week and Month are FullCalendar day grids (untimed); Quarter and Year are a linear calendar (one row per month). Projects show as bars from `start_date` (or the day they were created) to `due_date` in Quarter and Year; a project with no due date has no bar.
+- **Calendar**: Week and Month are FullCalendar day grids (untimed); Quarter and Year are a linear calendar (one row per month). Projects show as bars from `start_date` (or the day they were created) to `due_date` in Quarter and Year; a project with no due date has no bar. Active projects always show; done and cancelled ones follow the Completed and Cancelled filters; archived ones never show. Quarter and Year load `GET /api/days` for their own days (up to 371, with `include_routines=false`, since they show no routines), so viewing them also creates the range's recurring tasks from today on, as Week and Month do.
 - Day columns load from one call:
   - `GET /api/week` returns Unscheduled plus seven day columns, Monday to Sunday, optionally for one life area or project.
   - **Unscheduled** holds every to-do task with neither a scheduled nor a due date, from every life area and the Inbox.

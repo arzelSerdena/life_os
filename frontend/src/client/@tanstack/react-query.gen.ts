@@ -1839,6 +1839,8 @@ export const getDaysQueryKey = (options?: Options<GetDaysData>) => createQueryKe
  * Get Days
  *
  * `count` days from `start` (default: today), placed as on the week board: Next 7 days.
+ * Up to 371 days, so the Calendar's Year view fits; `include_routines=false` leaves out
+ * the routine steps, which Quarter and Year don't show.
  *
  * Like the week board, it first rolls unfinished tasks over to today and creates the
  * range's missing recurring tasks.
@@ -1862,6 +1864,8 @@ export const getDaysInfiniteQueryKey = (options?: Options<GetDaysData>): QueryKe
  * Get Days
  *
  * `count` days from `start` (default: today), placed as on the week board: Next 7 days.
+ * Up to 371 days, so the Calendar's Year view fits; `include_routines=false` leaves out
+ * the routine steps, which Quarter and Year don't show.
  *
  * Like the week board, it first rolls unfinished tasks over to today and creates the
  * range's missing recurring tasks.

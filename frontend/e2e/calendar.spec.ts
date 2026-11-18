@@ -261,3 +261,57 @@ test("Month: a full day ends with +n more, which opens the whole day", async ({
   const day = page.getByRole("dialog", { name: `Everything on ${target}` });
   for (const title of titles) await expect(day.getByRole("button", { name: title })).toBeVisible();
 });
+
+test("Quarter and Year: bars, a day's popover and the bars Year has no room for", async ({
+  page,
+  request,
+}) => {
+  const today = await serverToday(request);
+  const area = await createArea(request, unique("Travel"), "ochre");
+  // March three years ahead: no other spec reaches it.
+  const year = Number(today.slice(0, 4)) + 3;
+  const march = (day: number) => `${year}-03-${String(day).padStart(2, "0")}`;
+  const trips = Array.from({ length: 4 }, (_, i) => unique(`Trip ${i}`));
+  for (const [i, title] of trips.entries())
+    await postEvent(request, {
+      life_area_id: area.id,
+      title,
+      start_date: march(10 + i),
+      end_date: march(18 + i),
+    });
+  const dentist = unique("Dentist");
+  await postEvent(request, {
+    life_area_id: area.id,
+    title: dentist,
+    start_date: march(25),
+    start_time: "09:00:00",
+    end_time: "10:00:00",
+  });
+  const pack = unique("Pack bags");
+  await postTask(request, { life_area_id: area.id, title: pack, scheduled_date: march(25) });
+
+  await page.goto("/calendar");
+  await page.getByRole("radio", { name: "Quarter" }).click();
+  await page.getByRole("button", { name: /choose a quarter/ }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Next year" }).click();
+  await page.getByRole("button", { name: `Q1 ${year}` }).click();
+  await expect(page.getByText(`Q1 ${year}`, { exact: true })).toBeVisible();
+
+  // Quarter shows every bar.
+  const grid = page.getByRole("region", { name: "Quarter" });
+  for (const title of trips) await expect(grid.getByRole("button", { name: title })).toBeVisible();
+  const day = grid.getByRole("button", { name: /^\w{3}, Mar 25, 2 items$/ });
+  const found = await box(day);
+  await day.click({ position: { x: found.width / 2, y: found.height - 6 } });
+  const popover = page.getByRole("dialog", { name: `Everything on ${march(25)}` });
+  await expect(popover.getByRole("button", { name: dentist })).toBeVisible();
+  await expect(popover.getByRole("button", { name: pack })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // Year keeps three lanes; "+1" under MAR lists the fourth trip.
+  await page.getByRole("radio", { name: "Year" }).click();
+  await expect(page.getByText(String(year), { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "1 more bars in MAR" }).click();
+  const hidden = page.getByRole("dialog", { name: /More bars in March/ });
+  await expect(hidden.getByRole("button", { name: trips[3] })).toBeVisible();
+});
