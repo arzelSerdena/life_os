@@ -186,6 +186,8 @@
 
 - One command runs the app (`backend/app/frontend.py`, `justfile`). `just app` builds the frontend, applies migrations and starts the API on http://127.0.0.1:8000, which now serves `frontend/dist` too: a catch-all GET/HEAD route, added last, returns a file from `dist`, else `index.html` for app paths, while anything under `/api` stays a JSON 404 and a wrong method on an API route stays a 405. Hashed `assets/` files are cached for a year, `index.html` is `no-cache`, a missing file is a 404 rather than the page, and paths can't leave `dist`. The folder is the `LIFE_OS_FRONTEND_DIST` setting. Other `just` commands: `serve` (last build, no rebuild), `dev` (API with reload plus Vite), `install`, `build`, `migrate`, `fmt`, `typecheck`, `test`, `e2e`, `check` (everything before a PR) and `api` (regenerate the client). Tests in `backend/tests/test_frontend.py` (17). Checked by hand: `just app 8200` on a scratch database served `/settings` and `/home` in a browser with no errors. No API change, so no client regeneration.
 
-**Next** (code, one branch and PR each)
+- Added `docs/FEEDBACK.md` for the daily-use period: one-line notes by date (`bug`, `friction` or `idea`, the screen, and a severity), and a triage table linking each note to its `fix/` or `feat/` branch and PR. It starts with the two designs flagged for review: the right-click menu (#70) and the `Ctrl K` palette (#69).
 
-- Phase 6: 1–2 weeks of daily use with `just app`, with `docs/FEEDBACK.md`.
+**Next**
+
+- Phase 6: 1–2 weeks of daily use with `just app`, writing notes in `docs/FEEDBACK.md`; then one `fix/` or `feat/` branch per triaged note, blockers first.
