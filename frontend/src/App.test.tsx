@@ -8,10 +8,17 @@ beforeEach(() => {
   useSidebarStore.setState({ collapsed: false, width: SIDEBAR_DEFAULT_WIDTH });
   vi.stubGlobal(
     "fetch",
-    vi.fn(
-      async () =>
-        new Response("[]", { status: 200, headers: { "Content-Type": "application/json" } }),
-    ),
+    vi.fn(async (request: Request) => {
+      // Every list is empty; Finished & archived reads one object with three lists.
+      const empty =
+        new URL(request.url).pathname === "/api/archive"
+          ? { areas: [], projects: [], routines: [] }
+          : [];
+      return new Response(JSON.stringify(empty), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }),
   );
 });
 

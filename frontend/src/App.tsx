@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { AppLayout } from "./components/AppLayout";
-import { ArchivedAreasPage } from "./features/life-areas/ArchivedAreasPage";
+import { ArchivePage } from "./features/archive/ArchivePage";
 import { AreaPage } from "./features/life-areas/AreaPage";
 import { AreasLayout } from "./features/life-areas/AreasLayout";
 import { AreasOverviewPage } from "./features/life-areas/AreasOverviewPage";
@@ -26,7 +26,7 @@ export function App() {
       <Route element={<AppLayout />}>
         <Route path="areas" element={<AreasLayout />}>
           <Route index element={<AreasOverviewPage />} />
-          <Route path="archived" element={<ArchivedAreasPage />} />
+          <Route path="archived" element={<ArchivePage />} />
           <Route path="routines" element={<RoutinesOverviewPage />} />
           <Route path="routines/:routineId" element={<RoutinePage />} />
           <Route path="projects" element={<ProjectsOverviewPage />} />

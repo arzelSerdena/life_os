@@ -55,11 +55,16 @@ export function plural(count: number, one: string, many = `${one}s`): string {
 
 // ---------- Header ----------
 
-/** The schedule chip: "Every day · since Oct 5", or "· from today" / "· from Nov 20". */
+/** The schedule chip: "Every day · since Oct 5", or "· from today" / "· from Nov 20"; an
+ * archived routine's runs from its start to its archive day: "Every day · Jul 6 – Nov 1". */
 export function scheduleLabel(page: RoutinePageRead): string {
   const rows = page.routine.schedules;
-  const current = [...rows].reverse().find((row) => row.starts_on <= page.today) ?? rows[0];
+  const last = page.archived_on ?? page.today;
+  const current = [...rows].reverse().find((row) => row.starts_on <= last) ?? rows[0];
   const rule = describeRepeat(parseRRule(current.rrule), current.starts_on);
+  if (page.archived_on) {
+    return `${rule} · ${shortDate(rows[0].starts_on)} – ${shortDate(page.archived_on)}`;
+  }
   if (current.starts_on < page.today) return `${rule} · since ${shortDate(current.starts_on)}`;
   if (current.starts_on === page.today) return `${rule} · from today`;
   return `${rule} · from ${shortDate(current.starts_on)}`;
@@ -199,7 +204,8 @@ export function tiles(page: RoutinePageRead, period: Period): Tile[] {
   const steps = totals.done + totals.missed + totals.skipped;
 
   if (steps === 0) {
-    return ["Completion rate", "Full days", "Current run", "Missed", "Skipped"].map((label) => ({
+    const run = page.archived_on ? "Final run" : "Current run";
+    return ["Completion rate", "Full days", run, "Missed", "Skipped"].map((label) => ({
       label,
       value: "—",
       unit: "",
@@ -241,12 +247,14 @@ export function tiles(page: RoutinePageRead, period: Period): Tile[] {
   const bestDates = best.start && best.end ? ` · ${dayRange(best.start, best.end)}` : "";
   const runs = buckets.map((bucket) => bucket.run);
   const showBest = current.length === 0 && best.length > 0;
+  // An archived routine stopped on its archive day: its current run is its final run.
+  const now = page.archived_on ? "final" : "current";
   const runTile: Tile = {
-    label: showBest ? "Best run" : "Current run",
+    label: showBest ? "Best run" : page.archived_on ? "Final run" : "Current run",
     value: `${showBest ? best.length : current.length}`,
     unit: plural(showBest ? best.length : current.length, "day"),
     line: showBest
-      ? `${dayRange(best.start ?? "", best.end ?? "")} · current 0`
+      ? `${dayRange(best.start ?? "", best.end ?? "")} · ${now} 0`
       : best.length > 0
         ? `Best ${best.length}${bestDates}`
         : "No full days yet",

@@ -33,6 +33,8 @@ export type PanelNotes = {
   markdown: string | null;
   save: (markdown: string | null) => Promise<unknown>;
   header?: ReactNode;
+  /** Shown, not edited: an archived item's notes. */
+  readOnly?: boolean;
 };
 
 type PanelViewProps = {
@@ -116,6 +118,7 @@ export function PanelView({
           initialMarkdown={notes.markdown}
           onSave={notes.save}
           header={notes.header}
+          readOnly={notes.readOnly}
           showSource={showSource}
           toolbarContainer={toolbar}
         />

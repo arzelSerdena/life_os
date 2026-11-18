@@ -331,6 +331,11 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **First run**: the setup message shows until there is a life area and at least one task or routine.
   - Quick add on Home creates a task scheduled today with no owner (so it is also in the Inbox).
 - **Finished & archived** lists archived life areas, done, cancelled or archived projects, and archived routines. Areas and projects are deleted only when empty; a routine is deleted through the confirm dialog unless one of its steps feeds a metric.
+  - Each list is newest first (`GET /api/archive`). Projects are grouped Done, Cancelled and Archived; an archived project is listed under Archived whatever its status, with the day it was archived; the others with the day they were done or cancelled.
+  - **Area counts** are what Restore brings back: the projects, tasks and metrics its last archive took that are still archived. "Empty" means nothing belongs to the area, archived items included, so it can be deleted.
+  - **Project tasks**: done one-off tasks out of all of them, cancelled and archived ones included (finishing a project cancels its open tasks and archiving it archives them, so progress's own rule would show 0/0). Recurring occurrences don't count.
+  - **Routines**: the schedule in force on the archive day, the steps not archived on their own, and the best run: the longest run of full days up to the archive day.
+  - Restore and Reopen apply at once with the undo toast; so does Archive for a done or cancelled project. A project can't be restored while its area is archived (409).
 
 ### Today and settings
 

@@ -4,7 +4,7 @@ import { ConfirmDialog } from "../confirming/ConfirmDialog";
 import { useDeletedToast } from "../deleting/deleteDialogs";
 
 type DeleteLifeAreaDialogProps = {
-  lifeArea: LifeAreaRead;
+  lifeArea: Pick<LifeAreaRead, "id" | "title">;
   onClose: () => void;
   onDeleted?: () => void;
 };

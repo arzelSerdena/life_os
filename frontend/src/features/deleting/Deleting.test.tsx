@@ -123,6 +123,8 @@ beforeEach(() => {
       requests.push({ method: request.method, path: url.pathname, body });
       if (request.method !== "GET") return new Response(null, { status: 204 });
       switch (url.pathname) {
+        case "/api/archive":
+          return json({ areas: [], projects: [], routines: [] });
         case "/api/life-areas":
           return json([career]);
         case "/api/life-areas/1":

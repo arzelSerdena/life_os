@@ -105,6 +105,8 @@ beforeEach(() => {
         return json({ project, batch_id: "batch-1" });
       }
       switch (url.pathname) {
+        case "/api/archive":
+          return json({ areas: [], projects: [], routines: [] });
         case "/api/life-areas":
           return json([career]);
         case "/api/life-areas/1":

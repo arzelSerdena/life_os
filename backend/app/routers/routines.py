@@ -266,6 +266,7 @@ def get_routine_page(
         start=page.view.start,
         end=page.view.end,
         today=page.today,
+        archived_on=clock.local_date(routine.archived_at) if routine.archived_at else None,
         totals=_totals(page.totals),
         previous=_totals(page.previous) if page.previous else None,
         current_run=RunRead(**vars(page.current_run)),

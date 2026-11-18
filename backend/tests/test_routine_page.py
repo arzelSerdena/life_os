@@ -212,5 +212,14 @@ def test_a_routine_with_no_steps_has_empty_totals(client: TestClient) -> None:
     assert body["current_run"] == {"length": 0, "start": None, "end": None}
 
 
+def test_an_archived_routine_names_its_archive_day(client: TestClient) -> None:
+    routine = _routine(client)
+    assert _page(client, routine)["archived_on"] is None
+
+    assert client.post(f"/api/routines/{routine['id']}/archive").status_code == 200
+
+    assert _page(client, routine)["archived_on"] == TODAY.isoformat()
+
+
 def test_an_unknown_routine_is_not_found(client: TestClient) -> None:
     assert client.get("/api/routines/999/page").status_code == 404

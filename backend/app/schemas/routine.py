@@ -319,6 +319,8 @@ class RoutinePageRead(BaseModel):
     start: date
     end: date
     today: date
+    # The day an archived routine was archived: its last counted day. None while active.
+    archived_on: date | None
     totals: RoutineTotalsRead
     previous: RoutineTotalsRead | None
     current_run: RunRead

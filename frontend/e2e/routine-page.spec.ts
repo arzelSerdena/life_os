@@ -179,13 +179,15 @@ test("the header renames, reschedules, pauses, archives and deletes", async ({ p
   // Archive, with Undo in its toast.
   await menu.click();
   await page.getByRole("menuitem", { name: "Archive routine" }).click();
-  await expect(page.getByText("This routine is archived.")).toBeVisible();
+  // Read-only: Restore takes Add step's place.
+  await expect(page.getByRole("button", { name: "Restore" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add step" })).toHaveCount(0);
   await page
     .getByRole("status")
     .filter({ hasText: `Archived “${renamed}”` })
     .getByRole("button", { name: "Undo" })
     .click();
-  await expect(page.getByText("This routine is archived.")).toBeHidden();
+  await expect(page.getByRole("button", { name: "Add step" })).toBeVisible();
 
   // Delete asks first, then leaves the page.
   await menu.click();

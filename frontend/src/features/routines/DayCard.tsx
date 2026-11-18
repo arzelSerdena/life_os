@@ -32,7 +32,8 @@ export function DayCard({
 }: {
   page: RoutinePageRead;
   day: string;
-  onToday: () => void;
+  /** Omitted for an archived routine: it opens on its archive day and stays there. */
+  onToday?: () => void;
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
@@ -59,7 +60,7 @@ export function DayCard({
         </h2>
         <span className="type-meta text-(--text-tertiary)">{isToday ? label : label.slice(5)}</span>
         <span className="ml-auto flex items-center gap-1.5">
-          {!isToday && (
+          {!isToday && onToday && (
             <Button size="sm" variant="secondary" onPress={onToday}>
               Today
             </Button>

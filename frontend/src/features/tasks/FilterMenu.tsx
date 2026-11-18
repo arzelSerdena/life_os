@@ -34,6 +34,20 @@ export function useClearFilters(view: FilterView): () => void {
   return () => setFilters(view, ({ sort, subgroups }) => ({ sort, subgroups }));
 }
 
+/** The header's filter icon button, as a popover trigger. */
+export const FILTER_TRIGGER =
+  "relative grid size-7 shrink-0 place-items-center rounded-(--radius-6) text-(--text-tertiary) outline-none hover:bg-(--color-neutral-100) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[pressed=true]:bg-(--color-neutral-100) aria-expanded:bg-(--color-neutral-100) aria-expanded:text-(--text-primary)";
+
+/** The accent dot on the filter icon while filters hide something. */
+export function FiltersOnDot() {
+  return (
+    <span
+      aria-hidden
+      className="absolute top-[3px] right-[3px] size-[7px] rounded-full bg-(--color-brand-700) shadow-[0_0_0_2px_var(--bg-surface)]"
+    />
+  );
+}
+
 const PRIORITY_FLAG: Record<Priority, string> = {
   high: "text-(--priority-high)",
   medium: "text-(--priority-medium)",
@@ -83,15 +97,10 @@ export function FilterMenu({
     <Popover>
       <Popover.Trigger
         aria-label={on ? "Filter and sort (filters on)" : "Filter and sort"}
-        className="relative grid size-7 shrink-0 place-items-center rounded-(--radius-6) text-(--text-tertiary) outline-none hover:bg-(--color-neutral-100) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[pressed=true]:bg-(--color-neutral-100) aria-expanded:bg-(--color-neutral-100) aria-expanded:text-(--text-primary)"
+        className={FILTER_TRIGGER}
       >
         <SlidersHorizontal aria-hidden className="size-4" strokeWidth={2} />
-        {on && (
-          <span
-            aria-hidden
-            className="absolute top-[3px] right-[3px] size-[7px] rounded-full bg-(--color-brand-700) shadow-[0_0_0_2px_var(--bg-surface)]"
-          />
-        )}
+        {on && <FiltersOnDot />}
       </Popover.Trigger>
       <Popover.Content placement="bottom end" className="w-[280px]">
         <Popover.Dialog
@@ -227,7 +236,7 @@ export function FilterMenu({
   );
 }
 
-function Section({
+export function Section({
   label,
   first = false,
   children,
@@ -250,16 +259,19 @@ function Section({
 }
 
 /** A checkbox row: neutral-700 when checked, as in every menu (Nov 16). */
-function CheckRow({
+export function CheckRow({
   label,
   checked,
   onChange,
   children,
+  trailing,
 }: {
   label: string;
   checked: boolean;
   onChange: () => void;
   children?: ReactNode;
+  /** Shown at the right end, such as a count. */
+  trailing?: ReactNode;
 }) {
   return (
     <label className="flex h-[30px] shrink-0 cursor-pointer items-center gap-2 rounded-(--radius-6) px-2 text-[13px] text-(--text-primary) hover:bg-(--color-neutral-100) has-focus-visible:ring-2 has-focus-visible:ring-(--focus-ring)">
@@ -278,6 +290,9 @@ function CheckRow({
       </span>
       {children}
       <span className="min-w-0 truncate">{label}</span>
+      {trailing && (
+        <span className="ml-auto shrink-0 type-meta text-(--text-tertiary)">{trailing}</span>
+      )}
     </label>
   );
 }

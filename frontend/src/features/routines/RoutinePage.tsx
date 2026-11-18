@@ -1,7 +1,7 @@
 import { Button } from "@heroui/react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import {
   getRoutinePageOptions,
@@ -80,7 +80,15 @@ function RoutineView({
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
-  const [selected, setSelected] = useState(page.today);
+  // An archived routine opens on its archive day, in the period that holds it.
+  const lastDay = page.archived_on ?? page.today;
+  const [selected, setSelected] = useState(lastDay);
+  const setDate = usePeriodStore((state) => state.setDate);
+  const archivedOn = page.archived_on;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only when the routine opens
+  useEffect(() => {
+    if (archivedOn && (archivedOn < page.start || archivedOn > page.end)) setDate(archivedOn);
+  }, [archivedOn, setDate]);
   const [square, setSquare] = useState<SquareTarget | null>(null);
   const [isAddingStep, setIsAddingStep] = useState(false);
   const { routine } = page;
@@ -100,9 +108,6 @@ function RoutineView({
       />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
-        {isArchived && (
-          <p className="type-body text-(--text-tertiary)">This routine is archived.</p>
-        )}
         {hasSteps && <StatTiles tiles={tiles(page, period)} />}
         <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-4">
           <div className="flex min-w-0 flex-col gap-4">
@@ -111,7 +116,7 @@ function RoutineView({
                 <StepsHeatmap
                   map={heatmap(page, period)}
                   period={period}
-                  selected={selected === page.today ? null : selected}
+                  selected={selected === lastDay ? null : selected}
                   onSelect={setSelected}
                   onSquare={isArchived ? undefined : setSquare}
                   label={
@@ -142,7 +147,7 @@ function RoutineView({
               <DayCard
                 page={page}
                 day={selected}
-                onToday={() => setSelected(page.today)}
+                onToday={isArchived ? undefined : () => setSelected(page.today)}
                 areas={areas}
                 projects={projects}
               />
@@ -182,8 +187,9 @@ function RoutineNotes({ routine }: { routine: RoutineRead }) {
   const queryClient = useQueryClient();
   return (
     <NotesEditor
-      key={`routine-${routine.id}`}
+      key={`routine-${routine.id}-${routine.archived_at !== null}`}
       variant="card"
+      readOnly={routine.archived_at !== null}
       initialMarkdown={routine.notes}
       showSource={false}
       toolbarContainer={null}

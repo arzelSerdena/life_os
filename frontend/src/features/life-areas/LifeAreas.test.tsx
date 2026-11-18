@@ -24,6 +24,24 @@ async function fakeApi(request: Request): Promise<Response> {
   const body = request.method === "GET" ? undefined : await request.json().catch(() => undefined);
   requests.push({ method: request.method, path: url.pathname, body });
 
+  if (url.pathname === "/api/archive") {
+    const archived = areas.flatMap((area) =>
+      area.archived_at === null
+        ? []
+        : [
+            {
+              ...area,
+              archived_at: area.archived_at,
+              archived_on: area.archived_at.slice(0, 10),
+              projects: 0,
+              tasks: 0,
+              metrics: 0,
+              has_items: false,
+            },
+          ],
+    );
+    return json({ areas: archived, projects: [], routines: [] });
+  }
   const [, , , idText, action] = url.pathname.split("/");
   const id = Number(idText);
   const index = areas.findIndex((area) => area.id === id);
@@ -218,7 +236,7 @@ test("archives an empty area at once with an undo toast, then restores it", asyn
   expect(await screen.findByText(/Archived “Health”/)).toBeInTheDocument();
 
   await user.click(screen.getByRole("link", { name: "Finished & archived" }));
-  await user.click(await screen.findByRole("button", { name: "Restore" }));
+  await user.click(await screen.findByRole("button", { name: "Restore “Health”" }));
 
   expect(await screen.findByText("No archived areas.")).toBeInTheDocument();
   expect(await sidebarAreas().findByRole("link", { name: "Health" })).toBeInTheDocument();
@@ -245,7 +263,9 @@ test("explains why a delete was refused and keeps the area", async () => {
   const user = userEvent.setup();
   renderApp("/areas/archived");
 
-  await user.click(await screen.findByRole("button", { name: "Delete" }));
+  // The list thinks it is empty (the archive read is older than its contents).
+  await user.click(await screen.findByRole("button", { name: "More actions for “Health”" }));
+  await user.click(await screen.findByRole("menuitem", { name: "Delete area" }));
   const dialog = await screen.findByRole("alertdialog");
   await user.click(within(dialog).getByRole("button", { name: "Delete area" }));
 

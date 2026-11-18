@@ -83,7 +83,7 @@ export function RoutinesOverviewPage() {
                   id: "archived",
                   label: "Archived routines",
                   icon: Archive,
-                  onAction: () => navigate("/areas/archived#archived-routines"),
+                  onAction: () => navigate("/areas/archived?tab=routines"),
                 },
                 {
                   id: "export",
