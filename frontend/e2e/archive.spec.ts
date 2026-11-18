@@ -35,7 +35,7 @@ test("restoring an area brings back its project, with Undo", async ({ page, requ
   await expect(page).toHaveURL(/tab=projects/);
   const archived = page.getByRole("region", { name: "Archived" });
   const projectRow = row(page, project.title);
-  await expect(archived.getByRole("button", { name: project.title })).toBeVisible();
+  await expect(archived.getByRole("button", { name: project.title, exact: true })).toBeVisible();
   await projectRow.hover();
   await expect(
     projectRow.getByRole("button", { name: `Restore “${project.title}”` }),
@@ -72,6 +72,8 @@ test("an archived area opens a read-only panel that can restore it", async ({ pa
   await expect(page.getByText(`Restored “${area.title}”`)).toBeVisible();
   await expect(panel).toHaveCount(0);
   await expect(page.getByRole("button", { name: area.title, exact: true })).toHaveCount(0);
+  // Other specs share the sidebar: leave it as it was.
+  expect((await request.delete(`/api/life-areas/${area.id}`)).ok()).toBe(true);
 });
 
 test("finished projects reopen, archive, filter by area and delete", async ({ page, request }) => {
@@ -89,11 +91,13 @@ test("finished projects reopen, archive, filter by area and delete", async ({ pa
 
   await page.goto("/areas/archived?tab=projects");
   const doneGroup = page.getByRole("region", { name: "Done" });
-  await expect(doneGroup.getByRole("button", { name: done.title })).toBeVisible();
+  await expect(doneGroup.getByRole("button", { name: done.title, exact: true })).toBeVisible();
   await expect(row(page, done.title)).toContainText(`${area.title} ·`);
   await expect(row(page, done.title)).toContainText("0/1 tasks");
   await expect(
-    page.getByRole("region", { name: "Cancelled" }).getByRole("button", { name: empty.title }),
+    page
+      .getByRole("region", { name: "Cancelled" })
+      .getByRole("button", { name: empty.title, exact: true }),
   ).toBeVisible();
 
   // Reopen applies at once with the undo toast.
@@ -108,7 +112,9 @@ test("finished projects reopen, archive, filter by area and delete", async ({ pa
   await page.getByRole("button", { name: `More actions for “${kept.title}”` }).click();
   await page.getByRole("menuitem", { name: "Archive project" }).click();
   await expect(
-    page.getByRole("region", { name: "Archived" }).getByRole("button", { name: kept.title }),
+    page
+      .getByRole("region", { name: "Archived" })
+      .getByRole("button", { name: kept.title, exact: true }),
   ).toBeVisible();
 
   // The filter hides an area's projects.
@@ -132,6 +138,8 @@ test("finished projects reopen, archive, filter by area and delete", async ({ pa
   await page.getByRole("menuitem", { name: "Delete project" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Delete project" }).click();
   await expect(page.getByRole("button", { name: empty.title, exact: true })).toHaveCount(0);
+  // Other specs share the sidebar: put the reopened project away again.
+  expect((await request.post(`/api/projects/${done.id}/archive`)).ok()).toBe(true);
 });
 
 test("an archived routine opens read-only and restores from its page", async ({
@@ -172,4 +180,6 @@ test("an archived routine opens read-only and restores from its page", async ({
   await page.getByRole("button", { name: "Restore" }).click();
   await expect(page.getByText(`Restored “${routine.title}” · 1 step back`)).toBeVisible();
   await expect(page.getByRole("button", { name: "Add step" })).toBeVisible();
+  // Other specs share the sidebar: leave it as it was.
+  expect((await request.delete(`/api/routines/${routine.id}`)).ok()).toBe(true);
 });
