@@ -315,6 +315,12 @@ A **task template** holds reusable task content, as in Notion: title, notes, pri
   - **History**: the schedules and pauses that touch the period, and each step's completion (done of done + missed).
   - An archived routine reads the same way, read-only, opened on the period that holds its archive date; its current run is the final run.
 - The **Routines overview** (`GET /api/routines/overview?period=&date=`) shows the same totals across all active routines (the longest run names its routine), each routine's daily share of due steps done and today's done and due steps (skipped ones left out; routines with steps left are **Open today**), the 3 most-missed steps in the period, and **Pick up**: steps whose run of 4 or more done days ended with a miss this week (skipped, paused and not-due days don't break a run; each step once, for its latest such miss).
+- The **Projects overview** (`GET /api/projects/overview?period=&date=`) compares projects in active areas over one calendar period, all derived on read:
+  - **Stats**: one-off project tasks that aren't archived, as project progress counts them: done in the period (and the one before), on time (done by their due date, of those with one), rollovers per task done, projects finished (on time: by their due date, or with none); open and overdue tasks now, with how many projects they are in. Each has one point per day (week), week (month, quarter) or month (year) up to today; open and overdue points count at the step's end.
+  - **Projects**: active ones and those finished in the period, with progress, open and overdue counts, and pace status (as on the project page).
+  - **Due next**: active projects due by the end of the period, overdue ones included, soonest first.
+  - **Stalled**: active projects with open tasks and nothing done for 14 or more days (counting from the last task done, or the project's start), longest first.
+  - **No next step**: active projects that aren't stalled and have no open task, recurring ones included, placed (scheduled, else due) within the next 7 days; overdue tasks count as placed. A project without tasks is listed here as "No tasks yet".
 - **Home** (`GET /api/home`) covers today only, with no period:
   - **Today**: open tasks the placement rule puts on today, plus overdue tasks; events that cover today; project due dates and reach-by target deadlines that fall today; tasks completed today.
   - **Routines today**: routine steps due today with their status and step streak.
