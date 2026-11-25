@@ -2405,6 +2405,18 @@ export type ProjectRead = {
 };
 
 /**
+ * ProjectReorder
+ *
+ * The new order of projects. Projects not listed keep their order, after these.
+ */
+export type ProjectReorder = {
+    /**
+     * Project Ids
+     */
+    project_ids: Array<number>;
+};
+
+/**
  * ProjectReschedule
  *
  * New dates for a project, as when its bar is dragged or resized on the calendar.
@@ -5153,6 +5165,37 @@ export type CreateProjectResponses = {
 };
 
 export type CreateProjectResponse = CreateProjectResponses[keyof CreateProjectResponses];
+
+export type ReorderProjectsData = {
+    body: ProjectReorder;
+    path?: never;
+    query?: never;
+    url: '/api/projects/reorder';
+};
+
+export type ReorderProjectsErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderProjectsError = ReorderProjectsErrors[keyof ReorderProjectsErrors];
+
+export type ReorderProjectsResponses = {
+    /**
+     * Response Reorder Projects
+     *
+     * Successful Response
+     */
+    200: Array<ProjectRead>;
+};
+
+export type ReorderProjectsResponse = ReorderProjectsResponses[keyof ReorderProjectsResponses];
 
 export type GetProjectsOverviewData = {
     body?: never;

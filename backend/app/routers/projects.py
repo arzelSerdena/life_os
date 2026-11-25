@@ -16,6 +16,7 @@ from app.schemas.project import (
     ProjectMove,
     ProjectProgress,
     ProjectRead,
+    ProjectReorder,
     ProjectReschedule,
     ProjectUpdate,
     SectionCreate,
@@ -70,6 +71,12 @@ def list_projects(
         session, life_area_id=life_area_id, include_archived=include_archived
     )
     return [_read(session, project) for project in found]
+
+
+@router.post("/projects/reorder", responses=NOT_FOUND)
+def reorder_projects(session: SessionDep, data: ProjectReorder) -> list[ProjectRead]:
+    """Set the display order of projects used in the sidebar."""
+    return [_read(session, project) for project in service.reorder_projects(session, data)]
 
 
 @router.get("/projects/overview")

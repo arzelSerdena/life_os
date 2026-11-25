@@ -92,6 +92,14 @@ class ProjectReschedule(BaseModel):
     due_date: date
 
 
+class ProjectReorder(BaseModel):
+    """The new order of projects. Projects not listed keep their order, after these."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    project_ids: Annotated[list[int], Field(min_length=1, max_length=500)]
+
+
 class ProjectChange(BaseModel):
     project: ProjectRead
     batch_id: str | None
