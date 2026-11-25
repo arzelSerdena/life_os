@@ -88,6 +88,12 @@ export const usePendingDeletes = create<PendingDeleteState>()((set, get) => {
   };
 });
 
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", () => {
+    usePendingDeletes.getState().commit();
+  });
+}
+
 /** Whether an item is waiting to be deleted, so lists can leave it out. */
 export function isPendingDelete(
   pending: PendingDelete[],

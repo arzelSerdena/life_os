@@ -77,3 +77,13 @@ def test_mixin_refreshes_updated_at_on_update(engine: Engine, session: Session) 
     ).one()
     assert created_at == old_time
     assert updated_at > old_time
+
+
+def test_sqlite_pragmas_are_configured_on_connect(engine: Engine) -> None:
+    with engine.connect() as connection:
+        busy_timeout = connection.execute(text("PRAGMA busy_timeout")).scalar_one()
+        synchronous = connection.execute(text("PRAGMA synchronous")).scalar_one()
+        cache_size = connection.execute(text("PRAGMA cache_size")).scalar_one()
+        assert busy_timeout == 5000
+        assert synchronous in (1, "NORMAL")
+        assert cache_size == -64000

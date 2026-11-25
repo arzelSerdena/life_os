@@ -1,5 +1,23 @@
 # Life OS — Log
 
+## 2026-11-26
+
+**Done**
+
+- Phase 6 Performance & Reliability:
+  - Configured in-memory SQLite with `StaticPool` as default database fixture in `backend/tests/conftest.py`, keeping file-backed `tmp_path` fixture overrides for backup and Alembic migration tests.
+  - Enabled SQLite WAL mode (`PRAGMA journal_mode=WAL`, `busy_timeout=5000`, `synchronous=NORMAL`, `cache_size=-64000`) on SQLite engine connections in `backend/app/db.py`.
+  - Implemented WAL-safe checkpointing (`PRAGMA wal_checkpoint(TRUNCATE)`) and `-wal`/`-shm` sidecar cleanup in `backend/app/services/backups.py` `restore()`, with verified WAL restore test in `backend/tests/test_backups.py`.
+  - Integrated SQLite FTS5 `unicode61` full-text search index in `backend/app/services/search.py` with case-folding and diacritics removal, verified by new test in `backend/tests/test_search.py`.
+  - Added `pagehide` event listener to flush/commit pending deletes in `frontend/src/stores/pendingDeleteStore.ts`, verified by unit tests in `frontend/src/stores/pendingDeleteStore.test.ts`.
+  - Implemented route-level `React.lazy()` code splitting for all route page components in `frontend/src/App.tsx` with `<Suspense>` boundaries.
+  - Verified with full test suite: 601 backend unit tests, 313 frontend unit tests, 76 Playwright browser tests, pyright, tsc, and ruff/biome formatting.
+
+**Next**
+
+- UI polish pass:
+  - Canvas #f8f9fa vs white card contrast, Personal mauve vs Brand purple distinction, card badge hierarchy, docked detail panel only at >= 1600px, 6s undo toast countdown bar.
+
 ## 2026-11-10
 
 **Done**

@@ -248,6 +248,8 @@ def restore(session: Session, name: str) -> tuple[Backup, Backup]:
         staged = database.with_name(f"{database.stem}.restoring.db")
         try:
             staged.unlink(missing_ok=True)
+            Path(f"{staged}-wal").unlink(missing_ok=True)
+            Path(f"{staged}-shm").unlink(missing_ok=True)
             try:
                 _copy_database(folder / chosen.name, staged)
             except sqlite3.DatabaseError as error:
@@ -255,13 +257,19 @@ def restore(session: Session, name: str) -> tuple[Backup, Backup]:
             _bring_up_to_date(staged)
             # Not trimmed to Keep last, so the restored backup can't be the one deleted.
             current = _back_up(database, folder, keep=None)
+            with contextlib.closing(sqlite3.connect(database)) as db:
+                db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             session.close()
             engine.dispose()
+            Path(f"{database}-wal").unlink(missing_ok=True)
+            Path(f"{database}-shm").unlink(missing_ok=True)
             _copy_database(staged, database)
         finally:
             engine.dispose()
             with contextlib.suppress(OSError):
                 staged.unlink(missing_ok=True)
+                Path(f"{staged}-wal").unlink(missing_ok=True)
+                Path(f"{staged}-shm").unlink(missing_ok=True)
 
     restored_settings = get_settings(session)
     for field, value in kept.items():

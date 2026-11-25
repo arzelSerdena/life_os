@@ -10,7 +10,7 @@ test("metric actions: log from Area/Project tiles, edit all fields, archive and 
 
   // Create a metric on the Area page
   await page.goto(`/areas/${area.id}`);
-  await page.getByRole("button", { name: "Add" }).click();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Metric" }).click();
   const createDialog = page.getByRole("dialog");
   const metricTitle = unique("Running distance");

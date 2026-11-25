@@ -138,3 +138,18 @@ def test_like_wildcards_are_matched_literally(client: TestClient, session: Sessi
 def test_limit_is_checked(client: TestClient) -> None:
     assert client.get("/api/search", params={"q": "a", "limit": 21}).status_code == 422
     assert client.get("/api/search").status_code == 422
+
+
+def test_unicode_search_with_diacritics(client: TestClient, session: Session) -> None:
+    add(session, Task(title="Café résumé"))
+
+    assert hits(client, "cafe") == [("task", "Café résumé")]
+    assert hits(client, "resume") == [("task", "Café résumé")]
+
+
+def test_fts5_unicode61_folds_diacritics_and_case(client: TestClient, session: Session) -> None:
+    add(session, Task(title="Café résumé"))
+
+    assert hits(client, "cafe") == [("task", "Café résumé")]
+    assert hits(client, "resume") == [("task", "Café résumé")]
+    assert hits(client, "CAFÉ") == [("task", "Café résumé")]

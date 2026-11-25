@@ -1,10 +1,10 @@
 from collections.abc import Iterator
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
 from app import clock
 from app.config import get_settings
@@ -24,13 +24,16 @@ def reset_day_ends_at() -> Iterator[None]:
 
 
 @pytest.fixture
-def database_url(tmp_path: Path) -> str:
-    return f"sqlite:///{(tmp_path / 'test.db').as_posix()}"
+def database_url() -> str:
+    return "sqlite://"
 
 
 @pytest.fixture
 def engine(database_url: str) -> Iterator[Engine]:
-    engine = create_db_engine(database_url)
+    kwargs = {}
+    if database_url == "sqlite://" or ":memory:" in database_url:
+        kwargs["poolclass"] = StaticPool
+    engine = create_db_engine(database_url, **kwargs)
     Base.metadata.create_all(engine)
     yield engine
     engine.dispose()

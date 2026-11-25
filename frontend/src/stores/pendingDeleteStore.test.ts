@@ -50,3 +50,12 @@ test("a failed delete is reported and the item comes back", async () => {
   expect(state.pending).toEqual([]);
   expect(state.failure).toEqual({ label: "Update resume", error: { detail: "Not found" } });
 });
+
+test("pagehide flushes pending deletes immediately", () => {
+  const run = vi.fn().mockResolvedValue(undefined);
+  usePendingDeletes.getState().schedule(item, run);
+
+  window.dispatchEvent(new Event("pagehide"));
+
+  expect(run).toHaveBeenCalledOnce();
+});
