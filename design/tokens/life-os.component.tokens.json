@@ -15,11 +15,11 @@
       },
       "bg": {
         "$type": "color",
-        "$value": "{Semantic.accent.soft}"
+        "$value": "{Primitives.color.neutral.100}"
       },
       "icon": {
         "$type": "color",
-        "$value": "{Semantic.accent.solid}"
+        "$value": "{Primitives.color.neutral.500}"
       },
       "icon-active-bg": {
         "$type": "color",
@@ -27,7 +27,7 @@
       },
       "icon-active": {
         "$type": "color",
-        "$value": "{Semantic.accent.text}"
+        "$value": "{Primitives.color.neutral.900}"
       },
       "icon-size": {
         "$type": "dimension",
