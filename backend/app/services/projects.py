@@ -23,6 +23,7 @@ from app.models import (
 from app.schemas.project import (
     ProjectCreate,
     ProjectMove,
+    ProjectReorder,
     ProjectReschedule,
     ProjectUpdate,
     SectionCreate,
@@ -118,6 +119,22 @@ def update_project(session: Session, project_id: int, data: ProjectUpdate) -> Pr
     for field, value in changes.items():
         setattr(project, field, value)
     return _save(session, project)
+
+
+def reorder_projects(session: Session, data: ProjectReorder) -> Sequence[Project]:
+    """Set the display order of projects, in one step."""
+    if len(set(data.project_ids)) != len(data.project_ids):
+        raise UnprocessableError("A project can only appear once in the new order.")
+    listed = [get_project(session, project_id) for project_id in data.project_ids]
+    others = session.scalars(
+        select(Project)
+        .where(Project.id.not_in(data.project_ids))
+        .order_by(Project.sort_order, Project.id)
+    ).all()
+    for position, project in enumerate([*listed, *others]):
+        project.sort_order = position
+    session.commit()
+    return list_projects(session)
 
 
 def _check_dates(start_date: date | None, due_date: date | None) -> None:

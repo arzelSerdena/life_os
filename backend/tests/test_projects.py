@@ -51,6 +51,25 @@ def test_creating_projects(client: TestClient, session: Session) -> None:
     assert first["sections"] == []
 
 
+def test_reordering_projects(client: TestClient, session: Session) -> None:
+    health = make_life_area(session, "Health")
+    career = make_life_area(session, "Career")
+
+    first = _project(client, health.id, "Marathon")
+    second = _project(client, health.id, "Swim")
+    third = _project(client, career.id, "Portfolio")
+
+    response = client.post(f"{URL}/reorder", json={"project_ids": [third["id"], first["id"]]})
+    assert response.status_code == 200, response.text
+    assert [p["id"] for p in response.json()] == [third["id"], first["id"], second["id"]]
+    assert [p["sort_order"] for p in response.json()] == [0, 1, 2]
+
+    # Duplicate IDs and unknown IDs are rejected.
+    dup = client.post(f"{URL}/reorder", json={"project_ids": [first["id"], first["id"]]})
+    assert dup.status_code == 422
+    assert client.post(f"{URL}/reorder", json={"project_ids": [999999]}).status_code == 404
+
+
 @pytest.mark.parametrize(
     ("make_body", "status_code"),
     [
