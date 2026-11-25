@@ -1,3 +1,4 @@
+import { Button } from "@heroui/react";
 import { type QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
@@ -10,6 +11,7 @@ import {
   MapPin,
   Palette,
   Pause,
+  Plus,
   Repeat,
   Sun,
   Target,
@@ -19,6 +21,7 @@ import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   completeTaskMutation,
+  createMetricEntryMutation,
   createSubtaskMutation,
   getArchiveOptions,
   getAreaPageOptions,
@@ -37,6 +40,7 @@ import {
   listEventOccurrencesOptions,
   listEventOccurrencesQueryKey,
   listLifeAreasOptions,
+  listMetricEntriesOptions,
   listProjectsOptions,
   reopenTaskMutation,
   updateEventMutation,
@@ -48,6 +52,7 @@ import {
   updateTaskTemplateMutation,
 } from "../../client/@tanstack/react-query.gen";
 import {
+  deleteMetricEntry,
   deleteSubtask,
   editEventOccurrence,
   moveEvent,
@@ -78,13 +83,17 @@ import {
   useTaskActions,
   useTemplateActions,
 } from "../item-menu/entityActions";
+import { presetFor } from "../life-areas/area/NewMetricModal";
 import { describeRule } from "../life-areas/area/timeScale";
 import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
-import { formatValue } from "../metrics/format";
+import { currentTarget, EditMetricModal } from "../metrics/EditMetricModal";
+import { formatValue, inputAffixes, parseValue } from "../metrics/format";
+import { DatePickerField } from "../pickers/DatePicker";
 import { OwnerCrumb, SectionCrumb } from "../pickers/OwnerPicker";
 import {
   Chip,
+  chipClass,
   DateChip,
   EditableLine,
   Marker,
@@ -882,15 +891,21 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
 
 // ---------- Metric ----------
 
-const AGGREGATION = { sum: "Sum", average: "Average", latest: "Latest" } as const;
+const MANUAL_AGGREGATIONS = [
+  { id: "sum", label: "Total" },
+  { id: "average", label: "Average" },
+  { id: "latest", label: "Latest" },
+] as const;
 
-/** The target in force today, or the next one. */
-function currentTarget(metric: MetricRead) {
-  return (
-    metric.targets.find((t) => t.state === "in_progress") ??
-    metric.targets.find((t) => t.state === "upcoming")
-  );
-}
+const STEP_AGGREGATIONS = [
+  { id: "sum", label: "Days done" },
+  { id: "average", label: "Completion rate" },
+] as const;
+
+const DIRECTIONS = [
+  { id: "higher", label: "Higher is better" },
+  { id: "lower", label: "Lower is better" },
+] as const;
 
 function MetricPanel({ id }: { id: number }) {
   const query = useQuery(getMetricOptions({ path: { metric_id: id } }));
@@ -900,10 +915,12 @@ function MetricPanel({ id }: { id: number }) {
   const update = useMutation(updateMetricMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
-  const menu = useMetricActions(metric, { onDeleted: close });
+  const [editing, setEditing] = useState(false);
+  const menu = useMetricActions(metric, { onArchived: close, onDeleted: close });
 
   if (!metric) return <Loading error={query.error} />;
   const path = { metric_id: id };
+  const isArchived = metric.archived_at !== null;
   const target = currentTarget(metric);
   const amount = (value: number) => formatValue(value, metric);
   let progress: string | null = null;
@@ -919,24 +936,92 @@ function MetricPanel({ id }: { id: number }) {
       progress = `${amount(target.value)} of ${amount(target.target_value)}`;
   }
 
+  const aggregationOptions =
+    metric.source === "routine_step" ? [...STEP_AGGREGATIONS] : [...MANUAL_AGGREGATIONS];
+  const aggregationLabel =
+    aggregationOptions.find((option) => option.id === metric.aggregation)?.label ??
+    metric.aggregation;
+  const directionLabel = metric.direction === "higher" ? "Higher is better" : "Lower is better";
+  const preset = presetFor(metric);
+  const measureLabel =
+    metric.format === "currency" || (metric.format === "number" && metric.unit)
+      ? `${preset.label} · ${metric.unit}`
+      : preset.label;
+
   return (
     <AreaScope color={area?.color}>
       <PanelView
         crumbs={owner.crumbs()}
         marker={<Marker icon={ChartLine} />}
         title={metric.title}
-        onRename={(title) => update.mutateAsync({ path, body: { title } })}
+        onRename={isArchived ? undefined : (title) => update.mutateAsync({ path, body: { title } })}
         chips={
           <>
+            {isArchived && <Chip icon={Archive}>Archived</Chip>}
             {progress && <Chip>{progress}</Chip>}
-            <Chip>{AGGREGATION[metric.aggregation]}</Chip>
-            <Chip icon={Target}>{goal}</Chip>
-            <Chip>{metric.direction === "higher" ? "Higher is better" : "Lower is better"}</Chip>
+            {isArchived ? (
+              <>
+                <Chip>{aggregationLabel}</Chip>
+                <Chip icon={Target}>{goal}</Chip>
+                <Chip>{directionLabel}</Chip>
+              </>
+            ) : (
+              <>
+                {metric.source === "manual" && (
+                  <button
+                    type="button"
+                    aria-label="Edit format and unit"
+                    onClick={() => setEditing(true)}
+                    className={chipClass("default", true)}
+                  >
+                    <preset.icon aria-hidden className="size-3.5 text-(--text-tertiary)" />
+                    {measureLabel}
+                  </button>
+                )}
+                <MenuChip
+                  label="Aggregation"
+                  value={metric.aggregation}
+                  options={aggregationOptions}
+                  onChange={(aggregation) =>
+                    update.mutate({
+                      path,
+                      body: { aggregation: aggregation as MetricRead["aggregation"] },
+                    })
+                  }
+                >
+                  {aggregationLabel}
+                </MenuChip>
+                <button
+                  type="button"
+                  aria-label="Edit target"
+                  onClick={() => setEditing(true)}
+                  className={chipClass(target ? "default" : "ghost", true)}
+                >
+                  <Target aria-hidden className="size-3.5 text-(--text-tertiary)" />
+                  {goal}
+                </button>
+                <MenuChip
+                  label="Direction"
+                  value={metric.direction}
+                  options={[...DIRECTIONS]}
+                  onChange={(direction) =>
+                    update.mutate({
+                      path,
+                      body: { direction: direction as MetricRead["direction"] },
+                    })
+                  }
+                >
+                  {directionLabel}
+                </MenuChip>
+              </>
+            )}
           </>
         }
+        content={<MetricEntries metric={metric} />}
         notes={{
-          key: `metric-${id}`,
+          key: `metric-${id}-${isArchived}`,
           markdown: metric.notes,
+          readOnly: isArchived,
           save: (notes) =>
             saveNotes(
               () => updateMetric({ path, body: { notes }, throwOnError: true }),
@@ -944,9 +1029,174 @@ function MetricPanel({ id }: { id: number }) {
             ),
         }}
         actions={menu.actions}
-        error={owner.error ?? update.error}
+        error={owner.error ?? update.error ?? menu.error}
       />
+      {editing && <EditMetricModal metric={metric} onClose={() => setEditing(false)} />}
       {menu.dialogs}
     </AreaScope>
+  );
+}
+
+const ENTRIES_PREVIEW_LIMIT = 8;
+
+function MetricEntries({ metric }: { metric: MetricRead }) {
+  const entriesQuery = useQuery(listMetricEntriesOptions({ path: { metric_id: metric.id } }));
+  const log = useMutation(createMetricEntryMutation());
+  const showToast = useChangeToast((state) => state.show);
+  const deleteWithUndo = useDeleteWithUndo();
+  const pending = usePendingDeletes((state) => state.pending);
+  const [text, setText] = useState("");
+  const [date, setDate] = useState(() => today());
+  const [invalid, setInvalid] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+
+  const isManual = metric.source === "manual";
+  const canLog = isManual && metric.archived_at === null;
+  const { prefix, suffix } = inputAffixes(metric);
+  const maxDay = today();
+
+  const submit = () => {
+    const value = parseValue(text, metric.format);
+    if (value === null || !date || date > maxDay) {
+      setInvalid(true);
+      return;
+    }
+    log.mutate(
+      { path: { metric_id: metric.id }, body: { value, date } },
+      {
+        onSuccess: (change) => {
+          setText("");
+          setInvalid(false);
+          showToast(`Logged ${formatValue(value, metric)} · ${metric.title}`, change.batch_id);
+        },
+      },
+    );
+  };
+
+  const entries = [...(entriesQuery.data ?? [])]
+    .filter((entry) => entry.id === null || !isPendingDelete(pending, "metric_entry", entry.id))
+    .reverse();
+  const visible = showAll ? entries : entries.slice(0, ENTRIES_PREVIEW_LIMIT);
+
+  return (
+    <section aria-label="Entries" className="mt-1 flex flex-col gap-2">
+      <div className="flex h-6 items-center gap-1.5">
+        <h3 className="type-label text-(--text-tertiary)">Entries</h3>
+        {entries.length > 0 && (
+          <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-200 px-1.5 text-[11px] font-medium text-(--text-secondary) tabular-nums">
+            {entries.length}
+          </span>
+        )}
+      </div>
+      {canLog && (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <label className="flex h-8 min-w-0 flex-1 cursor-text items-center gap-1 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-200">
+              {prefix && <span className="text-xs text-(--text-tertiary)">{prefix}</span>}
+              <input
+                aria-label="Log value"
+                inputMode={metric.format === "duration" ? "text" : "decimal"}
+                placeholder={metric.format === "duration" ? "1:30" : "Log a value…"}
+                value={text}
+                disabled={log.isPending}
+                onChange={(event) => {
+                  setText(event.target.value);
+                  setInvalid(false);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") submit();
+                }}
+                className="w-full min-w-0 bg-transparent text-[13px] text-(--text-primary) tabular-nums outline-none placeholder:text-(--text-disabled)"
+              />
+              {suffix && <span className="shrink-0 text-xs text-(--text-tertiary)">{suffix}</span>}
+            </label>
+            <span className="w-[136px] shrink-0">
+              <DatePickerField
+                label="Entry date"
+                value={date}
+                onChange={(next) => {
+                  setDate(next);
+                  setInvalid(false);
+                }}
+              />
+            </span>
+            <Button
+              size="sm"
+              isDisabled={log.isPending || text.trim() === ""}
+              onPress={submit}
+              className="button--area h-8 shrink-0 px-2.5"
+            >
+              <Plus aria-hidden className="size-3.5" />
+              Log
+            </Button>
+          </div>
+          {invalid && (
+            <p role="alert" className="type-meta text-(--text-danger)">
+              {date > maxDay ? "Pick today or an earlier date." : "Enter a valid number."}
+            </p>
+          )}
+          {log.error && <QueryError error={log.error} />}
+        </div>
+      )}
+      {entries.length === 0 ? (
+        <p className="type-meta text-(--text-tertiary)">
+          {isManual ? "No entries yet." : "Entries are counted from this metric’s routine step."}
+        </p>
+      ) : (
+        <ul className="flex flex-col">
+          {visible.map((entry, index) => {
+            const label = formatValue(entry.value, metric);
+            return (
+              <li
+                key={entry.id ?? `${entry.date}-${index}`}
+                className="group flex min-h-7 items-center gap-2 text-[13px]"
+              >
+                <span className="w-[62px] shrink-0 type-meta text-(--text-tertiary) tabular-nums">
+                  {shortDate(entry.date)}
+                </span>
+                <span className="shrink-0 font-medium text-(--text-primary) tabular-nums">
+                  {label}
+                </span>
+                {entry.note && (
+                  <span className="min-w-0 flex-1 truncate type-meta text-(--text-secondary)">
+                    {entry.note}
+                  </span>
+                )}
+                <span className="flex-1" />
+                {isManual && entry.id !== null && (
+                  <button
+                    type="button"
+                    aria-label={`Delete ${label} on ${shortDate(entry.date)}`}
+                    onClick={() => {
+                      const entryId = entry.id;
+                      if (entryId === null) return;
+                      deleteWithUndo({ kind: "metric_entry", id: entryId, label }, () =>
+                        deleteMetricEntry({
+                          path: { entry_id: entryId },
+                          throwOnError: true,
+                          keepalive: true,
+                        }),
+                      );
+                    }}
+                    className="grid size-6 shrink-0 place-items-center rounded-(--radius-6) text-(--text-tertiary) opacity-0 outline-none group-hover:opacity-100 hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                  >
+                    <X aria-hidden className="size-3.5" />
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {entries.length > ENTRIES_PREVIEW_LIMIT && (
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          className="self-start type-meta text-(--text-secondary) hover:text-(--text-primary)"
+        >
+          {showAll ? "Show fewer" : `Show all ${entries.length} entries`}
+        </button>
+      )}
+    </section>
   );
 }

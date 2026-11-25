@@ -1,5 +1,12 @@
 import { expect, test } from "vitest";
-import { formatDuration, formatValue, inputAffixes, parseValue, valueParts } from "./format";
+import {
+  formatDuration,
+  formatForInput,
+  formatValue,
+  inputAffixes,
+  parseValue,
+  valueParts,
+} from "./format";
 
 const money = { format: "currency", unit: "PHP" } as const;
 
@@ -49,4 +56,11 @@ test("typed values are read into the stored unit", () => {
   expect(parseValue("", "number")).toBeNull();
   expect(parseValue("abc", "number")).toBeNull();
   expect(parseValue("-2", "number")).toBe(-2);
+});
+
+test("formatForInput formats stored values back into editable text", () => {
+  expect(formatForInput(90, "duration")).toBe("1:30");
+  expect(formatForInput(45, "duration")).toBe("0:45");
+  expect(formatForInput(1500, "currency")).toBe("1500");
+  expect(formatForInput(12.5, "number")).toBe("12.5");
 });

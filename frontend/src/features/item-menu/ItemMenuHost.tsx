@@ -215,7 +215,10 @@ function EventMenu({ id, day, leave, ...rest }: { id: number; day: string | null
 
 function MetricMenu({ id, leave, ...rest }: { id: number } & MenuProps) {
   const metric = useQuery(getMetricOptions({ path: { metric_id: id } })).data;
-  const menu = useMetricActions(metric, { onDeleted: () => leave("") });
+  const menu = useMetricActions(metric, {
+    onArchived: () => leave(""),
+    onDeleted: () => leave(""),
+  });
   return <Shown menu={menu} title={metric?.title} {...rest} />;
 }
 
