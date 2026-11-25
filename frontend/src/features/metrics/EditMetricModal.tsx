@@ -1,7 +1,7 @@
 import { Alert, Button, Input, Label, Modal, TextField, Tooltip } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   createMetricTargetMutation,
   deleteMetricTargetMutation,
@@ -18,6 +18,7 @@ import type {
 import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
 import { periodRange, today } from "../../period";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import {
   Choice,
   FIELD,
@@ -65,6 +66,20 @@ export function EditMetricModal({ metric, onClose }: { metric: MetricRead; onClo
   );
   const [endDate, setEndDate] = useState(existing?.end_date ?? "");
   const [error, setError] = useState<string | null>(null);
+  const snapshot = JSON.stringify([
+    title,
+    preset.id,
+    unit,
+    aggregation,
+    direction,
+    kind,
+    value,
+    period,
+    startDate,
+    endDate,
+  ]);
+  const initialSnapshot = useRef(snapshot);
+  const guard = useDiscardGuard(snapshot !== initialSnapshot.current, onClose);
 
   const updateMetric = useMutation(updateMetricMutation());
   const createTarget = useMutation(createMetricTargetMutation());
@@ -162,106 +177,34 @@ export function EditMetricModal({ metric, onClose }: { metric: MetricRead; onClo
   };
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[520px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="type-panel-title text-(--text-primary)">
-              Edit metric
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form noValidate onSubmit={submit} className="flex min-h-0 flex-col">
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <TextField autoFocus value={title} onChange={setTitle} className="gap-1.5">
-                <Label className={FIELD_LABEL}>Name</Label>
-                <Input className="h-8 type-body" />
-              </TextField>
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[520px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="type-panel-title text-(--text-primary)">
+                Edit metric
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form noValidate onSubmit={submit} className="flex min-h-0 flex-col">
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
+                <TextField autoFocus value={title} onChange={setTitle} className="gap-1.5">
+                  <Label className={FIELD_LABEL}>Name</Label>
+                  <Input className="h-8 type-body" />
+                </TextField>
 
-              {fromStep ? (
-                <div className="flex gap-3">
-                  <Choice
-                    label="Each period shows"
-                    value={aggregation}
-                    onChange={setAggregation}
-                    options={[
-                      ["sum", "Days done"],
-                      ["average", "Completion rate"],
-                    ]}
-                  />
-                  <div className="w-[150px]">
-                    <Choice
-                      label="Better when"
-                      value={direction}
-                      onChange={setDirection}
-                      options={[
-                        ["higher", "Higher"],
-                        ["lower", "Lower"],
-                      ]}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex gap-3">
-                    <div className="flex flex-1 flex-col gap-1.5">
-                      <span className={FIELD_LABEL}>Measure as</span>
-                      <MeasureAsMenu value={preset} onChange={choosePreset} />
-                    </div>
-                    {preset.id === "number" && (
-                      <TextField value={unit} onChange={setUnit} className="w-[150px] gap-1.5">
-                        <Label className={FIELD_LABEL}>Unit</Label>
-                        <Input maxLength={20} placeholder="pieces" className="h-8 type-body" />
-                      </TextField>
-                    )}
-                    {preset.units && (
-                      <label className="flex w-[150px] flex-col gap-1.5">
-                        <span className={FIELD_LABEL}>Unit</span>
-                        <select
-                          value={unit}
-                          onChange={(e) => setUnit(e.target.value)}
-                          className={FIELD}
-                        >
-                          {preset.units.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-                    {preset.format === "currency" && (
-                      <label className="flex w-[150px] flex-col gap-1.5">
-                        <span className={FIELD_LABEL}>Currency</span>
-                        <select
-                          value={unit}
-                          onChange={(e) => setUnit(e.target.value)}
-                          className={FIELD}
-                        >
-                          {CURRENCIES.map((code) => (
-                            <option key={code} value={code}>
-                              {code} · {currencySymbol(code)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-                  </div>
+                {fromStep ? (
                   <div className="flex gap-3">
                     <Choice
                       label="Each period shows"
                       value={aggregation}
                       onChange={setAggregation}
                       options={[
-                        ["sum", "Total"],
-                        ["average", "Average"],
-                        ["latest", "Latest"],
+                        ["sum", "Days done"],
+                        ["average", "Completion rate"],
                       ]}
                     />
                     <div className="w-[150px]">
@@ -276,106 +219,181 @@ export function EditMetricModal({ metric, onClose }: { metric: MetricRead; onClo
                       />
                     </div>
                   </div>
-                </>
-              )}
-
-              <div className="flex flex-col gap-3 rounded-(--radius-8) border border-(--border-default) p-3">
-                <Choice
-                  label="Target"
-                  value={kind}
-                  onChange={setKind}
-                  options={[
-                    ["none", "No target"],
-                    ["per_period", "Every period"],
-                    ["reach_by", "Reach by a date"],
-                  ]}
-                />
-                {kind !== "none" && (
-                  <div className="flex flex-wrap items-center gap-2 type-body text-(--text-secondary)">
-                    <span className="w-[110px]">
-                      <ValueInput
-                        label="Target number"
-                        metric={shown}
-                        value={value}
-                        onChange={setValue}
+                ) : (
+                  <>
+                    <div className="flex gap-3">
+                      <div className="flex flex-1 flex-col gap-1.5">
+                        <span className={FIELD_LABEL}>Measure as</span>
+                        <MeasureAsMenu value={preset} onChange={choosePreset} />
+                      </div>
+                      {preset.id === "number" && (
+                        <TextField value={unit} onChange={setUnit} className="w-[150px] gap-1.5">
+                          <Label className={FIELD_LABEL}>Unit</Label>
+                          <Input maxLength={20} placeholder="pieces" className="h-8 type-body" />
+                        </TextField>
+                      )}
+                      {preset.units && (
+                        <label className="flex w-[150px] flex-col gap-1.5">
+                          <span className={FIELD_LABEL}>Unit</span>
+                          <select
+                            value={unit}
+                            onChange={(e) => setUnit(e.target.value)}
+                            className={FIELD}
+                          >
+                            {preset.units.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {preset.format === "currency" && (
+                        <label className="flex w-[150px] flex-col gap-1.5">
+                          <span className={FIELD_LABEL}>Currency</span>
+                          <select
+                            value={unit}
+                            onChange={(e) => setUnit(e.target.value)}
+                            className={FIELD}
+                          >
+                            {CURRENCIES.map((code) => (
+                              <option key={code} value={code}>
+                                {code} · {currencySymbol(code)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
+                    <div className="flex gap-3">
+                      <Choice
+                        label="Each period shows"
+                        value={aggregation}
+                        onChange={setAggregation}
+                        options={[
+                          ["sum", "Total"],
+                          ["average", "Average"],
+                          ["latest", "Latest"],
+                        ]}
                       />
-                    </span>
-                    {kind === "per_period" ? (
-                      <>
-                        per
-                        <select
-                          aria-label="Period"
-                          value={period}
-                          onChange={(e) => setPeriod(e.target.value as typeof period)}
-                          className={FIELD}
-                        >
-                          <option value="day">day</option>
-                          <option value="week">week</option>
-                          <option value="month">month</option>
-                        </select>
-                        {!keepingSameTargetKind && (
-                          <>
-                            starting
-                            <span className="w-[150px]">
-                              <DatePickerField
-                                label="Starting"
-                                value={startDate}
-                                onChange={setStartDate}
-                              />
-                            </span>
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        by
-                        <span className="w-[150px]">
-                          <DatePickerField label="Reach by" value={endDate} onChange={setEndDate} />
-                        </span>
-                      </>
-                    )}
-                  </div>
+                      <div className="w-[150px]">
+                        <Choice
+                          label="Better when"
+                          value={direction}
+                          onChange={setDirection}
+                          options={[
+                            ["higher", "Higher"],
+                            ["lower", "Lower"],
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
-              </div>
-              {error && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{error}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              <Tooltip delay={0} isDisabled={!missing}>
-                <Tooltip.Trigger role="presentation" tabIndex={-1}>
-                  <Button
-                    type="submit"
-                    isPending={busy}
-                    isDisabled={missing !== null}
-                    aria-describedby={missing ? "edit-metric-missing" : undefined}
-                  >
-                    Save changes
-                  </Button>
-                </Tooltip.Trigger>
-                <Tooltip.Content>{missing}</Tooltip.Content>
-              </Tooltip>
-              {missing && (
-                <span id="edit-metric-missing" className="sr-only">
-                  {missing}
-                </span>
-              )}
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+
+                <div className="flex flex-col gap-3 rounded-(--radius-8) border border-(--border-default) p-3">
+                  <Choice
+                    label="Target"
+                    value={kind}
+                    onChange={setKind}
+                    options={[
+                      ["none", "No target"],
+                      ["per_period", "Every period"],
+                      ["reach_by", "Reach by a date"],
+                    ]}
+                  />
+                  {kind !== "none" && (
+                    <div className="flex flex-wrap items-center gap-2 type-body text-(--text-secondary)">
+                      <span className="w-[110px]">
+                        <ValueInput
+                          label="Target number"
+                          metric={shown}
+                          value={value}
+                          onChange={setValue}
+                        />
+                      </span>
+                      {kind === "per_period" ? (
+                        <>
+                          per
+                          <select
+                            aria-label="Period"
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value as typeof period)}
+                            className={FIELD}
+                          >
+                            <option value="day">day</option>
+                            <option value="week">week</option>
+                            <option value="month">month</option>
+                          </select>
+                          {!keepingSameTargetKind && (
+                            <>
+                              starting
+                              <span className="w-[150px]">
+                                <DatePickerField
+                                  label="Starting"
+                                  value={startDate}
+                                  onChange={setStartDate}
+                                />
+                              </span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          by
+                          <span className="w-[150px]">
+                            <DatePickerField
+                              label="Reach by"
+                              value={endDate}
+                              onChange={setEndDate}
+                            />
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {error && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{error}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
+                </Button>
+                <Tooltip delay={0} isDisabled={!missing}>
+                  <Tooltip.Trigger role="presentation" tabIndex={-1}>
+                    <Button
+                      type="submit"
+                      isPending={busy}
+                      isDisabled={missing !== null}
+                      aria-describedby={missing ? "edit-metric-missing" : undefined}
+                    >
+                      Save changes
+                    </Button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>{missing}</Tooltip.Content>
+                </Tooltip>
+                {missing && (
+                  <span id="edit-metric-missing" className="sr-only">
+                    {missing}
+                  </span>
+                )}
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }

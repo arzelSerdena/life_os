@@ -12,6 +12,7 @@ import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
 import { today as localToday } from "../../period";
 import { useNewEvent } from "../../stores/newEventStore";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import { areaDataAttribute } from "../life-areas/palette";
 import { PickerRow, PopoverField } from "../pickers/chips";
 import { DatePickerField } from "../pickers/DatePicker";
@@ -88,6 +89,8 @@ export function NewEventModal({
     );
   });
   const set = (changes: Partial<NewEventValues>) => setValues((old) => ({ ...old, ...changes }));
+  const initialSnapshot = useRef(JSON.stringify(values));
+  const guard = useDiscardGuard(JSON.stringify(values) !== initialSnapshot.current, onClose);
   const create = useMutation(createEventMutation());
   const problem = newEventProblem(values);
   const ready = canCreate(values) && !create.isPending;
@@ -103,159 +106,158 @@ export function NewEventModal({
   };
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      {/* Long content scrolls in the body, so the footer stays on screen. */}
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="type-panel-title text-(--text-primary)">
-              New event
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form
-            noValidate
-            onSubmit={(event) => void submit(event).catch(() => {})}
-            className="flex min-h-0 flex-col"
-          >
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <TextField
-                fullWidth
-                autoFocus
-                name="title"
-                value={values.title}
-                onChange={(title) => set({ title })}
-                className="gap-1.5"
-              >
-                <Label className={LABEL}>Name</Label>
-                <Input
-                  placeholder="Event name"
-                  maxLength={200}
-                  className="h-8 type-body text-(--text-primary)"
-                />
-              </TextField>
-
-              <Field label="Owner">
-                <OwnerField
-                  value={{ lifeAreaId: values.lifeAreaId, projectId: values.projectId }}
-                  lifeAreas={lifeAreas}
-                  projects={projects}
-                  onChange={(owner) => set(owner)}
-                />
-              </Field>
-
-              <Switch
-                size="sm"
-                isSelected={values.allDay}
-                onChange={(allDay) => set({ allDay })}
-                className="self-start"
-              >
-                <Switch.Content className="flex-row items-center gap-2.5">
-                  <Label className={LABEL}>All day</Label>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
-                </Switch.Content>
-              </Switch>
-
-              <div className="flex items-end gap-2">
-                <Field label="Starts">
-                  <DatePickerField
-                    label="Start date"
-                    value={values.startDate}
-                    today={today}
-                    onChange={(date) => setValues((old) => moveStart(old, { date }))}
-                  />
-                  {!values.allDay && (
-                    <TimeField
-                      label="Start time"
-                      value={values.startTime}
-                      format={format}
-                      options={startTimes().map((time) => ({ time, duration: null }))}
-                      onChange={(time) => setValues((old) => moveStart(old, { time }))}
-                    />
-                  )}
-                </Field>
-                <span
-                  aria-hidden
-                  className={`grid shrink-0 place-items-center text-(--text-tertiary) ${values.allDay ? "h-8" : "h-[70px]"}`}
-                >
-                  <ArrowRight className="size-4" />
-                </span>
-                <Field label="Ends">
-                  <DatePickerField
-                    label="End date"
-                    value={values.endDate}
-                    today={today}
-                    onChange={(endDate) => set({ endDate })}
-                  />
-                  {!values.allDay && (
-                    <TimeField
-                      label="End time"
-                      value={values.endTime}
-                      format={format}
-                      options={endTimes(values)}
-                      onChange={(endTime) => set({ endTime })}
-                    />
-                  )}
-                </Field>
-              </div>
-
-              <div className="flex gap-3">
-                <Field label="Repeat">
-                  <RepeatField
-                    value={values.repeat}
-                    anchor={values.startDate}
-                    onChange={(repeat) => set({ repeat })}
-                  />
-                </Field>
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        {/* Long content scrolls in the body, so the footer stays on screen. */}
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="type-panel-title text-(--text-primary)">
+                New event
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form
+              noValidate
+              onSubmit={(event) => void submit(event).catch(() => {})}
+              className="flex min-h-0 flex-col"
+            >
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
                 <TextField
-                  name="location"
-                  value={values.location}
-                  onChange={(location) => set({ location })}
-                  className="min-w-0 flex-1 gap-1.5"
+                  fullWidth
+                  autoFocus
+                  name="title"
+                  value={values.title}
+                  onChange={(title) => set({ title })}
+                  className="gap-1.5"
                 >
-                  <Label className={LABEL}>Location</Label>
+                  <Label className={LABEL}>Name</Label>
                   <Input
-                    placeholder="Add a place"
-                    maxLength={300}
+                    placeholder="Event name"
+                    maxLength={200}
                     className="h-8 type-body text-(--text-primary)"
                   />
                 </TextField>
-              </div>
 
-              {problem && <p className="-mt-2 type-meta text-(--text-danger)">{problem}</p>}
-              {create.error && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{errorMessage(create.error)}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" isDisabled={!ready} isPending={create.isPending}>
-                Create event
-              </Button>
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+                <Field label="Owner">
+                  <OwnerField
+                    value={{ lifeAreaId: values.lifeAreaId, projectId: values.projectId }}
+                    lifeAreas={lifeAreas}
+                    projects={projects}
+                    onChange={(owner) => set(owner)}
+                  />
+                </Field>
+
+                <Switch
+                  size="sm"
+                  isSelected={values.allDay}
+                  onChange={(allDay) => set({ allDay })}
+                  className="self-start"
+                >
+                  <Switch.Content className="flex-row items-center gap-2.5">
+                    <Label className={LABEL}>All day</Label>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
+                </Switch>
+
+                <div className="flex items-end gap-2">
+                  <Field label="Starts">
+                    <DatePickerField
+                      label="Start date"
+                      value={values.startDate}
+                      today={today}
+                      onChange={(date) => setValues((old) => moveStart(old, { date }))}
+                    />
+                    {!values.allDay && (
+                      <TimeField
+                        label="Start time"
+                        value={values.startTime}
+                        format={format}
+                        options={startTimes().map((time) => ({ time, duration: null }))}
+                        onChange={(time) => setValues((old) => moveStart(old, { time }))}
+                      />
+                    )}
+                  </Field>
+                  <span
+                    aria-hidden
+                    className={`grid shrink-0 place-items-center text-(--text-tertiary) ${values.allDay ? "h-8" : "h-[70px]"}`}
+                  >
+                    <ArrowRight className="size-4" />
+                  </span>
+                  <Field label="Ends">
+                    <DatePickerField
+                      label="End date"
+                      value={values.endDate}
+                      today={today}
+                      onChange={(endDate) => set({ endDate })}
+                    />
+                    {!values.allDay && (
+                      <TimeField
+                        label="End time"
+                        value={values.endTime}
+                        format={format}
+                        options={endTimes(values)}
+                        onChange={(endTime) => set({ endTime })}
+                      />
+                    )}
+                  </Field>
+                </div>
+
+                <div className="flex gap-3">
+                  <Field label="Repeat">
+                    <RepeatField
+                      value={values.repeat}
+                      anchor={values.startDate}
+                      onChange={(repeat) => set({ repeat })}
+                    />
+                  </Field>
+                  <TextField
+                    name="location"
+                    value={values.location}
+                    onChange={(location) => set({ location })}
+                    className="min-w-0 flex-1 gap-1.5"
+                  >
+                    <Label className={LABEL}>Location</Label>
+                    <Input
+                      placeholder="Add a place"
+                      maxLength={300}
+                      className="h-8 type-body text-(--text-primary)"
+                    />
+                  </TextField>
+                </div>
+
+                {problem && <p className="-mt-2 type-meta text-(--text-danger)">{problem}</p>}
+                {create.error && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{errorMessage(create.error)}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" isDisabled={!ready} isPending={create.isPending}>
+                  Create event
+                </Button>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }
 

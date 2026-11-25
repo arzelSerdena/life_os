@@ -9,6 +9,7 @@ import type { LifeAreaRead, ProjectRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
 import { today } from "../../period";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import { areaDataAttribute } from "../life-areas/palette";
 import { DatePickerField } from "../pickers/DatePicker";
 
@@ -45,7 +46,11 @@ export function NewProjectModal({
   onClose,
   onCreated,
 }: NewProjectModalProps) {
-  const { control, handleSubmit } = useForm<Values>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: "",
@@ -55,6 +60,7 @@ export function NewProjectModal({
       notes: "",
     },
   });
+  const guard = useDiscardGuard(isDirty, onClose);
   const [title, chosenAreaId] = useWatch({ control, name: ["title", "lifeAreaId"] });
   const chosenArea = lifeAreas.find((area) => area.id === chosenAreaId);
   const create = useMutation(createProjectMutation());
@@ -84,156 +90,155 @@ export function NewProjectModal({
   });
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      {/* Long content (many life areas) scrolls in the body, so the footer stays on screen. */}
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[460px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="type-panel-title text-(--text-primary)">
-              New project
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-col">
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <Controller
-                control={control}
-                name="title"
-                render={({ field, fieldState }) => (
-                  <TextField
-                    fullWidth
-                    autoFocus
-                    name={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    isInvalid={fieldState.invalid}
-                    className="gap-1.5"
-                  >
-                    <Label className={FIELD_LABEL}>Name</Label>
-                    <Input className="h-8 type-body text-(--text-primary)" />
-                    <FieldError>{fieldState.error?.message}</FieldError>
-                  </TextField>
-                )}
-              />
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        {/* Long content (many life areas) scrolls in the body, so the footer stays on screen. */}
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[460px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="type-panel-title text-(--text-primary)">
+                New project
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-col">
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
+                <Controller
+                  control={control}
+                  name="title"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      fullWidth
+                      autoFocus
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={fieldState.invalid}
+                      className="gap-1.5"
+                    >
+                      <Label className={FIELD_LABEL}>Name</Label>
+                      <Input className="h-8 type-body text-(--text-primary)" />
+                      <FieldError>{fieldState.error?.message}</FieldError>
+                    </TextField>
+                  )}
+                />
 
-              <Controller
-                control={control}
-                name="lifeAreaId"
-                render={({ field }) => (
-                  <fieldset className="flex flex-col">
-                    <legend className={`${FIELD_LABEL} mb-1.5`}>Life area</legend>
-                    <div className="flex flex-wrap gap-1.5">
-                      {lifeAreas.map((area) => {
-                        const isSelected = field.value === area.id;
-                        return (
-                          <label
-                            key={area.id}
-                            data-area={areaDataAttribute(area.color)}
-                            className={`inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring) ${
-                              isSelected
-                                ? "border-(--area-solid) bg-(--area-tint-active) text-(--area-ink)"
-                                : "border-(--border-default) text-(--text-primary) hover:bg-(--bg-hover)"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={field.name}
-                              value={area.id}
-                              checked={isSelected}
-                              onChange={() => field.onChange(area.id)}
-                              className="sr-only"
-                            />
-                            <span
-                              aria-hidden
-                              className="size-2 shrink-0 rounded-[2px] bg-(--area-solid)"
-                            />
-                            {area.title}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                )}
-              />
+                <Controller
+                  control={control}
+                  name="lifeAreaId"
+                  render={({ field }) => (
+                    <fieldset className="flex flex-col">
+                      <legend className={`${FIELD_LABEL} mb-1.5`}>Life area</legend>
+                      <div className="flex flex-wrap gap-1.5">
+                        {lifeAreas.map((area) => {
+                          const isSelected = field.value === area.id;
+                          return (
+                            <label
+                              key={area.id}
+                              data-area={areaDataAttribute(area.color)}
+                              className={`inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring) ${
+                                isSelected
+                                  ? "border-(--area-solid) bg-(--area-tint-active) text-(--area-ink)"
+                                  : "border-(--border-default) text-(--text-primary) hover:bg-(--bg-hover)"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={field.name}
+                                value={area.id}
+                                checked={isSelected}
+                                onChange={() => field.onChange(area.id)}
+                                className="sr-only"
+                              />
+                              <span
+                                aria-hidden
+                                className="size-2 shrink-0 rounded-[2px] bg-(--area-solid)"
+                              />
+                              {area.title}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  )}
+                />
 
-              <div className="grid grid-cols-2 gap-3">
-                <DateField control={control} name="startDate" label="Start" />
-                <DateField control={control} name="dueDate" label="Due" />
-              </div>
-
-              <Controller
-                control={control}
-                name="notes"
-                render={({ field, fieldState }) => (
-                  <TextField
-                    fullWidth
-                    name={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    isInvalid={fieldState.invalid}
-                    className="gap-1.5"
-                  >
-                    <Label className={FIELD_LABEL}>Notes</Label>
-                    <TextArea
-                      rows={3}
-                      className="min-h-20 resize-none type-body text-(--text-primary)"
-                    />
-                    <FieldError>{fieldState.error?.message}</FieldError>
-                  </TextField>
-                )}
-              />
-
-              <div className="flex items-center gap-3 border-t border-(--border-default) pt-3">
-                <span className="type-meta text-(--text-tertiary)">Preview</span>
-                <div
-                  data-area={areaDataAttribute(chosenArea?.color)}
-                  className="flex h-(--sidebar-item-height) min-w-0 flex-1 items-center gap-2 rounded-(--radius-6) bg-(--bg-hover) px-2 type-sidebar-item text-(--text-primary)"
-                >
-                  <Folder
-                    aria-hidden
-                    className="size-4 shrink-0 text-(--area-solid)"
-                    strokeWidth={2}
-                  />
-                  <span className="truncate">{title.trim() || "New project"}</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <DateField control={control} name="startDate" label="Start" />
+                  <DateField control={control} name="dueDate" label="Due" />
                 </div>
-              </div>
 
-              {create.isError && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{errorMessage(create.error)}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              {/* A disabled button gets no hover, so the wrapper carries the hint. */}
-              <span title={missing ?? undefined}>
-                <Button type="submit" isDisabled={missing !== null} isPending={create.isPending}>
-                  Create project
+                <Controller
+                  control={control}
+                  name="notes"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      fullWidth
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={fieldState.invalid}
+                      className="gap-1.5"
+                    >
+                      <Label className={FIELD_LABEL}>Notes</Label>
+                      <TextArea
+                        rows={3}
+                        className="min-h-20 resize-none type-body text-(--text-primary)"
+                      />
+                      <FieldError>{fieldState.error?.message}</FieldError>
+                    </TextField>
+                  )}
+                />
+
+                <div className="flex items-center gap-3 border-t border-(--border-default) pt-3">
+                  <span className="type-meta text-(--text-tertiary)">Preview</span>
+                  <div
+                    data-area={areaDataAttribute(chosenArea?.color)}
+                    className="flex h-(--sidebar-item-height) min-w-0 flex-1 items-center gap-2 rounded-(--radius-6) bg-(--bg-hover) px-2 type-sidebar-item text-(--text-primary)"
+                  >
+                    <Folder
+                      aria-hidden
+                      className="size-4 shrink-0 text-(--area-solid)"
+                      strokeWidth={2}
+                    />
+                    <span className="truncate">{title.trim() || "New project"}</span>
+                  </div>
+                </div>
+
+                {create.isError && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{errorMessage(create.error)}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
                 </Button>
-              </span>
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+                {/* A disabled button gets no hover, so the wrapper carries the hint. */}
+                <span title={missing ?? undefined}>
+                  <Button type="submit" isDisabled={missing !== null} isPending={create.isPending}>
+                    Create project
+                  </Button>
+                </span>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }
 
