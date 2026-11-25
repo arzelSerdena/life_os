@@ -141,7 +141,7 @@ export function TaskCard({
       </div>
 
       {hasMeta && (
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 pl-6 type-meta text-(--text-tertiary) [&_svg]:size-3 [&_svg]:shrink-0">
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-(--border-default)/40 pt-1 pl-6 type-meta text-(--text-tertiary) [&_svg]:size-3 [&_svg]:shrink-0">
           {flagged && (
             <Flag
               role="img"

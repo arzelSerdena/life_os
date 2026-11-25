@@ -1,5 +1,31 @@
 # Life OS — Log
 
+## 2026-11-26
+
+**Done**
+
+- UI polish pass:
+  - Enabled soft canvas contrast by setting `--bg-app` to `#f8f9fa` against `--bg-surface` (`#ffffff`) across DTCG token files (`design/tokens/life-os.semantic.tokens.json`, `life-os.tokens.json`) and regenerated `frontend/src/styles/tokens.css`.
+  - Shifted icon rail container styling to neutral tokens (`--color-neutral-100` background, `--color-neutral-500` icons, `--color-neutral-900` active icon on white pill), clarifying the distinction between Brand purple accents and Personal mauve life area colors.
+  - Quiet secondary badge hierarchy on task cards: grouped metadata badges along the card bottom edge separated by a subtle top border divider in `frontend/src/features/tasks/TaskCard.tsx`.
+  - Made detail panel responsive/docked at `min-[1600px]` screens (`static`, `h-[calc(100vh-16px)]`, without overlay shadow) while preserving floating overlay behavior on compact laptops and smaller desktop resolutions in `frontend/src/features/detail-panel/DetailPanel.tsx`.
+  - Added a 6-second visible animated countdown timer bar to undo toasts (`@keyframes undo-countdown`) along the bottom edge in `frontend/src/features/deleting/UndoToast.tsx` and `frontend/src/index.css`.
+  - Verified with full test suite: 601 backend tests, 313 frontend unit tests, 76 Playwright browser tests, pyright, tsc, and ruff/biome formatting.
+
+- Phase 6 Performance & Reliability:
+  - Configured in-memory SQLite with `StaticPool` as default database fixture in `backend/tests/conftest.py`, keeping file-backed `tmp_path` fixture overrides for backup and Alembic migration tests.
+  - Enabled SQLite WAL mode (`PRAGMA journal_mode=WAL`, `busy_timeout=5000`, `synchronous=NORMAL`, `cache_size=-64000`) on SQLite engine connections in `backend/app/db.py`.
+  - Implemented WAL-safe checkpointing (`PRAGMA wal_checkpoint(TRUNCATE)`) and `-wal`/`-shm` sidecar cleanup in `backend/app/services/backups.py` `restore()`, with verified WAL restore test in `backend/tests/test_backups.py`.
+  - Integrated SQLite FTS5 `unicode61` full-text search index in `backend/app/services/search.py` with case-folding and diacritics removal, verified by new test in `backend/tests/test_search.py`.
+  - Added `pagehide` event listener to flush/commit pending deletes in `frontend/src/stores/pendingDeleteStore.ts`, verified by unit tests in `frontend/src/stores/pendingDeleteStore.test.ts`.
+  - Implemented route-level `React.lazy()` code splitting for all route page components in `frontend/src/App.tsx` with `<Suspense>` boundaries.
+  - Verified with full test suite: 601 backend unit tests, 313 frontend unit tests, 76 Playwright browser tests, pyright, tsc, and ruff/biome formatting.
+
+**Next**
+
+- Open PR for `feat/ui-polish-pass` and merge into `main`.
+- Plan and prioritize Phase 7 polish / feature milestones.
+
 ## 2026-11-10
 
 **Done**

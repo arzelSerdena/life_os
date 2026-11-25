@@ -95,11 +95,22 @@ export function UndoToast() {
   }, [commit]);
 
   if (!latest && !failure && !change && !changeFailure) return null;
+  const isUndoTimer = Boolean(latest || undoable);
+  const countdownKey = latest ? latest.key : change ? String(change.key) : "none";
+
   return (
     <div
       role="status"
-      className="fixed bottom-6 left-1/2 z-50 flex h-10 -translate-x-1/2 items-center gap-2.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) pr-2 pl-3 shadow-(--effect-overlay)"
+      className="fixed bottom-6 left-1/2 z-50 flex h-10 -translate-x-1/2 items-center gap-2.5 overflow-hidden rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) pr-2 pl-3 shadow-(--effect-overlay)"
     >
+      {isUndoTimer && (
+        <span
+          key={countdownKey}
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 left-0 h-0.5 w-full origin-left bg-(--accent-solid)"
+          style={{ animation: "undo-countdown 6s linear forwards" }}
+        />
+      )}
       {latest ? (
         <>
           <Trash2 aria-hidden className="size-4 shrink-0 text-(--text-tertiary)" />

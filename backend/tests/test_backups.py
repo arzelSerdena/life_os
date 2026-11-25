@@ -29,6 +29,11 @@ def no_failure_left_over() -> Iterator[None]:
 
 
 @pytest.fixture
+def database_url(tmp_path: Path) -> str:
+    return f"sqlite:///{(tmp_path / 'test.db').as_posix()}"
+
+
+@pytest.fixture
 def database(tmp_path: Path, session: Session) -> Path:
     """The test database, stamped with the current migration like a real one."""
     path = tmp_path / "test.db"
@@ -357,3 +362,27 @@ def test_open_folder_reports_a_missing_folder(
     response = client.post("/api/folders/open", json={"folder": "backups"})
 
     assert response.status_code == 409
+
+
+def test_restore_with_wal_mode(
+    client: TestClient,
+    session: Session,
+    database: Path,
+    folder: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with contextlib.closing(sqlite3.connect(database)) as db:
+        assert db.execute("PRAGMA journal_mode=WAL").fetchone() == ("wal",)
+
+    make_life_area(session, "Original Area")
+    name = _back_up_at(client, monkeypatch, datetime(2026, 11, 15, 10, 0))
+
+    make_life_area(session, "New Area Added Afterwards")
+    assert _titles(database) == ["Original Area", "New Area Added Afterwards"]
+
+    response = client.post("/api/backups/restore", json={"name": name})
+    assert response.status_code == 200
+
+    assert _titles(database) == ["Original Area"]
+    with contextlib.closing(sqlite3.connect(database)) as db:
+        assert db.execute("PRAGMA journal_mode").fetchone() == ("wal",)

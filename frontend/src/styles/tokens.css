@@ -211,7 +211,7 @@
   --text-disabled: var(--color-neutral-400); /* Completed / cancelled items only */
   --text-on-accent: var(--color-white); /* Text on accent fills */
   --text-danger: var(--color-negative-600); /* Overdue dates, destructive actions */
-  --bg-app: var(--color-white); /* Main frame */
+  --bg-app: #f8f9fa; /* Main frame */
   --bg-surface: var(--color-white); /* Cards, panels, sidebar */
   --bg-hover: var(--color-neutral-100); /* Hover on white surfaces */
   --bg-pressed: var(--color-neutral-200); /* Pressed / hover on grey */
@@ -249,10 +249,10 @@
   --rail-width: 48px;
   --rail-inset: var(--size-4);
   --rail-radius: var(--radius-20);
-  --rail-bg: var(--accent-soft);
-  --rail-icon: var(--accent-solid);
+  --rail-bg: var(--color-neutral-100);
+  --rail-icon: var(--color-neutral-500);
   --rail-icon-active-bg: var(--color-white);
-  --rail-icon-active: var(--accent-text);
+  --rail-icon-active: var(--color-neutral-900);
   --rail-icon-size: var(--size-18);
   --sidebar-width: var(--size-240);
   --sidebar-gutter-y: var(--space-16);

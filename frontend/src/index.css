@@ -4,3 +4,12 @@
 @import "./styles/tokens.css";
 @import "./styles/heroui-theme.css";
 @import "./styles/notes.css";
+
+@keyframes undo-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}

@@ -35,7 +35,7 @@
     "bg": {
       "app": {
         "$type": "color",
-        "$value": "{Primitives.color.white}",
+        "$value": "#f8f9fa",
         "$description": "Main frame"
       },
       "surface": {

@@ -1,3 +1,6 @@
+from pathlib import Path
+
+import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import CheckConstraint, inspect, text
@@ -5,6 +8,11 @@ from sqlalchemy import CheckConstraint, inspect, text
 from app.config import BACKEND_DIR
 from app.db import create_db_engine
 from app.models import Base
+
+
+@pytest.fixture
+def database_url(tmp_path: Path) -> str:
+    return f"sqlite:///{(tmp_path / 'test.db').as_posix()}"
 
 
 def _config(database_url: str) -> Config:
