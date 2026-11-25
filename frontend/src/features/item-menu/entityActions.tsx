@@ -5,12 +5,14 @@ import {
   CircleCheck,
   CircleX,
   Pencil,
+  Plus,
   RotateCcw,
   Trash2,
   X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import {
+  archiveMetricMutation,
   archiveTaskMutation,
   cancelTaskMutation,
   completeTaskMutation,
@@ -19,6 +21,7 @@ import {
   reopenProjectMutation,
   reopenTaskMutation,
   unarchiveLifeAreaMutation,
+  unarchiveMetricMutation,
   unarchiveProjectMutation,
 } from "../../client/@tanstack/react-query.gen";
 import { deleteTask } from "../../client/sdk.gen";
@@ -43,6 +46,8 @@ import { useDeleteWithUndo } from "../deleting/UndoToast";
 import type { PanelAction } from "../detail-panel/PanelParts";
 import { ArchiveAreaDialog } from "../life-areas/ArchiveAreaDialog";
 import { DeleteLifeAreaDialog } from "../life-areas/DeleteLifeAreaDialog";
+import { EditMetricModal } from "../metrics/EditMetricModal";
+import { LogMetricModal } from "../metrics/LogMetricModal";
 import { DeleteProjectDialog } from "../projects/DeleteProjectDialog";
 import { type ProjectChange, ProjectChangeDialog } from "../projects/ProjectChangeDialog";
 
@@ -396,19 +401,74 @@ export function useEventActions(
 
 export function useMetricActions(
   metric: MetricRead | undefined,
-  { onDeleted }: { onDeleted?: Gone } = {},
+  { onArchived, onDeleted }: { onArchived?: Gone; onDeleted?: Gone } = {},
 ): ItemActions {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const showToast = useChangeToast((state) => state.show);
+  const archive = useMutation({
+    ...archiveMetricMutation(),
+    onSuccess: (change) => {
+      showToast(`Archived “${change.metric.title}”`, change.batch_id);
+      onArchived?.();
+    },
+  });
+  const restore = useMutation({
+    ...unarchiveMetricMutation(),
+    onSuccess: (change) => showToast(`Restored “${change.metric.title}”`, change.batch_id),
+  });
+  const [dialog, setDialog] = useState<"log" | "edit" | "delete" | null>(null);
   if (!metric) return { actions: [], dialogs: null, error: null };
-  return {
-    actions: [deleteAction("Delete metric", () => setIsDeleting(true))],
-    dialogs: isDeleting && (
-      <DeleteMetricDialog
-        metric={metric}
-        onClose={() => setIsDeleting(false)}
-        onDeleted={() => onDeleted?.()}
-      />
-    ),
-    error: null,
-  };
+
+  const path = { metric_id: metric.id };
+  const isArchived = metric.archived_at !== null;
+  const actions: PanelAction[] = [
+    ...(!isArchived && metric.source === "manual"
+      ? [
+          {
+            id: "log",
+            label: "Log entry",
+            icon: Plus,
+            onAction: () => setDialog("log"),
+          },
+        ]
+      : []),
+    ...(!isArchived
+      ? [
+          {
+            id: "edit",
+            label: "Edit metric",
+            icon: Pencil,
+            onAction: () => setDialog("edit"),
+          },
+        ]
+      : []),
+    isArchived
+      ? {
+          id: "restore",
+          label: "Restore metric",
+          icon: ArchiveRestore,
+          onAction: () => restore.mutate({ path }),
+        }
+      : {
+          id: "archive",
+          label: "Archive metric",
+          icon: Archive,
+          onAction: () => archive.mutate({ path }),
+        },
+    deleteAction("Delete metric", () => setDialog("delete")),
+  ];
+
+  const dialogs = (
+    <>
+      {dialog === "log" && <LogMetricModal metric={metric} onClose={() => setDialog(null)} />}
+      {dialog === "edit" && <EditMetricModal metric={metric} onClose={() => setDialog(null)} />}
+      {dialog === "delete" && (
+        <DeleteMetricDialog
+          metric={metric}
+          onClose={() => setDialog(null)}
+          onDeleted={() => onDeleted?.()}
+        />
+      )}
+    </>
+  );
+  return { actions, dialogs, error: archive.error ?? restore.error };
 }

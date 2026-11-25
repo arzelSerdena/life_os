@@ -334,7 +334,12 @@ function ProjectCards({
         ) : (
           <div className="grid grid-cols-5 gap-2">
             {page.metrics.map((outcome) => (
-              <MetricTile key={outcome.metric_id} outcome={outcome} view={page} />
+              <MetricTile
+                key={outcome.metric_id}
+                outcome={outcome}
+                view={page}
+                canLog={onAddMetric !== undefined}
+              />
             ))}
           </div>
         )}

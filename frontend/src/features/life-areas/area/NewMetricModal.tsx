@@ -467,20 +467,41 @@ export function NewMetricModal({
 }
 
 /** The unit a preset saves: the typed or chosen one where the preset allows a choice. */
-function unitFor(preset: Preset, unit: string): string | null {
+export function unitFor(preset: Preset, unit: string): string | null {
   if (preset.format === "percent" || preset.format === "duration") return null;
   if (preset.id === "number") return unit.trim() || null;
   return unit || preset.unit;
 }
 
-const FIELD_LABEL = "text-xs leading-4 font-semibold text-(--text-primary)";
-const FIELD =
+/** Matches an existing metric's format and unit back to its Measure as preset. */
+export function presetFor(metric: Formatted): Preset {
+  if (metric.format === "currency") return PRESETS.find((p) => p.id === "money") ?? PRESETS[0];
+  if (metric.format === "percent") return PRESETS.find((p) => p.id === "percent") ?? PRESETS[0];
+  if (metric.format === "duration") return PRESETS.find((p) => p.id === "time") ?? PRESETS[0];
+  const metricUnit = metric.unit;
+  if (metricUnit) {
+    const matched = PRESETS.find(
+      (p) => p.format === "number" && (p.unit === metricUnit || p.units?.includes(metricUnit)),
+    );
+    if (matched) return matched;
+  }
+  return PRESETS[0];
+}
+
+export const FIELD_LABEL = "text-xs leading-4 font-semibold text-(--text-primary)";
+export const FIELD =
   "h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-[13px] text-(--text-primary) outline-none focus-visible:border-brand-600 focus-visible:ring-2 focus-visible:ring-brand-200";
 const PICKER =
   "h-8 w-full justify-start gap-2 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-[13px] font-normal text-(--text-primary)";
 
 /** The "Measure as" picker: each preset's icon, name and a sample value. */
-function MeasureAsMenu({ value, onChange }: { value: Preset; onChange: (preset: Preset) => void }) {
+export function MeasureAsMenu({
+  value,
+  onChange,
+}: {
+  value: Preset;
+  onChange: (preset: Preset) => void;
+}) {
   const Icon = value.icon;
   return (
     <Dropdown>
@@ -518,7 +539,7 @@ function MeasureAsMenu({ value, onChange }: { value: Preset; onChange: (preset: 
 }
 
 /** A number input showing the currency symbol before it, or the unit after it. */
-function ValueInput({
+export function ValueInput({
   label,
   metric,
   value,
@@ -549,7 +570,7 @@ function ValueInput({
 }
 
 /** A segmented single choice, as a radio group. */
-function Choice<T extends string>({
+export function Choice<T extends string>({
   label,
   value,
   onChange,

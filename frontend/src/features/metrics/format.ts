@@ -126,3 +126,14 @@ export function parseValue(text: string, format: MetricFormat): number | null {
   if (!Number.isFinite(number) || typed.replace(/[^\d]/g, "") === "") return null;
   return format === "duration" ? Math.round(number * 60) : number;
 }
+
+/** Formats a stored value back into text for a value input ("1:30" for 90 minutes). */
+export function formatForInput(value: number, format: MetricFormat): string {
+  if (format === "duration") {
+    const total = Math.round(Math.abs(value));
+    const hours = Math.floor(total / 60);
+    const minutes = total % 60;
+    return `${value < 0 ? "-" : ""}${hours}:${String(minutes).padStart(2, "0")}`;
+  }
+  return String(value);
+}

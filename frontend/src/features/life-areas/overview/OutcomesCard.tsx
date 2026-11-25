@@ -1,10 +1,11 @@
-import { ChartLine } from "lucide-react";
+import { ChartLine, Plus } from "lucide-react";
 import { useState } from "react";
 import type { LifeAreaRead, OutcomeRead, OverviewRead } from "../../../client/types.gen";
 import { SectionCard } from "../../../components/SectionCard";
 import type { Period } from "../../../period";
 import { PanelLink } from "../../detail-panel/PanelLink";
 import { formatValue, valueParts } from "../../metrics/format";
+import { LogMetricModal } from "../../metrics/LogMetricModal";
 import { areaDataAttribute } from "../palette";
 import { CardMenu, type MenuOption } from "./CardMenu";
 import { daysBetween, monthName, outcomeTone, plural, shortDate, targetPeriodName } from "./format";
@@ -171,51 +172,81 @@ export function MetricTile({
   outcome,
   view,
   area,
+  canLog = true,
 }: {
   outcome: OutcomeRead;
   view: MetricView;
   /** Shown on the tile when tiles aren't grouped by area. */
   area?: LifeAreaRead;
+  /** False on archived areas/projects so quick-log is hidden. */
+  canLog?: boolean;
 }) {
+  const [logging, setLogging] = useState(false);
   const tone = outcomeTone(outcome.status);
   const { number, unit, context } = valueLine(outcome, view);
   return (
-    <article
-      aria-label={outcome.title}
-      data-area={area ? areaDataAttribute(area.color) : undefined}
-      className="relative flex min-w-0 flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-2.5 py-2 hover:border-(--color-neutral-300)"
-    >
-      <h4 className="truncate text-[13px] leading-[18px] font-semibold text-(--text-primary)">
-        <PanelLink stretched target={{ kind: "metric", id: outcome.metric_id }}>
-          {outcome.title}
-        </PanelLink>
-      </h4>
-      {area && (
-        <p className="flex items-center gap-1.5 text-xs font-medium text-(--text-tertiary)">
-          <span aria-hidden className="size-1.5 rounded-[2px] bg-(--area-solid)" />
-          {area.title}
-        </p>
-      )}
-      <p className="mt-1 mb-0.5 flex items-baseline gap-1 overflow-hidden whitespace-nowrap">
-        <span className="text-2xl leading-8 font-semibold text-(--text-primary) tabular-nums">
-          {number}
-        </span>
-        {unit && (
-          <span className="mr-1 text-[13px] font-medium text-(--text-tertiary)">{unit}</span>
+    <>
+      <article
+        aria-label={outcome.title}
+        data-area={area ? areaDataAttribute(area.color) : undefined}
+        className="group relative flex min-w-0 flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-2.5 py-2 hover:border-(--color-neutral-300)"
+      >
+        <div className="flex items-center gap-1">
+          <h4 className="min-w-0 flex-1 truncate text-[13px] leading-[18px] font-semibold text-(--text-primary)">
+            <PanelLink stretched target={{ kind: "metric", id: outcome.metric_id }}>
+              {outcome.title}
+            </PanelLink>
+          </h4>
+          {canLog && outcome.source === "manual" && (
+            <button
+              type="button"
+              aria-label={`Log entry for ${outcome.title}`}
+              title="Log entry"
+              onClick={() => setLogging(true)}
+              className="relative z-10 -my-1 -mr-1 grid size-6 shrink-0 cursor-pointer place-items-center rounded-(--radius-6) text-(--text-tertiary) opacity-0 outline-none group-hover:opacity-100 hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            >
+              <Plus aria-hidden className="size-3.5" strokeWidth={2} />
+            </button>
+          )}
+        </div>
+        {area && (
+          <p className="flex items-center gap-1.5 text-xs font-medium text-(--text-tertiary)">
+            <span aria-hidden className="size-1.5 rounded-[2px] bg-(--area-solid)" />
+            {area.title}
+          </p>
         )}
-        <span className="truncate text-[11px] text-(--text-tertiary)">{context}</span>
-      </p>
-      <MetricChart
-        outcome={outcome}
-        range={view.range}
-        today={view.today}
-        period={view.period as Period}
-        tone={tone}
-      />
-      <p className="mt-1 text-[11px] leading-[14px] text-(--text-tertiary)">
-        {summaryLine(outcome, view)}
-      </p>
-    </article>
+        <p className="mt-1 mb-0.5 flex items-baseline gap-1 overflow-hidden whitespace-nowrap">
+          <span className="text-2xl leading-8 font-semibold text-(--text-primary) tabular-nums">
+            {number}
+          </span>
+          {unit && (
+            <span className="mr-1 text-[13px] font-medium text-(--text-tertiary)">{unit}</span>
+          )}
+          <span className="truncate text-[11px] text-(--text-tertiary)">{context}</span>
+        </p>
+        <MetricChart
+          outcome={outcome}
+          range={view.range}
+          today={view.today}
+          period={view.period as Period}
+          tone={tone}
+        />
+        <p className="mt-1 text-[11px] leading-[14px] text-(--text-tertiary)">
+          {summaryLine(outcome, view)}
+        </p>
+      </article>
+      {logging && (
+        <LogMetricModal
+          metric={{
+            id: outcome.metric_id,
+            title: outcome.title,
+            format: outcome.format,
+            unit: outcome.unit,
+          }}
+          onClose={() => setLogging(false)}
+        />
+      )}
+    </>
   );
 }
 
