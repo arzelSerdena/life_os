@@ -13,6 +13,7 @@ import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
 import { today as localToday } from "../../period";
 import { useNewTask } from "../../stores/newTaskStore";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import { MenuChip } from "../pickers/chips";
 import { DateChip } from "../pickers/DatePicker";
 import { dayDate } from "../pickers/dates";
@@ -114,6 +115,8 @@ export function NewTaskModal({
     };
   });
   const set = (changes: Partial<NewTaskValues>) => setValues((old) => ({ ...old, ...changes }));
+  const initialSnapshot = useRef(JSON.stringify(values));
+  const guard = useDiscardGuard(JSON.stringify(values) !== initialSnapshot.current, onClose);
   const createTask = useMutation(createTaskMutation());
   const createTemplate = useMutation(createTaskTemplateMutation());
   const isPending = createTask.isPending || createTemplate.isPending;
@@ -149,146 +152,145 @@ export function NewTaskModal({
   };
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      {/* Long content scrolls in the body, so the footer stays on screen. */}
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="type-panel-title text-(--text-primary)">
-              New task
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form
-            noValidate
-            onSubmit={(event) => void submit(event).catch(() => {})}
-            className="flex min-h-0 flex-col"
-          >
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <TextField
-                fullWidth
-                autoFocus
-                name="title"
-                value={values.title}
-                onChange={(title) => set({ title })}
-                className="gap-1.5"
-              >
-                <Label className="text-xs leading-4 font-semibold text-(--text-primary)">
-                  Title
-                </Label>
-                <Input
-                  placeholder="Task title"
-                  maxLength={200}
-                  className="h-8 type-body text-(--text-primary)"
-                />
-              </TextField>
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        {/* Long content scrolls in the body, so the footer stays on screen. */}
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="type-panel-title text-(--text-primary)">
+                New task
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form
+              noValidate
+              onSubmit={(event) => void submit(event).catch(() => {})}
+              className="flex min-h-0 flex-col"
+            >
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
+                <TextField
+                  fullWidth
+                  autoFocus
+                  name="title"
+                  value={values.title}
+                  onChange={(title) => set({ title })}
+                  className="gap-1.5"
+                >
+                  <Label className="text-xs leading-4 font-semibold text-(--text-primary)">
+                    Title
+                  </Label>
+                  <Input
+                    placeholder="Task title"
+                    maxLength={200}
+                    className="h-8 type-body text-(--text-primary)"
+                  />
+                </TextField>
 
-              <div className="-mt-1 flex flex-wrap gap-1.5">
-                <OwnerChip
-                  value={{ lifeAreaId: values.lifeAreaId, projectId: values.projectId }}
-                  lifeAreas={lifeAreas}
-                  projects={projects}
-                  onChange={(owner) => set({ ...owner, sectionId: null })}
-                />
-                {sections.length > 0 && (
-                  <MenuChip
-                    icon={AlignLeft}
-                    tone={section ? "default" : "ghost"}
-                    label="Section"
-                    value={section ? String(section.id) : "none"}
-                    options={[
-                      { id: "none", label: "No section" },
-                      ...sections.map((s) => ({ id: String(s.id), label: s.title })),
-                    ]}
-                    onChange={(id) => set({ sectionId: id === "none" ? null : Number(id) })}
+                <div className="-mt-1 flex flex-wrap gap-1.5">
+                  <OwnerChip
+                    value={{ lifeAreaId: values.lifeAreaId, projectId: values.projectId }}
+                    lifeAreas={lifeAreas}
+                    projects={projects}
+                    onChange={(owner) => set({ ...owner, sectionId: null })}
+                  />
+                  {sections.length > 0 && (
+                    <MenuChip
+                      icon={AlignLeft}
+                      tone={section ? "default" : "ghost"}
+                      label="Section"
+                      value={section ? String(section.id) : "none"}
+                      options={[
+                        { id: "none", label: "No section" },
+                        ...sections.map((s) => ({ id: String(s.id), label: s.title })),
+                      ]}
+                      onChange={(id) => set({ sectionId: id === "none" ? null : Number(id) })}
+                    >
+                      {section?.title ?? "Section"}
+                    </MenuChip>
+                  )}
+                  <MenuChip<Priority>
+                    leading={<PriorityFlag priority={values.priority} />}
+                    tone={
+                      values.priority === "high"
+                        ? "danger"
+                        : values.priority === "none"
+                          ? "ghost"
+                          : "default"
+                    }
+                    label="Priority"
+                    value={values.priority}
+                    options={PRIORITY_OPTIONS}
+                    onChange={(priority) => set({ priority })}
                   >
-                    {section?.title ?? "Section"}
+                    {values.priority === "none"
+                      ? "Priority"
+                      : PRIORITY_OPTIONS.find((p) => p.id === values.priority)?.label}
                   </MenuChip>
-                )}
-                <MenuChip<Priority>
-                  leading={<PriorityFlag priority={values.priority} />}
-                  tone={
-                    values.priority === "high"
-                      ? "danger"
-                      : values.priority === "none"
-                        ? "ghost"
-                        : "default"
-                  }
-                  label="Priority"
-                  value={values.priority}
-                  options={PRIORITY_OPTIONS}
-                  onChange={(priority) => set({ priority })}
-                >
-                  {values.priority === "none"
-                    ? "Priority"
-                    : PRIORITY_OPTIONS.find((p) => p.id === values.priority)?.label}
-                </MenuChip>
-                <DateChip
-                  icon={Sun}
-                  tone={values.scheduledDate ? "default" : "ghost"}
-                  label="Scheduled"
-                  value={values.scheduledDate}
-                  today={today}
-                  clearLabel="Unscheduled"
-                  onChange={(scheduledDate) => set({ scheduledDate })}
-                >
-                  {values.scheduledDate ? dayDate(values.scheduledDate) : "Scheduled"}
-                </DateChip>
-                <DateChip
-                  icon={Clock3}
-                  tone={overdue ? "danger" : values.dueDate ? "default" : "ghost"}
-                  label="Due"
-                  value={values.dueDate}
-                  today={today}
-                  clearLabel="No due date"
-                  onChange={(dueDate) => set({ dueDate })}
-                >
-                  {values.dueDate ? `Due ${dayDate(values.dueDate)}` : "Due"}
-                </DateChip>
-                <RepeatChip
-                  value={values.repeat}
-                  anchor={anchor}
-                  onChange={(repeat) => set({ repeat })}
+                  <DateChip
+                    icon={Sun}
+                    tone={values.scheduledDate ? "default" : "ghost"}
+                    label="Scheduled"
+                    value={values.scheduledDate}
+                    today={today}
+                    clearLabel="Unscheduled"
+                    onChange={(scheduledDate) => set({ scheduledDate })}
+                  >
+                    {values.scheduledDate ? dayDate(values.scheduledDate) : "Scheduled"}
+                  </DateChip>
+                  <DateChip
+                    icon={Clock3}
+                    tone={overdue ? "danger" : values.dueDate ? "default" : "ghost"}
+                    label="Due"
+                    value={values.dueDate}
+                    today={today}
+                    clearLabel="No due date"
+                    onChange={(dueDate) => set({ dueDate })}
+                  >
+                    {values.dueDate ? `Due ${dayDate(values.dueDate)}` : "Due"}
+                  </DateChip>
+                  <RepeatChip
+                    value={values.repeat}
+                    anchor={anchor}
+                    onChange={(repeat) => set({ repeat })}
+                  />
+                </div>
+
+                <SubtaskDrafts
+                  subtasks={values.subtasks}
+                  onChange={(subtasks) => set({ subtasks })}
                 />
-              </div>
 
-              <SubtaskDrafts
-                subtasks={values.subtasks}
-                onChange={(subtasks) => set({ subtasks })}
-              />
-
-              {problem && <p className="-mt-2 type-meta text-(--text-danger)">{problem}</p>}
-              {error && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{errorMessage(error)}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" isDisabled={!canCreate} isPending={isPending}>
-                Create task
-              </Button>
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+                {problem && <p className="-mt-2 type-meta text-(--text-danger)">{problem}</p>}
+                {error && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{errorMessage(error)}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" isDisabled={!canCreate} isPending={isPending}>
+                  Create task
+                </Button>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }
 

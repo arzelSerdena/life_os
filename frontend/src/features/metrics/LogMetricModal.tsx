@@ -1,12 +1,13 @@
 import { Alert, Button, Input, Label, Modal, TextField } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createMetricEntryMutation } from "../../client/@tanstack/react-query.gen";
 import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
 import { today } from "../../period";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import { DatePickerField } from "../pickers/DatePicker";
 import { formatValue, inputAffixes, type MetricFormat, parseValue } from "./format";
 
@@ -36,6 +37,11 @@ export function LogMetricModal({
   const [date, setDate] = useState(() => today());
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const initialDate = useRef(date);
+  const guard = useDiscardGuard(
+    text.trim() !== "" || note.trim() !== "" || date !== initialDate.current,
+    onClose,
+  );
   const showToast = useChangeToast((state) => state.show);
   const log = useMutation(createMetricEntryMutation());
 
@@ -72,78 +78,77 @@ export function LogMetricModal({
   };
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[420px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="truncate type-panel-title text-(--text-primary)">
-              Log {metric.title}
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form noValidate onSubmit={submit} className="flex min-h-0 flex-col">
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <div className="flex gap-3">
-                <div className="flex flex-1 flex-col gap-1.5">
-                  <label htmlFor="log-metric-value" className={FIELD_LABEL}>
-                    Value
-                  </label>
-                  <span
-                    className={`${FIELD} flex items-center gap-1 has-[:focus-visible]:border-brand-600 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-200`}
-                  >
-                    {prefix && <span className="text-(--text-tertiary)">{prefix}</span>}
-                    <input
-                      id="log-metric-value"
-                      aria-label="Value"
-                      autoFocus
-                      inputMode={metric.format === "duration" ? "text" : "decimal"}
-                      placeholder={metric.format === "duration" ? "1:30" : undefined}
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                      className="w-full min-w-0 bg-transparent tabular-nums outline-none"
-                    />
-                    {suffix && <span className="shrink-0 text-(--text-tertiary)">{suffix}</span>}
-                  </span>
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[420px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="truncate type-panel-title text-(--text-primary)">
+                Log {metric.title}
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form noValidate onSubmit={submit} className="flex min-h-0 flex-col">
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
+                <div className="flex gap-3">
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <label htmlFor="log-metric-value" className={FIELD_LABEL}>
+                      Value
+                    </label>
+                    <span
+                      className={`${FIELD} flex items-center gap-1 has-[:focus-visible]:border-brand-600 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-200`}
+                    >
+                      {prefix && <span className="text-(--text-tertiary)">{prefix}</span>}
+                      <input
+                        id="log-metric-value"
+                        aria-label="Value"
+                        autoFocus
+                        inputMode={metric.format === "duration" ? "text" : "decimal"}
+                        placeholder={metric.format === "duration" ? "1:30" : undefined}
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        className="w-full min-w-0 bg-transparent tabular-nums outline-none"
+                      />
+                      {suffix && <span className="shrink-0 text-(--text-tertiary)">{suffix}</span>}
+                    </span>
+                  </div>
+                  <div className="flex w-[160px] flex-col gap-1.5">
+                    <span className={FIELD_LABEL}>Date</span>
+                    <DatePickerField label="Date" value={date} onChange={setDate} />
+                  </div>
                 </div>
-                <div className="flex w-[160px] flex-col gap-1.5">
-                  <span className={FIELD_LABEL}>Date</span>
-                  <DatePickerField label="Date" value={date} onChange={setDate} />
-                </div>
-              </div>
-              <TextField value={note} onChange={setNote} className="gap-1.5">
-                <Label className={FIELD_LABEL}>Note</Label>
-                <Input maxLength={500} placeholder="Optional note" className="h-8 type-body" />
-              </TextField>
-              {error && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{error}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" isPending={log.isPending} isDisabled={missing !== null}>
-                Log entry
-              </Button>
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+                <TextField value={note} onChange={setNote} className="gap-1.5">
+                  <Label className={FIELD_LABEL}>Note</Label>
+                  <Input maxLength={500} placeholder="Optional note" className="h-8 type-body" />
+                </TextField>
+                {error && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{error}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" isPending={log.isPending} isDisabled={missing !== null}>
+                  Log entry
+                </Button>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }

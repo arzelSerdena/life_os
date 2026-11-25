@@ -23,6 +23,7 @@ import { createRoutineMutation } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead, ProjectRead, RoutineRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import { areaDataAttribute } from "../life-areas/palette";
 import { DateChip } from "../pickers/DatePicker";
 import { dayDate } from "../pickers/dates";
@@ -58,6 +59,9 @@ export function NewRoutineModal({
   const [rule, setRule] = useState<RepeatRule>(() => simpleRule("daily", today));
   const [startsOn, setStartsOn] = useState(today);
   const [steps, setSteps] = useState<StepDraft[]>([]);
+  const snapshot = JSON.stringify([title, rule, startsOn, steps]);
+  const initialSnapshot = useRef(snapshot);
+  const guard = useDiscardGuard(snapshot !== initialSnapshot.current, onClose);
   const create = useMutation(createRoutineMutation());
   const missing = newRoutineMissing(title, steps);
 
@@ -83,134 +87,133 @@ export function NewRoutineModal({
   };
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="type-panel-title text-(--text-primary)">
-              New routine
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form noValidate onSubmit={submit} className="flex min-h-0 flex-col">
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <TextField
-                fullWidth
-                autoFocus
-                name="title"
-                value={title}
-                onChange={setTitle}
-                className="gap-1.5"
-              >
-                <Label className="text-xs leading-4 font-semibold text-(--text-primary)">
-                  Name
-                </Label>
-                <Input
-                  placeholder="Routine name"
-                  maxLength={200}
-                  className="h-8 type-body text-(--text-primary)"
-                />
-              </TextField>
-
-              <div className="-mt-1 flex flex-wrap gap-1.5">
-                <RepeatChip
-                  value={rule}
-                  anchor={startsOn}
-                  allowCompletion={false}
-                  allowNone={false}
-                  allowEnd={false}
-                  onChange={(next) => next && setRule(next)}
-                />
-                <DateChip
-                  icon={CalendarDays}
-                  label="Starts"
-                  value={startsOn}
-                  today={today}
-                  onChange={(day) => day && setStartsOn(day)}
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[480px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="type-panel-title text-(--text-primary)">
+                New routine
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form noValidate onSubmit={submit} className="flex min-h-0 flex-col">
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
+                <TextField
+                  fullWidth
+                  autoFocus
+                  name="title"
+                  value={title}
+                  onChange={setTitle}
+                  className="gap-1.5"
                 >
-                  {startsOn === today ? "Starts today" : `Starts ${dayDate(startsOn)}`}
-                </DateChip>
-              </div>
+                  <Label className="text-xs leading-4 font-semibold text-(--text-primary)">
+                    Name
+                  </Label>
+                  <Input
+                    placeholder="Routine name"
+                    maxLength={200}
+                    className="h-8 type-body text-(--text-primary)"
+                  />
+                </TextField>
 
-              <div className="flex flex-col gap-1">
-                <div className="flex h-6 items-center gap-1.5">
-                  <span className="text-xs leading-4 font-semibold text-(--text-primary)">
-                    Steps
-                  </span>
-                  {steps.length > 0 && (
-                    <span className="rounded-full bg-(--color-neutral-100) px-1.5 text-[11px] leading-4 font-medium text-(--text-secondary)">
-                      {steps.length}
-                    </span>
-                  )}
-                </div>
-                <StepDrafts
-                  steps={steps}
-                  lifeAreas={lifeAreas}
-                  projects={projects}
-                  onChange={setSteps}
-                />
-              </div>
-
-              <div className="flex flex-col border-t border-(--color-neutral-100) pt-3">
-                <div
-                  aria-hidden
-                  className="flex h-7 w-60 items-center gap-2 rounded-(--radius-6) bg-(--color-neutral-100) px-2 type-sidebar-item text-(--text-primary)"
-                >
-                  <ProgressRing done={0} total={0} className="size-4" />
-                  <span className={`truncate ${title.trim() ? "" : "text-(--text-disabled)"}`}>
-                    {title.trim() || "Routine name"}
-                  </span>
-                </div>
-              </div>
-
-              {create.error && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{errorMessage(create.error)}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              <Tooltip delay={0} isDisabled={!missing}>
-                {/* The wrapper only catches hover on the disabled button; screen readers
-                    get the reason from aria-describedby. */}
-                <Tooltip.Trigger role="presentation" tabIndex={-1}>
-                  <Button
-                    type="submit"
-                    isPending={create.isPending}
-                    isDisabled={missing !== null}
-                    aria-describedby={missing ? "new-routine-missing" : undefined}
+                <div className="-mt-1 flex flex-wrap gap-1.5">
+                  <RepeatChip
+                    value={rule}
+                    anchor={startsOn}
+                    allowCompletion={false}
+                    allowNone={false}
+                    allowEnd={false}
+                    onChange={(next) => next && setRule(next)}
+                  />
+                  <DateChip
+                    icon={CalendarDays}
+                    label="Starts"
+                    value={startsOn}
+                    today={today}
+                    onChange={(day) => day && setStartsOn(day)}
                   >
-                    Create routine
-                  </Button>
-                </Tooltip.Trigger>
-                <Tooltip.Content>{missing}</Tooltip.Content>
-              </Tooltip>
-              {missing && (
-                <span id="new-routine-missing" className="sr-only">
-                  {missing}
-                </span>
-              )}
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+                    {startsOn === today ? "Starts today" : `Starts ${dayDate(startsOn)}`}
+                  </DateChip>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex h-6 items-center gap-1.5">
+                    <span className="text-xs leading-4 font-semibold text-(--text-primary)">
+                      Steps
+                    </span>
+                    {steps.length > 0 && (
+                      <span className="rounded-full bg-(--color-neutral-100) px-1.5 text-[11px] leading-4 font-medium text-(--text-secondary)">
+                        {steps.length}
+                      </span>
+                    )}
+                  </div>
+                  <StepDrafts
+                    steps={steps}
+                    lifeAreas={lifeAreas}
+                    projects={projects}
+                    onChange={setSteps}
+                  />
+                </div>
+
+                <div className="flex flex-col border-t border-(--color-neutral-100) pt-3">
+                  <div
+                    aria-hidden
+                    className="flex h-7 w-60 items-center gap-2 rounded-(--radius-6) bg-(--color-neutral-100) px-2 type-sidebar-item text-(--text-primary)"
+                  >
+                    <ProgressRing done={0} total={0} className="size-4" />
+                    <span className={`truncate ${title.trim() ? "" : "text-(--text-disabled)"}`}>
+                      {title.trim() || "Routine name"}
+                    </span>
+                  </div>
+                </div>
+
+                {create.error && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{errorMessage(create.error)}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
+                </Button>
+                <Tooltip delay={0} isDisabled={!missing}>
+                  {/* The wrapper only catches hover on the disabled button; screen readers
+                    get the reason from aria-describedby. */}
+                  <Tooltip.Trigger role="presentation" tabIndex={-1}>
+                    <Button
+                      type="submit"
+                      isPending={create.isPending}
+                      isDisabled={missing !== null}
+                      aria-describedby={missing ? "new-routine-missing" : undefined}
+                    >
+                      Create routine
+                    </Button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>{missing}</Tooltip.Content>
+                </Tooltip>
+                {missing && (
+                  <span id="new-routine-missing" className="sr-only">
+                    {missing}
+                  </span>
+                )}
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }
 

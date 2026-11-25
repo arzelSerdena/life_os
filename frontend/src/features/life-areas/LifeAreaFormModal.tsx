@@ -7,6 +7,7 @@ import { createLifeAreaMutation } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { errorMessage } from "../../errors";
+import { useDiscardGuard } from "../confirming/useDiscardGuard";
 import {
   initialFormValues,
   type LifeAreaFormValues,
@@ -36,10 +37,15 @@ export function LifeAreaFormModal({
   onClose,
   onSaved,
 }: LifeAreaFormModalProps) {
-  const { control, handleSubmit } = useForm<LifeAreaFormValues>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm<LifeAreaFormValues>({
     resolver: zodResolver(lifeAreaFormSchema),
     defaultValues: initialFormValues(defaultColor, prefill),
   });
+  const guard = useDiscardGuard(isDirty, onClose);
   const [title, color] = useWatch({ control, name: ["title", "color"] });
   const create = useMutation(createLifeAreaMutation());
 
@@ -56,165 +62,164 @@ export function LifeAreaFormModal({
   });
 
   return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      className="bg-[rgb(17_24_39/0.32)]"
-    >
-      {/* Long content scrolls in the body, so the footer stays on screen. */}
-      <Modal.Container scroll="inside">
-        <Modal.Dialog className="w-[460px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
-          <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
-            <Modal.Heading className="type-panel-title text-(--text-primary)">
-              New life area
-            </Modal.Heading>
-            <IconButton label="Close" size="md" onPress={onClose}>
-              <X />
-            </IconButton>
-          </Modal.Header>
-          <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-col">
-            <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
-              <Controller
-                control={control}
-                name="title"
-                render={({ field, fieldState }) => (
-                  <TextField
-                    fullWidth
-                    autoFocus
-                    name={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    isInvalid={fieldState.invalid}
-                    className="gap-1.5"
-                  >
-                    <Label className={FIELD_LABEL}>Name</Label>
-                    <Input className="h-8 type-body text-(--text-primary)" />
-                    <FieldError>{fieldState.error?.message}</FieldError>
-                  </TextField>
-                )}
-              />
+    <>
+      <Modal.Backdrop {...guard.backdropProps}>
+        {/* Long content scrolls in the body, so the footer stays on screen. */}
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="w-[460px] max-w-[calc(100vw-32px)] gap-0 rounded-(--radius-12) p-0 shadow-(--effect-overlay)">
+            <Modal.Header className="flex h-[52px] flex-row items-center justify-between border-b border-(--border-default) py-0 pr-3 pl-5">
+              <Modal.Heading className="type-panel-title text-(--text-primary)">
+                New life area
+              </Modal.Heading>
+              <IconButton label="Close" size="md" onPress={onClose}>
+                <X />
+              </IconButton>
+            </Modal.Header>
+            <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-col">
+              <Modal.Body className="m-0 flex flex-col gap-4 px-5 py-4">
+                <Controller
+                  control={control}
+                  name="title"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      fullWidth
+                      autoFocus
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={fieldState.invalid}
+                      className="gap-1.5"
+                    >
+                      <Label className={FIELD_LABEL}>Name</Label>
+                      <Input className="h-8 type-body text-(--text-primary)" />
+                      <FieldError>{fieldState.error?.message}</FieldError>
+                    </TextField>
+                  )}
+                />
 
-              <Controller
-                control={control}
-                name="color"
-                render={({ field }) => (
-                  <fieldset className="flex flex-col gap-1.5">
-                    <legend className={`${FIELD_LABEL} mb-1.5`}>Color</legend>
-                    <div className="grid grid-cols-6 gap-1.5">
-                      {AREA_PALETTES.map((palette) => {
-                        const usedBy = lifeAreas
-                          .filter((area) => area.color === palette.key)
-                          .map((area) => area.title)
-                          .join(", ");
-                        const isSelected = field.value === palette.key;
-                        return (
-                          <label
-                            key={palette.key}
-                            title={usedBy ? `${palette.name} · used by ${usedBy}` : palette.name}
-                            className={`flex cursor-pointer flex-col items-center gap-1 rounded-(--radius-8) py-1.5 text-[11px] leading-4 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring) hover:bg-(--bg-hover) ${
-                              isSelected
-                                ? "bg-(--bg-hover) font-semibold text-(--text-primary)"
-                                : "text-(--text-secondary)"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={field.name}
-                              value={palette.key}
-                              checked={isSelected}
-                              aria-label={
-                                usedBy ? `${palette.name}, used by ${usedBy}` : palette.name
-                              }
-                              onChange={() => field.onChange(palette.key)}
-                              className="sr-only"
-                            />
-                            <span
-                              aria-hidden
-                              style={{ backgroundColor: palette.swatch }}
-                              className="grid size-6 place-items-center rounded-(--radius-6) text-white"
+                <Controller
+                  control={control}
+                  name="color"
+                  render={({ field }) => (
+                    <fieldset className="flex flex-col gap-1.5">
+                      <legend className={`${FIELD_LABEL} mb-1.5`}>Color</legend>
+                      <div className="grid grid-cols-6 gap-1.5">
+                        {AREA_PALETTES.map((palette) => {
+                          const usedBy = lifeAreas
+                            .filter((area) => area.color === palette.key)
+                            .map((area) => area.title)
+                            .join(", ");
+                          const isSelected = field.value === palette.key;
+                          return (
+                            <label
+                              key={palette.key}
+                              title={usedBy ? `${palette.name} · used by ${usedBy}` : palette.name}
+                              className={`flex cursor-pointer flex-col items-center gap-1 rounded-(--radius-8) py-1.5 text-[11px] leading-4 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring) hover:bg-(--bg-hover) ${
+                                isSelected
+                                  ? "bg-(--bg-hover) font-semibold text-(--text-primary)"
+                                  : "text-(--text-secondary)"
+                              }`}
                             >
-                              {isSelected && <Check className="size-3.5" strokeWidth={3} />}
-                            </span>
-                            <span aria-hidden>{palette.name}</span>
-                            {usedBy && (
+                              <input
+                                type="radio"
+                                name={field.name}
+                                value={palette.key}
+                                checked={isSelected}
+                                aria-label={
+                                  usedBy ? `${palette.name}, used by ${usedBy}` : palette.name
+                                }
+                                onChange={() => field.onChange(palette.key)}
+                                className="sr-only"
+                              />
                               <span
                                 aria-hidden
-                                className="-mt-0.5 max-w-full truncate px-1 text-[11px] leading-3 font-normal text-(--text-tertiary)"
+                                style={{ backgroundColor: palette.swatch }}
+                                className="grid size-6 place-items-center rounded-(--radius-6) text-white"
                               >
-                                {usedBy}
+                                {isSelected && <Check className="size-3.5" strokeWidth={3} />}
                               </span>
-                            )}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                )}
-              />
+                              <span aria-hidden>{palette.name}</span>
+                              {usedBy && (
+                                <span
+                                  aria-hidden
+                                  className="-mt-0.5 max-w-full truncate px-1 text-[11px] leading-3 font-normal text-(--text-tertiary)"
+                                >
+                                  {usedBy}
+                                </span>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  )}
+                />
 
-              <Controller
-                control={control}
-                name="vision"
-                render={({ field, fieldState }) => (
-                  <TextField
-                    fullWidth
-                    name={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    isInvalid={fieldState.invalid}
-                    className="gap-1.5"
+                <Controller
+                  control={control}
+                  name="vision"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      fullWidth
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={fieldState.invalid}
+                      className="gap-1.5"
+                    >
+                      <Label className={FIELD_LABEL}>Vision</Label>
+                      <TextArea
+                        rows={2}
+                        className="min-h-16 resize-none type-body text-(--text-primary)"
+                      />
+                      <FieldError>{fieldState.error?.message}</FieldError>
+                    </TextField>
+                  )}
+                />
+
+                <div className="flex items-center gap-3 border-t border-(--border-default) pt-3">
+                  <span className="type-meta text-(--text-tertiary)">Preview</span>
+                  <div
+                    data-area={areaDataAttribute(color)}
+                    className="flex h-(--sidebar-item-height) min-w-0 flex-1 items-center gap-2 rounded-(--radius-6) bg-(--bg-hover) px-2 type-sidebar-item text-(--text-primary)"
                   >
-                    <Label className={FIELD_LABEL}>Vision</Label>
-                    <TextArea
-                      rows={2}
-                      className="min-h-16 resize-none type-body text-(--text-primary)"
+                    <span
+                      aria-hidden
+                      className="mx-1 size-2 shrink-0 rounded-[2px] bg-(--area-solid)"
                     />
-                    <FieldError>{fieldState.error?.message}</FieldError>
-                  </TextField>
-                )}
-              />
-
-              <div className="flex items-center gap-3 border-t border-(--border-default) pt-3">
-                <span className="type-meta text-(--text-tertiary)">Preview</span>
-                <div
-                  data-area={areaDataAttribute(color)}
-                  className="flex h-(--sidebar-item-height) min-w-0 flex-1 items-center gap-2 rounded-(--radius-6) bg-(--bg-hover) px-2 type-sidebar-item text-(--text-primary)"
-                >
-                  <span
-                    aria-hidden
-                    className="mx-1 size-2 shrink-0 rounded-[2px] bg-(--area-solid)"
-                  />
-                  <span className="truncate">{title.trim() || "New area"}</span>
+                    <span className="truncate">{title.trim() || "New area"}</span>
+                  </div>
                 </div>
-              </div>
 
-              {create.isError && (
-                <Alert status="danger">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{errorMessage(create.error)}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              )}
-            </Modal.Body>
-            <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
-              <Button
-                variant="secondary"
-                onPress={onClose}
-                className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" isPending={create.isPending}>
-                Create area
-              </Button>
-            </Modal.Footer>
-          </form>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+                {create.isError && (
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{errorMessage(create.error)}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="m-0 flex justify-end gap-2 border-t border-(--border-default) px-5 py-3">
+                <Button
+                  variant="secondary"
+                  onPress={onClose}
+                  className="border border-(--button-secondary-border) bg-(--bg-surface) text-(--button-secondary-text)"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" isPending={create.isPending}>
+                  Create area
+                </Button>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+      {guard.dialog}
+    </>
   );
 }
 
