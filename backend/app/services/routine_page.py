@@ -163,7 +163,7 @@ def get_routine_page(session: Session, routine_id: int, period: str, day: date) 
     previous = totals(before) if before else None
 
     used = metrics_using(session, [step.id for step in steps])
-    feeding = {metric.routine_step_id: metric for metric in used}
+    feeding = {metric.routine_step_id: metric for metric in used if metric.archived_at is None}
     rows = []
     for step in steps:
         days: list[tuple[date, HistoryState]] = [(d, states[step.id][d]) for d in days_in(view)]

@@ -42,6 +42,10 @@
   --warning-foreground: var(--color-white);
   --danger: var(--color-negative-600);
   --danger-foreground: var(--color-white);
+  --danger-bg: var(--color-negative-50);
+  --danger-bg-hover: var(--color-negative-100);
+  --danger-border: var(--color-negative-200);
+  --danger-text: var(--color-negative-700);
 
   /* Lines */
   --border: var(--border-default);
@@ -59,6 +63,84 @@
   --radius: var(--radius-8);
 }
 
+/* Dark theme semantic overrides (STYLE_GUIDE.md). Activate by setting data-theme="dark" on <html>. */
+[data-theme="dark"] {
+  --bg-app: #0d0f14;
+  --bg-surface: #151821;
+  --bg-hover: #1f2430;
+  --bg-pressed: #282e3d;
+
+  --text-primary: var(--color-neutral-100);
+  --text-secondary: var(--color-neutral-300);
+  --text-tertiary: var(--color-neutral-400);
+  --text-disabled: var(--color-neutral-500);
+  --text-danger: var(--color-negative-400);
+
+  --border-default: #262b36;
+  --border-strong: #343b4a;
+
+  --focus-ring: var(--color-brand-500);
+  --accent-solid: var(--color-brand-400);
+  --accent-soft: var(--color-brand-900);
+  --accent-subtle: var(--color-brand-950);
+  --accent-text: var(--color-brand-300);
+
+  --neutral-solid: var(--color-neutral-400);
+  --neutral-button-bg: var(--color-neutral-700);
+  --neutral-done: var(--color-neutral-700);
+  --neutral-tint-active: var(--color-neutral-800);
+  --neutral-text: var(--color-neutral-200);
+  --neutral-ink: var(--color-neutral-100);
+  --neutral-border: var(--color-neutral-700);
+  --neutral-tint-past: var(--color-neutral-900);
+
+  --priority-high: var(--color-negative-400);
+  --priority-medium: var(--color-area-ochre-300);
+  --priority-low: var(--color-area-blue-400);
+  --priority-none: var(--color-neutral-500);
+  --icon-primary: var(--color-neutral-300);
+  --icon-tertiary: var(--color-neutral-400);
+
+  --rail-bg: #151821;
+  --rail-icon: var(--color-neutral-400);
+  --rail-icon-active-bg: #262b36;
+  --rail-icon-active: var(--color-neutral-100);
+  --sidebar-icon: var(--color-neutral-300);
+  --sidebar-group-item-text: var(--color-neutral-300);
+  --switch-container-bg: #1f2430;
+  --switch-active-bg: var(--bg-surface);
+  --switch-active-text: var(--text-primary);
+  --switch-default-text: var(--text-tertiary);
+  --counter-bg: #262b36;
+  --counter-text: var(--text-secondary);
+  --pill-neutral-bg: #1f2430;
+  --pill-neutral-text: var(--text-secondary);
+  --pill-neutral-icon: var(--color-neutral-400);
+  --event-birthday-bg: var(--color-area-ochre-950);
+  --event-birthday-bg-past: var(--color-area-ochre-950);
+
+  --effect-overlay: 0px 2px 8px 0px #00000066, 0px 14px 28px 0px #00000080;
+  --effect-raised: 0px 1px 2px 0px #0000004d;
+
+  --surface-secondary: #1f2430;
+  --surface-tertiary: #282e3d;
+  --default: #1f2430;
+  --default-foreground: var(--text-primary);
+  --success: var(--color-positive-400);
+  --warning: var(--color-warning-400);
+  --danger: var(--color-negative-400);
+  --danger-bg: var(--color-negative-950);
+  --danger-bg-hover: var(--color-negative-900);
+  --danger-border: var(--color-negative-800);
+  --danger-text: var(--color-negative-300);
+  --separator: #20242e;
+}
+
+/* Slightly thicker default icon strokes across the app */
+svg.lucide {
+  stroke-width: 2.15;
+}
+
 /* Every clickable thing has a 24 × 24 px hit area, even when it draws smaller (Nov 16).
    Add `hit-24` with `relative` (or another position) to a control drawn below 24 px. */
 @utility hit-24 {
@@ -67,6 +149,80 @@
     position: absolute;
     inset: min(0px, calc((100% - 24px) / 2));
   }
+}
+
+/* Consistent keyboard focus ring for raw buttons and custom interactive controls.
+   Named `app-focus-ring` to avoid colliding with HeroUI v3's own `.focus-ring` class. */
+@utility app-focus-ring {
+  outline: none;
+  &:focus-visible {
+    box-shadow: var(--effect-focus-ring);
+  }
+}
+
+/* Scroll shadows (STYLE_GUIDE.md): 16 px CSS mask fade on edges with more content,
+   animated smoothly over 150 ms via registered @property lengths. */
+@property --scroll-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-left {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-right {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+.scroll-fade {
+  transition:
+    --scroll-fade-top 150ms ease,
+    --scroll-fade-bottom 150ms ease,
+    --scroll-fade-left 150ms ease,
+    --scroll-fade-right 150ms ease;
+}
+.scroll-fade[data-fade-top="true"] {
+  --scroll-fade-top: 16px;
+}
+.scroll-fade[data-fade-bottom="true"] {
+  --scroll-fade-bottom: 16px;
+}
+.scroll-fade[data-fade-left="true"] {
+  --scroll-fade-left: 16px;
+}
+.scroll-fade[data-fade-right="true"] {
+  --scroll-fade-right: 16px;
+}
+.scroll-fade[data-fade-top="true"],
+.scroll-fade[data-fade-bottom="true"],
+.scroll-fade[data-fade-left="true"],
+.scroll-fade[data-fade-right="true"] {
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      black var(--scroll-fade-top),
+      black calc(100% - var(--scroll-fade-bottom)),
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0,
+      black var(--scroll-fade-left),
+      black calc(100% - var(--scroll-fade-right)),
+      transparent 100%
+    );
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
 }
 
 /* App-wide base: compact body text, hidden scrollbars (Decided) */
@@ -109,13 +265,13 @@
     height: 16px;
   }
 
-  /* Action buttons are solid (Nov 16): the accent everywhere, the area's colour inside an
-     area. Put `button--area` on a primary Button under a `data-area` element. Hover and
-     pressed mix in white the way HeroUI's own accent hover does. */
+  /* Action buttons are solid (Nov 16): the accent everywhere, the area's 700 colour inside an
+     area so white text meets WCAG AA on every palette. Put `button--area` on a primary Button
+     under a `data-area` element. */
   .button--area {
-    --button-bg: var(--area-solid);
-    --button-bg-hover: color-mix(in oklab, var(--area-solid) 90%, var(--color-white) 10%);
-    --button-bg-pressed: color-mix(in oklab, var(--area-solid) 90%, var(--color-white) 10%);
+    --button-bg: var(--area-button-bg);
+    --button-bg-hover: color-mix(in oklab, var(--area-button-bg) 90%, var(--color-white) 10%);
+    --button-bg-pressed: color-mix(in oklab, var(--area-button-bg) 90%, var(--color-white) 10%);
     --button-fg: var(--color-white);
   }
 

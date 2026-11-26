@@ -34,7 +34,7 @@ export function AnchoredPopover({
         triggerRef={triggerRef}
         placement={placement}
         style={{ width }}
-        className="rounded-[10px] border border-(--border-default) p-0"
+        className="rounded-(--radius-12) border border-(--border-default) p-0"
       >
         <Popover.Dialog aria-label={label} className="flex flex-col p-1.5 outline-none">
           {children}

@@ -221,7 +221,20 @@ export function ComingUpCard({
   context: RowContext;
 }) {
   return (
-    <SectionCard title="Coming up" description={comingUpSubtitle(home, days)}>
+    <SectionCard
+      title="Coming up"
+      description={comingUpSubtitle(home, days)}
+      action={
+        <Link
+          to="/calendar"
+          aria-label="Open calendar"
+          title="Open calendar"
+          className="grid size-6 shrink-0 place-items-center rounded-(--radius-6) text-(--text-tertiary) outline-none hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        >
+          <CalendarDays aria-hidden className="size-4" strokeWidth={2} />
+        </Link>
+      }
+    >
       {days.length === 0 ? (
         <CardEmpty>Nothing in the next 7 days.</CardEmpty>
       ) : (

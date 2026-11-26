@@ -22,7 +22,7 @@ def in_inbox() -> ColumnElement[bool]:
     return or_(
         Task.life_area_id.is_(None),
         and_(
-            Task.template_id.is_(None),
+            Task.occurrence_date.is_(None),
             or_(Task.scheduled_date.is_(None), Task.priority == "none"),
         ),
     )

@@ -55,6 +55,8 @@ export function taskRead(overrides: Partial<TaskRead>): TaskRead {
     status: "todo",
     priority: "none",
     scheduled_date: null,
+    scheduled_time: null,
+    scheduled_end_time: null,
     due_date: null,
     due_time: null,
     completed_at: null,

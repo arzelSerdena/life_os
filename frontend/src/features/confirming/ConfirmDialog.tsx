@@ -233,7 +233,7 @@ function Group({ group }: { group: PreviewGroup }) {
         >
           {label}
         </h3>
-        <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-100 px-1.5 text-[11px] font-medium text-(--text-secondary)">
+        <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-100 px-1.5 type-tag font-medium text-(--text-secondary)">
           {rows.length}
         </span>
       </div>
@@ -312,7 +312,7 @@ function Row({ row }: { row: PreviewRow }) {
     >
       <RowMark row={row} />
       <span
-        className={`min-w-0 flex-1 truncate text-[13px] leading-5 ${row.finished ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
+        className={`min-w-0 flex-1 truncate type-body leading-5 ${row.finished ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
       >
         {rowName(row)}
       </span>

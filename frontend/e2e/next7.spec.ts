@@ -9,9 +9,9 @@ async function dragTo(page: Page, source: Locator, target: Locator, offsetY = 0.
   const from = await source.boundingBox();
   const to = await target.boundingBox();
   if (!from || !to) throw new Error("Nothing to drag");
-  await page.mouse.move(from.x + 20, from.y + from.height / 2);
+  await page.mouse.move(from.x + 60, from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(from.x + 40, from.y + from.height / 2, { steps: 5 });
+  await page.mouse.move(from.x + 80, from.y + from.height / 2, { steps: 5 });
   await page.mouse.move(to.x + to.width / 2, to.y + to.height * offsetY, { steps: 15 });
   await page.mouse.move(to.x + to.width / 2 + 1, to.y + to.height * offsetY, { steps: 2 });
   await page.mouse.up();

@@ -12,6 +12,7 @@ import {
   listTasksOptions,
   rescheduleEventMutation,
   rescheduleProjectMutation,
+  updateRoutineMutation,
   updateTaskMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { DaysRead, EventChange, ProjectRead } from "../../client/types.gen";
@@ -20,6 +21,7 @@ import { QueryError } from "../../components/QueryError";
 import { today as localToday } from "../../period";
 import { useCalendarStore } from "../../stores/calendarStore";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useDetailPanel } from "../../stores/detailPanelStore";
 import { useNewEvent } from "../../stores/newEventStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
@@ -31,7 +33,13 @@ import type { RowContext } from "./AgendaRow";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarHeader } from "./CalendarHeader";
 import { AgendaPanel, InboxPanel } from "./CalendarPanel";
-import { AddMenu, DayPopover, HiddenBarsPopover, RoutinePopover } from "./CalendarPopovers";
+import {
+  AddMenu,
+  DayPopover,
+  EntryPreviewPopover,
+  HiddenBarsPopover,
+  RoutinePopover,
+} from "./CalendarPopovers";
 import { CalendarSidebar } from "./CalendarSidebar";
 import {
   agendaDays,
@@ -48,6 +56,7 @@ import {
   viewRange,
 } from "./calendar";
 import { useCalendarKeys } from "./calendarKeys";
+import { type EventEditScope, EventScopeDialog } from "./EventScopeDialog";
 import { LinearCalendar } from "./LinearCalendar";
 import { type MonthRow, projectBars, splitEntries } from "./linear";
 import {
@@ -66,8 +75,18 @@ import { DragOverlay, useLinearDrag } from "./useLinearDrag";
 type Open =
   | { kind: "routine"; day: string; routineId: number | null; anchor: HTMLElement }
   | { kind: "day"; day: string; anchor: HTMLElement }
+  | { kind: "entry"; entry: Entry; anchor: HTMLElement }
   | { kind: "hidden"; row: MonthRow; anchor: HTMLElement }
-  | { kind: "add"; day: string; x: number; y: number };
+  | { kind: "add"; day: string; startTime?: string; endTime?: string; x: number; y: number };
+
+type PendingEventMove = {
+  event: Extract<Entry, { kind: "event" }>["event"];
+  dates: { start_date: string; end_date: string | null };
+  how: "move" | "resize";
+  startTime?: string | null;
+  endTime?: string | null;
+  revert: () => void;
+};
 
 /**
  * The Calendar (Approved: Calendar): the sidebar's filters, the Week or Month day grid, and
@@ -78,19 +97,22 @@ export function CalendarPage() {
   const queryClient = useQueryClient();
   const {
     view,
+    dayCount,
+    timed,
     anchor: chosen,
     panel,
-    setPanel,
     inboxMode,
     setInboxMode,
     filters,
     setFilters,
   } = useCalendarStore();
   const showToast = useChangeToast((state) => state.show);
+  const openPanel = useDetailPanel((state) => state.open);
   const openNewTask = useNewTask((state) => state.open);
   const openNewEvent = useNewEvent((state) => state.open);
   const pending = usePendingDeletes((state) => state.pending);
   const [open, setOpen] = useState<Open | null>(null);
+  const [pendingEventMove, setPendingEventMove] = useState<PendingEventMove | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   // The add menu anchors to a point: a 1 px mark where the day was clicked.
   const [addAnchor, setAddAnchor] = useState<HTMLSpanElement | null>(null);
@@ -99,7 +121,7 @@ export function CalendarPage() {
   const [serverToday, setServerToday] = useState<string | null>(null);
   const today = serverToday ?? localToday();
   const anchor = chosen ?? today;
-  const range = viewRange(view, anchor);
+  const range = viewRange(view, anchor, dayCount);
   const linear = isLinear(view);
   // Quarter and Year show no routines, so they don't load them.
   const daysQuery = {
@@ -122,6 +144,7 @@ export function CalendarPage() {
   useCalendarKeys(anchor);
 
   const update = useMutation(updateTaskMutation());
+  const updateRoutine = useMutation(updateRoutineMutation());
   const reschedule = useMutation(rescheduleEventMutation());
   const editOccurrence = useMutation(editEventOccurrenceMutation());
   const rescheduleProject = useMutation(rescheduleProjectMutation());
@@ -166,6 +189,8 @@ export function CalendarPage() {
     end: string,
     how: "move" | "resize",
     revert: () => void,
+    startTime?: string | null,
+    endTime?: string | null,
   ) => {
     setFailed(null);
     void queryClient.cancelQueries({ queryKey: daysKey });
@@ -173,7 +198,7 @@ export function CalendarPage() {
     if (before)
       queryClient.setQueryData<DaysRead>(daysKey, {
         ...before,
-        days: applyMove(before.days, entry, start, end),
+        days: applyMove(before.days, entry, start, end, startTime, endTime),
       });
     const fail = () => {
       if (before) queryClient.setQueryData(daysKey, before);
@@ -182,7 +207,14 @@ export function CalendarPage() {
     };
     if (entry.kind === "task") {
       update.mutate(
-        { path: { task_id: entry.task.id }, body: { scheduled_date: start } },
+        {
+          path: { task_id: entry.task.id },
+          body: {
+            scheduled_date: start,
+            ...(startTime !== undefined ? { scheduled_time: startTime } : {}),
+            ...(endTime !== undefined ? { scheduled_end_time: endTime } : {}),
+          },
+        },
         {
           onSuccess: (change) =>
             change.batch_id &&
@@ -193,10 +225,21 @@ export function CalendarPage() {
           onError: fail,
         },
       );
+    } else if (entry.kind === "project") {
+      const { start_date } = entry.project;
+      const dates =
+        start_date && start_date > start
+          ? { start_date: start, due_date: start }
+          : { due_date: start };
+      rescheduleProjectDates(
+        entry.project,
+        dates,
+        `Set “${entry.project.title}” · Due ${shortDate(start)}`,
+      );
     } else if (entry.kind === "event") {
       const { event } = entry;
       const dates =
-        how === "resize" || event.start_date === start
+        how === "resize"
           ? { start_date: start, end_date: end === start ? null : end }
           : shiftEvent(event, start);
       const handlers = {
@@ -208,32 +251,49 @@ export function CalendarPage() {
           ),
         onError: fail,
       };
-      if (event.is_repeating)
-        // Only this occurrence moves ("this one"). Its end date is always sent, so an
-        // occurrence resized to one day doesn't keep the series' length.
-        editOccurrence.mutate(
+      if (event.is_repeating) {
+        if (before) queryClient.setQueryData(daysKey, before);
+        setPendingEventMove({ event, dates, how, startTime, endTime, revert });
+      } else {
+        reschedule.mutate(
           {
-            path: { event_id: event.event_id, day: event.occurrence_date },
+            path: { event_id: event.event_id },
             body: {
-              scope: "this",
-              start_date: dates.start_date,
-              end_date: dates.end_date ?? dates.start_date,
+              ...dates,
+              ...(startTime !== undefined ? { start_time: startTime } : {}),
+              ...(endTime !== undefined ? { end_time: endTime } : {}),
             },
           },
           handlers,
         );
-      else reschedule.mutate({ path: { event_id: event.event_id }, body: dates }, handlers);
+      }
+    } else if (entry.kind === "routine" && startTime !== undefined) {
+      updateRoutine.mutate(
+        {
+          path: { routine_id: entry.routine.routineId },
+          body: {
+            start_time: startTime,
+            end_time: endTime ?? null,
+          },
+        },
+        {
+          onError: fail,
+        },
+      );
     } else {
       revert();
     }
   };
 
   /** A task from the Inbox panel dropped on a day: Scheduled sets its date, Due its due date. */
-  const dropFromInbox = (taskId: number, day: string) => {
+  const dropFromInbox = (taskId: number, day: string, startTime?: string) => {
     setFailed(null);
     const task = openTasks.data?.find((item) => item.id === taskId);
     if (!task) return;
-    const body = inboxMode === "scheduled" ? { scheduled_date: day } : { due_date: day };
+    const body =
+      inboxMode === "scheduled"
+        ? { scheduled_date: day, ...(startTime ? { scheduled_time: startTime } : {}) }
+        : { due_date: day };
     update.mutate(
       { path: { task_id: taskId }, body },
       {
@@ -309,13 +369,27 @@ export function CalendarPage() {
   const error = days.error ?? lifeAreas.error ?? projects.error ?? openTasks.error;
   const ready = days.data && lifeAreas.data && projects.data;
   const close = () => setOpen(null);
-  const newTaskOn = (day: string) => {
+  const newTaskOn = (day: string, startTime?: string, endTime?: string) => {
     close();
-    openNewTask({ scheduledDate: day }, today);
+    openNewTask(
+      {
+        scheduledDate: day,
+        ...(startTime ? { scheduledTime: startTime } : {}),
+        ...(endTime ? { scheduledEndTime: endTime } : {}),
+      },
+      today,
+    );
   };
-  const newEventOn = (day: string) => {
+  const newEventOn = (day: string, startTime?: string, endTime?: string) => {
     close();
-    openNewEvent({ day }, today);
+    openNewEvent(
+      {
+        day,
+        ...(startTime ? { startTime } : {}),
+        ...(endTime ? { endTime } : {}),
+      },
+      today,
+    );
   };
   const nothingYet =
     anyEvents.data?.length === 0 && anyTasks.data?.length === 0 && entries.length === 0;
@@ -350,11 +424,41 @@ export function CalendarPage() {
           >
             <AddMenu
               day={open.day}
-              onEvent={() => newEventOn(open.day)}
-              onTask={() => newTaskOn(open.day)}
+              onEvent={() => newEventOn(open.day, open.startTime, open.endTime)}
+              onTask={() => newTaskOn(open.day, open.startTime, open.endTime)}
             />
           </AnchoredPopover>
         )
+      );
+    }
+    if (open.kind === "entry") {
+      const openEntryPanel = () => {
+        const { entry } = open;
+        close();
+        if (entry.kind === "event") {
+          openPanel({
+            kind: "event",
+            id: entry.event.event_id,
+            day: entry.event.is_repeating ? entry.event.occurrence_date : null,
+          });
+        } else if (entry.kind === "task") {
+          openPanel({ kind: "task", id: entry.task.id });
+        } else if (entry.kind === "project") {
+          openPanel({ kind: "project", id: entry.project.id });
+        } else if (entry.kind === "routine") {
+          openPanel({ kind: "routine", id: entry.routine.routineId });
+        }
+      };
+      const currentEntry = entries.find((item) => item.key === open.entry.key) ?? open.entry;
+      return (
+        <AnchoredPopover anchor={open.anchor} label="Item details" width={280} onClose={close}>
+          <EntryPreviewPopover
+            entry={currentEntry}
+            context={context}
+            onOpenPanel={openEntryPanel}
+            onClose={close}
+          />
+        </AnchoredPopover>
       );
     }
     if (open.kind === "routine") {
@@ -364,7 +468,7 @@ export function CalendarPage() {
       if (routines.length === 0) return null;
       return (
         <AnchoredPopover anchor={open.anchor} label="Routine" width={300} onClose={close}>
-          <RoutinePopover routines={routines} today={today} colorOf={colorOf} />
+          <RoutinePopover routines={routines} today={today} colorOf={colorOf} onClose={close} />
         </AnchoredPopover>
       );
     }
@@ -441,6 +545,8 @@ export function CalendarPage() {
             ) : (
               <CalendarGrid
                 view={view}
+                dayCount={dayCount}
+                timed={timed}
                 range={range}
                 month={anchor.slice(0, 7)}
                 today={today}
@@ -448,6 +554,7 @@ export function CalendarPage() {
                   view === "month" ? entries.filter((entry) => entry.kind !== "routine") : entries
                 }
                 weekends={filters.show.weekends}
+                onInspect={(entry, anchorEl) => setOpen({ kind: "entry", entry, anchor: anchorEl })}
                 rings={view === "month" ? rings : new Map()}
                 colorOf={colorOf}
                 onRoutine={onRoutine}
@@ -456,6 +563,9 @@ export function CalendarPage() {
                 }
                 onMore={(day, element) => setOpen({ kind: "day", day, anchor: element })}
                 onDayClick={(day, point) => setOpen({ kind: "add", day, ...point })}
+                onTimeSelect={(day, startTime, endTime, point) =>
+                  setOpen({ kind: "add", day, startTime, endTime, ...point })
+                }
                 onMove={move}
                 onDrop={dropFromInbox}
               />
@@ -484,7 +594,6 @@ export function CalendarPage() {
                     })
                 : undefined
             }
-            onHide={() => setPanel(null)}
           />
         )}
         {ready && panel === "inbox" && (
@@ -493,7 +602,6 @@ export function CalendarPage() {
             mode={inboxMode}
             context={context}
             onMode={setInboxMode}
-            onHide={() => setPanel(null)}
             onDragStart={
               linear ? (task, event) => begin({ kind: "inbox", task }, event) : undefined
             }
@@ -509,6 +617,50 @@ export function CalendarPage() {
         />
       )}
       {popover}
+      {pendingEventMove && (
+        <EventScopeDialog
+          title={pendingEventMove.event.title}
+          onCancel={() => {
+            pendingEventMove.revert();
+            setPendingEventMove(null);
+          }}
+          onConfirm={(scope: EventEditScope) => {
+            const { event, dates, how, startTime, endTime, revert } = pendingEventMove;
+            setPendingEventMove(null);
+            const datesChanged =
+              dates.start_date !== event.start_date ||
+              (dates.end_date ?? dates.start_date) !== event.end_date;
+            editOccurrence.mutate(
+              {
+                path: { event_id: event.event_id, day: event.occurrence_date },
+                body: {
+                  scope,
+                  ...(datesChanged
+                    ? {
+                        start_date: dates.start_date,
+                        end_date: dates.end_date ?? dates.start_date,
+                      }
+                    : {}),
+                  ...(startTime !== undefined ? { start_time: startTime } : {}),
+                  ...(endTime !== undefined ? { end_time: endTime } : {}),
+                },
+              },
+              {
+                onSuccess: (change: EventChange) =>
+                  change.batch_id &&
+                  showToast(
+                    `${how === "resize" ? "Changed" : "Moved"} “${event.title}” · ${spanLabel(dates.start_date, dates.end_date ?? dates.start_date)}`,
+                    change.batch_id,
+                  ),
+                onError: () => {
+                  revert();
+                  setFailed("Couldn't move it. Try again.");
+                },
+              },
+            );
+          }}
+        />
+      )}
       <DragOverlay drag={drag} />
     </>
   );

@@ -118,14 +118,14 @@ export function EditableStepLabel({
             onChange={(event) => setDraft(event.target.value)}
             onBlur={saveTitle}
             onKeyDown={onKeyDown}
-            className="-my-[3px] h-6 min-w-0 flex-1 rounded-(--radius-6) bg-(--bg-surface) px-1.5 text-[13px] font-medium text-(--text-primary) shadow-[inset_0_0_0_1px_var(--color-brand-600),0_0_0_2px_var(--color-brand-200)] outline-none"
+            className="-my-[3px] h-6 min-w-0 flex-1 rounded-(--radius-6) bg-(--bg-surface) px-1.5 type-body font-medium text-(--text-primary) shadow-[inset_0_0_0_1px_var(--color-brand-600),0_0_0_2px_var(--color-brand-200)] outline-none"
           />
         ) : (
           <button
             type="button"
             title="Rename"
             onClick={() => startEditing(true)}
-            className="-mx-1 min-w-0 truncate rounded-(--radius-4) px-1 text-left text-[13px] leading-[18px] font-medium text-(--text-primary) outline-none hover:bg-(--bg-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            className="-mx-1 min-w-0 truncate rounded-(--radius-4) px-1 text-left type-body font-medium text-(--text-primary) outline-none hover:bg-(--bg-hover) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
           >
             {shown}
           </button>
@@ -183,7 +183,7 @@ export function EditableStepLabel({
         </span>
       ) : (
         (project || row.metric) && (
-          <span className="flex min-w-0 gap-2.5 overflow-hidden pl-5 text-[11px] leading-4 whitespace-nowrap text-(--text-tertiary)">
+          <span className="flex min-w-0 gap-2.5 overflow-hidden pl-5 type-tag whitespace-nowrap text-(--text-tertiary)">
             {project && (
               <span className="inline-flex min-w-0 items-center gap-[3px]">
                 <Folder aria-hidden className="size-[11px] shrink-0 text-(--area-solid)" />

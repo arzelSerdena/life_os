@@ -34,13 +34,24 @@ export function MetricChart({ outcome, range, today, period, tone }: MetricChart
     LEFT +
     ((RIGHT - LEFT) * (clampDays(daysBetween(range.start, date), totalDays) + 0.5)) / totalDays;
 
-  const points = outcome.points
+  const rawPoints = outcome.points
     .filter((point) => point.value !== null)
     .map((point) => {
       const start = laterDate(point.start, range.start);
       const end = earlierDate(point.end, range.end);
       return { ...point, x: (x(start) + x(end)) / 2, value: point.value as number };
     });
+  // In Year view with daily points, downsample so dots don't mash into a solid block.
+  const dense = rawPoints.length > 40;
+  const points = dense
+    ? rawPoints.filter(
+        (point, index) =>
+          point.is_current ||
+          index === 0 ||
+          index === rawPoints.length - 1 ||
+          index % Math.ceil(rawPoints.length / 28) === 0,
+      )
+    : rawPoints;
   const target = outcome.target?.target_value;
   const values = [...points.map((point) => point.value), ...(target === undefined ? [] : [target])];
   let low = Math.min(...values);
@@ -59,7 +70,7 @@ export function MetricChart({ outcome, range, today, period, tone }: MetricChart
 
   const lined = points
     .filter((point) => !point.is_current)
-    .map((point) => ({ x: point.x, y: y(point.value) }));
+    .map((point) => ({ key: point.start, x: point.x, y: y(point.value) }));
   const current = points.find((point) => point.is_current);
   const line = smoothPath(lined);
   const color = LINE_COLOR[tone];
@@ -81,7 +92,13 @@ export function MetricChart({ outcome, range, today, period, tone }: MetricChart
       {ticks(range, period).map((tick, index) => (
         <g key={tick.date}>
           {index > 0 && (
-            <line x1={x(tick.date)} x2={x(tick.date)} y1={TOP} y2={BOTTOM} stroke="#f1f2f4" />
+            <line
+              x1={x(tick.date)}
+              x2={x(tick.date)}
+              y1={TOP}
+              y2={BOTTOM}
+              stroke="var(--color-neutral-100)"
+            />
           )}
           <text
             x={index === 0 ? LEFT : x(tick.date) + 3}
@@ -121,14 +138,14 @@ export function MetricChart({ outcome, range, today, period, tone }: MetricChart
         </>
       )}
       {lined.map((point) => (
-        <circle key={point.x} cx={point.x} cy={point.y} r={2.5} fill={color} />
+        <circle key={point.key} cx={point.x} cy={point.y} r={2.5} fill={color} />
       ))}
       {current && (
         <circle
           cx={current.x}
           cy={y(current.value)}
           r={4}
-          fill="#fff"
+          fill="var(--bg-surface)"
           stroke={color}
           strokeWidth={2}
         />
@@ -139,7 +156,7 @@ export function MetricChart({ outcome, range, today, period, tone }: MetricChart
       {deadline !== null && target !== undefined && (
         <path
           d={`M${deadline},${y(target) - 5} l5,5 -5,5 -5,-5z`}
-          fill="#fff"
+          fill="var(--bg-surface)"
           stroke="var(--color-neutral-600)"
           strokeWidth={1.5}
         />
@@ -174,7 +191,8 @@ function ticks(range: DateRangeRead, period: Period): { date: string; label: str
     } else if (period === "month") {
       if (offset === 0 || day.getUTCDay() === 1) found.push({ date, label: `${day.getUTCDate()}` });
     } else if (offset === 0 || day.getUTCDate() === 1) {
-      found.push({ date, label: shortMonth(date) });
+      const month = shortMonth(date);
+      found.push({ date, label: period === "year" ? month[0] : month });
     }
   }
   return found;

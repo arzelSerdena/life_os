@@ -3,7 +3,7 @@ import { CircleAlert, CircleCheck, Trash2, X } from "lucide-react";
 import { useEffect } from "react";
 import { undoBatch } from "../../client/sdk.gen";
 import { errorMessage } from "../../errors";
-import { isEditable } from "../../keyboard";
+import { isEditable, isOverlayOpen } from "../../keyboard";
 import { type AppliedChange, useChangeToast } from "../../stores/changeToastStore";
 import { type PendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 
@@ -76,6 +76,7 @@ export function UndoToast() {
     if (!latest && !undoable) return;
     // Ctrl Z undoes the delete or change, except while typing, where it undoes the typing.
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat || isOverlayOpen()) return;
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
         if (isEditable(event.target)) return;
         event.preventDefault();
@@ -114,13 +115,13 @@ export function UndoToast() {
       {latest ? (
         <>
           <Trash2 aria-hidden className="size-4 shrink-0 text-(--text-tertiary)" />
-          <span className="max-w-80 truncate text-[13px] text-(--text-primary)">
+          <span className="max-w-80 truncate type-body text-(--text-primary)">
             Deleted “{latest.label}”
           </span>
           <button type="button" className={LINK} onClick={() => undo(latest.key)}>
             Undo
           </button>
-          <kbd className="rounded-[4px] border border-(--border-default) px-1 text-[11px] font-medium text-(--text-tertiary)">
+          <kbd className="rounded-[4px] border border-(--border-default) px-1 type-tag font-medium text-(--text-tertiary)">
             Ctrl Z
           </kbd>
           <button
@@ -134,8 +135,12 @@ export function UndoToast() {
         </>
       ) : change ? (
         <>
-          <CircleCheck aria-hidden className="size-[18px] shrink-0 text-(--color-positive-600)" />
-          <span className="max-w-80 truncate text-[13px] text-(--text-primary)">
+          {change.isNotice ? (
+            <CircleAlert aria-hidden className="size-[18px] shrink-0 text-(--text-tertiary)" />
+          ) : (
+            <CircleCheck aria-hidden className="size-[18px] shrink-0 text-(--color-positive-600)" />
+          )}
+          <span className="max-w-80 truncate type-body text-(--text-primary)">
             {change.message}
           </span>
           {undoable && (
@@ -143,7 +148,7 @@ export function UndoToast() {
               <button type="button" className={LINK} onClick={() => void undoChange(change)}>
                 Undo
               </button>
-              <kbd className="rounded-[4px] border border-(--border-default) px-1 text-[11px] font-medium text-(--text-tertiary)">
+              <kbd className="rounded-[4px] border border-(--border-default) px-1 type-tag font-medium text-(--text-tertiary)">
                 Ctrl Z
               </kbd>
             </>
@@ -160,7 +165,7 @@ export function UndoToast() {
       ) : failure ? (
         <>
           <CircleAlert aria-hidden className="size-4 shrink-0 text-(--text-danger)" />
-          <span className="max-w-[480px] truncate text-[13px] text-(--text-primary)">
+          <span className="max-w-[480px] truncate type-body text-(--text-primary)">
             Couldn't delete “{failure.label}”. {errorMessage(failure.error)}
           </span>
           <button type="button" aria-label="Close" className={CLOSE} onClick={dismissFailure}>
@@ -171,7 +176,7 @@ export function UndoToast() {
         changeFailure && (
           <>
             <CircleAlert aria-hidden className="size-4 shrink-0 text-(--text-danger)" />
-            <span className="max-w-[480px] truncate text-[13px] text-(--text-primary)">
+            <span className="max-w-[480px] truncate type-body text-(--text-primary)">
               {changeFailure.message} {errorMessage(changeFailure.error)}
             </span>
             <button

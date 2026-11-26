@@ -132,7 +132,7 @@ export function AreasLayout() {
           <NavLink
             to="/areas"
             end
-            className="flex h-full flex-1 items-center pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            className="flex h-full flex-1 items-center pl-2 type-body font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
           >
             Life areas
           </NavLink>
@@ -175,7 +175,7 @@ export function AreasLayout() {
           <NavLink
             to="/areas/projects"
             end
-            className="flex h-full flex-1 items-center pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            className="flex h-full flex-1 items-center pl-2 type-body font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
           >
             Projects
           </NavLink>
@@ -266,9 +266,12 @@ export function AreasLayout() {
 function RoutinesGroup({ onNew }: { onNew: () => void }) {
   const queryClient = useQueryClient();
   const history = useQuery(getRoutinesHistoryOptions());
+  const lifeAreas = useQuery(listLifeAreasOptions());
   const routines = history.data?.routines ?? [];
   const today = history.data?.today ?? "";
   const reorder = useMutation(reorderRoutinesMutation());
+  const colorOf = (lifeAreaId: number) =>
+    lifeAreas.data?.find((a) => a.id === lifeAreaId)?.color ?? null;
 
   const onReorder = (order: number[]) => {
     if (!history.data) return;
@@ -290,7 +293,7 @@ function RoutinesGroup({ onNew }: { onNew: () => void }) {
         <NavLink
           to="/areas/routines"
           end
-          className="flex h-full flex-1 items-center pl-2 text-[13px] leading-[18px] font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          className="flex h-full flex-1 items-center pl-2 type-body font-semibold tracking-[0.04em] text-(--text-primary) uppercase outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         >
           Routines
         </NavLink>
@@ -307,7 +310,7 @@ function RoutinesGroup({ onNew }: { onNew: () => void }) {
         menuItem={(routine) => ({ kind: "routine", id: routine.id })}
         renderContent={(routine) => (
           <>
-            <RoutineMark routine={routine} today={today} />
+            <RoutineMark routine={routine} today={today} colorOf={colorOf} />
             <span className="truncate">{routine.title}</span>
           </>
         )}
@@ -462,7 +465,15 @@ function SortableSidebarRow({
   );
 }
 
-function RoutineMark({ routine, today }: { routine: RoutineHistoryRead; today: string }) {
+function RoutineMark({
+  routine,
+  today,
+  colorOf,
+}: {
+  routine: RoutineHistoryRead;
+  today: string;
+  colorOf: (lifeAreaId: number) => string | null;
+}) {
   if (routine.paused_since) {
     return (
       <Pause
@@ -473,5 +484,14 @@ function RoutineMark({ routine, today }: { routine: RoutineHistoryRead; today: s
     );
   }
   const column = routineColumn(routine, today);
-  return <ProgressRing done={column.done} total={column.total} className="size-4" />;
+  return (
+    <ProgressRing
+      done={column.done}
+      total={column.total}
+      segments={column.steps
+        .filter((s) => s.dueToday)
+        .map((s) => ({ done: s.done, color: colorOf(s.step.life_area_id) }))}
+      className="size-4"
+    />
+  );
 }

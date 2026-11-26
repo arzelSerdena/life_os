@@ -136,6 +136,12 @@ def unarchive_event(session: SessionDep, event_id: int) -> EventChange:
     return _change(service.unarchive_event(session, event_id))
 
 
+@router.get("/{event_id}/occurrences/{day}", responses=NOT_FOUND)
+def get_event_occurrence(session: SessionDep, event_id: int, day: date) -> OccurrenceRead:
+    """One occurrence of a repeating event by its original date, even if moved or cancelled."""
+    return OccurrenceRead.from_occurrence(service.get_occurrence(session, event_id, day))
+
+
 @router.post("/{event_id}/occurrences/{day}/edit", responses={**NOT_FOUND, **CONFLICT})
 def edit_event_occurrence(
     session: SessionDep, event_id: int, day: date, data: OccurrenceEdit

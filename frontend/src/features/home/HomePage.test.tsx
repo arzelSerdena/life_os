@@ -1,5 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import type { HomeRead } from "../../client/types.gen";
 import { emptyHome, lifeArea, renderApp, taskRead } from "../../test-utils";
@@ -82,19 +81,11 @@ test("Home shows the date, the done count and its cards", async () => {
   ).toHaveAttribute("href", "/tasks/inbox");
 });
 
-test("quick add creates a task scheduled today with no owner", async () => {
-  const user = userEvent.setup();
+test("home header shows New task without inline Add task input", async () => {
   renderApp("/home");
 
-  const add = await screen.findByRole("textbox", { name: "Add task" });
-  await user.type(add, "Call the landlord{Enter}");
-
-  await waitFor(() =>
-    expect(posts).toEqual([
-      { path: "/api/tasks", body: { title: "Call the landlord", scheduled_date: "2026-11-14" } },
-    ]),
-  );
-  await waitFor(() => expect(add).toHaveValue(""));
+  expect(await screen.findByRole("button", { name: "New task" })).toBeInTheDocument();
+  expect(screen.queryByRole("textbox", { name: "Add task" })).not.toBeInTheDocument();
 });
 
 test("nothing scheduled today offers to plan from the Inbox", async () => {

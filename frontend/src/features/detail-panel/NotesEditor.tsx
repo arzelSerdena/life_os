@@ -42,8 +42,8 @@ type NotesEditorProps = {
   /** Shown above the notes, such as the "Notes for" switch of a repeating event. */
   header?: ReactNode;
   /** "card": a page's Notes card (the routine page), with its title and save state in the
-   * card's header. */
-  variant?: "panel" | "card";
+   * card's header. "plain": borderless editor with no heading (Home's Quick Note). */
+  variant?: "panel" | "card" | "plain";
   /** Shown, not edited: an archived item's notes. */
   readOnly?: boolean;
 };
@@ -99,7 +99,14 @@ export function NotesEditor({
   // Closing the panel or switching items saves what hasn't been saved yet.
   const saveOnClose = useRef(save);
   saveOnClose.current = save;
-  useEffect(() => () => saveOnClose.current(), []);
+  useEffect(() => {
+    const flush = () => saveOnClose.current();
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
 
   const slash = useSlashMenu();
   const editor = useEditor({
@@ -170,7 +177,7 @@ export function NotesEditor({
             setSource(event.target.value);
             saveLater(event.target.value);
           }}
-          className="field-sizing-content min-h-40 resize-none rounded-(--radius-8) border border-(--border-default) bg-(--color-neutral-50) px-2.5 py-2 font-mono text-xs leading-5 text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          className="field-sizing-content min-h-40 resize-none rounded-(--radius-8) border border-(--border-default) bg-(--bg-app) px-2.5 py-2 font-mono text-xs leading-5 text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         />
       ) : (
         <div className="relative pb-6">
@@ -192,6 +199,9 @@ export function NotesEditor({
         {body}
       </SectionCard>
     );
+  }
+  if (variant === "plain") {
+    return <div className="flex flex-col">{body}</div>;
   }
   return (
     <section
@@ -274,7 +284,7 @@ const TOOL_GROUPS: Tool[][] = [
 ];
 
 const TOOL_BUTTON =
-  "grid size-7 shrink-0 place-items-center rounded-[7px] text-(--text-primary) outline-none hover:bg-(--color-neutral-200) focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-[15px] data-[on=true]:bg-(--bg-surface) data-[on=true]:shadow-[0_1px_2px_rgb(0_0_0/0.08)]";
+  "grid size-7 shrink-0 place-items-center rounded-[7px] text-(--text-primary) outline-none hover:bg-(--bg-pressed) focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-[15px] data-[on=true]:bg-(--bg-surface) data-[on=true]:shadow-[0_1px_2px_rgb(0_0_0/0.08)]";
 
 /** One floating pill of rounded grey groups. */
 function Toolbar({ editor }: { editor: Editor }) {
@@ -333,11 +343,11 @@ function Toolbar({ editor }: { editor: Editor }) {
 function ToolGroup({ children }: { children: ReactNode }) {
   const items = Array.isArray(children) ? children : [children];
   return (
-    <span className="flex items-center rounded-[9px] bg-(--color-neutral-100) px-0.5">
+    <span className="flex items-center rounded-[9px] bg-(--bg-hover) px-0.5">
       {items.flat().map((child, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: the buttons never reorder
         <Fragment key={index}>
-          {index > 0 && <span aria-hidden className="h-3.5 w-px shrink-0 bg-neutral-300" />}
+          {index > 0 && <span aria-hidden className="h-3.5 w-px shrink-0 bg-(--border-strong)" />}
           {child}
         </Fragment>
       ))}
@@ -384,7 +394,7 @@ function LinkTool({ editor, isActive }: { editor: Editor; isActive: boolean }) {
               value={href}
               onChange={(event) => setHref(event.target.value)}
               autoFocus
-              className="h-8 flex-1 text-[13px]"
+              className="h-8 flex-1 type-body"
             />
             <Button type="submit" size="sm">
               {href.trim() || !isActive ? "Apply" : "Remove"}
@@ -538,7 +548,7 @@ function SlashMenu({ editor, slash }: { editor: Editor; slash: ReturnType<typeof
     <div
       role="listbox"
       aria-label="Block types"
-      className="absolute z-10 w-60 rounded-[10px] border border-(--border-default) bg-(--bg-surface) p-1.5 shadow-(--effect-overlay)"
+      className="absolute z-10 w-60 rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface) p-1.5 shadow-(--effect-overlay)"
       style={{ top: state.top, left: state.left }}
     >
       {found.map((block, i) => (
@@ -551,7 +561,7 @@ function SlashMenu({ editor, slash }: { editor: Editor; slash: ReturnType<typeof
             event.preventDefault();
             slash.choose(editor, block, state);
           }}
-          className="flex h-[30px] cursor-pointer items-center gap-2 rounded-(--radius-6) px-2 text-[13px] text-(--text-primary) hover:bg-(--color-neutral-100) aria-selected:bg-(--color-neutral-100)"
+          className="flex h-[30px] cursor-pointer items-center gap-2 rounded-(--radius-6) px-2 type-body text-(--text-primary) hover:bg-(--bg-hover) aria-selected:bg-(--bg-hover)"
         >
           <block.icon aria-hidden className="size-[15px] text-(--text-tertiary)" strokeWidth={2} />
           <span>{block.label}</span>

@@ -30,11 +30,11 @@ export function SegmentSwitch<T extends string>({
         <ToggleButton
           key={option.key}
           id={option.key}
-          className="h-6 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 text-xs font-medium text-(--switch-default-text) hover:bg-white/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
+          className="h-6 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 text-xs font-medium text-(--switch-default-text) hover:bg-(--bg-surface)/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
         >
           {option.label}
           {option.count ? (
-            <span className="ml-1.5 text-[11px] font-medium text-(--text-tertiary) tabular-nums">
+            <span className="ml-1.5 type-counter text-(--text-tertiary) tabular-nums">
               {option.count}
             </span>
           ) : null}

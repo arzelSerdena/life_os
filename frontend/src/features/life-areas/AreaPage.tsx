@@ -20,12 +20,14 @@ import type { AreaPageRead } from "../../client/types.gen";
 import { PageHeader } from "../../components/PageHeader";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { SectionCard } from "../../components/SectionCard";
 import { useDetailPanel } from "../../stores/detailPanelStore";
 import { useNewEvent } from "../../stores/newEventStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { usePeriodStore } from "../../stores/periodStore";
+import { PanelLink } from "../detail-panel/PanelLink";
 import { ArchiveAreaDialog } from "./ArchiveAreaDialog";
 import { AreaMenu } from "./AreaMenu";
 import { useAreasContext } from "./AreasLayout";
@@ -79,7 +81,14 @@ export function AreaPage() {
   return (
     <div data-area={areaDataAttribute(area.color)} className="flex min-h-0 flex-1 flex-col">
       <PageHeader
-        title={area.title}
+        title={
+          <PanelLink
+            target={{ kind: "area", id: area.id }}
+            className="type-page-title text-(--page-title)"
+          >
+            {area.title}
+          </PanelLink>
+        }
         description={area.vision}
         marker={<span aria-hidden className="size-3 shrink-0 rounded-[3px] bg-(--area-solid)" />}
         actions={
@@ -104,7 +113,10 @@ export function AreaPage() {
           </>
         }
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+      <Scroll
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col gap-4 px-(--page-gutter) pt-4 pb-(--page-gutter)"
+      >
         {isArchived && (
           <p className="type-body text-(--text-tertiary)">
             This area is archived. Restore it to plan in it again.
@@ -112,8 +124,8 @@ export function AreaPage() {
         )}
         {actionError && <QueryError error={actionError} />}
         {page.isError && <QueryError error={page.error} onRetry={page.refetch} />}
-        {shown && <AreaCards page={shown} onAddMetric={() => setIsAddingMetric(true)} />}
-      </div>
+        {shown && <AreaCards page={shown} />}
+      </Scroll>
       {isDeleting && (
         <DeleteLifeAreaDialog
           lifeArea={area}
@@ -153,7 +165,7 @@ export function withoutPending<Page extends AreaPageRead>(
   };
 }
 
-function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () => void }) {
+function AreaCards({ page }: { page: AreaPageRead }) {
   const behind = page.metrics.filter((m) => outcomeTone(m.status) === "bad").length;
   const untargeted = page.metrics.filter((m) => m.target === null).length;
   const description =
@@ -170,13 +182,9 @@ function AreaCards({ page, onAddMetric }: { page: AreaPageRead; onAddMetric: () 
     <>
       <SectionCard title="Metrics" description={description}>
         {page.metrics.length === 0 ? (
-          <div className="flex min-h-10 items-center gap-3 type-meta text-(--text-tertiary)">
+          <p className="flex min-h-10 items-center type-meta text-(--text-tertiary)">
             No metrics yet.
-            <Button size="sm" onPress={onAddMetric} className={AREA_BUTTON}>
-              <Plus aria-hidden />
-              Add metric
-            </Button>
-          </div>
+          </p>
         ) : (
           <div className="grid grid-cols-5 gap-2">
             {page.metrics.map((outcome) => (

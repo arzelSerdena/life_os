@@ -122,9 +122,9 @@ function FolderRow({
           event.preventDefault();
           submit();
         }}
-        className="flex min-h-[52px] items-center gap-2 border-t border-(--color-neutral-100) py-2.5"
+        className="flex min-h-[52px] items-center gap-2 border-t border-(--border-default)/50 py-2.5"
       >
-        <span className="w-[120px] shrink-0 text-[13px] leading-[18px] font-medium text-(--text-primary)">
+        <span className="w-[120px] shrink-0 type-body font-medium text-(--text-primary)">
           Backup folder
         </span>
         <Input

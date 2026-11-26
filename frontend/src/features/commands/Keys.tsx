@@ -5,7 +5,7 @@ export function Keys({ keys }: { keys: string[] }) {
       {keys.map((key) => (
         <kbd
           key={key}
-          className="grid h-5 min-w-5 place-items-center rounded-[4px] border border-(--border-default) bg-(--bg-surface) px-1 font-sans text-[11px] font-medium text-(--text-tertiary)"
+          className="grid h-5 min-w-5 place-items-center rounded-[4px] border border-(--border-default) bg-(--bg-surface) px-1 font-sans type-tag font-medium text-(--text-tertiary)"
         >
           {key}
         </kbd>

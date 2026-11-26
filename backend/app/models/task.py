@@ -32,6 +32,18 @@ class Task(BaseMixin, Base):
         CheckConstraint("length(title) BETWEEN 1 AND 200", name="title_length"),
         CheckConstraint("notes IS NULL OR length(notes) <= 50000", name="notes_length"),
         CheckConstraint(PRIORITY_CHECK, name="priority_values"),
+        CheckConstraint(
+            "scheduled_time IS NULL OR scheduled_date IS NOT NULL",
+            name="scheduled_time_needs_date",
+        ),
+        CheckConstraint(
+            "scheduled_end_time IS NULL OR scheduled_time IS NOT NULL",
+            name="scheduled_end_time_needs_start",
+        ),
+        CheckConstraint(
+            "scheduled_end_time IS NULL OR scheduled_end_time >= scheduled_time",
+            name="scheduled_end_time_after_start",
+        ),
         CheckConstraint("due_time IS NULL OR due_date IS NOT NULL", name="due_time_needs_date"),
         CheckConstraint("rollover_count >= 0", name="rollover_count"),
         # Only occurrences of a repeating template have an occurrence date
@@ -60,6 +72,8 @@ class Task(BaseMixin, Base):
     status: Mapped[str] = mapped_column(Text, default="todo", server_default="todo")
     priority: Mapped[str] = mapped_column(Text, default="none", server_default="none")
     scheduled_date: Mapped[date | None] = mapped_column(Date)
+    scheduled_time: Mapped[time | None] = mapped_column(Time)
+    scheduled_end_time: Mapped[time | None] = mapped_column(Time)
     due_date: Mapped[date | None] = mapped_column(Date)
     due_time: Mapped[time | None] = mapped_column(Time)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime)

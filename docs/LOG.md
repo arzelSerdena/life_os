@@ -4,6 +4,137 @@
 
 **Done**
 
+- Full test suite alignment & Calendar Inbox drag restoration:
+  - **Calendar Inbox drag (`CalendarPanel.tsx`, `CalendarPage.tsx`):** Restored `Draggable` and `onDragStart` wiring on `InboxPanel` so undated/unscheduled tasks can be dragged directly onto FullCalendar days (Week/Month) and Linear calendar rows (Quarter/Year).
+  - **E2E test suite fixes (`calendar.spec.ts`, `inbox.spec.ts`, `new-task.spec.ts`, `project-board.spec.ts`):** Adjusted drag starting coordinates past `EntityCheckbox` hit targets (`x + 60`) on Kanban and Inbox cards, added `{ exact: true }` on short `"Scheduled"` button selectors to prevent strict mode collisions with `"Scheduled time"`, and restored calendar drop assertions.
+  - **Verified:** Complete test suite passes with 0 errors: `just fmt` (ruff + biome), `just typecheck` (pyright + tsc), `just test` (603 backend pytest + 318 frontend vitest across 42 files), and `just e2e` (all 76 Playwright browser tests passed).
+
+- Dark theme (`System` / `Light` / `Dark`) & bug fixes:
+  - **Backend (`app_settings.py`, migration `3729849b220a_add_theme_to_settings.py`, `test_settings.py`):** Added `theme` (`'system'`, `'light'`, `'dark'`, default `'system'`) to `AppSettings` and `SettingsRead`/`SettingsUpdate`, fixed `76725818fafe` to preserve `sqlite_autoincrement` and `ck_routines_end_time_needs_start`, and regenerated the frontend API client (`just api`).
+  - **Theme sync & Settings UI (`theme.ts`, `main.tsx`, `App.tsx`, `SettingsPage.tsx`, `settings.ts`, `SettingsPage.test.tsx`):** Added `resolveTheme`/`applyTheme`/`useThemeSync` with `localStorage` boot caching, `prefers-color-scheme` listener, `color-scheme` CSS property, and a **Theme** `SegmentSwitch` (`System` / `Light` / `Dark`) in Settings → General.
+  - **Dark theme CSS & component tokens (`heroui-theme.css`, `notes.css`, `calendar.css`, `StepsHeatmap.tsx`, `PeriodSwitch.tsx`, `CalendarHeader.tsx`, `InboxPage.tsx`, `RoutinesPage.tsx`, `OutcomesCard.tsx`, `GridEntry.tsx`, `RoutinePage.tsx`, `chips.tsx`, `ProjectPage.tsx`, `ProjectsOverviewPage.tsx`, `TimelineCard.tsx`, `ProjectsAndRoutines.tsx`, `RoutineHeader.tsx`, `NewRoutineModal.tsx`, `RoutinesOverviewPage.tsx`, `PanelParts.tsx`, `entities.tsx`, `CalendarPopovers.tsx`, `settings/controls.tsx`, `settings/DataSection.tsx`):** Completed `[data-theme="dark"]` semantic/component token overrides (including `--danger-bg`, `--danger-border`, `--danger-text`, `--danger-bg-hover`) and replaced hardcoded light `white` / `--color-neutral-*` / `--color-brand-50` / `--color-negative-50` values with theme-aware semantic tokens, including `Notes for` switch (`bg-(--switch-container-bg)`) and quieter Settings row dividers (`border-(--border-default)/50`).
+  - **Event scope dialog (`EventScopeDialog.tsx`):** Replaced HeroUI `RadioGroup`/`Radio` with native `<input type="radio" name="event-scope">` controls so `"This and following events"` and `"All events"` can be selected reliably.
+  - **Verified:** `just fmt` (ruff + biome), `just typecheck` (pyright + tsc), `pytest` (`603` passed), and `vitest run` (`42` files / `318` passed).
+
+- Task scheduled time & Routine detail panel time editing:
+  - **Shared `TimeRangeChip` (`frontend/src/features/pickers/TimeRangeChip.tsx`):** Extracted a reusable start/end time popover chip (supporting `requireEndAfterStart` validation for tasks and Clear time) and delegated `RoutineTimeChip.tsx` to it.
+  - **Tasks (`NewTaskModal.tsx`, `detail-panel/entities.tsx`):** Added `TimeRangeChip` next to the Scheduled date chip in both `NewTaskModal` and `TaskPanel` (`TaskChips`) to input, edit, and clear `scheduled_time` and `scheduled_end_time` (auto-setting `scheduled_date` to today when a time is picked on an unscheduled task, and clearing times when unscheduling a task).
+  - **Routines (`detail-panel/entities.tsx`):** Added `TimeRangeChip` (read-only chip when archived) to `RoutineDetailPanel` alongside `NewRoutineModal` and `RoutineHeader` so routine `start_time`/`end_time` can be edited from the side panel too.
+  - **Verified:** `biome check --write`, `tsc -b`, and `vitest run` (`42 passed`, `318 passed`).
+
+- Timed calendar resize, recurring event popup styling & routine times:
+  - **Timed item resize container (`CalendarGrid.tsx`, `GridEntry.tsx`, `calendar.css`):** Scoped timed entry height rules to `.calendar-entry.is-timed-entry` (including FullCalendar's inner wrapper and child) and passed `timed={isTimeGrid && !info.event.allDay}` to `GridEntry` so `EventEntry`, `TaskEntry`, and `RoutineEntry` expand (`h-full items-start py-1`) with the resized container.
+  - **Recurring event popup design system alignment (`EventScopeDialog.tsx`):** Updated modal sizing (`w-[400px]`), 52px bordered header with `type-panel-title` and close `IconButton`, `px-5 py-4` body with compact radio spacing, and bordered `px-5 py-3` footer with `variant="secondary"` Cancel and primary OK buttons.
+  - **Routine start/end time & timed calendar placement:** Added `start_time` and `end_time` to `Routine` (`backend/app/models/routine.py`, migration `76725818fafe_add_start_and_end_time_to_routines.py`), schemas (`RoutineRead`, `RoutineCreate`, `RoutineUpdate`, `RoutineStepDay`), service (`backend/app/services/routines.py`), router (`backend/app/routers/routines.py`), and regenerated the frontend API client. Added `RoutineTimeChip.tsx` in `NewRoutineModal.tsx` and `RoutineHeader.tsx`, wired `startTime`/`endTime` into `RoutineDay` (`next7.ts`), and placed timed routines onto FullCalendar's time grid with drag/resize time updates in `CalendarGrid.tsx`, `CalendarPage.tsx`, `calendar.ts`, and `GridEntry.tsx`.
+  - **Verified:** `ruff check`, `ruff format`, `pyright`, `pytest tests/test_routines.py` (43 passed), `biome check`, `tsc -b`, and `vitest run src/features/calendar/calendar.test.ts` (24 passed).
+
+- Full-app bug audit & fixes pass:
+  - **Backend (`events.py`, `tasks.py`, `templates.py`, `history.py`, `task_rules.py`, `routine_page.py`, migrations):**
+    - Added `is_all_day` to `EventException` + `GET /api/events/{event_id}/occurrences/{day}` + `start_time`/`end_time` support on `POST /api/events/{id}/reschedule` and date-shift support on `edit_occurrence` (`following`/`all`); fixed `_change_one` duration preservation, `_occurrences_near` truncation bounds, `_is_past` `day_ends_at` handling, and `MAX_RANGE_DAYS = 371`.
+    - Added `scheduled_end_time >= scheduled_time` validation on `Task` model/schema/service + migration `c0a0af1d1d36`; preserved `sqlite_autoincrement=True` in migration `e5d4b2ead878`.
+    - Fixed `history.undo_batch` to validate parent existence/ownership and `ensure_owner_open` before restoring; fixed `templates.edit_series` `ends_on < occurrence_date` validation and `repeat_from="completion"` same-day chain; fixed `task_rules.in_inbox()` to check `occurrence_date.is_(None)` and `routine_page.py` to filter archived metrics.
+  - **Calendar & Events (`calendar.css`, `CalendarGrid.tsx`, `CalendarPage.tsx`, `newEvent.ts`, `linearDrag.ts`):**
+    - Fixed Timed-view `.calendar-resizer` 100% height hijack and Biome specificity warning; prevented `dateClick` from wiping `startTime`/`endTime` after `select`; fixed midnight (`00:00`) task end-date rendering, `newEvent.ts` `initialValues` `endDate` and `23:45` `endTimes`; fixed `EventScopeDialog` 422 on time-only edits, All-day ↔ Timed multi-day span preservation, live `EntryPreviewPopover` lookup, and `linearDrag.ts` multi-day event span.
+  - **Detail Panel, Home, Tasks, Settings & Shortcuts (`entities.tsx`, `NotesEditor.tsx`, `DumpNoteCard.tsx`, `HomePage.tsx`, `TodayCard.tsx`, `RoutinesTodayCard.tsx`, `TaskBoard.tsx`, `ProjectBoard.tsx`, `NewTaskModal.tsx`, `RestoreDialog.tsx`, `pendingDeleteStore.ts`, `UndoToast.tsx`, `Sidebar.tsx`, `DatePicker.tsx`):**
+    - Fixed `EventPanel` occurrence loading hang, `useMutation` cache invalidation, and `menu.error` propagation; enforced read-only mode on archived `ProjectPanel` and `MetricEntries`; fixed `RoutineDetailPanel` `data.rrule` and non-due step checkboxes; fixed `DumpNoteCard` clear resurrection and `NotesEditor` `pagehide` flush.
+    - Fixed `HomeGrid` resize padding/bounds and `onDragCancel` snapshot restore; awaited `Promise.allSettled` in `TodayCard.moveOverdueToToday` and `RoutinesTodayCard.completeRemaining`.
+    - Fixed `TaskBoard` `"No project"` drop, `ProjectBoard` error-toast fallthrough, `NewTaskModal` orphaned `scheduledTime` 422, `RestoreDialog` `cancelAll()` on pending deletes, `UndoToast` / `Sidebar` shortcut guards, and `DatePicker` `clearLabel` guard.
+  - **Verified:** Backend `ruff check`, `pyright`, and `pytest` (`601 passed`); frontend `biome check`, `tsc -b`, `vitest run` (`318 passed`), and `vite build`.
+
+- Calendar time blocking, repeating event drag popup & UI fixes:
+  - **Task time-blocking duration (`scheduled_end_time`):** Added `scheduled_end_time` to `Task` (`backend/app/models/task.py`), schemas (`backend/app/schemas/task.py`), `update_task` service (`backend/app/services/tasks.py`), generated Alembic migration `964e5326594e_add_scheduled_end_time_to_tasks.py` (with `sqlite_autoincrement` and CHECK constraints), and regenerated the frontend API client (`just api`).
+  - **Calendar Timed view & Time blocking:** Wired FullCalendar v7 native class hooks (`slotLaneClass`, `slotHeaderClass`, `dayLaneClass`, `allDayDividerClass`, `nowIndicatorLineClass`) in `CalendarGrid.tsx` and `calendar.css` for crisp hour/half-hour gridlines and aligned time-axis labels; enabled `selectable` / `selectMirror` in Timed view to drag-select time ranges and create pre-filled timed Events (`newEvent.ts`) or Tasks (`newTask.ts`, `NewTaskModal.tsx`), plus resizing time-blocked tasks and dragging between All-day and Timed slots.
+  - **Repeating event drag scope popup & Past-date dragging:** Added `EventScopeDialog.tsx` (`This event` / `This and following events` / `All events`) when dragging/resizing repeating events in `CalendarPage.tsx`; updated `canMove` in `calendar.ts` so non-cancelled tasks (including completed), non-cancelled events, and active project due dates are draggable on any date (past, today, or future).
+  - **Non-draggable Calendar panels, Board past events & Scroll shadow:** Removed `Draggable` and drag attributes from `InboxPanel` and `AgendaPanel` in `CalendarPanel.tsx` / `CalendarPage.tsx`; filtered out past events (`!ev.is_past`) in `TasksPage.tsx` Board view; passed `fade={!panelOpen}` to horizontal `<Scroll>` in `TaskBoard.tsx`, `Next7Page.tsx`, `RoutinesPage.tsx`, and `ProjectBoard.tsx`.
+  - **Routine step checkboxes:** Added `onPointerDown` `stopPropagation` in `EntityCheckbox.tsx`, `Next7Page.tsx` (`RoutineStepRow`), and `DayCard.tsx` (`StepRow`), and made step titles clickable to toggle completion.
+  - **Verified:** Backend `test_migrations.py` (5/5) + 600/600 other backend tests, `biome check`, `tsc -b`, `vitest run` (318/318), `vite build`, and Playwright E2E (`calendar.spec.ts`, `tasks.spec.ts`, `next7.spec.ts`, `routines.spec.ts`).
+
+- UI polish, drag-and-drop, Calendar & bug fixes pass:
+  - **Tasks Board & Sidebar:** Removed column width resizing from `taskBoardStore.ts` and `TaskBoard.tsx` so columns stay equal-width; added `@dnd-kit` drag-and-drop to `TaskBoard.tsx` (cross-column/subgroup Priority, Area, and Project updates with undo toast, plus manual vertical reordering via `POST /api/tasks/reorder` when Sort is Manual); made Board sidebar Projects drag-and-drop reorderable (`sidebarStore.ts`, `TasksLayout.tsx`); routed sidebar project clicks to `/tasks/projects/:projectId` (`TasksProjectPage.tsx` in `App.tsx`) keeping the Tasks sidebar and Board layout; made Area column headers clickable to open `AreaPanel`.
+  - **Home & Quick Notes:** Added persisted `columnRatios` and drag-resize handles between the 3 Home columns in `homeStore.ts` and `HomePage.tsx` (double-click to reset); added `variant="plain"` to `NotesEditor.tsx` to remove the `NOTES` label in `DumpNoteCard.tsx` and fixed the backspace remount bug by replacing the `dumpNote`-derived `key` with an explicit `clearCount` incremented only on Clear.
+  - **Routines:** Added `useRoutineDragGuard.ts`, `.animate-routine-shake` in `index.css`, and `showNotice` in `changeToastStore.ts` / `UndoToast.tsx` so attempting to drag a routine across Next 7 days, Calendar, Home, or Routines shakes the item and shows a `"Cannot drag routines"` toast; wired routine clicks in `Next7Page.tsx`, `AgendaRow.tsx`, `ProjectsAndRoutines.tsx`, and `CalendarPopovers.tsx` (`RoutinePopover` Open side panel button + double-click in `GridEntry.tsx`) to open `RoutineDetailPanel`; unified segmented area-colored `ProgressRing` across `GridEntry.tsx`, `CalendarGrid.tsx` (`calendar.ts` `routineTotals`), `AreasLayout.tsx`, `DayCard.tsx`, `RoutineHeader.tsx`, and `RoutinesOverviewPage.tsx`.
+  - **Calendar:** Replaced fixed `2d–6d` pills in `CalendarHeader.tsx` with a custom date-range selector in `PeriodPicker` (`MonthGrid` start/end range up to 14 days); moved the Hide/Show right panel button (`lastPanel` in `calendarStore.ts`) into `CalendarHeader.tsx` so it remains accessible when hidden; fixed `Days` view class/duplicate cell bug and `timeGrid` styling/scrolling/now-indicator/Inbox-drop time/repeating-event time edits in `CalendarGrid.tsx`, `CalendarPage.tsx`, `calendar.ts`, and `calendar.css`; set `.linear-grid.is-year .linear-row` to `flex: 1 0 auto` so Year view fills its container.
+  - **Metrics, Area Headers & Card Buttons:** Updated Year view `MetricChart.tsx` ticks to single-letter month names and fixed duplicate point keys; made area name headers clickable to open `AreaPanel` in `OutcomesCard.tsx` and `AreaPage.tsx` (`PageHeader.tsx`); removed solid empty-state buttons inside `ProjectPage.tsx` cards and changed `QuickAction` in `ProjectsOverviewPage.tsx` to `variant="secondary"`.
+  - **Verified:** `biome check`, `tsc -b`, `vitest run`, `vite build`, and all 76 Playwright E2E tests (`76 passed`) pass.
+
+- Isolated demo database seeding:
+  - Added `backend/scripts/seed_demo.py` to create and migrate an isolated SQLite database (`backend/data/demo.db` by default, refusing to overwrite `life_os.db` without `--force`) populated with **1 full year** of realistic sample data across life areas, projects, sections, tasks, subtasks, task templates, routines (300 days of schedules, steps, logs, pauses), events (timed, multi-day, repeating + exceptions across all 4 quarters), metrics (1 year of entries + targets), and archived items.
+  - Added `just seed-demo` and `just demo` recipes to `justfile` to build, seed `demo.db`, and serve the app against it (`LIFE_OS_DATABASE_URL=sqlite:///data/demo.db`, `LIFE_OS_BACKUP_SCHEDULER=false`).
+  - Verified with `just seed-demo`, `uv run ruff check`, `uv run ruff format --check`, `uv run pyright`, and API smoke checks against `demo.db`.
+
+- Feedback pass (Board sidebar/Inbox, Home, Timeline, Year charts, Colors, Side panel, Calendar):
+  - **Board:** Reverted `Group by: Project` columns on `TasksPage`; added a **Projects** section to `TasksLayout` sidebar; added `All / No area / No scheduled / No due` tabs to `InboxPage`; added drag-resizable column widths (`columnWidth` in `taskBoardStore` + `BoardColumn` handle).
+  - **Calendar:** Reverted `No area` tab from Calendar's `InboxPanel`; added `min-h-full` to `AgendaPanel` / `InboxPanel` scroll area; added clickable subtasks/routine steps and a compact discrete `Open side panel` icon button to `EntryPreviewPopover`.
+  - **Home:** Removed `QuickAdd` input from header; converted `DumpNoteCard` to a borderless, transparent Markdown `NotesEditor`; updated quick action label to `Schedule tomorrow`; aligned `RoutinesTodayCard` header icons with step checkboxes and passed `segments` to `ProgressRing` across all call sites.
+  - **Life Areas / Timeline:** Removed solid `Add metric` button inside `AreaPage` empty Metrics card; grouped repeating events onto one row per `event_id` in `TimelineCard` and clipped label/metric lanes to prevent overlap; downsampled dense daily points in `MetricChart` and tightened Year `RoutinesRow` bar gaps in `OverviewCards`.
+  - **Overall & Side Panel:** Made priority colors more distinct (`ochre.400` medium, `blue.600` low) and regenerated `tokens.css`; made `LifeAreaFormModal` color picker compact without text labels; unified dashed brand-500 drag placeholder in `InboxPage` and `HomePage`; replaced `TaskMarker` tinted background in `PanelParts` with `EntityCheckbox`; wired routine title clicks in `RoutinesTodayCard` and `RoutinesPage` to open `RoutineDetailPanel`.
+
+- Phase 4 features (Project board grouping + Timed & selectable Days calendar views):
+  - Added **Project** group (`board.ts`, `filters.ts`, `TasksPage.tsx`) to Tasks board views (`Today`, `All`, `Unscheduled`), with project columns ordered by life area and events shown in non-priority views.
+  - Added `scheduled_time` to `Task` model (`backend/app/models/task.py`), schemas (`backend/app/schemas/task.py`), `update_task` service (`backend/app/services/tasks.py`), generated Alembic migration `e5d4b2ead878_add_scheduled_time_to_tasks.py`, and regenerated the frontend API client (`just api`).
+  - Added **Days** view (`2d`–`6d` selectable) and a **Timed** toggle (`@fullcalendar/react/timegrid`) for Days and Week in `calendar.ts`, `calendarStore.ts`, `CalendarHeader.tsx`, `CalendarGrid.tsx`, and `CalendarPage.tsx`.
+
+- Polish & quick actions batch:
+  - Added `fade` prop to `Scroll.tsx` and passed `fade={false}` in `PanelParts.tsx` to remove the scroll fade shadow inside the side panel.
+  - Unified `Sidebar.tsx` resize handle design with `DetailPanel.tsx` (matching vertical accent line and center pill on hover/focus/drag).
+  - Added `onPointerDown` stopPropagation and `z-10` on `EntityCheckbox.tsx` so routine step checkboxes in item cards always respond cleanly.
+  - Added **Cancel event** / **Uncancel event** to `useEventActions` in `entityActions.tsx`.
+  - Expanded life-area palettes from 6 to 10 (`indigo`, `sage`, `amber`, `slate`) in `design/tokens/life-os.tokens.json`, `frontend/src/features/life-areas/palette.ts`, and regenerated `tokens.css`.
+  - Thickened `CalendarDays` icon in `Next7Page.tsx` `EventCard`.
+
+- Phase 3 features:
+  - **Home:** Added `homeStore.ts`, `MiniCalendarCard.tsx` (monthly calendar with dots on days that have events/tasks), `DumpNoteCard.tsx` (persistent quick scratchpad), and drag-and-drop card reordering by card header across the 3 Home columns (`HomePage.tsx`).
+  - **Side panel:** Added dedicated `RoutineDetailPanel` (`detailPanelStore.ts` + `entities.tsx`) showing schedule, today's step checkboxes, notes, and a shortcut to the full routine page.
+  - **Calendar panel:** Added a `No area` tab alongside `Scheduled` and `Due` in `InboxPanel` (`calendar.ts` + `CalendarPanel.tsx`), and made non-routine items in `AgendaPanel` draggable onto the calendar (`CalendarPanel.tsx` + `AgendaRow.tsx` + `CalendarPage.tsx`).
+  - **Tasks board:** Displayed events in non-priority views (`Today` and `All` grouped by area or due bucket) in `board.ts`, `TaskBoard.tsx`, and `TasksPage.tsx`.
+
+- Phase 2 quick UI fixes (second batch):
+  - Contained scrolling per column in `HomePage.tsx` (`Scroll` with `overscroll-contain`) so scrolling inside a card doesn't scroll the entire main page.
+  - Vertically aligned `CrumbPicker` in `chips.tsx` (`inline-flex h-5 items-center leading-4`) with the area dot in the side panel header, and made event date/time and location editable in `EventPanel` (`entities.tsx`).
+  - Increased default Lucide icon stroke thickness (`stroke-width: 2.15`) in `heroui-theme.css`.
+  - Updated `InboxPage.tsx` drag placeholder to an empty dashed-border card.
+  - Updated `CalendarSidebar.tsx` so clicking the checkbox hides/shows an item while clicking the name filters exclusively to that item (with a flag icon for None priority and centered thick checkmarks).
+  - Added `EntryPreviewPopover` in `CalendarPopovers.tsx` + `onInspect` in `PanelLink.tsx`/`GridEntry.tsx`/`CalendarGrid.tsx`/`CalendarPage.tsx` so clicking a calendar item opens a floating detail card with an "Open side panel" button, while double-clicking opens the side panel directly.
+
+- Phase 2 quick UI fixes (first batch):
+  - Centered and thickened checkmarks in `EntityCheckbox.tsx`.
+  - Added distinct blue token for `--priority-low` in `design/tokens/life-os.semantic.tokens.json` + dark-mode `heroui-theme.css` (regenerated `tokens.css`) and added a flag icon for "No priority" in `FilterMenu.tsx`.
+  - Divided `ProgressRing` (`RoutinesPage.tsx`) into per-step segments colored by each step's life area.
+  - Made the sticky month header in `CalendarPanel.tsx` (`z-20`) opaque above scrolled checkboxes.
+  - Fixed Timeline horizontal overflow in `TimelineCard.tsx` (`overflow-hidden`).
+  - Fixed Year view vertical clipping in `LinearCalendar.tsx` and `calendar.css` (`flex: 0 0 auto` + `auto` marks row).
+  - Centered the Settings column in `SettingsPage.tsx`.
+  - Removed the "View Markdown" toggle in `PanelParts.tsx`.
+  - Hid areas with no metrics in `OutcomesCard.tsx`, made the area pill clickable on `ProjectPage.tsx`, and added a "Hide finished" toggle to `ProjectsCard` in `ProjectsAndRoutines.tsx`.
+  - Showed `TaskRow` quick actions only on hover/popover open (removed `group-focus-within/row:flex`) in `AgendaRow.tsx` and clarified scheduled-date tooltips in `TodayCard.tsx`.
+
+- Design system polish (branch `refactor/design-system-polish`):
+  - **Accessibility & contrast tokens:** Added `--area-button-bg` (step `700`, WCAG AA 5.30:1–8.64:1 with white text across all 6 area palettes) and `--neutral-button-bg` in `design/tokens/life-os.semantic.tokens.json` and `design/tokens/life-os.tokens.json`; updated `--priority-high` to `negative.600` (5.05:1) and `--priority-medium` to `warning.600` (4.50:1); regenerated `frontend/src/styles/tokens.css`, removed stale `design/tokens/tokens.css`, and wired `.button--area` in `frontend/src/styles/heroui-theme.css` to `--area-button-bg`.
+  - **Stray hex & dark-mode prep:** Replaced hardcoded hex colors with design tokens in `frontend/src/features/life-areas/palette.ts`, `MetricChart.tsx`, `OutcomesCard.tsx`, `OverviewCards.tsx`, and `TimelineCard.tsx`, and replaced `hover:bg-white/60` with `hover:bg-(--bg-surface)/60` in `AppLayout.tsx` and `SegmentSwitch.tsx`.
+  - **Shared `<Scroll>` component:** Implemented `frontend/src/components/Scroll.tsx` (with CSS `@property` 16 px mask-image fade shadows in `heroui-theme.css` and unit tests in `Scroll.test.tsx`) and migrated scrolling pages, boards, columns, panels, popovers, and pickers across 20 files (`ArchivePage`, `CalendarPanel`, `CalendarPopovers`, `CalendarSidebar`, `CommandPalette`, `PanelParts`, `HomePage`, `AreaPage`, `AreasOverviewPage`, `OwnerPicker`, `ProjectBoard`, `ProjectPage`, `ProjectsOverviewPage`, `RoutinePage`, `RoutinesOverviewPage`, `RestoreDialog`, `SettingsPage`, `InboxPage`, `Next7Page`, `RoutinesPage`, `TaskBoard`).
+  - **Shared checkbox, focus ring & typography:** Added `@utility app-focus-ring` in `heroui-theme.css` (avoiding collision with HeroUI v3's own `.focus-ring` class, which draws a permanent ring), extracted `frontend/src/components/EntityCheckbox.tsx` (+ `EntityCheckbox.test.tsx`, supporting `xs`/`sm`/`md`, `square`/`round`, `overlay`, and a 24×24 px hit target), and unified all 9 entity checkbox call sites (`TaskCard`, `RoutinesPage`, `AgendaRow`, `CalendarPopovers`, `GridEntry`, `detail-panel/entities`, `TasksAndAgenda`, `DayCard`, `Next7Page`). Standardized all 147 `text-[13px]`/`text-[11px]` usages across 55 files onto `type-body`/`type-tag`/`type-counter`, and floored sub-11px fonts in `frontend/src/features/calendar/calendar.css` at `11px`.
+  - **Dark-mode token mappings:** Added `[data-theme="dark"]` semantic overrides in `heroui-theme.css` and dark `[data-area]` role generation in `frontend/scripts/build-tokens.mjs` + regenerated `frontend/src/styles/tokens.css`.
+  - **Card UX & dark-mode polish:**
+    - `SectionCard`: added `min-h-0 flex-1` body wrapper and balanced header right padding (`pr-4` when no `action`).
+    - `TaskCard`: replaced raw light-mode tokens with `--border-strong`, `--counter-bg`, `--surface-tertiary`, and surfaced inline error alerts on failed subtask toggles (kept `scheduled_date` off the card).
+    - Home cards: added `+` quick-add header button and *"Move all to today"* overdue batch action in `TodayCard`; added *"Complete remaining"* action in `RoutinesTodayCard`; added numeric input placeholder in `LogTodayCard`; added `/calendar` shortcut icon in `ComingUpCard`.
+    - `DayCard` (`RoutinePage`): added `<` / `>` previous/next day navigation buttons in the header.
+    - `OverviewCards` & `OutcomesCard`: moved `OutcomesCard` above `EffortCard`, made the bottom grid responsive (`grid-cols-1 lg:grid-cols-2/3`) and hid `WinsCard` when empty, fixed dark-mode tokens (`--text-primary`, `--bg-surface`, `--border-default`, `--border-strong`), persisted `OutcomesCard` sort/filter/group state in `outcomesCardStore.ts`, and added an active-filter indicator dot on `CardMenu`.
+    - `TimelineCard`: made project bars, event rows, and metric labels left-clickable via `PanelLink`.
+  - **Cross-app design consistency pass:**
+    - Extracted shared `<Counter>` (`frontend/src/components/Counter.tsx`, backed by `--counter-bg` + `tabular-nums`) and replaced local counter pills in `TaskBoard.tsx`, `TodayCard.tsx`, `CalendarPanel.tsx`, and `TasksAndAgenda.tsx`.
+    - Migrated `Next7Page.tsx` from a hand-rolled `<header>` to the shared `<PageHeader>`.
+    - Unified item card styling across Boards, Home, Calendar Agenda, and Area/Project Agendas (`AgendaRow.tsx`, `TasksAndAgenda.tsx`, `TodayCard.tsx`, `TaskBoard.tsx`, `Next7Page.tsx`): consistent `rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong)` cards, unified tinted event cards (`--event-area-bg-upcoming`, 4 px calendar badge, `--event-title`/`--event-meta`, `Repeat`/`MapPin` icons, `hover:brightness-[0.98]`), and aligned `h-7 type-label` day/group headings.
+    - Aligned Calendar Month view day headers with Week view in `calendar.css` (`36px` height, centered weekday names, `border-bottom`, `border-inline-start` dividers) and updated `.calendar-table` / `.linear-grid` border radius from `10px` to `var(--radius-12)`.
+    - Fixed docked detail panel (`>= 1600px`) in `DetailPanel.tsx` using `min-[1600px]:relative` (instead of `static`) so the floating Notes formatting toolbar and resize handle stay anchored inside the side panel.
+    - Fixed Home `TodayCard` quick-action date picker anchoring to the corner of the screen by keeping `AgendaRow`'s hover actions visible (`has-[[aria-expanded=true]]:flex` + `aria-expanded`) while its `AnchoredPopover` is open.
+    - Standardized `AnchoredPopover` and `NotesEditor` (`SlashMenu`, toolbar groups, source textarea) onto `--radius-12` and semantic surface/hover/border tokens.
+    - Made Tasks sidebar views (`Inbox`, `Today`, `Unscheduled`, `Next 7 days`, `Routines` in `TasksLayout.tsx`) and icon rail navigation icons (`Tasks`, `Calendar`, `Plan` in `AppLayout.tsx`, keeping `Home` and `Settings` pinned) drag-and-drop reorderable with `@dnd-kit/sortable`, persisted in `sidebarStore.ts`.
+    - Standardized filter popups (`FilterMenu.tsx`, `CardMenu.tsx`) onto `rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface)`, `<Scroll>` inside `FilterMenu`, `type-label` section headings, shared `FiltersOnDot`, semantic `--bg-hover` / `--border-strong` states, and consistent menu checkbox colors (`brand-600` for general filters, `--area-solid` for life areas, `neutral-400` for No area — matching `CalendarSidebar.tsx`).
+    - Added `openInPanel` prop to `PanelLink.tsx` and enabled it on `ProjectCard` (`TaskBoard.tsx`, shared with `Next7Page.tsx`) so clicking project cards in board views opens the detail side panel, plus an **Open project** (`ArrowUpRight`) quick button in `ProjectPanel`'s header (`entities.tsx`, `PanelParts.tsx`).
+    - Locked item card metadata rows to a single line (`flex-nowrap overflow-hidden` + `truncate`) across `TaskCard.tsx`, `Next7Page.tsx` (`EventCard`), `TaskBoard.tsx` (`ProjectCard`), `AgendaRow.tsx`, and `TasksAndAgenda.tsx`.
+  - **Verified:** `pnpm tokens:check`, `pnpm format`, `pnpm typecheck`, `pnpm build`, 42 frontend test files / 318 unit tests, and 76 Playwright E2E browser tests all pass.
+
 - UI polish pass:
   - Enabled soft canvas contrast by setting `--bg-app` to `#f8f9fa` against `--bg-surface` (`#ffffff`) across DTCG token files (`design/tokens/life-os.semantic.tokens.json`, `life-os.tokens.json`) and regenerated `frontend/src/styles/tokens.css`.
   - Shifted icon rail container styling to neutral tokens (`--color-neutral-100` background, `--color-neutral-500` icons, `--color-neutral-900` active icon on white pill), clarifying the distinction between Brand purple accents and Personal mauve life area colors.
@@ -23,8 +154,7 @@
 
 **Next**
 
-- Open PR for `feat/ui-polish-pass` and merge into `main`.
-- Plan and prioritize Phase 7 polish / feature milestones.
+- Begin Phase 7 (Desktop Tauri): PyInstaller sidecar, Tauri shell, native Ctrl N and native backup directory picker.
 
 ## 2026-11-10
 

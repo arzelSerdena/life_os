@@ -40,6 +40,10 @@ export function canDragEntry(entry: Entry): boolean {
 
 /** The days the dragged item would cover with the pointer over `over`. */
 export function draggedSpan(subject: DragSubject, over: string): DaySpan {
+  if (subject.kind === "entry" && subject.entry.kind === "event") {
+    const len = daysFrom(subject.entry.start, subject.entry.end);
+    return { start: over, end: addDays(over, len) };
+  }
   if (subject.kind !== "bar") return { start: over, end: over };
   const { bar, how, grab } = subject;
   if (how === "move") {

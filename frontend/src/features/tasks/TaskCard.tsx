@@ -1,14 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  AlignLeft,
-  CalendarClock,
-  Check,
-  ChevronDown,
-  Flag,
-  Folder,
-  Redo,
-  Repeat,
-} from "lucide-react";
+import { AlignLeft, CalendarClock, ChevronDown, Flag, Folder, Redo, Repeat } from "lucide-react";
 import { type ComponentPropsWithRef, type ReactNode, useState } from "react";
 import {
   completeTaskMutation,
@@ -16,6 +7,7 @@ import {
   updateSubtaskMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { ProjectRead, SubtaskRead, TaskRead } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { PanelLink } from "../detail-panel/PanelLink";
@@ -102,33 +94,18 @@ export function TaskCard({
     <li
       {...containerProps}
       data-area={areaDataAttribute(areaColor)}
-      className={`group/card relative flex flex-col gap-0.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--color-neutral-300) ${containerProps?.className ?? ""}`}
+      className={`group/card relative flex flex-col gap-0.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong) ${containerProps?.className ?? ""}`}
     >
       {actions}
       <div className="flex items-start gap-2">
-        <label className="relative z-10 -mx-1 -mt-0.5 -mb-1 grid size-6 shrink-0 cursor-pointer place-items-center">
-          <input
-            type="checkbox"
-            checked={done}
-            disabled={cancelled || complete.isPending || reopen.isPending}
-            aria-label={done ? `Mark ${task.title} not done` : `Mark ${task.title} done`}
-            onChange={toggle}
-            className={`peer size-4 cursor-pointer appearance-none rounded-[4px] border-2 outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-              done
-                ? "border-(--checkbox-area-done) bg-(--checkbox-area-done)"
-                : cancelled
-                  ? "border-(--color-neutral-300)"
-                  : "border-(--checkbox-area-todo)"
-            }`}
-          />
-          {done && (
-            <Check
-              aria-hidden
-              className="pointer-events-none absolute size-2.5 text-white"
-              strokeWidth={3.5}
-            />
-          )}
-        </label>
+        <EntityCheckbox
+          checked={done}
+          disabled={cancelled || complete.isPending || reopen.isPending}
+          cancelled={cancelled}
+          label={done ? `Mark ${task.title} not done` : `Mark ${task.title} done`}
+          onChange={toggle}
+          className="z-10 -mx-1 -mt-0.5 -mb-1"
+        />
         <PanelLink
           stretched
           target={{ kind: "task", id: task.id }}
@@ -141,7 +118,7 @@ export function TaskCard({
       </div>
 
       {hasMeta && (
-        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-(--border-default)/40 pt-1 pl-6 type-meta text-(--text-tertiary) [&_svg]:size-3 [&_svg]:shrink-0">
+        <div className="mt-1 flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden border-t border-(--border-default)/40 pt-1 pl-6 type-meta text-(--text-tertiary) [&_svg]:size-3 [&_svg]:shrink-0">
           {flagged && (
             <Flag
               role="img"
@@ -156,7 +133,7 @@ export function TaskCard({
           {!!task.notes?.trim() && <AlignLeft role="img" aria-label="Has notes" strokeWidth={2} />}
           {task.rollover_count > 0 && (
             <span
-              className="inline-flex items-center gap-0.5 text-[11px]"
+              className="inline-flex items-center gap-0.5 type-tag"
               title={`Rolled over ${task.rollover_count} times`}
             >
               <Redo aria-hidden strokeWidth={2} />
@@ -166,7 +143,7 @@ export function TaskCard({
           )}
           {dateText && (
             <span
-              className={`inline-flex items-center gap-1 whitespace-nowrap ${late ? "text-(--text-danger)" : ""}`}
+              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap ${late ? "text-(--text-danger)" : ""}`}
             >
               {task.due_date && !done && !cancelled && (
                 <CalendarClock aria-hidden className="size-[11px]!" strokeWidth={2} />
@@ -187,7 +164,7 @@ export function TaskCard({
               aria-expanded={open}
               aria-label={`Subtasks, ${subtasksDone} of ${subtasks.length} done`}
               onClick={() => setOpen(!open)}
-              className="relative z-10 ml-auto inline-flex items-center gap-0.5 rounded-[5px] bg-(--color-neutral-100) py-px pr-1 pl-1.5 text-[11px] font-medium text-(--text-secondary) outline-none hit-24 hover:bg-(--color-neutral-200) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+              className="relative z-10 ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-[5px] bg-(--counter-bg) py-px pr-1 pl-1.5 type-counter text-(--text-secondary) app-focus-ring hit-24 hover:bg-(--surface-tertiary)"
             >
               {subtasksDone}/{subtasks.length}
               <ChevronDown
@@ -224,33 +201,26 @@ export function SubtaskRow({ subtask, readOnly }: { subtask: SubtaskRead; readOn
     <li
       className={`flex items-center gap-[7px] text-xs leading-[18px] ${done ? "text-(--text-tertiary) line-through" : "text-(--text-secondary)"}`}
     >
-      <label className="relative -m-1.5 grid size-6 shrink-0 cursor-pointer place-items-center">
-        <input
-          type="checkbox"
-          checked={done}
-          disabled={readOnly || update.isPending}
-          aria-label={done ? `Mark ${subtask.title} not done` : `Mark ${subtask.title} done`}
-          onChange={() =>
-            update.mutate({
-              path: { subtask_id: subtask.id },
-              body: { status: done ? "todo" : "done" },
-            })
-          }
-          className={`size-3 cursor-pointer appearance-none rounded-[3px] border-[1.5px] outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-            done
-              ? "border-(--color-neutral-300) bg-(--color-neutral-300)"
-              : "border-(--color-neutral-400)"
-          }`}
-        />
-        {done && (
-          <Check
-            aria-hidden
-            className="pointer-events-none absolute size-2 text-white"
-            strokeWidth={3.5}
-          />
-        )}
-      </label>
-      <span className="min-w-0 truncate">{subtask.title}</span>
+      <EntityCheckbox
+        checked={done}
+        size="xs"
+        tone="neutral"
+        disabled={readOnly || update.isPending}
+        label={done ? `Mark ${subtask.title} not done` : `Mark ${subtask.title} done`}
+        onChange={() =>
+          update.mutate({
+            path: { subtask_id: subtask.id },
+            body: { status: done ? "todo" : "done" },
+          })
+        }
+        className="-m-1.5"
+      />
+      <span className="min-w-0 flex-1 truncate">{subtask.title}</span>
+      {update.isError && (
+        <span role="alert" className="shrink-0 type-meta text-(--text-danger)">
+          Couldn't save
+        </span>
+      )}
     </li>
   );
 }

@@ -95,13 +95,15 @@ class EventMove(BaseModel):
 
 
 class EventReschedule(BaseModel):
-    """New dates for a one-off event, as when it is dragged or its bar resized on the
-    calendar. Its times stay; leave `end_date` out (or None) for a one-day event."""
+    """New dates (and optionally times) for a one-off event, as when it is dragged or its bar
+    resized on the calendar. Leave `end_date` out (or None) for a one-day event."""
 
     model_config = ConfigDict(extra="forbid")
 
     start_date: date
     end_date: date | None = None
+    start_time: time | None = None
+    end_time: time | None = None
 
 
 class EventChange(BaseModel):

@@ -14,6 +14,7 @@ import { type ReactNode, useState } from "react";
 import {
   archiveMetricMutation,
   archiveTaskMutation,
+  cancelEventMutation,
   cancelTaskMutation,
   completeTaskMutation,
   getArchiveOptions,
@@ -23,6 +24,7 @@ import {
   unarchiveLifeAreaMutation,
   unarchiveMetricMutation,
   unarchiveProjectMutation,
+  uncancelEventMutation,
 } from "../../client/@tanstack/react-query.gen";
 import { deleteTask } from "../../client/sdk.gen";
 import type {
@@ -383,10 +385,39 @@ export function useEventActions(
   day: string | null,
   { onDeleted }: { onDeleted?: Gone } = {},
 ): ItemActions {
+  const showToast = useChangeToast((state) => state.show);
+  const cancel = useMutation({
+    ...cancelEventMutation(),
+    onSuccess: (change) => showToast(`Cancelled “${change.event.title}”`, change.batch_id),
+  });
+  const uncancel = useMutation({
+    ...uncancelEventMutation(),
+    onSuccess: (change) => showToast(`Restored “${change.event.title}”`, change.batch_id),
+  });
   const [isDeleting, setIsDeleting] = useState(false);
   if (!event) return { actions: [], dialogs: null, error: null };
+  const isCancelled = event.cancelled_at !== null;
+  const path = { event_id: event.id };
+  const actions: PanelAction[] = [
+    isCancelled
+      ? {
+          id: "uncancel",
+          label: "Uncancel event",
+          icon: RotateCcw,
+          isDisabled: uncancel.isPending,
+          onAction: () => uncancel.mutate({ path }),
+        }
+      : {
+          id: "cancel",
+          label: "Cancel event",
+          icon: CircleX,
+          isDisabled: cancel.isPending,
+          onAction: () => cancel.mutate({ path }),
+        },
+    deleteAction("Delete event", () => setIsDeleting(true)),
+  ];
   return {
-    actions: [deleteAction("Delete event", () => setIsDeleting(true))],
+    actions,
     dialogs: isDeleting && (
       <DeleteEventDialog
         event={event}
@@ -395,7 +426,7 @@ export function useEventActions(
         onDeleted={() => onDeleted?.()}
       />
     ),
-    error: null,
+    error: cancel.error ?? uncancel.error,
   };
 }
 

@@ -1,7 +1,7 @@
-from datetime import date
+from datetime import date, time
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app import rrules
 from app.schemas.common import Notes, Title, UtcDatetime
@@ -49,6 +49,8 @@ class RoutineRead(BaseModel):
     id: int
     title: str
     notes: str | None
+    start_time: time | None = None
+    end_time: time | None = None
     sort_order: int
     is_paused: bool
     archived_at: UtcDatetime | None
@@ -77,11 +79,19 @@ class RoutineCreate(BaseModel):
 
     title: Title
     notes: Notes | None = None
+    start_time: time | None = None
+    end_time: time | None = None
     rrule: str = "FREQ=DAILY"
     starts_on: date | None = None
     steps: Annotated[list[NewRoutineStep], Field(max_length=100)] = []
 
     _rule = field_validator("rrule")(_normalize_rule)
+
+    @model_validator(mode="after")
+    def _end_needs_start(self) -> Self:
+        if self.end_time is not None and self.start_time is None:
+            raise ValueError("End time requires a start time.")
+        return self
 
 
 class RoutineReorder(BaseModel):
@@ -99,6 +109,8 @@ class RoutineUpdate(BaseModel):
 
     title: Title | None = None
     notes: Notes | None = None
+    start_time: time | None = None
+    end_time: time | None = None
     sort_order: Annotated[int, Field(ge=0)] | None = None
 
     _no_nulls = field_validator("title", "sort_order", mode="before")(_reject_null)
@@ -163,6 +175,8 @@ class RoutineStepDay(BaseModel):
     step_id: int
     routine_id: int
     routine_title: str
+    routine_start_time: time | None = None
+    routine_end_time: time | None = None
     title: str
     life_area_id: int
     project_id: int | None
@@ -176,6 +190,8 @@ class RoutineStepDay(BaseModel):
             step_id=found.step.id,
             routine_id=found.routine.id,
             routine_title=found.routine.title,
+            routine_start_time=found.routine.start_time,
+            routine_end_time=found.routine.end_time,
             title=found.step.title,
             life_area_id=found.step.life_area_id,
             project_id=found.step.project_id,

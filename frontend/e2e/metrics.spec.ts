@@ -66,7 +66,8 @@ test("metric actions: log from Area/Project tiles, edit all fields, archive and 
 
   // Also verify logging a metric entry directly from a Project page
   await page.goto(`/areas/projects/${project.id}`);
-  await page.getByRole("button", { name: "Add metric" }).click();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Metric" }).click();
   const projectMetricTitle = unique("Long runs");
   const projCreate = page.getByRole("dialog");
   await projCreate.getByLabel("Name").fill(projectMetricTitle);

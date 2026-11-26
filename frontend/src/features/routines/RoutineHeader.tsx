@@ -5,6 +5,7 @@ import { type KeyboardEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   changeRoutineScheduleMutation,
+  listLifeAreasOptions,
   listRoutineStepsForDayOptions,
   unarchiveRoutineMutation,
   updateRoutineMutation,
@@ -25,6 +26,7 @@ import { addDays } from "../pickers/dates";
 import { RepeatChip } from "../pickers/RepeatPicker";
 import { describeRepeat, parseRRule, toRRule } from "../pickers/repeat";
 import { ProgressRing } from "../tasks/RoutinesPage";
+import { RoutineTimeChip } from "./RoutineTimeChip";
 import { scheduleImpact, scheduleLabel, stepAreaIds, weekdayDate } from "./routine";
 
 /**
@@ -54,7 +56,7 @@ export function RoutineHeader({
         </div>
         <div className="mt-0.5 flex min-h-6 flex-wrap items-center gap-2 pl-7">
           {page.paused_since && (
-            <span className="inline-flex h-5 items-center gap-1 rounded-full bg-(--color-neutral-100) px-2 text-[11px] font-medium text-(--text-secondary)">
+            <span className="inline-flex h-5 items-center gap-1 rounded-full bg-(--bg-hover) px-2 type-tag font-medium text-(--text-secondary)">
               <Pause aria-hidden className="size-[11px] fill-current stroke-none" />
               Paused since {shortDate(page.paused_since)}
             </span>
@@ -71,7 +73,10 @@ export function RoutineHeader({
               </span>
             </>
           ) : (
-            <ScheduleChip page={page} />
+            <>
+              <ScheduleChip page={page} />
+              <TimeChip routine={routine} />
+            </>
           )}
           {stepAreaIds(page).map((id) => {
             const area = areas.find((item) => item.id === id);
@@ -80,7 +85,7 @@ export function RoutineHeader({
               <span
                 key={id}
                 data-area={areaDataAttribute(area.color)}
-                className="inline-flex h-5 items-center gap-1 rounded-full bg-(--area-tint-active) px-2 text-[11px] font-medium text-(--text-primary)"
+                className="inline-flex h-5 items-center gap-1 rounded-full bg-(--area-tint-active) px-2 type-tag font-medium text-(--text-primary)"
               >
                 <span aria-hidden className="size-1.5 rounded-[2px] bg-(--area-solid)" />
                 {area.title}
@@ -136,6 +141,7 @@ function RestoreButton({ routine, steps }: { routine: RoutineRead; steps: number
 /** Today's ring: done out of today's due steps; a pause icon while paused. */
 function TodayRing({ page }: { page: RoutinePageRead }) {
   const due = useQuery(listRoutineStepsForDayOptions({ query: { day: page.today } }));
+  const lifeAreas = useQuery(listLifeAreasOptions());
   if (page.paused_since) {
     return (
       <Pause
@@ -148,8 +154,16 @@ function TodayRing({ page }: { page: RoutinePageRead }) {
   const mine = (due.data ?? []).filter(
     (item) => item.routine_id === page.routine.id && item.status !== "skipped",
   );
+  const colorOf = (id: number) => lifeAreas.data?.find((a) => a.id === id)?.color ?? null;
   return (
-    <ProgressRing done={mine.filter((item) => item.status === "done").length} total={mine.length} />
+    <ProgressRing
+      done={mine.filter((item) => item.status === "done").length}
+      total={mine.length}
+      segments={mine.map((item) => ({
+        done: item.status === "done",
+        color: colorOf(item.life_area_id),
+      }))}
+    />
   );
 }
 
@@ -311,7 +325,7 @@ function ChangeScheduleDialog({
                 className="mt-1 accent-(--color-brand-600)"
               />
               <span className="flex min-w-0 flex-col gap-1">
-                <span className="flex items-center gap-2 text-[13px] font-medium text-(--text-primary)">
+                <span className="flex items-center gap-2 type-body font-medium text-(--text-primary)">
                   From
                   <DateChip
                     icon={CalendarDays}
@@ -339,7 +353,7 @@ function ChangeScheduleDialog({
                 className="mt-1 accent-(--color-brand-600)"
               />
               <span className="flex min-w-0 flex-col gap-1">
-                <span className="text-[13px] font-medium text-(--text-primary)">All days</span>
+                <span className="type-body font-medium text-(--text-primary)">All days</span>
                 <span className="type-meta text-(--text-tertiary)">{impact.changes}</span>
               </span>
             </label>
@@ -355,6 +369,26 @@ function ChangeScheduleDialog({
       }
       onClose={onClose}
     />
+  );
+}
+
+/** Optional start/end time for the routine so it appears on timed calendar views. */
+function TimeChip({ routine }: { routine: RoutineRead }) {
+  const update = useMutation(updateRoutineMutation());
+  return (
+    <>
+      <RoutineTimeChip
+        startTime={routine.start_time ?? null}
+        endTime={routine.end_time ?? null}
+        onChange={({ startTime, endTime }) =>
+          update.mutate({
+            path: { routine_id: routine.id },
+            body: { start_time: startTime, end_time: endTime },
+          })
+        }
+      />
+      {update.isError && <QueryError error={update.error} />}
+    </>
   );
 }
 

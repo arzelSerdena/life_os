@@ -4,10 +4,12 @@ import { Database } from "lucide-react";
 import { useState } from "react";
 import { restoreBackupMutation } from "../../client/@tanstack/react-query.gen";
 import type { BackupRead } from "../../client/types.gen";
+import { Scroll } from "../../components/Scroll";
 import { errorMessage } from "../../errors";
 import { today } from "../../period";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { useDetailPanel } from "../../stores/detailPanelStore";
+import { usePendingDeletes } from "../../stores/pendingDeleteStore";
 import type { TimeFormat } from "../tasks/format";
 import { SECONDARY_BUTTON } from "./controls";
 import { sizeLabel, whenLabel } from "./settings";
@@ -39,6 +41,7 @@ export function RestoreDialog({
     onSuccess: async () => {
       // Everything may have changed, and the open item may no longer exist.
       closePanel();
+      usePendingDeletes.getState().cancelAll();
       onClose();
       if (backup) show(`Restored the backup from ${when(backup)} · current data backed up`, null);
       await queryClient.invalidateQueries();
@@ -71,7 +74,7 @@ export function RestoreDialog({
                 </p>
                 <div className="flex h-9 items-center gap-2 rounded-(--radius-8) border border-(--border-default) px-3">
                   <Database aria-hidden className="size-3.5 text-(--text-tertiary)" />
-                  <span className="flex-1 text-[13px] text-(--text-primary) tabular-nums">
+                  <span className="flex-1 type-body text-(--text-primary) tabular-nums">
                     {when(backup)}
                   </span>
                   <span className="text-xs text-(--text-secondary) tabular-nums">
@@ -80,7 +83,7 @@ export function RestoreDialog({
                 </div>
               </>
             ) : (
-              <fieldset className="flex max-h-[360px] flex-col overflow-auto [scrollbar-width:none]">
+              <Scroll as="fieldset" direction="both" className="flex max-h-[360px] flex-col">
                 <legend className="sr-only">Backups</legend>
                 {backups.map((item) => (
                   <label
@@ -95,7 +98,7 @@ export function RestoreDialog({
                       onChange={() => setPicked(item.name)}
                       className="size-3.5 accent-(--color-brand-600)"
                     />
-                    <span className="flex-1 text-[13px] text-(--text-primary) tabular-nums">
+                    <span className="flex-1 type-body text-(--text-primary) tabular-nums">
                       {when(item)}
                     </span>
                     <span className="text-xs text-(--text-secondary) tabular-nums">
@@ -103,7 +106,7 @@ export function RestoreDialog({
                     </span>
                   </label>
                 ))}
-              </fieldset>
+              </Scroll>
             )}
             {restore.error ? (
               <Alert status="danger">

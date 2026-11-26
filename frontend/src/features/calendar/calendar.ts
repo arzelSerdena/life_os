@@ -24,7 +24,7 @@ import { type RoutineDay, routineDays } from "../tasks/next7";
  * Year are the linear calendar (`linear.ts`). The agenda lists exactly what the grid shows.
  */
 
-export type CalendarView = "week" | "month" | "quarter" | "year";
+export type CalendarView = "days" | "week" | "month" | "quarter" | "year";
 
 /** Quarter and Year: one row per month, with no routines. */
 export function isLinear(view: CalendarView): view is "quarter" | "year" {
@@ -87,7 +87,10 @@ export type DayRange = { start: string; end: string; count: number };
  * Week: Monday to Sunday around `anchor`. Month: the whole weeks that hold its days.
  * Quarter and Year: their own days, first to last.
  */
-export function viewRange(view: CalendarView, anchor: string): DayRange {
+export function viewRange(view: CalendarView, anchor: string, dayCount = 3): DayRange {
+  if (view === "days") {
+    return { start: anchor, end: addDays(anchor, dayCount - 1), count: dayCount };
+  }
   if (view === "week") {
     const start = addDays(anchor, -weekdayIndex(anchor));
     return { start, end: addDays(start, 6), count: 7 };
@@ -112,7 +115,13 @@ function nextMonth(day: string): string {
 }
 
 /** The next or previous week, month, quarter or year: the anchor moves to its first day. */
-export function stepAnchor(view: CalendarView, anchor: string, steps: number): string {
+export function stepAnchor(
+  view: CalendarView,
+  anchor: string,
+  steps: number,
+  dayCount = 3,
+): string {
+  if (view === "days") return addDays(anchor, dayCount * steps);
   if (view === "week") return addDays(viewRange("week", anchor).start, 7 * steps);
   const months = { month: 1, quarter: 3, year: 12 }[view];
   const first = view === "month" ? anchor : viewRange(view, anchor).start;
@@ -120,9 +129,14 @@ export function stepAnchor(view: CalendarView, anchor: string, steps: number): s
 }
 
 /** Whether today is inside the shown period. */
-export function showsToday(view: CalendarView, anchor: string, today: string): boolean {
+export function showsToday(
+  view: CalendarView,
+  anchor: string,
+  today: string,
+  dayCount = 3,
+): boolean {
   if (view === "month") return anchor.slice(0, 7) === today.slice(0, 7);
-  const { start, end } = view === "week" ? viewRange("week", anchor) : viewRange(view, anchor);
+  const { start, end } = viewRange(view, anchor, dayCount);
   return start <= today && today <= end;
 }
 
@@ -136,11 +150,16 @@ export function quarterOf(day: string): number {
  * "Dec 28, 2026 – Jan 3, 2027"; a month is "November 2026", a quarter "Q4 2026", a year
  * "2026".
  */
-export function rangeLabel(view: CalendarView, anchor: string, today: string): string {
+export function rangeLabel(
+  view: CalendarView,
+  anchor: string,
+  today: string,
+  dayCount = 3,
+): string {
   if (view === "month") return monthTitle(anchor.slice(0, 7));
   if (view === "quarter") return `Q${quarterOf(anchor)} ${anchor.slice(0, 4)}`;
   if (view === "year") return anchor.slice(0, 4);
-  const { start, end } = viewRange("week", anchor);
+  const { start, end } = viewRange(view, anchor, dayCount);
   const startYear = start.slice(0, 4);
   const endYear = end.slice(0, 4);
   if (startYear !== endYear)
@@ -296,7 +315,10 @@ export function buildEntries(
 
 /** Month shows a day's routines as one ring beside the date: every step due that day. */
 export function routineTotals(days: readonly DayRead[], filters: CalendarFilters) {
-  const totals = new Map<string, { done: number; total: number; routines: RoutineDay[] }>();
+  const totals = new Map<
+    string,
+    { done: number; total: number; steps: RoutineStepDay[]; routines: RoutineDay[] }
+  >();
   if (!filters.show.routines) return totals;
   for (const day of days) {
     const steps: RoutineStepDay[] = day.routine_steps.filter((step) =>
@@ -306,6 +328,7 @@ export function routineTotals(days: readonly DayRead[], filters: CalendarFilters
     totals.set(day.day, {
       done: steps.filter((step) => step.status === "done").length,
       total: steps.length,
+      steps,
       routines: routineDays(steps, day.day),
     });
   }
@@ -390,12 +413,14 @@ export function spanLabel(start: string, end: string): string {
 }
 
 /**
- * Whether an entry can be dragged: open tasks, and events that aren't cancelled (a repeating
- * event's occurrence moves on its own, "this one").
+ * Whether an entry can be dragged: non-cancelled tasks (including completed), non-cancelled
+ * events, and active project due dates — on any date (past, today, or future).
  */
 export function canMove(entry: Entry): boolean {
-  if (entry.kind === "task") return entry.task.status === "todo";
+  if (entry.kind === "task") return entry.task.status !== "cancelled";
   if (entry.kind === "event") return !entry.event.is_cancelled;
+  if (entry.kind === "project")
+    return entry.project.status === "active" && entry.project.archived_at === null;
   return false;
 }
 
@@ -408,9 +433,16 @@ export function applyMove(
   entry: Entry,
   start: string,
   end: string,
+  startTime?: string | null,
+  endTime?: string | null,
 ): DayRead[] {
   if (entry.kind === "task") {
-    const moved = { ...entry.task, scheduled_date: start };
+    const moved = {
+      ...entry.task,
+      scheduled_date: start,
+      ...(startTime !== undefined ? { scheduled_time: startTime } : {}),
+      ...(endTime !== undefined ? { scheduled_end_time: endTime } : {}),
+    };
     return days.map((day) => {
       const tasks = day.tasks.filter((task) => task.id !== moved.id);
       return { ...day, tasks: day.day === start ? [...tasks, moved] : tasks };
@@ -418,13 +450,34 @@ export function applyMove(
   }
   if (entry.kind === "event") {
     const { event_id, occurrence_date } = entry.event;
-    const moved = { ...entry.event, start_date: start, end_date: end };
+    const moved = {
+      ...entry.event,
+      start_date: start,
+      end_date: end,
+      ...(startTime !== undefined ? { start_time: startTime } : {}),
+      ...(endTime !== undefined ? { end_time: endTime } : {}),
+    };
     return days.map((day) => {
       const events = day.events.filter(
         (event) => !(event.event_id === event_id && event.occurrence_date === occurrence_date),
       );
       return { ...day, events: start <= day.day && day.day <= end ? [...events, moved] : events };
     });
+  }
+  if (entry.kind === "routine" && startTime !== undefined) {
+    const routineId = entry.routine.routineId;
+    return days.map((day) => ({
+      ...day,
+      routine_steps: day.routine_steps.map((step) =>
+        step.routine_id === routineId
+          ? {
+              ...step,
+              routine_start_time: startTime,
+              routine_end_time: endTime ?? null,
+            }
+          : step,
+      ),
+    }));
   }
   return [...days];
 }

@@ -302,6 +302,8 @@ def create_routine(session: Session, data: RoutineCreate) -> Routine:
     routine = Routine(
         title=data.title,
         notes=data.notes,
+        start_time=data.start_time,
+        end_time=data.end_time,
         sort_order=0 if last_position is None else last_position + 1,
         schedules=[RoutineSchedule(rrule=data.rrule, starts_on=starts_on)],
         steps=steps,
@@ -328,7 +330,14 @@ def reorder_routines(session: Session, data: RoutineReorder) -> Sequence[Routine
 
 def update_routine(session: Session, routine_id: int, data: RoutineUpdate) -> Routine:
     routine = get_routine(session, routine_id)
-    for field, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    if "start_time" in changes and changes["start_time"] is None and "end_time" not in changes:
+        changes["end_time"] = None
+    next_start = changes.get("start_time", routine.start_time)
+    next_end = changes.get("end_time", routine.end_time)
+    if next_end is not None and next_start is None:
+        raise UnprocessableError("End time requires a start time.")
+    for field, value in changes.items():
         setattr(routine, field, value)
     return _save(session, routine)
 

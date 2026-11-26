@@ -9,6 +9,19 @@ default:
 # Build the frontend, apply migrations and run the app at http://127.0.0.1:8000
 app port="8000": build migrate (serve port)
 
+# Seed an isolated demo database at backend/data/demo.db
+[working-directory: 'backend']
+seed-demo:
+    uv run python scripts/seed_demo.py
+
+# Build the frontend, seed an isolated demo database, and run the app at http://127.0.0.1:8000
+demo port="8000": build seed-demo (serve-demo port)
+
+[private]
+[working-directory: 'backend']
+serve-demo port="8000":
+    -$env:LIFE_OS_DATABASE_URL = "sqlite:///data/demo.db"; $env:LIFE_OS_BACKUP_SCHEDULER = "false"; uv run uvicorn app.main:app --host 127.0.0.1 --port {{port}}
+
 # Run the app from the last build, without rebuilding or migrating
 # (`-` ignores the exit code: PowerShell reports Ctrl C as a failure, exit code 1)
 [working-directory: 'backend']

@@ -13,29 +13,37 @@ import { projectPath } from "../projects/paths";
 export function PanelLink({
   target,
   stretched = false,
+  openInPanel = false,
+  onInspect,
   className = "",
   children,
 }: {
   target: PanelTarget;
   stretched?: boolean;
+  /** Open a project in the detail panel instead of navigating to its project page. */
+  openInPanel?: boolean;
+  /** When set, single-click calls this instead of opening the panel; double-click still opens it. */
+  onInspect?: (anchor: HTMLElement) => void;
   className?: string;
   children: ReactNode;
 }) {
   const open = useDetailPanel((state) => state.open);
   const close = useDetailPanel((state) => state.close);
   const navigate = useNavigate();
-  const onClick = () => {
-    if (target.kind !== "project") return open(target);
+  const opensPanel = openInPanel || target.kind !== "project";
+  const openDefault = () => {
+    if (opensPanel) return open(target);
     close();
     navigate(projectPath(target.id));
   };
   return (
     <button
       type="button"
-      {...(target.kind === "project" ? {} : PANEL_OPENER)}
+      {...(opensPanel ? PANEL_OPENER : {})}
       {...itemMenuProps(target)}
       data-stretched={stretched ? "" : undefined}
-      onClick={onClick}
+      onClick={onInspect ? (event) => onInspect(event.currentTarget) : openDefault}
+      onDoubleClick={onInspect ? openDefault : undefined}
       className={`min-w-0 cursor-pointer text-left outline-none ${
         stretched
           ? "after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-(--focus-ring)"

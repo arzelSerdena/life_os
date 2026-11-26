@@ -195,7 +195,7 @@ const UNITS: { key: Frequency; one: string; many: string }[] = [
 ];
 
 const FIELD =
-  "h-7 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2 text-[13px] text-(--text-primary) outline-none focus:border-(--color-brand-600) focus:shadow-[0_0_0_2px_var(--color-brand-200)]";
+  "h-7 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2 type-body text-(--text-primary) outline-none focus:border-(--color-brand-600) focus:shadow-[0_0_0_2px_var(--color-brand-200)]";
 
 function CustomRepeat({
   initial,
@@ -359,7 +359,7 @@ function CustomRepeat({
         {rule.ends.kind === "after" && (
           <>
             <span />
-            <span className="flex items-center gap-2 text-[13px] text-(--text-secondary)">
+            <span className="flex items-center gap-2 type-body text-(--text-secondary)">
               <input
                 aria-label="Times"
                 inputMode="numeric"

@@ -31,12 +31,10 @@ export function SettingRow({
   return (
     <fieldset
       aria-label={label}
-      className="flex min-h-[52px] min-w-0 items-center gap-4 border-t border-(--color-neutral-100) py-2.5 first:border-t-0"
+      className="flex min-h-[52px] min-w-0 items-center gap-4 border-t border-(--border-default)/50 py-2.5 first:border-t-0"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[13px] leading-[18px] font-medium text-(--text-primary)">
-          {label}
-        </span>
+        <span className="type-body font-medium text-(--text-primary)">{label}</span>
         {data ? (
           <span
             className={`truncate type-meta tabular-nums ${isError ? "text-(--text-danger)" : "text-(--text-tertiary)"}`}

@@ -13,7 +13,7 @@ const CHIP_TONES: Record<ChipTone, string> = {
   default:
     "border-(--border-default) bg-(--bg-surface) text-(--text-secondary) [&_svg]:text-(--text-tertiary)",
   danger:
-    "border-(--color-negative-200) bg-(--color-negative-50) text-(--color-negative-700) [&_svg]:text-(--color-negative-700)",
+    "border-(--danger-border) bg-(--danger-bg) text-(--danger-text) [&_svg]:text-(--danger-text)",
   ghost: "border-dashed border-(--border-default) bg-(--bg-surface) text-(--text-tertiary)",
 };
 
@@ -24,7 +24,7 @@ const OPEN_RING =
 export function chipClass(tone: ChipTone = "default", interactive = true): string {
   return `inline-flex h-6 min-w-0 items-center gap-[5px] rounded-(--radius-6) border px-2 text-xs font-medium whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-[13px] [&_svg]:shrink-0 ${CHIP_TONES[tone]} ${
     interactive
-      ? `cursor-pointer hover:bg-(--color-neutral-50) hover:text-(--text-primary) data-[tone=danger]:hover:bg-(--color-negative-100) ${OPEN_RING}`
+      ? `cursor-pointer hover:bg-(--bg-hover) hover:text-(--text-primary) data-[tone=danger]:hover:bg-(--danger-bg-hover) ${OPEN_RING}`
       : ""
   }`;
 }
@@ -205,7 +205,7 @@ export function PopoverField({
         aria-label={label}
         aria-invalid={isInvalid || undefined}
         data-open={isOpen}
-        className={`flex h-8 w-full min-w-0 cursor-pointer items-center gap-1.5 rounded-(--radius-6) border ${isInvalid ? "border-(--text-danger)" : "border-(--border-default)"} bg-(--bg-surface) px-2.5 text-left text-[13px] whitespace-nowrap outline-none hover:border-(--color-neutral-300) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:border-(--color-brand-600) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)] [&_svg]:shrink-0 ${
+        className={`flex h-8 w-full min-w-0 cursor-pointer items-center gap-1.5 rounded-(--radius-6) border ${isInvalid ? "border-(--text-danger)" : "border-(--border-default)"} bg-(--bg-surface) px-2.5 text-left type-body whitespace-nowrap outline-none hover:border-(--color-neutral-300) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:border-(--color-brand-600) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)] [&_svg]:shrink-0 ${
           isPlaceholder ? "text-(--text-tertiary)" : "text-(--text-primary)"
         }`}
       >
@@ -250,7 +250,7 @@ export function CrumbPicker({
       <Popover.Trigger
         aria-label={label}
         data-open={isOpen}
-        className="-mx-1 min-w-0 cursor-pointer truncate rounded-(--radius-6) px-1 outline-none hover:bg-(--color-neutral-100) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:bg-(--color-neutral-100) data-[open=true]:text-(--text-primary) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)]"
+        className="-mx-1 inline-flex h-5 min-w-0 cursor-pointer items-center truncate rounded-(--radius-6) px-1 leading-4 outline-none hover:bg-(--color-neutral-100) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring) data-[open=true]:bg-(--color-neutral-100) data-[open=true]:text-(--text-primary) data-[open=true]:shadow-[0_0_0_2px_var(--color-brand-200)]"
       >
         {crumb}
       </Popover.Trigger>
@@ -288,7 +288,7 @@ export function PickerRow({
       type="button"
       aria-pressed={selected}
       onClick={onPress}
-      className={`flex h-[30px] w-full shrink-0 items-center gap-2 rounded-(--radius-6) pr-2 text-left text-[13px] whitespace-nowrap text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:bg-(--color-neutral-100) [&_svg]:shrink-0 ${
+      className={`flex h-[30px] w-full shrink-0 items-center gap-2 rounded-(--radius-6) pr-2 text-left type-body whitespace-nowrap text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:bg-(--color-neutral-100) [&_svg]:shrink-0 ${
         indent ? "pl-7" : "pl-2"
       } ${selected ? "font-medium" : ""}`}
     >

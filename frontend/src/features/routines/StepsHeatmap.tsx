@@ -19,19 +19,19 @@ const SIZE: Record<Period, string> = {
 const STEP_STATE: Record<DayState, string> = {
   done: "bg-(--area-solid)",
   skipped: "bg-(--area-border)",
-  missed: "bg-(--color-neutral-200)",
+  missed: "bg-(--border-default)",
   paused:
-    "bg-[repeating-linear-gradient(135deg,var(--color-neutral-200)_0_1.5px,white_1.5px_3.5px)]",
-  todo: "bg-white shadow-[inset_0_0_0_1.5px_var(--area-solid)]",
-  upcoming: "bg-white shadow-[inset_0_0_0_1px_var(--color-neutral-300)]",
+    "bg-[repeating-linear-gradient(135deg,var(--border-default)_0_1.5px,var(--bg-surface)_1.5px_3.5px)]",
+  todo: "bg-(--bg-surface) shadow-[inset_0_0_0_1.5px_var(--area-solid)]",
+  upcoming: "bg-(--bg-surface) shadow-[inset_0_0_0_1px_var(--border-strong)]",
   // A 2 px dot in the middle.
-  not_due: "bg-[radial-gradient(circle,var(--color-neutral-300)_1px,transparent_1.2px)] bg-center",
+  not_due: "bg-[radial-gradient(circle,var(--border-strong)_1px,transparent_1.2px)] bg-center",
   none: "",
 };
 
 /** The All steps row: the share of due steps done, in the accent. */
 const ALL_STATE: Partial<Record<DayState, string>> = {
-  skipped: "bg-(--color-neutral-300)",
+  skipped: "bg-(--border-strong)",
 };
 
 function cellStyle(cell: HeatCell, isAll: boolean, selected: string | null) {
@@ -44,7 +44,7 @@ function cellStyle(cell: HeatCell, isAll: boolean, selected: string | null) {
       // Today in the All steps row: filled as far as it has got, outlined in the accent.
       className = "shadow-[inset_0_0_0_1.5px_var(--color-brand-600)]";
       style = {
-        background: `color-mix(in oklab, ${color} ${Math.round(share * 100)}%, white)`,
+        background: `color-mix(in oklab, ${color} ${Math.round(share * 100)}%, var(--bg-surface))`,
       };
     } else {
       className = "";
@@ -56,7 +56,7 @@ function cellStyle(cell: HeatCell, isAll: boolean, selected: string | null) {
   if (cell.isCurrent && !cell.day)
     className += " outline-[1.5px] outline-offset-1 outline-(--text-primary) outline-solid";
   if (cell.day && cell.day === selected) {
-    className += " outline-[1.5px] outline-offset-1 outline-(--color-neutral-900) outline-solid";
+    className += " outline-[1.5px] outline-offset-1 outline-(--text-primary) outline-solid";
   }
   return { className, style };
 }
@@ -130,12 +130,12 @@ export function StepLabel({
     <span className="flex min-w-0 flex-col pr-2">
       <span className="flex min-w-0 items-center gap-2">
         <span aria-hidden className="size-3 shrink-0 rounded-full border-2 border-(--area-solid)" />
-        <span className="truncate text-[13px] leading-[18px] font-medium text-(--text-primary)">
+        <span className="truncate type-body font-medium text-(--text-primary)">
           {row.step.title}
         </span>
       </span>
       {(project || row.metric) && (
-        <span className="flex min-w-0 gap-2.5 overflow-hidden pl-5 text-[11px] leading-4 whitespace-nowrap text-(--text-tertiary)">
+        <span className="flex min-w-0 gap-2.5 overflow-hidden pl-5 type-tag whitespace-nowrap text-(--text-tertiary)">
           {project && (
             <span className="inline-flex min-w-0 items-center gap-[3px]">
               <Folder aria-hidden className="size-[11px] shrink-0 text-(--area-solid)" />
@@ -191,9 +191,7 @@ export function StepsHeatmap({
         {...itemMenuProps({ kind: "routine", id: routineId })}
         className={`${ROW} mt-1.5 border-b border-(--color-neutral-100) pb-1.5`}
       >
-        <span className="text-[13px] leading-[18px] font-semibold text-(--text-primary)">
-          All steps
-        </span>
+        <span className="type-body font-semibold text-(--text-primary)">All steps</span>
         <Cells
           cells={map.all}
           columns={map.columns}
@@ -254,7 +252,7 @@ export function HeatmapHeader({
   return (
     <div className={ROW}>
       <span />
-      <div className="relative isolate h-4 text-[11px] text-(--text-tertiary)">
+      <div className="relative isolate h-4 type-tag text-(--text-tertiary)">
         {map.header.map((label) =>
           isDaily ? (
             <span
@@ -295,11 +293,11 @@ export function HeatmapHeader({
 }
 
 const KEY: [string, string][] = [
-  ["Done", "bg-(--color-neutral-700)"],
-  ["Skipped", "bg-(--color-neutral-400)"],
-  ["Missed", "bg-(--color-neutral-200)"],
+  ["Done", "bg-(--text-secondary)"],
+  ["Skipped", "bg-(--text-disabled)"],
+  ["Missed", "bg-(--border-default)"],
   ["Paused", STEP_STATE.paused],
-  ["Today, to do", "bg-white shadow-[inset_0_0_0_1.5px_var(--color-neutral-700)]"],
+  ["Today, to do", "bg-(--bg-surface) shadow-[inset_0_0_0_1.5px_var(--text-secondary)]"],
   ["Upcoming", STEP_STATE.upcoming],
   ["Not due", STEP_STATE.not_due],
 ];

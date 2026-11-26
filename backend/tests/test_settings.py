@@ -17,6 +17,7 @@ DEFAULTS = {
     "auto_backup": True,
     "keep_backups": 14,
     "backup_folder": None,
+    "theme": "system",
 }
 
 
@@ -66,7 +67,8 @@ def test_null_backup_folder_means_the_default(client: TestClient, tmp_path: Path
         {"backup_folder": "   "},
         {"time_format": None},
         {"day_ends_at": None},
-        {"theme": "dark"},
+        {"theme": "sepia"},
+        {"theme": None},
     ],
 )
 def test_invalid_changes_are_rejected(client: TestClient, change: dict[str, object]) -> None:
@@ -85,7 +87,13 @@ def test_only_one_settings_row_can_exist(session: Session) -> None:
 
 @pytest.mark.parametrize(
     ("column", "value"),
-    [("day_ends_at", 5), ("keep_backups", 10), ("open_on_start", "areas"), ("auto_backup", 2)],
+    [
+        ("day_ends_at", 5),
+        ("keep_backups", 10),
+        ("open_on_start", "areas"),
+        ("auto_backup", 2),
+        ("theme", "sepia"),
+    ],
 )
 def test_the_database_rejects_values_outside_the_rules(
     session: Session, column: str, value: object

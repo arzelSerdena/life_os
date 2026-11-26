@@ -35,10 +35,11 @@ test("quick add puts a task in Today; checking it moves it to Completed, with Un
   const title = unique("Call the landlord");
   await page.goto("/home");
 
-  const add = page.getByRole("textbox", { name: "Add task" });
-  await add.fill(title);
-  await add.press("Enter");
-  await expect(add).toHaveValue("");
+  await todayCard(page).getByRole("button", { name: "New task for today" }).click();
+  const dialog = page.getByRole("dialog", { name: "New task" });
+  await dialog.getByRole("textbox", { name: "Title" }).fill(title);
+  await dialog.getByRole("button", { name: "Create task" }).click();
+  await expect(dialog).toBeHidden();
   const tasks = todayCard(page).getByRole("region", { name: "Tasks" });
   await expect(tasks.getByRole("listitem").filter({ hasText: title })).toBeVisible();
 

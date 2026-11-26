@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Check, ChevronDown, MapPin, Repeat } from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, Repeat } from "lucide-react";
 import { type ComponentPropsWithRef, type ReactNode, useState } from "react";
 import {
   clearRoutineStepDayMutation,
@@ -31,12 +31,17 @@ import {
   updateTaskMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { OccurrenceRead, RoutineStepDay, TaskRead } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
+import { PageHeader } from "../../components/PageHeader";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useDetailPanel } from "../../stores/detailPanelStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { PanelLink } from "../detail-panel/PanelLink";
 import { itemMenuProps } from "../item-menu/target";
 import { areaDataAttribute } from "../life-areas/palette";
+import { useRoutineDragGuard } from "../routines/useRoutineDragGuard";
 import { splitTasks } from "./board";
 import { FilterMenu, useViewFilters } from "./FilterMenu";
 import { type Filters, openFirst, sortTasks } from "./filters";
@@ -69,13 +74,15 @@ export function Next7Page() {
   usePageSpot({}, data?.today);
   return (
     <>
-      <header className="box-content flex h-(--page-header-height) shrink-0 items-center gap-3 px-(--page-gutter) pt-(--page-gutter)">
-        <h1 className="truncate type-page-title text-(--page-title)">Next 7 days</h1>
-        <div className="ml-auto flex items-center gap-2">
-          {data && <FilterMenu view="next7" layout="days" lifeAreas={data.lifeAreas} />}
-          <NewTaskButton today={data?.today} />
-        </div>
-      </header>
+      <PageHeader
+        title="Next 7 days"
+        actions={
+          <>
+            {data && <FilterMenu view="next7" layout="days" lifeAreas={data.lifeAreas} />}
+            <NewTaskButton today={data?.today} />
+          </>
+        }
+      />
       {error ? (
         <div className="p-(--page-gutter)">
           <QueryError error={error} />
@@ -211,6 +218,7 @@ function Next7Board({ data }: { data: TasksData }) {
   const colorOf = (lifeAreaId: number | null) =>
     data.lifeAreas.find((area) => area.id === lifeAreaId)?.color ?? null;
   const failed = update.isError || reorder.isError;
+  const panelOpen = useDetailPanel((state) => state.target !== null);
 
   return (
     <DndContext
@@ -226,7 +234,11 @@ function Next7Board({ data }: { data: TasksData }) {
           Couldn't move the task. Try again.
         </p>
       )}
-      <div className="@container min-h-0 flex-1 overflow-x-auto px-(--page-gutter) pt-4">
+      <Scroll
+        direction="horizontal"
+        fade={!panelOpen}
+        className="@container min-h-0 flex-1 px-(--page-gutter) pt-4"
+      >
         <div className="flex h-full min-w-min gap-4">
           {columns.map((column) => {
             const ids = drag?.lists[column.key] ?? column.open.map((task) => task.id);
@@ -250,7 +262,7 @@ function Next7Board({ data }: { data: TasksData }) {
             );
           })}
         </div>
-      </div>
+      </Scroll>
       <DragOverlay dropAnimation={null}>
         {drag && (
           <ul className="w-[260px] cursor-grabbing rounded-(--radius-8) shadow-(--effect-overlay)">
@@ -345,10 +357,10 @@ function DayColumnView({
         </div>
         <p className="-mt-0.5 type-meta text-(--text-tertiary)">{column.subtitle}</p>
       </header>
-      <div
+      <Scroll
         ref={setNodeRef}
         data-drop-target={column.key}
-        className="mt-3.5 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto pb-6"
+        className="mt-3.5 flex min-h-0 flex-1 flex-col gap-1.5 pb-6"
       >
         {column.overdue.length > 0 && (
           <SubgroupBlock
@@ -415,7 +427,7 @@ function DayColumnView({
             ))
           )}
         </SortableContext>
-      </div>
+      </Scroll>
     </section>
   );
 }
@@ -464,32 +476,47 @@ function RoutineCard({
   const total = routine.steps.length;
   // Today's unfinished routines start open.
   const [open, setOpen] = useState(routine.day === today && routine.done < total);
+  const { shakeClass, onPointerDown } = useRoutineDragGuard();
   const listId = `routine-${routine.routineId}-${routine.day}`;
   return (
     <li
       {...itemMenuProps({ kind: "routine", id: routine.routineId })}
-      className="flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2"
+      onPointerDown={onPointerDown}
+      className={`relative flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong) ${shakeClass}`}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={listId}
-        onClick={() => setOpen(!open)}
-        className="-mx-1 flex items-center gap-2 rounded-(--radius-6) px-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
-      >
-        <ProgressRing done={routine.done} total={total} />
-        <span className="min-w-0 flex-1 truncate type-card-title text-(--text-primary)">
+      <div className="flex items-center gap-2">
+        <ProgressRing
+          done={routine.done}
+          total={total}
+          segments={routine.steps.map((s) => ({
+            done: s.status === "done",
+            color: colorOf(s.life_area_id),
+          }))}
+        />
+        <PanelLink
+          target={{ kind: "routine", id: routine.routineId }}
+          className="min-w-0 flex-1 truncate type-card-title text-(--text-primary)"
+        >
           {routine.title}
-        </span>
+        </PanelLink>
         <span className="type-meta text-(--text-tertiary) tabular-nums">
           {routine.done}/{total}
         </span>
-        <ChevronDown
-          aria-hidden
-          className={`size-[13px] shrink-0 text-(--text-tertiary) transition-transform ${open ? "rotate-180" : ""}`}
-          strokeWidth={2}
-        />
-      </button>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-label={open ? `Collapse ${routine.title}` : `Expand ${routine.title}`}
+          onClick={() => setOpen(!open)}
+          className="relative z-10 -mr-1 grid size-5 place-items-center rounded-(--radius-4) text-(--text-tertiary) outline-none hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        >
+          <ChevronDown
+            aria-hidden
+            className={`size-[13px] shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+            strokeWidth={2}
+          />
+        </button>
+      </div>
       {open && (
         <ul
           id={listId}
@@ -536,6 +563,7 @@ function RoutineStepRow({
     <li
       {...itemMenuProps({ kind: "step", id: step.step_id, routineId })}
       data-area={areaDataAttribute(color)}
+      onPointerDown={(event) => event.stopPropagation()}
       className={`flex items-center gap-2 text-xs leading-[22px] ${
         done
           ? "text-(--text-tertiary) line-through"
@@ -544,30 +572,24 @@ function RoutineStepRow({
             : "text-(--text-secondary)"
       }`}
     >
-      <label className="relative -m-[5px] grid size-6 shrink-0 cursor-pointer place-items-center has-disabled:cursor-default">
-        <input
-          type="checkbox"
-          checked={done}
-          disabled={future || check.isPending || clear.isPending}
-          aria-label={done ? `Mark ${step.title} not done` : `Mark ${step.title} done`}
-          onChange={toggle}
-          className={`size-3.5 cursor-pointer appearance-none rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-            done
-              ? "border-(--area-border) bg-(--area-border)"
-              : muted
-                ? "border-(--color-neutral-300)"
-                : "border-(--area-solid)"
-          }`}
-        />
-        {done && (
-          <Check
-            aria-hidden
-            className="pointer-events-none absolute size-2 text-white"
-            strokeWidth={3.5}
-          />
-        )}
-      </label>
-      <span className="min-w-0 truncate">{step.title}</span>
+      <EntityCheckbox
+        shape="round"
+        size="sm"
+        checked={done}
+        disabled={future || check.isPending || clear.isPending}
+        cancelled={muted}
+        label={done ? `Mark ${step.title} not done` : `Mark ${step.title} done`}
+        onChange={toggle}
+        className="-m-[5px]"
+      />
+      <button
+        type="button"
+        disabled={future || check.isPending || clear.isPending}
+        onClick={toggle}
+        className="min-w-0 flex-1 cursor-pointer truncate text-left outline-none disabled:cursor-default"
+      >
+        {step.title}
+      </button>
       {(check.isError || clear.isError) && (
         <span role="alert" className="ml-auto text-(--text-danger) no-underline">
           Couldn't save
@@ -591,13 +613,13 @@ function EventCard({
   return (
     <li
       data-area={areaDataAttribute(color)}
-      className={`relative flex flex-col gap-0.5 rounded-(--radius-8) px-3 py-2 ${
+      className={`relative flex flex-col gap-0.5 rounded-(--radius-8) px-3 py-2 hover:brightness-[0.98] ${
         event.is_past ? "bg-(--event-area-bg-past)" : "bg-(--event-area-bg-upcoming)"
       }`}
     >
       <div className="flex items-start gap-2">
         <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-[4px] bg-(--event-area-icon-bg-upcoming) text-(--event-icon)">
-          <CalendarDays aria-hidden className="size-[11px]" strokeWidth={2.25} />
+          <CalendarDays aria-hidden className="size-3" strokeWidth={2.5} />
         </span>
         <PanelLink
           stretched
@@ -611,10 +633,12 @@ function EventCard({
           {event.title}
         </PanelLink>
       </div>
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2 pl-6 type-meta text-(--event-meta) [&_svg]:size-3 [&_svg]:shrink-0">
+      <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden pl-6 type-meta text-(--event-meta) [&_svg]:size-3 [&_svg]:shrink-0">
         {event.is_repeating && <Repeat role="img" aria-label="Repeats" strokeWidth={2} />}
         {event.location && <MapPin role="img" aria-label={event.location} strokeWidth={2} />}
-        <span>{eventTime(event, day, (value) => formatTime(value, timeFormat))}</span>
+        <span className="truncate">
+          {eventTime(event, day, (value) => formatTime(value, timeFormat))}
+        </span>
       </div>
     </li>
   );

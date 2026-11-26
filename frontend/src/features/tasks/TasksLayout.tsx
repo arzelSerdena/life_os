@@ -1,8 +1,26 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarDays,
   CalendarOff,
   Clock,
+  Folder,
   Inbox,
   type LucideIcon,
   SquareCheck,
@@ -20,6 +38,8 @@ import {
 import type { DayRead, LifeAreaRead, ProjectRead, TaskRead } from "../../client/types.gen";
 import { Sidebar, SidebarLink } from "../../components/Sidebar";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
+import { DEFAULT_TASKS_NAV_ORDER, mergeOrder, useSidebarStore } from "../../stores/sidebarStore";
+import { areaDataAttribute } from "../life-areas/palette";
 import { sidebarCounts } from "./board";
 import { next7Count } from "./next7";
 
@@ -74,34 +94,107 @@ export function TasksLayout() {
       }
     : null;
 
+  const tasksNavOrder = useSidebarStore((state) => state.tasksNavOrder);
+  const setTasksNavOrder = useSidebarStore((state) => state.setTasksNavOrder);
+  const tasksProjectOrder = useSidebarStore((state) => state.tasksProjectOrder);
+  const setTasksProjectOrder = useSidebarStore((state) => state.setTasksProjectOrder);
+  const orderedViews = mergeOrder(tasksNavOrder, DEFAULT_TASKS_NAV_ORDER);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const from = orderedViews.indexOf(String(active.id));
+    const to = orderedViews.indexOf(String(over.id));
+    if (from !== -1 && to !== -1) setTasksNavOrder(arrayMove(orderedViews, from, to));
+  };
+  const projectIds = data ? data.projects.map((p) => p.id) : [];
+  const orderedProjectIds = [
+    ...tasksProjectOrder.filter((id) => projectIds.includes(id)),
+    ...projectIds.filter((id) => !tasksProjectOrder.includes(id)),
+  ];
+  const orderedProjects = orderedProjectIds
+    .map((id) => data?.projects.find((p) => p.id === id))
+    .filter((p): p is ProjectRead => p !== undefined);
+  const onProjectDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const from = orderedProjectIds.indexOf(Number(active.id));
+    const to = orderedProjectIds.indexOf(Number(over.id));
+    if (from !== -1 && to !== -1) setTasksProjectOrder(arrayMove(orderedProjectIds, from, to));
+  };
+  const views: Record<string, { to: string; icon: LucideIcon; label: string; count?: number }> = {
+    "/tasks/inbox": { to: "/tasks/inbox", icon: Inbox, label: "Inbox", count: counts?.inbox },
+    "/tasks/today": { to: "/tasks/today", icon: Sun, label: "Today", count: counts?.today },
+    "/tasks/unscheduled": {
+      to: "/tasks/unscheduled",
+      icon: CalendarOff,
+      label: "Unscheduled",
+      count: counts?.unscheduled,
+    },
+    "/tasks/next-7-days": {
+      to: "/tasks/next-7-days",
+      icon: CalendarDays,
+      label: "Next 7 days",
+      count: counts?.next7,
+    },
+    "/tasks/routines": { to: "/tasks/routines", icon: Clock, label: "Routines" },
+  };
+
   return (
     <>
       <Sidebar label="Tasks">
         <nav aria-label="Task views" className="flex flex-col gap-(--sidebar-item-gap)">
           <SidebarLink to="/tasks/all">
-            <span className="flex-1 pl-0.5 text-[13px] leading-[18px] font-semibold tracking-[0.04em] uppercase">
+            <span className="flex-1 pl-0.5 type-body font-semibold tracking-[0.04em] uppercase">
               All
             </span>
             <SidebarCount value={counts?.all} />
           </SidebarLink>
-          <ViewLink to="/tasks/inbox" icon={Inbox} label="Inbox" count={counts?.inbox} />
-          <ViewLink to="/tasks/today" icon={Sun} label="Today" count={counts?.today} />
-          <ViewLink
-            to="/tasks/unscheduled"
-            icon={CalendarOff}
-            label="Unscheduled"
-            count={counts?.unscheduled}
-          />
-          <ViewLink
-            to="/tasks/next-7-days"
-            icon={CalendarDays}
-            label="Next 7 days"
-            count={counts?.next7}
-          />
-          <ViewLink to="/tasks/routines" icon={Clock} label="Routines" />
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={orderedViews} strategy={verticalListSortingStrategy}>
+              {orderedViews.map((id) => {
+                const view = views[id];
+                return (
+                  <SortableViewLink
+                    key={id}
+                    to={view.to}
+                    icon={view.icon}
+                    label={view.label}
+                    count={view.count}
+                  />
+                );
+              })}
+            </SortableContext>
+          </DndContext>
         </nav>
 
-        <div className="flex-1" />
+        {data && orderedProjects.length > 0 ? (
+          <>
+            <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
+            <div className="flex min-h-0 flex-1 flex-col gap-(--sidebar-item-gap) overflow-y-auto">
+              <div className="flex h-7 shrink-0 items-center px-2 type-body font-semibold tracking-[0.04em] text-(--text-primary) uppercase">
+                Projects
+              </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={onProjectDragEnd}
+              >
+                <SortableContext items={orderedProjectIds} strategy={verticalListSortingStrategy}>
+                  {orderedProjects.map((project) => {
+                    const area = data.lifeAreas.find((a) => a.id === project.life_area_id);
+                    return (
+                      <SortableProjectLink key={project.id} project={project} color={area?.color} />
+                    );
+                  })}
+                </SortableContext>
+              </DndContext>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1" />
+        )}
         <div className="my-(--sidebar-divider-space) h-px shrink-0 bg-(--sidebar-divider)" />
         <nav aria-label="Finished tasks" className="mb-8 flex flex-col gap-(--sidebar-item-gap)">
           <ViewLink to="/tasks/completed" icon={SquareCheck} label="Completed" />
@@ -113,6 +206,56 @@ export function TasksLayout() {
         <Outlet context={{ data, error } satisfies TasksContext} />
       </main>
     </>
+  );
+}
+
+function SortableViewLink(props: { to: string; icon: LucideIcon; label: string; count?: number }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.to,
+  });
+  const { role: _role, tabIndex: _tabIndex, ...handle } = attributes;
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={isDragging ? "z-10 opacity-70" : undefined}
+      {...handle}
+      {...listeners}
+    >
+      <ViewLink {...props} />
+    </div>
+  );
+}
+
+function SortableProjectLink({
+  project,
+  color,
+}: {
+  project: ProjectRead;
+  color: string | null | undefined;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: project.id,
+  });
+  const { role: _role, tabIndex: _tabIndex, ...handle } = attributes;
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={isDragging ? "z-10 opacity-70" : undefined}
+      {...handle}
+      {...listeners}
+    >
+      <SidebarLink to={`/tasks/projects/${project.id}`}>
+        <span
+          data-area={areaDataAttribute(color)}
+          className="grid size-4 shrink-0 place-items-center text-(--area-solid)"
+        >
+          <Folder aria-hidden className="size-[15px]" strokeWidth={2} />
+        </span>
+        <span className="flex-1 truncate">{project.title}</span>
+      </SidebarLink>
+    </div>
   );
 }
 

@@ -4,6 +4,7 @@ import { Archive, Download, Pause, Plus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import {
+  getRoutinesHistoryOptions,
   getRoutinesOverviewOptions,
   listLifeAreasOptions,
 } from "../../client/@tanstack/react-query.gen";
@@ -15,6 +16,7 @@ import type {
 import { PageHeader } from "../../components/PageHeader";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import type { Period } from "../../period";
 import { usePeriodStore } from "../../stores/periodStore";
@@ -23,7 +25,8 @@ import { type ItemTarget, itemMenuProps } from "../item-menu/target";
 import { useAreasContext } from "../life-areas/AreasLayout";
 import { CardMenu, type MenuOption } from "../life-areas/overview/CardMenu";
 import { areaDataAttribute } from "../life-areas/palette";
-import { ProgressRing } from "../tasks/RoutinesPage";
+import { ProgressRing, type ProgressRingSegment } from "../tasks/RoutinesPage";
+import { routineColumn } from "../tasks/routines";
 import {
   type OverviewSort,
   openToday,
@@ -102,13 +105,16 @@ export function RoutinesOverviewPage() {
           </>
         }
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+      <Scroll
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col gap-4 px-(--page-gutter) pt-4 pb-(--page-gutter)"
+      >
         {overview.isError && <QueryError error={overview.error} onRetry={overview.refetch} />}
         {isEmpty && <FirstRoutineWelcome onCreate={openNewRoutine} />}
         {data && !isEmpty && (
           <OverviewBody overview={data} period={period} areas={areas.data ?? []} />
         )}
-      </div>
+      </Scroll>
     </>
   );
 }
@@ -168,7 +174,13 @@ function OverviewBody({
 
 /** Today's ring (a pause icon while paused), the name linking to the routine page, and
  * "Every day · 4 steps" under it. */
-function RoutineLabel({ routine }: { routine: OverviewRoutineRead }) {
+function RoutineLabel({
+  routine,
+  segments,
+}: {
+  routine: OverviewRoutineRead;
+  segments?: ProgressRingSegment[];
+}) {
   return (
     <span className="flex min-w-0 flex-col pr-2">
       <span className="flex min-w-0 items-center gap-2">
@@ -178,18 +190,21 @@ function RoutineLabel({ routine }: { routine: OverviewRoutineRead }) {
             className="size-4 shrink-0 fill-(--color-neutral-500) stroke-none"
           />
         ) : (
-          <ProgressRing done={routine.today_done} total={routine.today_due} className="size-4" />
+          <ProgressRing
+            done={routine.today_done}
+            total={routine.today_due}
+            segments={segments}
+            className="size-4"
+          />
         )}
         <Link
           to={`/areas/routines/${routine.id}`}
-          className="truncate rounded-(--radius-4) text-[13px] leading-[18px] font-medium text-(--text-primary) outline-none hover:underline hover:underline-offset-2 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          className="truncate rounded-(--radius-4) type-body font-medium text-(--text-primary) outline-none hover:underline hover:underline-offset-2 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         >
           {routine.title}
         </Link>
       </span>
-      <span className="truncate pl-6 text-[11px] leading-4 text-(--text-tertiary)">
-        {routineMeta(routine)}
-      </span>
+      <span className="truncate pl-6 type-tag text-(--text-tertiary)">{routineMeta(routine)}</span>
     </span>
   );
 }
@@ -203,7 +218,20 @@ function RoutinesHeatmap({
   routines: OverviewRoutineRead[];
   period: Period;
 }) {
+  const history = useQuery(getRoutinesHistoryOptions());
+  const areas = useQuery(listLifeAreasOptions());
   const head = heatHeader(period, overview.start, overview.end, overview.today);
+  const segmentsFor = (routineId: number): ProgressRingSegment[] | undefined => {
+    const h = history.data?.routines.find((r) => r.id === routineId);
+    if (!h || !history.data) return undefined;
+    const col = routineColumn(h, history.data.today);
+    return col.steps
+      .filter((s) => s.dueToday)
+      .map((s) => ({
+        done: s.done,
+        color: areas.data?.find((a) => a.id === s.step.life_area_id)?.color ?? null,
+      }));
+  };
   return (
     <div className="flex flex-col">
       <HeatmapHeader map={head} period={period} />
@@ -216,7 +244,7 @@ function RoutinesHeatmap({
             {...itemMenuProps({ kind: "routine", id: routine.id })}
             className={`${ROW} mt-2.5`}
           >
-            <RoutineLabel routine={routine} />
+            <RoutineLabel routine={routine} segments={segmentsFor(routine.id)} />
             <Cells
               cells={routineCells(routine, overview, period)}
               columns={head.columns}
@@ -263,7 +291,7 @@ function CompletionByRoutine({
               className="grid min-h-9 grid-cols-[240px_minmax(0,1fr)_40px_96px] items-center gap-3"
             >
               <RoutineLabel routine={routine} />
-              <span className="h-2 overflow-hidden rounded-full bg-(--color-neutral-100)">
+              <span className="h-2 overflow-hidden rounded-full bg-(--bg-hover)">
                 {share !== null && (
                   <i
                     className="block h-full rounded-full bg-(--color-brand-600)"
@@ -277,9 +305,7 @@ function CompletionByRoutine({
                 </span>
               ) : (
                 <>
-                  <span className="text-right text-[13px] font-semibold tabular-nums">
-                    {share}%
-                  </span>
+                  <span className="text-right type-body font-semibold tabular-nums">{share}%</span>
                   <span className="type-meta whitespace-nowrap text-(--text-tertiary)">
                     {done} of {done + missed}
                   </span>
@@ -302,8 +328,17 @@ function PickUpCard({
   overview: RoutinesOverviewRead;
   areas: LifeAreaRead[];
 }) {
+  const history = useQuery(getRoutinesHistoryOptions());
   const open = openToday(overview.routines);
   const colorOf = (id: number) => areas.find((area) => area.id === id)?.color;
+  const segmentsFor = (routineId: number): ProgressRingSegment[] | undefined => {
+    const h = history.data?.routines.find((r) => r.id === routineId);
+    if (!h || !history.data) return undefined;
+    const col = routineColumn(h, history.data.today);
+    return col.steps
+      .filter((s) => s.dueToday)
+      .map((s) => ({ done: s.done, color: colorOf(s.step.life_area_id) ?? null }));
+  };
   const sections: { title: string; rows: ReactNode[] }[] = [
     {
       title: "Open today",
@@ -313,7 +348,12 @@ function PickUpCard({
           to={routine.id}
           item={{ kind: "routine", id: routine.id }}
           marker={
-            <ProgressRing done={routine.today_done} total={routine.today_due} className="size-4" />
+            <ProgressRing
+              done={routine.today_done}
+              total={routine.today_due}
+              segments={segmentsFor(routine.id)}
+              className="size-4"
+            />
           }
           title={routine.title}
           meta={`${routine.today_due - routine.today_done} of ${routine.today_due} ${routine.today_due === 1 ? "step" : "steps"} left`}
@@ -360,7 +400,7 @@ function PickUpCard({
             <section key={section.title} aria-label={section.title}>
               <h3 className="flex items-center gap-1.5 px-2 pt-1.5 pb-0.5 type-label text-(--text-tertiary)">
                 {section.title}
-                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--color-neutral-100) px-1 text-[11px] font-medium tracking-normal text-(--text-secondary)">
+                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--counter-bg) px-1 type-tag font-medium tracking-normal text-(--text-secondary)">
                   {section.rows.length}
                 </span>
               </h3>
@@ -426,11 +466,11 @@ function FirstRoutineWelcome({ onCreate }: { onCreate: (title?: string) => void 
     <div className="m-auto flex max-w-[420px] flex-col items-center gap-3 pb-20 text-center">
       <ProgressRing done={2} total={3} className="size-10" />
       <h2 className="mt-1.5 type-page-title text-(--text-primary)">Set up your first routine</h2>
-      <p className="text-[13px] leading-5 text-(--text-secondary)">
+      <p className="type-body leading-5 text-(--text-secondary)">
         A routine is a list of steps you repeat on a schedule. Each step belongs to a life area or a
         project.
       </p>
-      <Button onPress={() => onCreate()} className="h-9 px-4 text-[13px]">
+      <Button onPress={() => onCreate()} className="h-9 px-4 type-body">
         <Plus aria-hidden />
         New routine
       </Button>

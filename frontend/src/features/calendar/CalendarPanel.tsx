@@ -1,24 +1,22 @@
 import { Draggable } from "@fullcalendar/react/interaction";
-import { PanelRightClose } from "lucide-react";
 import { Fragment, type ReactNode, useEffect, useRef } from "react";
 import type { TaskRead } from "../../client/types.gen";
-import { IconButton } from "../../components/IconButton";
+import { Counter } from "../../components/Counter";
+import { Scroll } from "../../components/Scroll";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { monthName } from "../life-areas/overview/format";
 import { EntryRow, type RowContext, TaskRow } from "./AgendaRow";
 import { type AgendaDay, agendaTitle, type InboxMode } from "./calendar";
 
-/** The right panel's card: 360 px, a 52 px header with the hide button, a scrolling body. */
+/** The right panel's card: 360 px, a 52 px header, a scrolling body. */
 function PanelCard({
   title,
   extra,
-  onHide,
   bodyRef,
   children,
 }: {
   title: string;
   extra?: ReactNode;
-  onHide: () => void;
   bodyRef?: React.Ref<HTMLDivElement>;
   children: ReactNode;
 }) {
@@ -30,15 +28,14 @@ function PanelCard({
       <header className="flex h-[52px] shrink-0 items-center gap-3 border-b border-(--border-default) pr-2 pl-4">
         <h2 className="type-column-title text-(--text-primary)">{title}</h2>
         {extra}
-        <span className="ml-auto">
-          <IconButton label="Hide panel" size="md" onPress={onHide}>
-            <PanelRightClose />
-          </IconButton>
-        </span>
       </header>
-      <div ref={bodyRef} className="min-h-0 flex-1 overflow-auto px-2 pt-2 pb-4">
-        {children}
-      </div>
+      <Scroll
+        ref={bodyRef}
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col px-2 pt-2 pb-4"
+      >
+        <div className="flex min-h-full flex-col">{children}</div>
+      </Scroll>
     </aside>
   );
 }
@@ -54,7 +51,6 @@ export function AgendaPanel({
   monthHeadings = false,
   emptyText,
   onClearFilters,
-  onHide,
 }: {
   days: AgendaDay[];
   context: RowContext;
@@ -63,7 +59,6 @@ export function AgendaPanel({
   monthHeadings?: boolean;
   emptyText: string;
   onClearFilters?: () => void;
-  onHide: () => void;
 }) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const hasDays = days.length > 0;
@@ -79,7 +74,7 @@ export function AgendaPanel({
 
   const fromToday = days.find((day) => day.day >= context.today)?.day;
   return (
-    <PanelCard title="Agenda" onHide={onHide} bodyRef={bodyRef}>
+    <PanelCard title="Agenda" bodyRef={bodyRef}>
       {days.map(({ day, entries }, index) => {
         const { label, date } = agendaTitle(day, context.today);
         const newMonth =
@@ -89,7 +84,7 @@ export function AgendaPanel({
             {newMonth && (
               <h3
                 data-month-heading=""
-                className="sticky -top-2 z-10 -mx-2 mt-1 border-b border-(--border-default) bg-(--bg-surface) px-4 pt-2 pb-1.5 text-[13px] font-semibold text-(--text-primary) first:mt-0"
+                className="sticky -top-2 z-20 -mx-2 mt-1 border-b border-(--border-default) bg-(--bg-surface) px-4 pt-2 pb-1.5 type-body font-semibold text-(--text-primary) first:mt-0"
               >
                 {monthName(day)}
               </h3>
@@ -99,15 +94,9 @@ export function AgendaPanel({
               data-from-today={day === fromToday ? "" : undefined}
               className="mt-3 first:mt-1"
             >
-              <h3 className="flex h-6 items-center gap-2 px-2">
-                <span
-                  className={`text-[11px] font-semibold tracking-[0.04em] uppercase ${
-                    day === context.today ? "text-brand-700" : "text-(--text-tertiary)"
-                  }`}
-                >
-                  {label}
-                </span>
-                <span className="type-meta text-(--text-tertiary)">{date}</span>
+              <h3 className="flex h-7 items-center gap-2 px-2 type-label text-(--text-tertiary)">
+                <span className={day === context.today ? "text-brand-700" : ""}>{label}</span>
+                <span className="font-normal tracking-normal normal-case">{date}</span>
               </h3>
               <ul className="flex flex-col pt-1">
                 {entries.map((entry) => (
@@ -145,14 +134,12 @@ export function InboxPanel({
   mode,
   context,
   onMode,
-  onHide,
   onDragStart,
 }: {
   tasks: TaskRead[];
   mode: InboxMode;
   context: RowContext;
   onMode: (mode: InboxMode) => void;
-  onHide: () => void;
   /** Quarter and Year drag the rows themselves; Week and Month leave it to FullCalendar. */
   onDragStart?: (task: TaskRead, event: React.PointerEvent) => void;
 }) {
@@ -172,12 +159,9 @@ export function InboxPanel({
   return (
     <PanelCard
       title="Inbox"
-      onHide={onHide}
       extra={
         <>
-          <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-(--color-neutral-200) px-1.5 text-[11px] font-medium text-(--text-secondary)">
-            {tasks.length}
-          </span>
+          <Counter count={tasks.length} />
           <SegmentSwitch
             label="Tasks with no"
             value={mode}

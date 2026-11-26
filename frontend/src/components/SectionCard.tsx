@@ -23,14 +23,16 @@ export function SectionCard({
       aria-label={title}
       className={`flex min-w-0 flex-col rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface) ${className}`}
     >
-      <header className="flex min-h-12 items-start gap-2 pt-3 pr-2 pb-1 pl-4">
+      <header
+        className={`flex min-h-12 items-start gap-2 pt-3 pb-1 pl-4 ${action ? "pr-2" : "pr-4"}`}
+      >
         <div className="flex min-w-0 flex-1 flex-col">
           <h2 className="type-column-title text-(--text-primary)">{title}</h2>
           {description && <p className="type-meta text-(--text-tertiary)">{description}</p>}
         </div>
         {action}
       </header>
-      <div className="px-4 pt-1 pb-4">{children}</div>
+      <div className="min-h-0 flex-1 px-4 pt-1 pb-4">{children}</div>
     </section>
   );
 }

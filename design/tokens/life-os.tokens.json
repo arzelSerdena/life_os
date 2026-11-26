@@ -572,6 +572,58 @@
             "$type": "color",
             "$value": "#371713"
           }
+        },
+        "indigo": {
+          "50": { "$type": "color", "$value": "#f3f4fc" },
+          "100": { "$type": "color", "$value": "#e6e8f9" },
+          "200": { "$type": "color", "$value": "#cdd1f2" },
+          "300": { "$type": "color", "$value": "#a7afe8" },
+          "400": { "$type": "color", "$value": "#7d86dc" },
+          "500": { "$type": "color", "$value": "#5c64cf" },
+          "600": { "$type": "color", "$value": "#4a4ec0" },
+          "700": { "$type": "color", "$value": "#3f41a2" },
+          "800": { "$type": "color", "$value": "#363883" },
+          "900": { "$type": "color", "$value": "#2f3269" },
+          "950": { "$type": "color", "$value": "#1c1d42" }
+        },
+        "sage": {
+          "50": { "$type": "color", "$value": "#f4f8f4" },
+          "100": { "$type": "color", "$value": "#e4efe4" },
+          "200": { "$type": "color", "$value": "#c8dec9" },
+          "300": { "$type": "color", "$value": "#9fc4a2" },
+          "400": { "$type": "color", "$value": "#71a476" },
+          "500": { "$type": "color", "$value": "#518757" },
+          "600": { "$type": "color", "$value": "#3f6d45" },
+          "700": { "$type": "color", "$value": "#345739" },
+          "800": { "$type": "color", "$value": "#2b4630" },
+          "900": { "$type": "color", "$value": "#243a28" },
+          "950": { "$type": "color", "$value": "#122015" }
+        },
+        "amber": {
+          "50": { "$type": "color", "$value": "#fef8ee" },
+          "100": { "$type": "color", "$value": "#fcecd4" },
+          "200": { "$type": "color", "$value": "#f8d5a8" },
+          "300": { "$type": "color", "$value": "#f3b771" },
+          "400": { "$type": "color", "$value": "#ec923a" },
+          "500": { "$type": "color", "$value": "#e2761c" },
+          "600": { "$type": "color", "$value": "#c85d14" },
+          "700": { "$type": "color", "$value": "#a44713" },
+          "800": { "$type": "color", "$value": "#853916" },
+          "900": { "$type": "color", "$value": "#6d3015" },
+          "950": { "$type": "color", "$value": "#3b1708" }
+        },
+        "slate": {
+          "50": { "$type": "color", "$value": "#f5f7f9" },
+          "100": { "$type": "color", "$value": "#eaeef2" },
+          "200": { "$type": "color", "$value": "#d5dde5" },
+          "300": { "$type": "color", "$value": "#b4c2cf" },
+          "400": { "$type": "color", "$value": "#8ea0b2" },
+          "500": { "$type": "color", "$value": "#6f8296" },
+          "600": { "$type": "color", "$value": "#58697c" },
+          "700": { "$type": "color", "$value": "#475565" },
+          "800": { "$type": "color", "$value": "#3c4754" },
+          "900": { "$type": "color", "$value": "#343d47" },
+          "950": { "$type": "color", "$value": "#21272f" }
         }
       }
     },
@@ -884,12 +936,12 @@
     "priority": {
       "high": {
         "$type": "color",
-        "$value": "{Primitives.color.negative.500}",
+        "$value": "{Primitives.color.negative.600}",
         "$description": "High priority: flag and column dot"
       },
       "medium": {
         "$type": "color",
-        "$value": "{Primitives.color.warning.500}",
+        "$value": "{Primitives.color.warning.600}",
         "$description": "Medium priority: flag and column dot"
       },
       "none": {
@@ -908,6 +960,11 @@
         "$type": "color",
         "$value": "{Primitives.color.area.blue.500}",
         "$description": "STAND-IN for the item's area color (code: area 500). Dots, checkboxes, progress fill, event icon"
+      },
+      "button-bg": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.700}",
+        "$description": "STAND-IN (code: area 700). Solid area action buttons with white text (WCAG AA)"
       },
       "tint-active": {
         "$type": "color",
@@ -962,6 +1019,11 @@
         "$type": "color",
         "$value": "{Primitives.color.neutral.500}",
         "$description": "No-area items: dots, checkboxes, progress fill (neutral 500)"
+      },
+      "button-bg": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.700}",
+        "$description": "No-area items: solid action button background (neutral 700)"
       },
       "done": {
         "$type": "color",

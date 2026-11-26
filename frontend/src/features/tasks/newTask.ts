@@ -15,6 +15,8 @@ export type TaskSpot = {
   projectId?: number | null;
   sectionId?: number | null;
   scheduledDate?: string | null;
+  scheduledTime?: string | null;
+  scheduledEndTime?: string | null;
 };
 
 const PRIORITY_KEYS: readonly string[] = ["high", "medium", "low", "none"];
@@ -61,6 +63,8 @@ export type NewTaskValues = {
   sectionId: number | null;
   priority: Priority;
   scheduledDate: string | null;
+  scheduledTime?: string | null;
+  scheduledEndTime?: string | null;
   dueDate: string | null;
   repeat: RepeatRule | null;
   subtasks: string[];
@@ -116,6 +120,8 @@ export function createRequest(
       body: {
         ...common,
         scheduled_date: values.scheduledDate,
+        ...(values.scheduledTime ? { scheduled_time: values.scheduledTime } : {}),
+        ...(values.scheduledEndTime ? { scheduled_end_time: values.scheduledEndTime } : {}),
         due_date: values.dueDate,
       },
     };

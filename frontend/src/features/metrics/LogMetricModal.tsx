@@ -20,7 +20,7 @@ export type LoggableMetric = {
 
 const FIELD_LABEL = "text-xs leading-4 font-semibold text-(--text-primary)";
 const FIELD =
-  "h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-[13px] text-(--text-primary) outline-none focus-visible:border-brand-600 focus-visible:ring-2 focus-visible:ring-brand-200";
+  "h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 type-body text-(--text-primary) outline-none focus-visible:border-brand-600 focus-visible:ring-2 focus-visible:ring-brand-200";
 
 /**
  * Logs one entry on a manual metric: value, date (up to today), and an optional note.

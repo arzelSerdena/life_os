@@ -1,4 +1,5 @@
 import { Folder } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import type { AreaPageRead, StepRowRead } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
@@ -11,8 +12,10 @@ import { describeRule, eachDay, scaleTicks, timeScale } from "./timeScale";
 
 /** Board-style project cards with the strong area progress bar. */
 export function ProjectsCard({ page }: { page: AreaPageRead }) {
+  const [hideFinished, setHideFinished] = useState(false);
   const active = page.projects.filter((project) => project.status === "active");
   const finished = page.projects.length - active.length;
+  const shown = hideFinished ? active : page.projects;
   const name = periodInSentence(page.period as Period, page.range.start);
   if (page.projects.length === 0) {
     return (
@@ -25,9 +28,20 @@ export function ProjectsCard({ page }: { page: AreaPageRead }) {
     <SectionCard
       title="Projects"
       description={`${active.length} active${finished ? ` · ${finished} done in ${name}` : ""}`}
+      action={
+        finished > 0 ? (
+          <button
+            type="button"
+            onClick={() => setHideFinished((v) => !v)}
+            className="rounded-(--radius-6) px-2 py-1 text-xs font-medium text-(--text-tertiary) outline-none hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          >
+            {hideFinished ? `Show finished (${finished})` : "Hide finished"}
+          </button>
+        ) : undefined
+      }
     >
       <ul className="grid grid-cols-4 gap-2">
-        {page.projects.map((project) => {
+        {shown.map((project) => {
           const done = project.status === "done";
           const share = project.total ? (project.done / project.total) * 100 : 0;
           const left = project.due_date ? daysBetween(page.today, project.due_date) : null;
@@ -82,11 +96,10 @@ export function ProjectsCard({ page }: { page: AreaPageRead }) {
 const DAY_STYLE: Record<StepRowRead["days"][number], string> = {
   done: "bg-(--area-solid)",
   skipped: "bg-(--area-border)",
-  missed: "bg-neutral-200",
-  paused:
-    "bg-[repeating-linear-gradient(135deg,var(--color-neutral-300)_0_2px,transparent_2px_4px)]",
-  todo: "bg-white shadow-[inset_0_0_0_1.5px_var(--area-solid)]",
-  upcoming: "bg-white shadow-[inset_0_0_0_1px_var(--color-neutral-300)]",
+  missed: "bg-(--border-default)",
+  paused: "bg-[repeating-linear-gradient(135deg,var(--border-strong)_0_2px,transparent_2px_4px)]",
+  todo: "bg-(--bg-surface) shadow-[inset_0_0_0_1.5px_var(--area-solid)]",
+  upcoming: "bg-(--bg-surface) shadow-[inset_0_0_0_1px_var(--border-strong)]",
   not_due: "",
 };
 const DAY_NAMES: Record<StepRowRead["days"][number], string> = {
@@ -142,12 +155,12 @@ export function RoutinesCard({ page, owner }: { page: AreaPageRead; owner?: stri
             {...itemMenuProps({ kind: "routine", id: group.routine_id })}
             className="flex h-7 items-center gap-2 text-xs"
           >
-            <Link
-              to={`/areas/routines/${group.routine_id}`}
-              className="rounded-[4px] font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            <PanelLink
+              target={{ kind: "routine", id: group.routine_id }}
+              className="rounded-[4px] font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase"
             >
               {group.title}
-            </Link>
+            </PanelLink>
             <span className="text-(--text-tertiary)">{describeRule(group.rrule)}</span>
             <span className="ml-auto text-(--text-tertiary)">
               {group.steps.length} of its {plural(group.total_steps, "step")}{" "}
@@ -163,7 +176,7 @@ export function RoutinesCard({ page, owner }: { page: AreaPageRead; owner?: stri
             >
               <Link
                 to={`/areas/routines/${group.routine_id}`}
-                className="truncate rounded-[4px] pr-2 text-left text-[13px] text-(--text-primary) outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                className="truncate rounded-[4px] pr-2 text-left type-body text-(--text-primary) outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
               >
                 {row.title}
               </Link>

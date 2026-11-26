@@ -29,6 +29,7 @@ type PendingDeleteState = {
   undo: (key?: string) => void;
   /** Sends the delete now instead of waiting; without a key, every pending one. */
   commit: (key?: string) => void;
+  cancelAll: () => void;
   dismissFailure: () => void;
 };
 
@@ -85,6 +86,11 @@ export const usePendingDeletes = create<PendingDeleteState>()((set, get) => {
       for (const item of key ? [key] : [...scheduled.keys()]) send(item);
     },
     dismissFailure: () => set({ failure: null }),
+    cancelAll: () => {
+      for (const item of scheduled.values()) clearTimeout(item.timer);
+      scheduled.clear();
+      set({ pending: [], failure: null });
+    },
   };
 });
 

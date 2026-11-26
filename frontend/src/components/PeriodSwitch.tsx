@@ -35,7 +35,7 @@ export function PeriodSwitch({ isDisabled = false }: { isDisabled?: boolean }) {
           <ToggleButton
             key={key}
             id={key}
-            className="h-6 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 text-xs font-medium text-(--switch-default-text) hover:bg-white/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
+            className="h-6 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 text-xs font-medium text-(--switch-default-text) hover:bg-(--bg-surface)/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
           >
             {PERIOD_NAMES[key]}
           </ToggleButton>
@@ -51,7 +51,7 @@ export function PeriodSwitch({ isDisabled = false }: { isDisabled?: boolean }) {
           <ChevronLeft />
         </IconButton>
         <span
-          className={`min-w-16 text-center text-[13px] font-semibold ${isDisabled ? "opacity-40" : ""}`}
+          className={`min-w-16 text-center type-body font-semibold ${isDisabled ? "opacity-40" : ""}`}
           aria-live="polite"
         >
           {periodLabel(period, date)}

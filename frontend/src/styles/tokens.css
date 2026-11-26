@@ -146,6 +146,50 @@
   --color-area-terracotta-800: #7f372d;
   --color-area-terracotta-900: #672f27;
   --color-area-terracotta-950: #371713;
+  --color-area-indigo-50: #f3f4fc;
+  --color-area-indigo-100: #e6e8f9;
+  --color-area-indigo-200: #cdd1f2;
+  --color-area-indigo-300: #a7afe8;
+  --color-area-indigo-400: #7d86dc;
+  --color-area-indigo-500: #5c64cf;
+  --color-area-indigo-600: #4a4ec0;
+  --color-area-indigo-700: #3f41a2;
+  --color-area-indigo-800: #363883;
+  --color-area-indigo-900: #2f3269;
+  --color-area-indigo-950: #1c1d42;
+  --color-area-sage-50: #f4f8f4;
+  --color-area-sage-100: #e4efe4;
+  --color-area-sage-200: #c8dec9;
+  --color-area-sage-300: #9fc4a2;
+  --color-area-sage-400: #71a476;
+  --color-area-sage-500: #518757;
+  --color-area-sage-600: #3f6d45;
+  --color-area-sage-700: #345739;
+  --color-area-sage-800: #2b4630;
+  --color-area-sage-900: #243a28;
+  --color-area-sage-950: #122015;
+  --color-area-amber-50: #fef8ee;
+  --color-area-amber-100: #fcecd4;
+  --color-area-amber-200: #f8d5a8;
+  --color-area-amber-300: #f3b771;
+  --color-area-amber-400: #ec923a;
+  --color-area-amber-500: #e2761c;
+  --color-area-amber-600: #c85d14;
+  --color-area-amber-700: #a44713;
+  --color-area-amber-800: #853916;
+  --color-area-amber-900: #6d3015;
+  --color-area-amber-950: #3b1708;
+  --color-area-slate-50: #f5f7f9;
+  --color-area-slate-100: #eaeef2;
+  --color-area-slate-200: #d5dde5;
+  --color-area-slate-300: #b4c2cf;
+  --color-area-slate-400: #8ea0b2;
+  --color-area-slate-500: #6f8296;
+  --color-area-slate-600: #58697c;
+  --color-area-slate-700: #475565;
+  --color-area-slate-800: #3c4754;
+  --color-area-slate-900: #343d47;
+  --color-area-slate-950: #21272f;
   --radius-4: 4px;
   --radius-6: 6px;
   --radius-8: 8px;
@@ -222,14 +266,15 @@
   --accent-subtle: var(--color-brand-100); /* Selected tag background */
   --accent-text: var(--color-brand-800); /* Accent text and the active rail icon */
   --focus-ring: var(--color-brand-600); /* 2px focus ring */
-  --priority-high: var(--color-negative-500); /* High priority: flag and column dot */
-  --priority-medium: var(--color-warning-500); /* Medium priority: flag and column dot */
+  --priority-high: var(--color-negative-600); /* High priority: flag and column dot */
+  --priority-medium: var(--color-warning-600); /* Medium priority: flag and column dot */
   --priority-none: var(--color-neutral-400); /* No priority: column dot; no flag on cards */
   --priority-low: var(--color-neutral-400); /* Low priority: column dot; no flag on cards */
   --icon-tertiary: var(--color-neutral-500); /* Metadata icons on cards */
   --icon-white: var(--color-white); /* Icons on solid fills */
   --icon-primary: var(--color-neutral-700); /* Default UI icons */
   --neutral-solid: var(--color-neutral-500); /* No-area items: dots, checkboxes, progress fill (neutral 500) */
+  --neutral-button-bg: var(--color-neutral-700); /* No-area items: solid action button background (neutral 700) */
   --neutral-done: var(--color-neutral-200); /* No-area items: checked checkbox fill (neutral 200) */
   --neutral-tint-active: var(--color-neutral-100); /* No-area items: upcoming event background, pill (neutral 100) */
   --neutral-text: var(--color-neutral-900); /* No-area items: text on white (neutral 900) */
@@ -239,6 +284,7 @@
 
   /* Area roles. Default = no area (neutral). Figma points these at one palette as a stand-in. */
   --area-solid: var(--neutral-solid);
+  --area-button-bg: var(--neutral-button-bg);
   --area-tint-active: var(--neutral-tint-active);
   --area-text: var(--neutral-text);
   --area-ink: var(--neutral-ink);
@@ -384,6 +430,7 @@
    data-area="none" resets to neutral inside an area (Inbox, Others). */
 [data-area="none"] {
   --area-solid: var(--neutral-solid);
+  --area-button-bg: var(--neutral-button-bg);
   --area-tint-active: var(--neutral-tint-active);
   --area-text: var(--neutral-text);
   --area-ink: var(--neutral-ink);
@@ -393,6 +440,7 @@
 }
 [data-area="blue"] {
   --area-solid: var(--color-area-blue-500);
+  --area-button-bg: var(--color-area-blue-700);
   --area-tint-active: var(--color-area-blue-100);
   --area-text: var(--color-area-blue-900);
   --area-ink: var(--color-area-blue-950);
@@ -402,6 +450,7 @@
 }
 [data-area="teal"] {
   --area-solid: var(--color-area-teal-500);
+  --area-button-bg: var(--color-area-teal-700);
   --area-tint-active: var(--color-area-teal-100);
   --area-text: var(--color-area-teal-900);
   --area-ink: var(--color-area-teal-950);
@@ -411,6 +460,7 @@
 }
 [data-area="rose"] {
   --area-solid: var(--color-area-rose-500);
+  --area-button-bg: var(--color-area-rose-700);
   --area-tint-active: var(--color-area-rose-100);
   --area-text: var(--color-area-rose-900);
   --area-ink: var(--color-area-rose-950);
@@ -420,6 +470,7 @@
 }
 [data-area="plum"] {
   --area-solid: var(--color-area-plum-500);
+  --area-button-bg: var(--color-area-plum-700);
   --area-tint-active: var(--color-area-plum-100);
   --area-text: var(--color-area-plum-900);
   --area-ink: var(--color-area-plum-950);
@@ -429,6 +480,7 @@
 }
 [data-area="ochre"] {
   --area-solid: var(--color-area-ochre-500);
+  --area-button-bg: var(--color-area-ochre-700);
   --area-tint-active: var(--color-area-ochre-100);
   --area-text: var(--color-area-ochre-900);
   --area-ink: var(--color-area-ochre-950);
@@ -438,12 +490,165 @@
 }
 [data-area="terracotta"] {
   --area-solid: var(--color-area-terracotta-500);
+  --area-button-bg: var(--color-area-terracotta-700);
   --area-tint-active: var(--color-area-terracotta-100);
   --area-text: var(--color-area-terracotta-900);
   --area-ink: var(--color-area-terracotta-950);
   --area-border: var(--color-area-terracotta-300);
   --area-done: var(--color-area-terracotta-200);
   --area-tint-past: var(--color-area-terracotta-50);
+}
+[data-area="indigo"] {
+  --area-solid: var(--color-area-indigo-500);
+  --area-button-bg: var(--color-area-indigo-700);
+  --area-tint-active: var(--color-area-indigo-100);
+  --area-text: var(--color-area-indigo-900);
+  --area-ink: var(--color-area-indigo-950);
+  --area-border: var(--color-area-indigo-300);
+  --area-done: var(--color-area-indigo-200);
+  --area-tint-past: var(--color-area-indigo-50);
+}
+[data-area="sage"] {
+  --area-solid: var(--color-area-sage-500);
+  --area-button-bg: var(--color-area-sage-700);
+  --area-tint-active: var(--color-area-sage-100);
+  --area-text: var(--color-area-sage-900);
+  --area-ink: var(--color-area-sage-950);
+  --area-border: var(--color-area-sage-300);
+  --area-done: var(--color-area-sage-200);
+  --area-tint-past: var(--color-area-sage-50);
+}
+[data-area="amber"] {
+  --area-solid: var(--color-area-amber-500);
+  --area-button-bg: var(--color-area-amber-700);
+  --area-tint-active: var(--color-area-amber-100);
+  --area-text: var(--color-area-amber-900);
+  --area-ink: var(--color-area-amber-950);
+  --area-border: var(--color-area-amber-300);
+  --area-done: var(--color-area-amber-200);
+  --area-tint-past: var(--color-area-amber-50);
+}
+[data-area="slate"] {
+  --area-solid: var(--color-area-slate-500);
+  --area-button-bg: var(--color-area-slate-700);
+  --area-tint-active: var(--color-area-slate-100);
+  --area-text: var(--color-area-slate-900);
+  --area-ink: var(--color-area-slate-950);
+  --area-border: var(--color-area-slate-300);
+  --area-done: var(--color-area-slate-200);
+  --area-tint-past: var(--color-area-slate-50);
+}
+
+/* ── Dark mode life area roles (STYLE_GUIDE.md) ───────────────────────────── */
+[data-theme="dark"], [data-theme="dark"] [data-area="none"] {
+  --area-solid: var(--color-neutral-400);
+  --area-button-bg: var(--color-neutral-700);
+  --area-tint-active: var(--color-neutral-800);
+  --area-text: var(--color-neutral-200);
+  --area-ink: var(--color-neutral-100);
+  --area-border: var(--color-neutral-700);
+  --area-done: var(--color-neutral-700);
+  --area-tint-past: var(--color-neutral-900);
+}
+[data-theme="dark"] [data-area="blue"] {
+  --area-solid: var(--color-area-blue-400);
+  --area-button-bg: var(--color-area-blue-700);
+  --area-tint-active: var(--color-area-blue-950);
+  --area-text: var(--color-area-blue-300);
+  --area-ink: var(--color-area-blue-100);
+  --area-border: var(--color-area-blue-700);
+  --area-done: var(--color-area-blue-800);
+  --area-tint-past: var(--color-area-blue-950);
+}
+[data-theme="dark"] [data-area="teal"] {
+  --area-solid: var(--color-area-teal-400);
+  --area-button-bg: var(--color-area-teal-700);
+  --area-tint-active: var(--color-area-teal-950);
+  --area-text: var(--color-area-teal-300);
+  --area-ink: var(--color-area-teal-100);
+  --area-border: var(--color-area-teal-700);
+  --area-done: var(--color-area-teal-800);
+  --area-tint-past: var(--color-area-teal-950);
+}
+[data-theme="dark"] [data-area="rose"] {
+  --area-solid: var(--color-area-rose-400);
+  --area-button-bg: var(--color-area-rose-700);
+  --area-tint-active: var(--color-area-rose-950);
+  --area-text: var(--color-area-rose-300);
+  --area-ink: var(--color-area-rose-100);
+  --area-border: var(--color-area-rose-700);
+  --area-done: var(--color-area-rose-800);
+  --area-tint-past: var(--color-area-rose-950);
+}
+[data-theme="dark"] [data-area="plum"] {
+  --area-solid: var(--color-area-plum-400);
+  --area-button-bg: var(--color-area-plum-700);
+  --area-tint-active: var(--color-area-plum-950);
+  --area-text: var(--color-area-plum-300);
+  --area-ink: var(--color-area-plum-100);
+  --area-border: var(--color-area-plum-700);
+  --area-done: var(--color-area-plum-800);
+  --area-tint-past: var(--color-area-plum-950);
+}
+[data-theme="dark"] [data-area="ochre"] {
+  --area-solid: var(--color-area-ochre-400);
+  --area-button-bg: var(--color-area-ochre-700);
+  --area-tint-active: var(--color-area-ochre-950);
+  --area-text: var(--color-area-ochre-300);
+  --area-ink: var(--color-area-ochre-100);
+  --area-border: var(--color-area-ochre-700);
+  --area-done: var(--color-area-ochre-800);
+  --area-tint-past: var(--color-area-ochre-950);
+}
+[data-theme="dark"] [data-area="terracotta"] {
+  --area-solid: var(--color-area-terracotta-400);
+  --area-button-bg: var(--color-area-terracotta-700);
+  --area-tint-active: var(--color-area-terracotta-950);
+  --area-text: var(--color-area-terracotta-300);
+  --area-ink: var(--color-area-terracotta-100);
+  --area-border: var(--color-area-terracotta-700);
+  --area-done: var(--color-area-terracotta-800);
+  --area-tint-past: var(--color-area-terracotta-950);
+}
+[data-theme="dark"] [data-area="indigo"] {
+  --area-solid: var(--color-area-indigo-400);
+  --area-button-bg: var(--color-area-indigo-700);
+  --area-tint-active: var(--color-area-indigo-950);
+  --area-text: var(--color-area-indigo-300);
+  --area-ink: var(--color-area-indigo-100);
+  --area-border: var(--color-area-indigo-700);
+  --area-done: var(--color-area-indigo-800);
+  --area-tint-past: var(--color-area-indigo-950);
+}
+[data-theme="dark"] [data-area="sage"] {
+  --area-solid: var(--color-area-sage-400);
+  --area-button-bg: var(--color-area-sage-700);
+  --area-tint-active: var(--color-area-sage-950);
+  --area-text: var(--color-area-sage-300);
+  --area-ink: var(--color-area-sage-100);
+  --area-border: var(--color-area-sage-700);
+  --area-done: var(--color-area-sage-800);
+  --area-tint-past: var(--color-area-sage-950);
+}
+[data-theme="dark"] [data-area="amber"] {
+  --area-solid: var(--color-area-amber-400);
+  --area-button-bg: var(--color-area-amber-700);
+  --area-tint-active: var(--color-area-amber-950);
+  --area-text: var(--color-area-amber-300);
+  --area-ink: var(--color-area-amber-100);
+  --area-border: var(--color-area-amber-700);
+  --area-done: var(--color-area-amber-800);
+  --area-tint-past: var(--color-area-amber-950);
+}
+[data-theme="dark"] [data-area="slate"] {
+  --area-solid: var(--color-area-slate-400);
+  --area-button-bg: var(--color-area-slate-700);
+  --area-tint-active: var(--color-area-slate-950);
+  --area-text: var(--color-area-slate-300);
+  --area-ink: var(--color-area-slate-100);
+  --area-border: var(--color-area-slate-700);
+  --area-done: var(--color-area-slate-800);
+  --area-tint-past: var(--color-area-slate-950);
 }
 
 /* Re-declared so they pick up the nearest data-area, not the :root value. */

@@ -6,6 +6,7 @@ from app.schemas.common import UtcDatetime
 
 OpenOnStart = Literal["home", "tasks", "calendar"]
 TimeFormat = Literal["12h", "24h"]
+Theme = Literal["system", "light", "dark"]
 DayEndsAt = Annotated[int, Field(ge=0, le=4)]
 KeepBackups = Literal[7, 14, 30]
 BackupFolder = Annotated[
@@ -25,9 +26,16 @@ class SettingsUpdate(BaseModel):
     auto_backup: bool | None = None
     keep_backups: KeepBackups | None = None
     backup_folder: BackupFolder | None = None
+    theme: Theme | None = None
 
     @field_validator(
-        "open_on_start", "time_format", "day_ends_at", "auto_backup", "keep_backups", mode="before"
+        "open_on_start",
+        "time_format",
+        "day_ends_at",
+        "auto_backup",
+        "keep_backups",
+        "theme",
+        mode="before",
     )
     @classmethod
     def _reject_null(cls, value: object) -> object:
@@ -45,4 +53,5 @@ class SettingsRead(BaseModel):
     auto_backup: bool
     keep_backups: KeepBackups
     backup_folder: str | None
+    theme: Theme
     updated_at: UtcDatetime

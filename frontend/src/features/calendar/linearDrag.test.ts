@@ -122,7 +122,7 @@ test("what can be dragged", () => {
     task: taskRead({ status }),
   });
   expect(canDragEntry(task("todo"))).toBe(true);
-  expect(canDragEntry(task("done"))).toBe(false);
+  expect(canDragEntry(task("done"))).toBe(true);
   const due = (status: ProjectRead["status"]): Entry => ({
     kind: "project",
     key: "project:1",

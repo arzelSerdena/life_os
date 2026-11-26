@@ -1,8 +1,13 @@
-import { ChartLine, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import type { LifeAreaRead, OutcomeRead, OverviewRead } from "../../../client/types.gen";
-import { SectionCard } from "../../../components/SectionCard";
+import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import type { Period } from "../../../period";
+import {
+  type OutcomesShow,
+  type OutcomesSort,
+  useOutcomesCardStore,
+} from "../../../stores/outcomesCardStore";
 import { PanelLink } from "../../detail-panel/PanelLink";
 import { formatValue, valueParts } from "../../metrics/format";
 import { LogMetricModal } from "../../metrics/LogMetricModal";
@@ -11,18 +16,27 @@ import { CardMenu, type MenuOption } from "./CardMenu";
 import { daysBetween, monthName, outcomeTone, plural, shortDate, targetPeriodName } from "./format";
 import { MetricChart } from "./MetricChart";
 
-type Sort = "area" | "behind" | "name";
-type Show = "good" | "bad" | "untargeted";
+type Sort = OutcomesSort;
+type Show = OutcomesShow;
 
 /** The period a metric tile is shown for. */
 export type MetricView = Pick<OverviewRead, "range" | "today" | "period">;
 
 /** Every area-owned metric as a small tile, grouped into one grey panel per area. */
 export function OutcomesCard({ overview }: { overview: OverviewRead }) {
-  const [sort, setSort] = useState<Sort>("area");
-  const [shown, setShown] = useState<Set<Show>>(new Set(["good", "bad", "untargeted"]));
-  const [hiddenAreas, setHiddenAreas] = useState<Set<number>>(new Set());
-  const [grouped, setGrouped] = useState(true);
+  const {
+    sort,
+    shown: shownList,
+    hiddenAreas: hiddenAreaList,
+    grouped,
+    setSort,
+    toggleShown,
+    toggleHiddenArea,
+    toggleGrouped,
+  } = useOutcomesCardStore();
+  const shown = new Set(shownList);
+  const hiddenAreas = new Set(hiddenAreaList);
+  const hasActiveFilters = shown.size < 3 || hiddenAreas.size > 0;
 
   const { outcomes, life_areas: areas } = overview;
   const good = outcomes.filter((o) => outcomeTone(o.status) === "good").length;
@@ -39,6 +53,7 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
     areas,
   );
 
+  const areasWithMetrics = areas.filter((area) => outcomes.some((o) => o.life_area_id === area.id));
   const menu: MenuOption[] = [
     { section: "Sort by", id: "sort:area", label: "Area order", selected: sort === "area" },
     { section: "Sort by", id: "sort:behind", label: "Behind first", selected: sort === "behind" },
@@ -58,7 +73,7 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
       selected: shown.has("untargeted"),
       check: true,
     },
-    ...areas.map((area) => ({
+    ...areasWithMetrics.map((area) => ({
       section: "Areas",
       id: `area:${area.id}`,
       label: area.title,
@@ -72,34 +87,39 @@ export function OutcomesCard({ overview }: { overview: OverviewRead }) {
   const onMenu = (id: string) => {
     const [kind, value] = id.split(":");
     if (kind === "sort") setSort(value as Sort);
-    if (kind === "show") setShown(toggled(shown, value as Show));
-    if (kind === "area") setHiddenAreas(toggled(hiddenAreas, Number(value)));
-    if (kind === "group") setGrouped(!grouped);
+    if (kind === "show") toggleShown(value as Show);
+    if (kind === "area") toggleHiddenArea(Number(value));
+    if (kind === "group") toggleGrouped();
   };
 
   return (
     <SectionCard
       title="Outcomes"
       description={description}
-      action={<CardMenu label="Outcomes" options={menu} onSelect={onMenu} />}
+      action={
+        <CardMenu
+          label="Outcomes"
+          options={menu}
+          onSelect={onMenu}
+          hasActiveFilters={hasActiveFilters}
+        />
+      }
     >
-      {grouped ? (
+      {outcomes.length === 0 ? (
+        <CardEmpty>No metrics yet.</CardEmpty>
+      ) : grouped ? (
         <div className="grid grid-flow-row-dense grid-cols-5 gap-3">
-          {areas
+          {areasWithMetrics
             .filter((area) => !hiddenAreas.has(area.id))
             .map((area) => {
               const own = visible.filter((o) => o.life_area_id === area.id);
               const total = outcomes.filter((o) => o.life_area_id === area.id);
-              if (total.length > 0 && own.length === 0) return null;
+              if (total.length === 0 || own.length === 0) return null;
               return (
                 <AreaPanel key={area.id} area={area} outcomes={own} all={total}>
-                  {own.length === 0 ? (
-                    <NoMetrics />
-                  ) : (
-                    own.map((outcome) => (
-                      <MetricTile key={outcome.metric_id} outcome={outcome} view={overview} />
-                    ))
-                  )}
+                  {own.map((outcome) => (
+                    <MetricTile key={outcome.metric_id} outcome={outcome} view={overview} />
+                  ))}
                 </AreaPanel>
               );
             })}
@@ -147,23 +167,19 @@ function AreaPanel({
     <div
       data-area={areaDataAttribute(area.color)}
       style={{ gridColumn: `span ${span}` }}
-      className="grid grid-cols-subgrid content-start gap-x-2 self-start rounded-(--radius-12) border border-[#eef0f3] bg-neutral-50 px-2 pt-1.5 pb-2"
+      className="grid grid-cols-subgrid content-start gap-x-2 self-start rounded-(--radius-12) border border-(--border-default) bg-(--bg-app) px-2 pt-1.5 pb-2"
     >
       <h3 className="col-span-full mb-1 flex h-7 min-w-0 items-center gap-2 pl-0.5">
         <span aria-hidden className="size-2.5 shrink-0 rounded-[2px] bg-(--area-solid)" />
-        <span className="truncate text-sm font-semibold text-(--text-primary)">{area.title}</span>
+        <PanelLink
+          target={{ kind: "area", id: area.id }}
+          className="truncate text-sm font-semibold text-(--text-primary)"
+        >
+          {area.title}
+        </PanelLink>
         <span className="truncate type-meta font-normal text-(--text-tertiary)">{summary}</span>
       </h3>
       {children}
-    </div>
-  );
-}
-
-function NoMetrics() {
-  return (
-    <div className="flex min-h-[120px] flex-col justify-center gap-1.5 rounded-(--radius-8) border border-dashed border-(--border-default) bg-(--bg-surface) px-2.5 py-2 text-xs text-(--text-tertiary)">
-      <ChartLine aria-hidden className="size-4 text-(--area-solid)" strokeWidth={2} />
-      <span>No metrics yet</span>
     </div>
   );
 }
@@ -189,10 +205,10 @@ export function MetricTile({
       <article
         aria-label={outcome.title}
         data-area={area ? areaDataAttribute(area.color) : undefined}
-        className="group relative flex min-w-0 flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-2.5 py-2 hover:border-(--color-neutral-300)"
+        className="group relative flex min-w-0 flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-2.5 py-2 hover:border-(--border-strong)"
       >
         <div className="flex items-center gap-1">
-          <h4 className="min-w-0 flex-1 truncate text-[13px] leading-[18px] font-semibold text-(--text-primary)">
+          <h4 className="min-w-0 flex-1 truncate type-body font-semibold text-(--text-primary)">
             <PanelLink stretched target={{ kind: "metric", id: outcome.metric_id }}>
               {outcome.title}
             </PanelLink>
@@ -220,9 +236,9 @@ export function MetricTile({
             {number}
           </span>
           {unit && (
-            <span className="mr-1 text-[13px] font-medium text-(--text-tertiary)">{unit}</span>
+            <span className="mr-1 type-body font-medium text-(--text-tertiary)">{unit}</span>
           )}
-          <span className="truncate text-[11px] text-(--text-tertiary)">{context}</span>
+          <span className="truncate type-tag text-(--text-tertiary)">{context}</span>
         </p>
         <MetricChart
           outcome={outcome}
@@ -231,7 +247,7 @@ export function MetricTile({
           period={view.period as Period}
           tone={tone}
         />
-        <p className="mt-1 text-[11px] leading-[14px] text-(--text-tertiary)">
+        <p className="mt-1 type-tag leading-[14px] text-(--text-tertiary)">
           {summaryLine(outcome, view)}
         </p>
       </article>
@@ -358,11 +374,4 @@ function sortOutcomes(outcomes: OutcomeRead[], sort: Sort, areas: LifeAreaRead[]
     sorted.sort((a, b) => rank(a) - rank(b) || areaIndex(a) - areaIndex(b));
   }
   return sorted;
-}
-
-function toggled<T>(set: Set<T>, value: T): Set<T> {
-  const next = new Set(set);
-  if (next.has(value)) next.delete(value);
-  else next.add(value);
-  return next;
 }

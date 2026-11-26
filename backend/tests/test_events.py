@@ -129,7 +129,7 @@ def test_a_multi_day_occurrence_overlapping_the_start_is_included(
 
 
 @pytest.mark.parametrize(
-    ("first", "last"), [("2026-11-20", "2026-11-16"), ("2026-01-01", "2027-01-02")]
+    ("first", "last"), [("2026-11-20", "2026-11-16"), ("2026-01-01", "2027-01-07")]
 )
 def test_occurrences_reject_bad_ranges(client: TestClient, first: str, last: str) -> None:
     response = client.get(f"{URL}/occurrences", params={"first": first, "last": last})
@@ -303,7 +303,7 @@ def test_an_occurrences_notes_are_not_recorded(client: TestClient, area: int) ->
     ("body", "status_code"),
     [
         ({"scope": "this", "rrule": "FREQ=DAILY"}, 422),
-        ({"scope": "following", "start_date": "2026-11-24"}, 422),
+        ({"scope": "following", "start_date": "2026-11-24"}, 200),
         ({"scope": "this", "start_time": "19:00", "end_time": "18:30"}, 422),
     ],
 )

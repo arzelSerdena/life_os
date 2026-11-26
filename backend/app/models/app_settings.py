@@ -16,6 +16,7 @@ class AppSettings(BaseMixin, Base):
         CheckConstraint("day_ends_at BETWEEN 0 AND 4", name="day_ends_at"),
         CheckConstraint("auto_backup IN (0, 1)", name="auto_backup"),
         CheckConstraint("keep_backups IN (7, 14, 30)", name="keep_backups"),
+        CheckConstraint("theme IN ('system', 'light', 'dark')", name="theme"),
         AUTOINCREMENT,
     )
 
@@ -26,3 +27,4 @@ class AppSettings(BaseMixin, Base):
     keep_backups: Mapped[int] = mapped_column(default=14, server_default="14")
     # NULL means the default folder next to the database.
     backup_folder: Mapped[str | None] = mapped_column(Text)
+    theme: Mapped[str] = mapped_column(Text, default="system", server_default="system")

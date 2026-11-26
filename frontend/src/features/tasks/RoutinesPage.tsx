@@ -1,15 +1,19 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Pause } from "lucide-react";
-import { Link } from "react-router";
+import { Pause } from "lucide-react";
 import {
   clearRoutineStepDayMutation,
   getRoutinesHistoryOptions,
   setRoutineStepDayMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { StepDayState } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
+import { useDetailPanel } from "../../stores/detailPanelStore";
+import { PanelLink } from "../detail-panel/PanelLink";
 import { itemMenuProps } from "../item-menu/target";
 import { areaDataAttribute } from "../life-areas/palette";
+import { useRoutineDragGuard } from "../routines/useRoutineDragGuard";
 import {
   type DayState,
   type RoutineColumn,
@@ -27,6 +31,7 @@ export function RoutinesPage() {
   const error = tasksError ?? history.error;
   const colorOf = (lifeAreaId: number) =>
     data?.lifeAreas.find((area) => area.id === lifeAreaId)?.color ?? null;
+  const panelOpen = useDetailPanel((state) => state.target !== null);
 
   return (
     <>
@@ -42,7 +47,11 @@ export function RoutinesPage() {
       ) : history.data.routines.length === 0 ? (
         <p className="p-(--page-gutter) type-body text-(--text-tertiary)">No routines yet.</p>
       ) : (
-        <div className="@container min-h-0 flex-1 overflow-x-auto px-(--page-gutter) pt-4">
+        <Scroll
+          direction="horizontal"
+          fade={!panelOpen}
+          className="@container min-h-0 flex-1 px-(--page-gutter) pt-4"
+        >
           <div className="flex h-full min-w-min gap-4">
             {history.data.routines.map((routine) => (
               <RoutineColumnView
@@ -53,7 +62,7 @@ export function RoutinesPage() {
               />
             ))}
           </div>
-        </div>
+        </Scroll>
       )}
     </>
   );
@@ -70,12 +79,17 @@ function RoutineColumnView({
 }) {
   const { routine } = column;
   const headingId = `routine-${routine.id}`;
+  const { shakeClass, onPointerDown } = useRoutineDragGuard();
   return (
     <section
       aria-labelledby={headingId}
       className="flex min-h-0 min-w-[260px] flex-[0_0_calc((100cqw_-_64px)/5)] flex-col"
     >
-      <header className="shrink-0 px-0.5" {...itemMenuProps({ kind: "routine", id: routine.id })}>
+      <header
+        className={`shrink-0 px-0.5 ${shakeClass}`}
+        onPointerDown={onPointerDown}
+        {...itemMenuProps({ kind: "routine", id: routine.id })}
+      >
         <div className="flex h-7 items-center gap-2">
           {routine.paused_since ? (
             <Pause
@@ -85,26 +99,36 @@ function RoutineColumnView({
               strokeWidth={2}
             />
           ) : (
-            <ProgressRing done={column.done} total={column.total} />
+            <ProgressRing
+              done={column.done}
+              total={column.total}
+              segments={column.steps
+                .filter((s) => s.dueToday)
+                .map((s) => ({
+                  done: s.done,
+                  color: colorOf(s.step.life_area_id),
+                }))}
+            />
           )}
           <h2
             id={headingId}
             className="truncate text-base leading-6 font-semibold text-(--text-primary)"
           >
-            <Link
-              to={`/areas/routines/${routine.id}`}
-              className="rounded-[4px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            <PanelLink
+              target={{ kind: "routine", id: routine.id }}
+              className="text-base leading-6 font-semibold text-(--text-primary)"
             >
               {routine.title}
-            </Link>
+            </PanelLink>
           </h2>
           {column.total > 0 && <Counter count={`${column.done}/${column.total}`} />}
         </div>
         <p className="-mt-0.5 pl-[26px] type-meta text-(--text-tertiary)">{column.subtitle}</p>
       </header>
-      <ul
+      <Scroll
+        as="ul"
         aria-label={`${routine.title} steps`}
-        className="mt-3.5 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto pb-6"
+        className="mt-3.5 flex min-h-0 flex-1 flex-col gap-1.5 pb-6"
       >
         {column.steps.map((view) => (
           <StepCard
@@ -115,7 +139,7 @@ function RoutineColumnView({
             color={colorOf(view.step.life_area_id)}
           />
         ))}
-      </ul>
+      </Scroll>
     </section>
   );
 }
@@ -152,29 +176,15 @@ function StepCard({
       className="flex flex-col gap-0.5 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2"
     >
       <div className="flex items-start gap-2">
-        <label className="relative -mx-1 -mt-0.5 -mb-1 grid size-6 shrink-0 cursor-pointer place-items-center has-disabled:cursor-default">
-          <input
-            type="checkbox"
-            checked={done}
-            disabled={!dueToday || check.isPending || clear.isPending}
-            aria-label={done ? `Mark ${step.title} not done` : `Mark ${step.title} done`}
-            onChange={toggle}
-            className={`size-3.5 cursor-pointer appearance-none rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-              done
-                ? "border-(--area-border) bg-(--area-border)"
-                : active
-                  ? "border-(--area-solid)"
-                  : "border-(--color-neutral-300)"
-            }`}
-          />
-          {done && (
-            <Check
-              aria-hidden
-              className="pointer-events-none absolute size-2 text-white"
-              strokeWidth={3.5}
-            />
-          )}
-        </label>
+        <EntityCheckbox
+          shape="round"
+          checked={done}
+          disabled={!dueToday || check.isPending || clear.isPending}
+          cancelled={!active}
+          label={done ? `Mark ${step.title} not done` : `Mark ${step.title} done`}
+          onChange={toggle}
+          className="-mx-1 -mt-0.5 -mb-1 has-disabled:cursor-default"
+        />
         <span
           className={`line-clamp-2 flex-1 type-card-title ${
             done ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"
@@ -195,7 +205,7 @@ function StepCard({
             <Square key={item.day} item={item} />
           ))}
         </span>
-        <span className="min-w-[22px] text-right text-[11px] tabular-nums">
+        <span className="min-w-[22px] text-right type-tag tabular-nums">
           <span aria-hidden>
             {view.doneCount}/{view.dueCount}
           </span>
@@ -210,15 +220,14 @@ function StepCard({
 
 const SQUARE: Record<DayState, string> = {
   done: "bg-(--area-solid)",
-  skipped: "bg-(--color-neutral-300)",
-  missed: "bg-(--bg-surface) shadow-[inset_0_0_0_1.5px_var(--color-neutral-300)]",
+  skipped: "bg-(--border-strong)",
+  missed: "bg-(--bg-surface) shadow-[inset_0_0_0_1.5px_var(--border-strong)]",
   todo: "bg-(--bg-surface) shadow-[inset_0_0_0_1.5px_var(--color-brand-500)]",
-  upcoming: "bg-(--color-neutral-200)",
+  upcoming: "bg-(--border-default)",
   paused:
-    "bg-[repeating-linear-gradient(135deg,var(--color-neutral-300)_0_1.5px,transparent_1.5px_3.5px)]",
+    "bg-[repeating-linear-gradient(135deg,var(--border-strong)_0_1.5px,transparent_1.5px_3.5px)]",
   // A small dot in the middle.
-  not_due:
-    "bg-[radial-gradient(circle,var(--color-neutral-300)_1.5px,transparent_1.6px)] bg-center",
+  not_due: "bg-[radial-gradient(circle,var(--border-strong)_1.5px,transparent_1.6px)] bg-center",
   none: "",
 };
 
@@ -231,18 +240,52 @@ function Square({ item }: { item: StepDayState }) {
   );
 }
 
-/** Today's progress: an accent arc on a grey ring; an empty grey ring when nothing is due. */
+export type ProgressRingSegment = {
+  done: boolean;
+  color: string | null;
+};
+
+/** Today's progress: divided into routine step arcs colored by each step's life area when
+ * `segments` are provided, or a single accent arc on a grey ring. */
 export function ProgressRing({
   done,
   total,
+  segments,
   className = "size-[18px]",
 }: {
   done: number;
   total: number;
+  segments?: ProgressRingSegment[];
   /** Its size: 18 px by default, 16 px in the sidebar. */
   className?: string;
 }) {
   const circumference = 2 * Math.PI * 7;
+  if (segments && segments.length > 0) {
+    const count = segments.length;
+    const gap = count > 1 ? 2.2 : 0;
+    const segLen = Math.max(circumference / count - gap, 1);
+    const stepAngle = 360 / count;
+    return (
+      <svg aria-hidden viewBox="0 0 18 18" className={`${className} shrink-0`}>
+        {segments.map((seg, index) => (
+          <circle
+            // biome-ignore lint/suspicious/noArrayIndexKey: segment order is step order
+            key={index}
+            cx="9"
+            cy="9"
+            r="7"
+            fill="none"
+            strokeWidth="2.5"
+            data-area={seg.done ? areaDataAttribute(seg.color) : undefined}
+            stroke={seg.done ? "var(--area-solid)" : "var(--color-neutral-200)"}
+            strokeLinecap={count === 1 ? "round" : "butt"}
+            strokeDasharray={`${segLen} ${circumference}`}
+            transform={`rotate(${-90 + index * stepAngle} 9 9)`}
+          />
+        ))}
+      </svg>
+    );
+  }
   const filled = total ? (done / total) * circumference : 0;
   return (
     <svg aria-hidden viewBox="0 0 18 18" className={`${className} shrink-0`}>

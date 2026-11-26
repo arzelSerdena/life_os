@@ -2,6 +2,7 @@ import { Button } from "@heroui/react";
 import { type QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
+  ArrowUpRight,
   CalendarDays,
   ChartLine,
   CircleCheck,
@@ -20,11 +21,14 @@ import {
 import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router";
 import {
+  clearRoutineStepDayMutation,
   completeTaskMutation,
   createMetricEntryMutation,
   createSubtaskMutation,
+  editEventOccurrenceMutation,
   getArchiveOptions,
   getAreaPageOptions,
+  getEventOccurrenceOptions,
   getEventOptions,
   getEventQueryKey,
   getLifeAreaOptions,
@@ -33,20 +37,23 @@ import {
   getMetricQueryKey,
   getProjectOptions,
   getProjectQueryKey,
+  getRoutinePageOptions,
+  getRoutinePageQueryKey,
   getTaskOptions,
   getTaskQueryKey,
   getTaskTemplateOptions,
   getTaskTemplateQueryKey,
-  listEventOccurrencesOptions,
   listEventOccurrencesQueryKey,
   listLifeAreasOptions,
   listMetricEntriesOptions,
   listProjectsOptions,
   reopenTaskMutation,
+  setRoutineStepDayMutation,
   updateEventMutation,
   updateLifeAreaMutation,
   updateMetricMutation,
   updateProjectMutation,
+  updateRoutineMutation,
   updateSubtaskMutation,
   updateTaskMutation,
   updateTaskTemplateMutation,
@@ -63,10 +70,13 @@ import {
   updateLifeArea,
   updateMetric,
   updateProject,
+  updateRoutine,
   updateTask,
   updateTaskTemplate,
 } from "../../client/sdk.gen";
 import type { MetricRead, SubtaskRead, TaskRead, TaskTemplateRead } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
+import { IconButton } from "../../components/IconButton";
 import { QueryError } from "../../components/QueryError";
 import { today } from "../../period";
 import { useChangeToast } from "../../stores/changeToastStore";
@@ -89,8 +99,12 @@ import { daysBetween, plural, shortDate } from "../life-areas/overview/format";
 import { AREA_PALETTES, areaDataAttribute } from "../life-areas/palette";
 import { currentTarget, EditMetricModal } from "../metrics/EditMetricModal";
 import { formatValue, inputAffixes, parseValue } from "../metrics/format";
+import { PopoverChip } from "../pickers/chips";
 import { DatePickerField } from "../pickers/DatePicker";
 import { OwnerCrumb, SectionCrumb } from "../pickers/OwnerPicker";
+import { TimeRangeChip } from "../pickers/TimeRangeChip";
+import { projectPath } from "../projects/paths";
+import { formatTime, useTimeFormat } from "../tasks/format";
 import {
   Chip,
   chipClass,
@@ -115,6 +129,8 @@ export function EntityPanel({ target }: { target: PanelTarget }) {
       return <TemplatePanel id={target.id} />;
     case "event":
       return <EventPanel id={target.id} day={target.day} />;
+    case "routine":
+      return <RoutineDetailPanel id={target.id} />;
     case "metric":
       return <MetricPanel id={target.id} />;
   }
@@ -336,7 +352,7 @@ function AreaPanel({ id }: { id: number }) {
         lead={
           isArchived ? (
             area.vision && (
-              <p className="-mt-1.5 text-[13px] leading-[19px] text-(--text-secondary)">
+              <p className="-mt-1.5 type-body leading-[19px] text-(--text-secondary)">
                 {area.vision}
               </p>
             )
@@ -422,6 +438,7 @@ function ProjectPanel({ id }: { id: number }) {
   const update = useMutation(updateProjectMutation());
   const saveNotes = useNotesSave();
   const close = useDetailPanel((state) => state.close);
+  const navigate = useNavigate();
   const menu = useProjectActions(query.data, { onDeleted: close });
 
   const project = query.data;
@@ -447,22 +464,39 @@ function ProjectPanel({ id }: { id: number }) {
         crumbs={[area?.title ?? "", "Projects"]}
         marker={<Marker icon={Folder} />}
         title={project.title}
-        onRename={(title) => update.mutateAsync({ path, body: { title } })}
+        headerAction={
+          <IconButton
+            label="Open project"
+            onPress={() => {
+              close();
+              navigate(projectPath(id));
+            }}
+          >
+            <ArrowUpRight />
+          </IconButton>
+        }
+        onRename={isArchived ? undefined : (title) => update.mutateAsync({ path, body: { title } })}
         chips={
           <>
             <Chip icon={project.status === "done" ? CircleCheck : undefined}>
               {PROJECT_STATUS[project.status]}
             </Chip>
             {isArchived && <Chip icon={Archive}>Archived</Chip>}
-            <DateChip
-              icon={CalendarDays}
-              label="Due date"
-              tone={left !== null && left < 0 && project.status === "active" ? "danger" : "default"}
-              value={project.due_date}
-              onChange={(due_date) => update.mutate({ path, body: { due_date } })}
-            >
-              {dates}
-            </DateChip>
+            {isArchived ? (
+              <Chip icon={CalendarDays}>{dates}</Chip>
+            ) : (
+              <DateChip
+                icon={CalendarDays}
+                label="Due date"
+                tone={
+                  left !== null && left < 0 && project.status === "active" ? "danger" : "default"
+                }
+                value={project.due_date}
+                onChange={(due_date) => update.mutate({ path, body: { due_date } })}
+              >
+                {dates}
+              </DateChip>
+            )}
             <Chip icon={ChartLine}>
               {total
                 ? `${done} of ${plural(total, "task")} · ${Math.round((done / total) * 100)}%`
@@ -471,8 +505,9 @@ function ProjectPanel({ id }: { id: number }) {
           </>
         }
         notes={{
-          key: `project-${id}`,
+          key: `project-${id}-${isArchived}`,
           markdown: project.notes,
+          readOnly: isArchived,
           save: (notes) =>
             saveNotes(
               () => updateProject({ path, body: { notes }, throwOnError: true }),
@@ -588,7 +623,13 @@ function TaskChips({
         label="Scheduled for"
         tone={task.scheduled_date ? "default" : "ghost"}
         value={task.scheduled_date}
-        onChange={(scheduled_date) => onChange({ scheduled_date })}
+        onChange={(scheduled_date) =>
+          onChange(
+            scheduled_date
+              ? { scheduled_date }
+              : { scheduled_date, scheduled_time: null, scheduled_end_time: null },
+          )
+        }
       >
         {task.scheduled_date
           ? `${dayDate(task.scheduled_date)}${
@@ -596,6 +637,19 @@ function TaskChips({
             }`
           : "Schedule"}
       </DateChip>
+      <TimeRangeChip
+        label="Scheduled time"
+        startTime={task.scheduled_time ?? null}
+        endTime={task.scheduled_end_time ?? null}
+        requireEndAfterStart
+        onChange={({ startTime, endTime }) =>
+          onChange({
+            ...(startTime && !task.scheduled_date ? { scheduled_date: now } : {}),
+            scheduled_time: startTime,
+            scheduled_end_time: endTime,
+          })
+        }
+      />
       {template?.rrule && <Chip icon={Repeat}>{describeRule(template.rrule)}</Chip>}
     </>
   );
@@ -627,7 +681,7 @@ function Subtasks({ task }: { task: TaskRead }) {
       <div className="mb-0.5 flex h-6 items-center gap-1.5">
         <h3 className="type-label text-(--text-tertiary)">Subtasks</h3>
         {subtasks.length > 0 && (
-          <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-200 px-1.5 text-[11px] font-medium text-(--text-secondary)">
+          <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-(--counter-bg) px-1.5 type-tag font-medium text-(--text-secondary)">
             {done}/{subtasks.length}
           </span>
         )}
@@ -638,18 +692,15 @@ function Subtasks({ task }: { task: TaskRead }) {
           const isDone = subtask.status === "done";
           return (
             <li key={subtask.id} className="group flex h-7 items-center gap-2">
-              {/* The label gives the 14 px box a 24 px hit area. */}
-              <label className="-m-[5px] grid size-6 shrink-0 cursor-pointer place-items-center">
-                <input
-                  type="checkbox"
-                  checked={isDone}
-                  onChange={() => toggle(subtask)}
-                  aria-label={subtask.title}
-                  className="grid size-3.5 shrink-0 cursor-pointer appearance-none place-items-center rounded-[4px] border-2 border-(--area-solid) outline-none checked:bg-(--area-solid) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
-                />
-              </label>
+              <EntityCheckbox
+                size="sm"
+                checked={isDone}
+                onChange={() => toggle(subtask)}
+                label={subtask.title}
+                className="-m-[5px]"
+              />
               <span
-                className={`truncate text-[13px] ${isDone ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
+                className={`truncate type-body ${isDone ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
               >
                 {subtask.title}
               </span>
@@ -687,7 +738,7 @@ function Subtasks({ task }: { task: TaskRead }) {
             setDraft("");
           }
         }}
-        className="h-7 w-full rounded-(--radius-6) bg-transparent pl-[22px] text-[13px] text-(--text-primary) outline-none placeholder:text-(--text-disabled) focus:bg-(--bg-hover)"
+        className="h-7 w-full rounded-(--radius-6) bg-transparent pl-[22px] type-body text-(--text-primary) outline-none placeholder:text-(--text-disabled) focus:bg-(--bg-hover)"
       />
     </section>
   );
@@ -746,7 +797,7 @@ function TemplatePanel({ id }: { id: number }) {
               </h3>
               <ul>
                 {template.subtasks.map((subtask) => (
-                  <li key={subtask.id} className="flex h-7 items-center gap-2 text-[13px]">
+                  <li key={subtask.id} className="flex h-7 items-center gap-2 type-body">
                     <span
                       aria-hidden
                       className="size-3.5 shrink-0 rounded-[4px] border-2 border-(--area-solid)"
@@ -781,22 +832,22 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
   const query = useQuery(getEventOptions({ path: { event_id: id } }));
   const event = query.data;
   const isRepeating = event?.rrule != null && day !== null;
-  const occurrenceQuery = {
-    query: { first: day ?? "", last: day ?? "", life_area_id: event?.life_area_id },
-  };
-  const occurrence = useQuery({
-    ...listEventOccurrencesOptions(occurrenceQuery),
+  const occQuery = useQuery({
+    ...getEventOccurrenceOptions({ path: { event_id: id, day: day ?? "" } }),
     enabled: isRepeating,
-  }).data?.find((o) => o.event_id === id && o.occurrence_date === day);
+  });
+  const occurrence = occQuery.data;
   const owner = useOwnerCrumbs("event", event);
   const area = owner.area;
   const update = useMutation(updateEventMutation());
+  const editOcc = useMutation(editEventOccurrenceMutation());
   const saveNotes = useNotesSave();
   const [scope, setScope] = useState<"this" | "all">("this");
   const close = useDetailPanel((state) => state.close);
   const menu = useEventActions(event, day, { onDeleted: close });
 
-  if (!event || (isRepeating && !occurrence)) return <Loading error={query.error} />;
+  if (!event || (isRepeating && !occurrence))
+    return <Loading error={query.error ?? occQuery.error} />;
   const path = { event_id: id };
   const shown = occurrence ?? event;
   const start = shown.start_date;
@@ -823,9 +874,37 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
         }
         chips={
           <>
-            <Chip icon={CalendarDays}>{when}</Chip>
+            <EventWhenChip
+              when={when}
+              startDate={start}
+              endDate={shown.end_date ?? ""}
+              startTime={shown.start_time ?? ""}
+              endTime={shown.end_time ?? ""}
+              onSave={async (fields) => {
+                if (forThis) {
+                  await editOcc.mutateAsync({
+                    path: { event_id: id, day },
+                    body: { scope: "this", ...fields },
+                  });
+                } else {
+                  await update.mutateAsync({ path, body: fields });
+                }
+              }}
+            />
             {event.rrule && <Chip icon={Repeat}>{describeRule(event.rrule)}</Chip>}
-            {shown.location && <Chip icon={MapPin}>{shown.location}</Chip>}
+            <EventLocationChip
+              location={shown.location ?? null}
+              onSave={async (location) => {
+                if (forThis) {
+                  await editOcc.mutateAsync({
+                    path: { event_id: id, day },
+                    body: { scope: "this", location },
+                  });
+                } else {
+                  await update.mutateAsync({ path, body: { location } });
+                }
+              }}
+            />
             {event.cancelled_at && <Chip>Cancelled</Chip>}
           </>
         }
@@ -835,7 +914,7 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
           header: isRepeating && (
             <div className="mb-1.5 flex items-center gap-2">
               <span className="type-meta text-(--text-tertiary)">Notes for</span>
-              <fieldset className="flex h-7 rounded-(--radius-6) bg-neutral-200 p-0.5">
+              <fieldset className="flex h-7 rounded-(--radius-6) bg-(--switch-container-bg) p-0.5">
                 <legend className="sr-only">Notes for</legend>
                 {(
                   [
@@ -874,7 +953,7 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
                       body: { scope: "this", notes },
                       throwOnError: true,
                     }),
-                  listEventOccurrencesQueryKey(occurrenceQuery),
+                  listEventOccurrencesQueryKey({ query: { first: day, last: day } }),
                 )
               : saveNotes(
                   () => updateEvent({ path, body: { notes }, throwOnError: true }),
@@ -882,7 +961,7 @@ function EventPanel({ id, day }: { id: number; day: string | null }) {
                 ),
         }}
         actions={menu.actions}
-        error={owner.error ?? update.error}
+        error={owner.error ?? update.error ?? editOcc.error ?? menu.error}
       />
       {menu.dialogs}
     </AreaScope>
@@ -1083,7 +1162,7 @@ function MetricEntries({ metric }: { metric: MetricRead }) {
       <div className="flex h-6 items-center gap-1.5">
         <h3 className="type-label text-(--text-tertiary)">Entries</h3>
         {entries.length > 0 && (
-          <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-200 px-1.5 text-[11px] font-medium text-(--text-secondary) tabular-nums">
+          <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-(--counter-bg) px-1.5 type-tag font-medium text-(--text-secondary) tabular-nums">
             {entries.length}
           </span>
         )}
@@ -1106,7 +1185,7 @@ function MetricEntries({ metric }: { metric: MetricRead }) {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") submit();
                 }}
-                className="w-full min-w-0 bg-transparent text-[13px] text-(--text-primary) tabular-nums outline-none placeholder:text-(--text-disabled)"
+                className="w-full min-w-0 bg-transparent type-body text-(--text-primary) tabular-nums outline-none placeholder:text-(--text-disabled)"
               />
               {suffix && <span className="shrink-0 text-xs text-(--text-tertiary)">{suffix}</span>}
             </label>
@@ -1149,7 +1228,7 @@ function MetricEntries({ metric }: { metric: MetricRead }) {
             return (
               <li
                 key={entry.id ?? `${entry.date}-${index}`}
-                className="group flex min-h-7 items-center gap-2 text-[13px]"
+                className="group flex min-h-7 items-center gap-2 type-body"
               >
                 <span className="w-[62px] shrink-0 type-meta text-(--text-tertiary) tabular-nums">
                   {shortDate(entry.date)}
@@ -1163,7 +1242,7 @@ function MetricEntries({ metric }: { metric: MetricRead }) {
                   </span>
                 )}
                 <span className="flex-1" />
-                {isManual && entry.id !== null && (
+                {canLog && entry.id !== null && (
                   <button
                     type="button"
                     aria-label={`Delete ${label} on ${shortDate(entry.date)}`}
@@ -1198,5 +1277,343 @@ function MetricEntries({ metric }: { metric: MetricRead }) {
         </button>
       )}
     </section>
+  );
+}
+
+function RoutineDetailPanel({ id }: { id: number }) {
+  const navigate = useNavigate();
+  const close = useDetailPanel((state) => state.close);
+  const { period, date } = usePeriodStore();
+  const query = useQuery(
+    getRoutinePageOptions({ path: { routine_id: id }, query: { period, date } }),
+  );
+  const lifeAreas = useQuery(listLifeAreasOptions()).data ?? [];
+  const saveNotes = useNotesSave();
+  const update = useMutation(updateRoutineMutation());
+  const check = useMutation(setRoutineStepDayMutation());
+  const clear = useMutation(clearRoutineStepDayMutation());
+  const timeFormat = useTimeFormat();
+  const data = query.data;
+
+  if (!data) return <Loading error={query.error} />;
+  const { routine, steps, today: currentToday } = data;
+  const isArchived = routine.archived_at !== null;
+  const activeRule =
+    data.rrule ?? routine.schedules[routine.schedules.length - 1]?.rrule ?? "FREQ=DAILY";
+  const colorOf = (lifeAreaId: number) => lifeAreas.find((a) => a.id === lifeAreaId)?.color ?? null;
+
+  return (
+    <AreaScope color={null}>
+      <PanelView
+        crumbs={["Routines"]}
+        marker={<Marker icon={Repeat} />}
+        title={routine.title}
+        onRename={
+          isArchived
+            ? undefined
+            : async (title) => {
+                await updateRoutine({
+                  path: { routine_id: id },
+                  body: { title },
+                  throwOnError: true,
+                });
+              }
+        }
+        headerAction={
+          <IconButton
+            label="Open routine page"
+            onPress={() => {
+              close();
+              navigate(`/areas/routines/${id}`);
+            }}
+          >
+            <ArrowUpRight />
+          </IconButton>
+        }
+        chips={
+          <>
+            <Chip icon={Repeat}>{describeRule(activeRule)}</Chip>
+            {isArchived ? (
+              <>
+                {routine.start_time && (
+                  <Chip>
+                    {routine.end_time
+                      ? `${formatTime(routine.start_time, timeFormat)} – ${formatTime(routine.end_time, timeFormat)}`
+                      : formatTime(routine.start_time, timeFormat)}
+                  </Chip>
+                )}
+                <Chip icon={Archive}>Archived</Chip>
+              </>
+            ) : (
+              <TimeRangeChip
+                label="Routine time"
+                startTime={routine.start_time ?? null}
+                endTime={routine.end_time ?? null}
+                onChange={({ startTime, endTime }) =>
+                  update.mutate({
+                    path: { routine_id: id },
+                    body: { start_time: startTime, end_time: endTime },
+                  })
+                }
+              />
+            )}
+          </>
+        }
+        content={
+          <section aria-label="Today's steps" className="flex flex-col gap-1">
+            <h3 className="type-label text-(--text-tertiary)">Steps</h3>
+            {steps.length === 0 ? (
+              <p className="type-meta text-(--text-tertiary)">No steps yet.</p>
+            ) : (
+              <ul className="flex flex-col gap-0.5">
+                {steps
+                  .filter((s) => s.step.archived_at === null)
+                  .map((s) => {
+                    const todayState = s.days.find((d) => d.day === currentToday);
+                    const done = todayState?.state === "done";
+                    const actionable =
+                      todayState?.state === "todo" ||
+                      todayState?.state === "done" ||
+                      todayState?.state === "missed";
+                    const path = { step_id: s.step.id, day: currentToday };
+                    return (
+                      <li
+                        key={s.step.id}
+                        data-area={areaDataAttribute(colorOf(s.step.life_area_id))}
+                        className="flex min-h-7 items-center gap-2 rounded-(--radius-6) px-1"
+                      >
+                        <EntityCheckbox
+                          shape="round"
+                          size="sm"
+                          checked={done}
+                          disabled={!actionable || isArchived || check.isPending || clear.isPending}
+                          label={
+                            done ? `Mark ${s.step.title} not done` : `Mark ${s.step.title} done`
+                          }
+                          onChange={() =>
+                            done
+                              ? clear.mutate({ path })
+                              : check.mutate({ path, body: { status: "done" } })
+                          }
+                        />
+                        <span
+                          className={`min-w-0 flex-1 truncate type-body ${
+                            done ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"
+                          }`}
+                        >
+                          {s.step.title}
+                        </span>
+                      </li>
+                    );
+                  })}
+              </ul>
+            )}
+          </section>
+        }
+        notes={{
+          key: `routine-${id}`,
+          markdown: routine.notes,
+          readOnly: isArchived,
+          save: (notes) =>
+            saveNotes(
+              () =>
+                updateRoutine({
+                  path: { routine_id: id },
+                  body: { notes },
+                  throwOnError: true,
+                }),
+              getRoutinePageQueryKey({ path: { routine_id: id }, query: { period, date } }),
+            ),
+        }}
+        error={update.error ?? check.error ?? clear.error}
+      />
+    </AreaScope>
+  );
+}
+
+function EventWhenChip({
+  when,
+  startDate,
+  endDate,
+  startTime,
+  endTime,
+  onSave,
+}: {
+  when: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  onSave: (fields: {
+    start_date: string;
+    end_date: string | null;
+    start_time: string | null;
+    end_time: string | null;
+  }) => Promise<unknown>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [sDate, setSDate] = useState(startDate);
+  const [eDate, setEDate] = useState(endDate === startDate ? "" : endDate);
+  const [sTime, setSTime] = useState(startTime.slice(0, 5));
+  const [eTime, setETime] = useState(endTime.slice(0, 5));
+  const [saving, setSaving] = useState(false);
+
+  const onOpenChange = (next: boolean) => {
+    if (next) {
+      setSDate(startDate);
+      setEDate(endDate === startDate ? "" : endDate);
+      setSTime(startTime.slice(0, 5));
+      setETime(endTime.slice(0, 5));
+    }
+    setIsOpen(next);
+  };
+
+  const apply = async () => {
+    setSaving(true);
+    try {
+      await onSave({
+        start_date: sDate,
+        end_date: eDate && eDate >= sDate ? eDate : null,
+        start_time: sTime || null,
+        end_time: sTime && eTime ? eTime : null,
+      });
+      setIsOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <PopoverChip
+      icon={CalendarDays}
+      label="Event date and time"
+      width={280}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      chip={<span className="truncate">{when}</span>}
+    >
+      <div className="flex flex-col gap-2.5 p-1">
+        <div className="flex flex-col gap-1">
+          <span className="type-meta text-(--text-tertiary)">Start date</span>
+          <DatePickerField label="Start date" value={sDate} onChange={setSDate} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="type-meta text-(--text-tertiary)">End date (optional)</span>
+          <DatePickerField
+            label="End date"
+            value={eDate}
+            onChange={setEDate}
+            placeholder="Same day"
+            clearLabel="Same day"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex flex-col gap-1">
+            <span className="type-meta text-(--text-tertiary)">Start time</span>
+            <input
+              type="time"
+              value={sTime}
+              onChange={(e) => setSTime(e.target.value)}
+              className="h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2 type-body text-(--text-primary)"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="type-meta text-(--text-tertiary)">End time</span>
+            <input
+              type="time"
+              value={eTime}
+              disabled={!sTime}
+              onChange={(e) => setETime(e.target.value)}
+              className="h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2 type-body text-(--text-primary) disabled:opacity-45"
+            />
+          </label>
+        </div>
+        <div className="flex justify-end gap-1.5 pt-1">
+          <Button size="sm" variant="ghost" onPress={() => setIsOpen(false)}>
+            Cancel
+          </Button>
+          <Button size="sm" isDisabled={saving || !sDate} onPress={apply}>
+            Save
+          </Button>
+        </div>
+      </div>
+    </PopoverChip>
+  );
+}
+
+function EventLocationChip({
+  location,
+  onSave,
+}: {
+  location: string | null;
+  onSave: (location: string | null) => Promise<unknown>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [draft, setDraft] = useState(location ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const onOpenChange = (next: boolean) => {
+    if (next) setDraft(location ?? "");
+    setIsOpen(next);
+  };
+
+  const apply = async () => {
+    setSaving(true);
+    try {
+      await onSave(draft.trim() || null);
+      setIsOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <PopoverChip
+      icon={MapPin}
+      tone={location ? "default" : "ghost"}
+      label="Event location"
+      width={260}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      chip={<span className="truncate">{location || "Add location"}</span>}
+    >
+      <div className="flex flex-col gap-2 p-1">
+        <input
+          type="text"
+          aria-label="Location"
+          placeholder="Add location…"
+          maxLength={300}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") apply();
+          }}
+          className="h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 type-body text-(--text-primary) outline-none focus:border-(--color-brand-600)"
+        />
+        <div className="flex justify-end gap-1.5">
+          {location && (
+            <Button
+              size="sm"
+              variant="ghost"
+              isDisabled={saving}
+              onPress={async () => {
+                setSaving(true);
+                try {
+                  await onSave(null);
+                  setIsOpen(false);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              Clear
+            </Button>
+          )}
+          <Button size="sm" isDisabled={saving} onPress={apply}>
+            Save
+          </Button>
+        </div>
+      </div>
+    </PopoverChip>
   );
 }

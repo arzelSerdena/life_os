@@ -24,7 +24,9 @@ import {
 } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead, ProjectRead, TaskRead } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useDetailPanel } from "../../stores/detailPanelStore";
 import { useNewTask } from "../../stores/newTaskStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { useTaskBoard } from "../../stores/taskBoardStore";
@@ -88,6 +90,7 @@ export function ProjectBoard({
   const update = useMutation(updateTaskMutation());
   const [drag, setDrag] = useState<Drag | null>(null);
   const [failed, setFailed] = useState<unknown>(null);
+  const panelOpen = useDetailPanel((state) => state.target !== null);
   // A short move starts a drag, so a click still opens the card.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -173,6 +176,7 @@ export function ProjectBoard({
     } catch (error) {
       setFailed(error);
       await queryClient.invalidateQueries();
+      return;
     }
     const last = batches.pop();
     if (last) showToast(dropMessage(task, change, sections), last, batches);
@@ -218,7 +222,11 @@ export function ProjectBoard({
         </div>
       )}
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <div className="@container min-h-0 flex-1 overflow-x-auto px-(--page-gutter) pt-4">
+        <Scroll
+          direction="horizontal"
+          fade={!panelOpen}
+          className="@container min-h-0 flex-1 px-(--page-gutter) pt-4"
+        >
           <div className="flex h-full min-w-min gap-4">
             {columns.map((column) => {
               // The target column's counter shows the dragged card (+1), the source's drops it.
@@ -240,7 +248,7 @@ export function ProjectBoard({
               );
             })}
           </div>
-        </div>
+        </Scroll>
         {tasks.length === 0 &&
           (unfiltered.length === 0 ? (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3">
@@ -311,10 +319,10 @@ function BoardColumn({
           />
         )}
       </header>
-      <div
+      <Scroll
         ref={setNodeRef}
         data-drop-target={column.key}
-        className="mt-3.5 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto pb-6"
+        className="mt-3.5 flex min-h-0 flex-1 flex-col gap-1.5 pb-6"
       >
         {column.subgroups.map((subgroup) =>
           subgroup.label ? (
@@ -334,7 +342,7 @@ function BoardColumn({
           ),
         )}
         {isTarget && target?.subgroupKey === null && <DropSlot />}
-      </div>
+      </Scroll>
     </section>
   );
 }

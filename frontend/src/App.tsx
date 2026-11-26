@@ -6,6 +6,7 @@ import { AppLayout } from "./components/AppLayout";
 import { AreasLayout } from "./features/life-areas/AreasLayout";
 import { START_PATHS } from "./features/settings/settings";
 import { TasksLayout } from "./features/tasks/TasksLayout";
+import { useThemeSync } from "./theme";
 
 const HomePage = lazy(() =>
   import("./features/home/HomePage").then((module) => ({ default: module.HomePage })),
@@ -49,6 +50,11 @@ const RoutinesPage = lazy(() =>
 const TasksPage = lazy(() =>
   import("./features/tasks/TasksPage").then((module) => ({ default: module.TasksPage })),
 );
+const TasksProjectPage = lazy(() =>
+  import("./features/tasks/TasksProjectPage").then((module) => ({
+    default: module.TasksProjectPage,
+  })),
+);
 const CalendarPage = lazy(() =>
   import("./features/calendar/CalendarPage").then((module) => ({ default: module.CalendarPage })),
 );
@@ -65,6 +71,7 @@ function StartPage() {
 }
 
 export function App() {
+  useThemeSync();
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -158,6 +165,14 @@ export function App() {
             element={
               <Suspense fallback={null}>
                 <RoutinesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="projects/:projectId"
+            element={
+              <Suspense fallback={null}>
+                <TasksProjectPage />
               </Suspense>
             }
           />

@@ -1,14 +1,25 @@
 import { Button } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowRight, CalendarDays, ChartLine, ChevronDown, Folder, Inbox } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChartLine,
+  ChevronDown,
+  Folder,
+  Inbox,
+  Plus,
+} from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router";
 import { updateTaskMutation } from "../../client/@tanstack/react-query.gen";
 import type { HomeRead, TaskRead } from "../../client/types.gen";
 import { AnchoredPopover } from "../../components/AnchoredPopover";
+import { Counter } from "../../components/Counter";
+import { IconButton } from "../../components/IconButton";
 import { SectionCard } from "../../components/SectionCard";
 import { useChangeToast } from "../../stores/changeToastStore";
 import type { PanelTarget } from "../../stores/detailPanelStore";
+import { useNewTask } from "../../stores/newTaskStore";
 import { EventRow, type RowContext, TaskRow } from "../calendar/AgendaRow";
 import { PanelLink } from "../detail-panel/PanelLink";
 import { areaDataAttribute } from "../life-areas/palette";
@@ -36,10 +47,33 @@ export function TodayCard({
   time: (value: string) => string;
 }) {
   const navigate = useNavigate();
+  const openNewTask = useNewTask((state) => state.open);
+  const showToast = useChangeToast((state) => state.show);
+  const failToast = useChangeToast((state) => state.fail);
+  const moveTask = useMutation(updateTaskMutation());
   const [showCompleted, setShowCompleted] = useState(false);
   const schedule = scheduleItems(home, now, time);
   const open = home.overdue.length + home.tasks.length;
   const isEmpty = open + home.completed.length === 0 && schedule.length === 0;
+  const moveOverdueToToday = async () => {
+    const results = await Promise.allSettled(
+      home.overdue.map((task) =>
+        moveTask.mutateAsync({
+          path: { task_id: task.id },
+          body: {
+            due_date: home.today,
+            ...(task.scheduled_date ? { scheduled_date: home.today } : {}),
+          },
+        }),
+      ),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      failToast(`Couldn't move ${failed} overdue ${failed === 1 ? "task" : "tasks"}`, null);
+    } else {
+      showToast(`Moved ${home.overdue.length} overdue to today`, null);
+    }
+  };
   const taskRow = (task: TaskRead) => (
     <TaskRow
       key={task.id}
@@ -50,7 +84,18 @@ export function TodayCard({
   );
 
   return (
-    <SectionCard title="Today" description={todaySubtitle(home) || undefined}>
+    <SectionCard
+      title="Today"
+      description={todaySubtitle(home) || undefined}
+      action={
+        <IconButton
+          label="New task for today"
+          onPress={() => openNewTask({ scheduledDate: home.today }, home.today)}
+        >
+          <Plus />
+        </IconButton>
+      }
+    >
       {isEmpty ? (
         <div className="flex flex-col items-start gap-2 pb-1">
           <p className="type-meta text-(--text-tertiary)">Nothing scheduled today.</p>
@@ -66,6 +111,16 @@ export function TodayCard({
             <Group
               title={<span className="text-(--text-danger)">Overdue</span>}
               count={home.overdue.length}
+              action={
+                <button
+                  type="button"
+                  disabled={moveTask.isPending}
+                  onClick={moveOverdueToToday}
+                  className="ml-auto rounded-(--radius-4) px-1.5 py-0.5 text-xs font-medium text-(--text-tertiary) outline-none hover:bg-(--bg-hover) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                >
+                  Move all to today
+                </button>
+              }
             >
               {home.overdue.map(taskRow)}
             </Group>
@@ -166,7 +221,7 @@ function DueRow({
   return (
     <li
       data-area={areaDataAttribute(color)}
-      className="relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:bg-(--color-neutral-50)"
+      className="relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong)"
     >
       <span className="mt-0.5 grid size-4 shrink-0 place-items-center">{icon}</span>
       <span className="flex min-w-0 flex-col">
@@ -186,7 +241,7 @@ function DueRow({
 function NowLine({ label }: { label: string }) {
   return (
     <li aria-label={`Now, ${label}`} className="mb-1.5 flex h-4 items-center gap-1.5 px-2">
-      <span className="text-[11px] font-semibold text-brand-700 tabular-nums">{label}</span>
+      <span className="type-tag font-semibold text-brand-700 tabular-nums">{label}</span>
       <span className="relative h-0.5 flex-1 rounded-full bg-brand-600 before:absolute before:-top-[3px] before:-left-[3px] before:size-2 before:rounded-full before:bg-brand-600" />
     </li>
   );
@@ -195,10 +250,12 @@ function NowLine({ label }: { label: string }) {
 export function Group({
   title,
   count,
+  action,
   children,
 }: {
   title: ReactNode;
   count?: number;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -206,19 +263,14 @@ export function Group({
       <h3 className="flex h-7 items-center gap-2 px-2 type-label text-(--text-tertiary)">
         {title}
         {count !== undefined && <Counter count={count} />}
+        {action}
       </h3>
       <ul className="flex flex-col">{children}</ul>
     </section>
   );
 }
 
-export function Counter({ count }: { count: number }) {
-  return (
-    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--color-neutral-100) px-1 text-[11px] font-medium tracking-normal text-(--text-secondary) tabular-nums">
-      {count}
-    </span>
-  );
-}
+export { Counter };
 
 const ROW_BUTTON =
   "inline-flex h-6 items-center gap-1 rounded-[5px] border border-(--border-default) bg-(--bg-surface) px-1.5 text-xs font-medium text-(--text-secondary) outline-none hover:border-(--color-neutral-300) hover:text-(--text-primary) focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
@@ -250,18 +302,19 @@ function RowActions({ task, today }: { task: TaskRead; today: string }) {
     <>
       <button
         type="button"
-        title={dayDate(tomorrow)}
+        title={`Schedule for ${dayDate(tomorrow)}`}
         disabled={update.isPending}
         onClick={() => move(tomorrow)}
         className={ROW_BUTTON}
       >
         <ArrowRight aria-hidden className="size-[13px] text-(--text-tertiary)" />
-        Tomorrow
+        Schedule tomorrow
       </button>
       <button
         type="button"
-        aria-label={`Pick a date for ${task.title}`}
-        title="Pick date"
+        aria-label={`Pick scheduled date for ${task.title}`}
+        aria-expanded={anchor !== null}
+        title="Pick scheduled date"
         disabled={update.isPending}
         onClick={(event) => setAnchor(event.currentTarget)}
         className={`${ROW_BUTTON} w-6 justify-center px-0`}

@@ -19,12 +19,15 @@ export function calendarKeyAction(
   key: string,
   view: CalendarView,
   anchor: string,
+  dayCount = 3,
 ): CalendarKeyAction | null {
   const nextView = VIEW_KEYS[key];
   if (nextView) return { kind: "view", view: nextView };
   if (key.toLowerCase() === "t") return { kind: "anchor", anchor: null };
-  if (key === "ArrowLeft") return { kind: "anchor", anchor: stepAnchor(view, anchor, -1) };
-  if (key === "ArrowRight") return { kind: "anchor", anchor: stepAnchor(view, anchor, 1) };
+  if (key === "ArrowLeft")
+    return { kind: "anchor", anchor: stepAnchor(view, anchor, -1, dayCount) };
+  if (key === "ArrowRight")
+    return { kind: "anchor", anchor: stepAnchor(view, anchor, 1, dayCount) };
   return null;
 }
 
@@ -37,8 +40,8 @@ export function useCalendarKeys(anchor: string): void {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (!canUsePageKey(event) || event.shiftKey) return;
-      const { view, setView, setAnchor } = useCalendarStore.getState();
-      const action = calendarKeyAction(event.key, view, anchor);
+      const { view, dayCount, setView, setAnchor } = useCalendarStore.getState();
+      const action = calendarKeyAction(event.key, view, anchor, dayCount);
       if (!action) return;
       event.preventDefault();
       if (action.kind === "view") setView(action.view);

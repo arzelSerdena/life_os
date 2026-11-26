@@ -6,12 +6,16 @@ import type { LifeAreaRead } from "../../client/types.gen";
  * palette's 500 step, for the color picker.
  */
 export const AREA_PALETTES = [
-  { key: "blue", name: "Blue", swatch: "#3579c2" },
-  { key: "teal", name: "Teal", swatch: "#11bbb3" },
-  { key: "rose", name: "Rose", swatch: "#ca6a93" },
-  { key: "plum", name: "Plum", swatch: "#b181b4" },
-  { key: "ochre", name: "Ochre", swatch: "#cba927" },
-  { key: "terracotta", name: "Terracotta", swatch: "#cc6b43" },
+  { key: "blue", name: "Blue", swatch: "var(--color-area-blue-500)" },
+  { key: "teal", name: "Teal", swatch: "var(--color-area-teal-500)" },
+  { key: "rose", name: "Rose", swatch: "var(--color-area-rose-500)" },
+  { key: "plum", name: "Plum", swatch: "var(--color-area-plum-500)" },
+  { key: "ochre", name: "Ochre", swatch: "var(--color-area-ochre-500)" },
+  { key: "terracotta", name: "Terracotta", swatch: "var(--color-area-terracotta-500)" },
+  { key: "indigo", name: "Indigo", swatch: "var(--color-area-indigo-500)" },
+  { key: "sage", name: "Sage", swatch: "var(--color-area-sage-500)" },
+  { key: "amber", name: "Amber", swatch: "var(--color-area-amber-500)" },
+  { key: "slate", name: "Slate", swatch: "var(--color-area-slate-500)" },
 ] as const;
 
 export type AreaPaletteKey = (typeof AREA_PALETTES)[number]["key"];

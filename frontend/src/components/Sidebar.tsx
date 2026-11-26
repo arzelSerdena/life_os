@@ -1,8 +1,8 @@
 import { PanelLeftClose } from "lucide-react";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router";
 import { type ItemTarget, itemMenuProps } from "../features/item-menu/target";
-import { isModKey } from "../keyboard";
+import { isEditable, isModKey, isOverlayOpen } from "../keyboard";
 import {
   SIDEBAR_COLLAPSE_WIDTH,
   SIDEBAR_DEFAULT_WIDTH,
@@ -20,7 +20,15 @@ export function useSidebarVisibility(): { isHidden: boolean; show: () => void } 
 export function useSidebarShortcut(): void {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (!isModKey(event, "b")) return;
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        isEditable(event.target) ||
+        isOverlayOpen() ||
+        !isModKey(event, "b")
+      ) {
+        return;
+      }
       event.preventDefault();
       const state = useSidebarStore.getState();
       state.setCollapsed(!state.collapsed);
@@ -42,15 +50,18 @@ type SidebarProps = {
 export function Sidebar({ label, children }: SidebarProps) {
   const { collapsed, width, setCollapsed, setWidth } = useSidebarStore();
   const asideRef = useRef<HTMLElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   if (collapsed) return null;
 
   const hide = () => setCollapsed(true);
 
   const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
     const left = asideRef.current?.getBoundingClientRect().left ?? 0;
     const handle = event.currentTarget;
     handle.setPointerCapture?.(event.pointerId);
+    setIsDragging(true);
     const onMove = (move: PointerEvent) => {
       const next = move.clientX - left;
       if (next < SIDEBAR_COLLAPSE_WIDTH) {
@@ -62,11 +73,14 @@ export function Sidebar({ label, children }: SidebarProps) {
       }
     };
     const stop = () => {
+      setIsDragging(false);
       handle.removeEventListener("pointermove", onMove);
       handle.removeEventListener("pointerup", stop);
+      handle.removeEventListener("pointercancel", stop);
     };
     handle.addEventListener("pointermove", onMove);
     handle.addEventListener("pointerup", stop);
+    handle.addEventListener("pointercancel", stop);
   };
 
   return (
@@ -95,8 +109,12 @@ export function Sidebar({ label, children }: SidebarProps) {
           if (event.key === "ArrowLeft") setWidth(width - 16);
           if (event.key === "ArrowRight") setWidth(width + 16);
         }}
-        className="absolute inset-y-0 -right-[3px] w-1.5 cursor-col-resize outline-none hover:bg-brand-200 focus-visible:bg-brand-300"
-      />
+        data-dragging={isDragging}
+        className="group absolute top-0 bottom-0 -right-[5px] z-20 w-2.5 cursor-col-resize outline-none"
+      >
+        <span className="absolute top-3 bottom-3 left-1 hidden w-0.5 rounded-full bg-brand-400 group-hover:block group-focus-visible:block group-data-[dragging=true]:block" />
+        <span className="absolute top-1/2 left-px -mt-[18px] hidden h-9 w-2 rounded-[4px] bg-brand-600 group-hover:block group-focus-visible:block group-data-[dragging=true]:block" />
+      </div>
     </aside>
   );
 }

@@ -71,7 +71,7 @@ export function AreaMenu({
             <span className="flex flex-col py-1">
               <Label>Delete area</Label>
               {!canDelete && (
-                <span className="text-[11px] leading-[14px] text-(--text-tertiary)">
+                <span className="type-tag leading-[14px] text-(--text-tertiary)">
                   Only empty areas can be deleted. Archive it instead.
                 </span>
               )}

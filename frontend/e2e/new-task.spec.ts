@@ -39,7 +39,10 @@ test("a column + pre-fills its priority; the pickers set owner, section, dates a
   await modal.getByRole("textbox", { name: "Title" }).fill(title);
   await modal.getByRole("button", { name: "Owner" }).click();
   await page.getByRole("textbox", { name: "Search" }).fill(project.title.slice(0, 8));
-  await page.getByRole("button", { name: project.title }).click();
+  await page
+    .getByRole("dialog", { name: "Owner" })
+    .getByRole("button", { name: project.title })
+    .click();
   await closed(page, "Owner");
   await expect(modal.getByRole("button", { name: "Owner" })).toHaveText(project.title);
 
@@ -48,7 +51,7 @@ test("a column + pre-fills its priority; the pickers set owner, section, dates a
   await page.getByRole("menuitemradio", { name: "Portfolio" }).click();
   await expect(page.getByRole("menu")).toHaveCount(0);
 
-  await modal.getByRole("button", { name: "Scheduled" }).click();
+  await modal.getByRole("button", { name: "Scheduled", exact: true }).click();
   await page.getByRole("button", { name: /^Tomorrow · / }).click();
   await closed(page, "Scheduled");
   // A typed date shows its match as one row; Enter picks it.
@@ -104,7 +107,9 @@ test("a day's + on Next 7 days pre-fills the day; Escape cancels", async ({ page
 
   await page.goto("/tasks/next-7-days");
   await page.getByRole("button", { name: "New task in Tomorrow" }).click();
-  await expect(dialog(page).getByRole("button", { name: "Scheduled" })).not.toHaveText("Scheduled");
+  await expect(dialog(page).getByRole("button", { name: "Scheduled", exact: true })).not.toHaveText(
+    "Scheduled",
+  );
   await page.keyboard.press("Escape");
   await expect(dialog(page)).toHaveCount(0);
 
@@ -114,7 +119,7 @@ test("a day's + on Next 7 days pre-fills the day; Escape cancels", async ({ page
   await modal.getByRole("button", { name: "Owner" }).click();
   await page.getByRole("button", { name: area.title }).click();
   await closed(page, "Owner");
-  await modal.getByRole("button", { name: "Scheduled" }).click();
+  await modal.getByRole("button", { name: "Scheduled", exact: true }).click();
   await page.getByRole("button", { name: /^Today · / }).click();
   await closed(page, "Scheduled");
   // Enter in the title creates the task.
@@ -185,7 +190,9 @@ test("Ctrl N and N open New task on any screen, with the page's spot", async ({
   await page.goto("/areas");
   await page.keyboard.press("Control+n");
   const modal = dialog(page);
-  await expect(modal.getByRole("button", { name: "Scheduled" })).toHaveText("Scheduled");
+  await expect(modal.getByRole("button", { name: "Scheduled", exact: true })).toHaveText(
+    "Scheduled",
+  );
   // Typing N in the title doesn't reopen anything.
   await modal.getByRole("textbox", { name: "Title" }).fill(title);
   await modal.getByRole("textbox", { name: "Title" }).press("Enter");
@@ -197,7 +204,9 @@ test("Ctrl N and N open New task on any screen, with the page's spot", async ({
   await page.goto("/tasks/today");
   await expect(page.getByRole("button", { name: "New task", exact: true })).toBeVisible();
   await page.keyboard.press("n");
-  await expect(modal.getByRole("button", { name: "Scheduled" })).not.toHaveText("Scheduled");
+  await expect(modal.getByRole("button", { name: "Scheduled", exact: true })).not.toHaveText(
+    "Scheduled",
+  );
   await page.keyboard.press("Escape");
   await expect(modal).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();

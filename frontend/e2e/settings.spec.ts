@@ -40,7 +40,9 @@ test("Back up now, then Restore takes the data back to the backup", async ({ pag
   await expect(dialog).toContainText("Your current data is backed up first");
   await dialog.getByRole("button", { name: "Restore backup" }).click();
 
-  await expect(page.getByRole("status")).toContainText(/Restored the backup from Today/);
+  await expect(
+    page.getByRole("status").filter({ hasText: /Restored the backup from Today/ }),
+  ).toBeVisible();
   await expect(dialog).toBeHidden();
   const areas = (await (await request.get("/api/life-areas")).json()) as { title: string }[];
   expect(areas.map((item) => item.title)).not.toContain(area.title);
@@ -53,5 +55,7 @@ test("Export downloads a zip of the data", async ({ page }) => {
   await page.getByRole("group", { name: "Export all data" }).getByRole("button").click();
 
   expect((await download).suggestedFilename()).toMatch(/^life-os-\d{4}-\d{2}-\d{2}\.zip$/);
-  await expect(page.getByRole("status")).toContainText(/Exported life-os-.*\.zip · /);
+  await expect(
+    page.getByRole("status").filter({ hasText: /Exported life-os-.*\.zip · / }),
+  ).toBeVisible();
 });
