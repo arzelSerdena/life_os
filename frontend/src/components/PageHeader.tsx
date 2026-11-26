@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 type PageHeaderProps = {
-  title: string;
+  title: ReactNode;
   /** Shown before the title, such as an area's color square. */
   marker?: ReactNode;
   /** One line under the title (an area's vision, or what the page answers). */

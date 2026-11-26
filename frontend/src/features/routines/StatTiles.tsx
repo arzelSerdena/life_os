@@ -25,7 +25,7 @@ export function StatTiles({ tiles }: { tiles: Tile[] }) {
               {tile.value}
             </span>
             {tile.unit && (
-              <span className="text-[13px] leading-6 font-medium text-(--text-tertiary)">
+              <span className="type-body leading-6 font-medium text-(--text-tertiary)">
                 {tile.unit}
               </span>
             )}

@@ -264,8 +264,11 @@ def after_occurrence_finished(session: Session, task: Task, history: ChangeRecor
     if _has_open_occurrence(session, template, excluding=task.id):
         return
     assert template.rrule is not None
-    next_day = rrules.next_after(template.rrule, clock.today(), template.ends_on)
-    if next_day is None or _occurrence_exists(session, template, next_day):
+    cursor = max(clock.today(), task.occurrence_date)
+    next_day = rrules.next_after(template.rrule, cursor, template.ends_on)
+    while next_day is not None and _occurrence_exists(session, template, next_day):
+        next_day = rrules.next_after(template.rrule, next_day, template.ends_on)
+    if next_day is None:
         return
     if not _owner_is_open(session, template):
         return
@@ -291,6 +294,9 @@ def edit_series(session: Session, task_id: int, data: SeriesEdit) -> TaskTemplat
     first_day: date | None = None
     target = template
     if _splits(template, task.occurrence_date, data.scope):
+        effective_ends_on = changes.get("ends_on", template.ends_on)
+        if effective_ends_on is not None and effective_ends_on < task.occurrence_date:
+            raise UnprocessableError("The series ends before this occurrence.")
         target = _split(session, template, task.occurrence_date)
         first_day = task.occurrence_date
 
@@ -381,10 +387,16 @@ def _ensure_open_occurrence(session: Session, template: TaskTemplate) -> None:
     if _has_open_occurrence(session, template) or not _owner_is_open(session, template):
         return
     assert template.starts_on is not None
-    day = max(template.starts_on, clock.today())
+    day: date | None = max(template.starts_on, clock.today())
     if template.ends_on is not None and day > template.ends_on:
         return
-    if not _occurrence_exists(session, template, day):
+    while day is not None and _occurrence_exists(session, template, day):
+        day = (
+            rrules.next_after(template.rrule, day, template.ends_on)
+            if template.rrule is not None
+            else None
+        )
+    if day is not None:
         _add_occurrence(session, template, day)
 
 

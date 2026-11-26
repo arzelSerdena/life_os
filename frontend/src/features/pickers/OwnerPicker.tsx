@@ -1,6 +1,7 @@
 import { Folder, Inbox, Search, TextAlignStart } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import type { LifeAreaRead, ProjectRead, SectionRead } from "../../client/types.gen";
+import { Scroll } from "../../components/Scroll";
 import { areaDataAttribute } from "../life-areas/palette";
 import { CrumbPicker, PickerRow, PickerSeparator, PopoverChip } from "./chips";
 
@@ -156,11 +157,11 @@ export function OwnerPanel({
             placeholder="Search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
+            className="min-w-0 flex-1 bg-transparent type-body text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
           />
         </label>
       </div>
-      <div className="flex max-h-80 flex-col overflow-y-auto">
+      <Scroll className="flex max-h-80 flex-col">
         {showInbox && (
           <>
             <PickerRow
@@ -200,9 +201,9 @@ export function OwnerPanel({
           </div>
         ))}
         {!showInbox && groups.length === 0 && (
-          <p className="px-2 py-1.5 text-[13px] text-(--text-tertiary)">No matches.</p>
+          <p className="px-2 py-1.5 type-body text-(--text-tertiary)">No matches.</p>
         )}
-      </div>
+      </Scroll>
     </>
   );
 }

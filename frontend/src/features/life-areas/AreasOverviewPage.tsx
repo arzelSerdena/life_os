@@ -7,6 +7,7 @@ import { listLifeAreasOptions } from "../../client/@tanstack/react-query.gen";
 import { PageHeader } from "../../components/PageHeader";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { useAreasContext } from "./AreasLayout";
 import { OverviewCards } from "./overview/OverviewCards";
 import type { AreaPaletteKey } from "./palette";
@@ -71,11 +72,14 @@ export function AreasOverviewPage() {
           </>
         }
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+      <Scroll
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col gap-4 px-(--page-gutter) pt-4 pb-(--page-gutter)"
+      >
         {lifeAreas.isError && <QueryError error={lifeAreas.error} onRetry={lifeAreas.refetch} />}
         {lifeAreas.isSuccess &&
           (hasAreas ? <OverviewCards /> : <FirstAreaWelcome onCreate={openCreateForm} />)}
-      </div>
+      </Scroll>
       {isReordering && lifeAreas.data && (
         <ReorderAreasModal lifeAreas={lifeAreas.data} onClose={() => setIsReordering(false)} />
       )}
@@ -100,7 +104,7 @@ function FirstAreaWelcome({
         A life area is a part of your life you want to look after, like your career or your health.
         Projects, tasks, events, routines and metrics all live inside one.
       </p>
-      <Button onPress={() => onCreate()} className="h-9 px-4 text-[13px]">
+      <Button onPress={() => onCreate()} className="h-9 px-4 type-body">
         <Plus aria-hidden />
         New area
       </Button>

@@ -31,6 +31,7 @@ import type {
   LifeAreaRead,
 } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { PANEL_OPENER, useDetailPanel } from "../../stores/detailPanelStore";
@@ -108,7 +109,10 @@ export function ArchivePage() {
           )}
         </div>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+      <Scroll
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col px-(--page-gutter) pt-4 pb-(--page-gutter)"
+      >
         {archive.isError ? (
           <QueryError error={archive.error} onRetry={archive.refetch} />
         ) : !data || !lifeAreas ? (
@@ -130,7 +134,7 @@ export function ArchivePage() {
             {tab === "routines" && <RoutineRows data={data} onDelete={setDeleting} />}
           </section>
         )}
-      </div>
+      </Scroll>
       {deleting && <DeleteDialog target={deleting} onClose={() => setDeleting(null)} />}
     </>
   );
@@ -423,7 +427,7 @@ function Row({
       <button
         type="button"
         onClick={onOpen}
-        className="shrink-0 rounded-[4px] text-left text-[13px] leading-5 font-medium whitespace-nowrap text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        className="shrink-0 rounded-[4px] text-left type-body leading-5 font-medium whitespace-nowrap text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
       >
         {title}
       </button>
@@ -525,7 +529,7 @@ function AreaFilter({
               <button
                 type="button"
                 onClick={() => onChange([])}
-                className="flex h-[30px] shrink-0 items-center gap-2 rounded-(--radius-6) px-2 text-left text-[13px] text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                className="flex h-[30px] shrink-0 items-center gap-2 rounded-(--radius-6) px-2 text-left type-body text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
               >
                 <X aria-hidden className="size-[13px] text-(--text-tertiary)" strokeWidth={2} />
                 Clear filters

@@ -13,6 +13,8 @@ export type AppliedChange = {
   earlierBatchIds: string[];
   /** Undo for a change kept in the browser (Reset layout), with no batch. */
   onUndo?: () => void;
+  /** Informational notice (e.g. "Cannot drag routines"), shown briefly without Undo. */
+  isNotice?: boolean;
 };
 
 type ChangeToastState = {
@@ -22,6 +24,8 @@ type ChangeToastState = {
   show: (message: string, batchId: string | null, earlierBatchIds?: string[]) => void;
   /** Shows a change made in the browser, which `onUndo` puts back. */
   showLocal: (message: string, onUndo: () => void) => void;
+  /** Shows a brief notice in the toast position (e.g. "Cannot drag routines"). */
+  showNotice: (message: string) => void;
   /** Hides the toast; with a key, only if that change is still the one shown. */
   dismiss: (key?: number) => void;
   fail: (message: string, error: unknown) => void;
@@ -47,6 +51,15 @@ export const useChangeToast = create<ChangeToastState>()((set, get) => ({
     const key = nextKey++;
     set({ change: { key, message, batchId: null, earlierBatchIds: [], onUndo }, failure: null });
     timer = setTimeout(() => get().dismiss(key), CHANGE_TOAST_MS);
+  },
+  showNotice: (message) => {
+    clearTimeout(timer);
+    const key = nextKey++;
+    set({
+      change: { key, message, batchId: null, earlierBatchIds: [], isNotice: true },
+      failure: null,
+    });
+    timer = setTimeout(() => get().dismiss(key), 2500);
   },
   dismiss: (key) => {
     if (key !== undefined && get().change?.key !== key) return;

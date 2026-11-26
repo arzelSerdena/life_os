@@ -183,6 +183,43 @@ for (const hue of palettes) {
     push(decl(`--area-${role}`, `var(--color-area-${hue}-${step})`));
   push("}");
 }
+const DARK_AREA_STEPS = {
+  solid: "400",
+  "button-bg": "700",
+  "tint-active": "950",
+  text: "300",
+  ink: "100",
+  border: "700",
+  done: "800",
+  "tint-past": "950",
+};
+const DARK_NONE_ROLES = [
+  ["solid", "var(--color-neutral-400)"],
+  ["button-bg", "var(--color-neutral-700)"],
+  ["tint-active", "var(--color-neutral-800)"],
+  ["text", "var(--color-neutral-200)"],
+  ["ink", "var(--color-neutral-100)"],
+  ["border", "var(--color-neutral-700)"],
+  ["done", "var(--color-neutral-700)"],
+  ["tint-past", "var(--color-neutral-900)"],
+];
+
+push(
+  "",
+  "/* ── Dark mode life area roles (STYLE_GUIDE.md) ───────────────────────────── */",
+  '[data-theme="dark"], [data-theme="dark"] [data-area="none"] {',
+);
+for (const [role, value] of DARK_NONE_ROLES) push(decl(`--area-${role}`, value));
+push("}");
+for (const hue of palettes) {
+  push(`[data-theme="dark"] [data-area="${hue}"] {`);
+  for (const [role, step] of roles) {
+    const darkStep = DARK_AREA_STEPS[role] ?? step;
+    push(decl(`--area-${role}`, `var(--color-area-${hue}-${darkStep})`));
+  }
+  push("}");
+}
+
 push(
   "",
   "/* Re-declared so they pick up the nearest data-area, not the :root value. */",

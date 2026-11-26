@@ -5,7 +5,10 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./App";
 import { createQueryClient } from "./queryClient";
+import { applyTheme, readCachedTheme } from "./theme";
 import "./index.css";
+
+applyTheme(readCachedTheme(), false);
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {

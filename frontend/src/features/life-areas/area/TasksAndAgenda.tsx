@@ -3,6 +3,8 @@ import { CalendarDays, ChartLine, Flag, Folder, Repeat } from "lucide-react";
 import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 import { completeTaskMutation } from "../../../client/@tanstack/react-query.gen";
 import type { AreaPageRead, OccurrenceRead, TaskRead } from "../../../client/types.gen";
+import { Counter } from "../../../components/Counter";
+import { EntityCheckbox } from "../../../components/EntityCheckbox";
 import { QueryError } from "../../../components/QueryError";
 import type { PanelTarget } from "../../../stores/detailPanelStore";
 import { PanelLink } from "../../detail-panel/PanelLink";
@@ -169,7 +171,7 @@ export function TasksCard({ page, place }: { page: AreaPageRead; place?: TaskPla
             aria-controls={`panel-${tab.id}`}
             tabIndex={tab.id === selected ? 0 : -1}
             onClick={() => setSelected(tab.id)}
-            className={`-mb-px flex h-11 items-center gap-1.5 border-b-2 px-2 text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) ${
+            className={`-mb-px flex h-11 items-center gap-1.5 border-b-2 px-2 type-body font-medium outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) ${
               tab.id === selected
                 ? "border-(--color-neutral-900) text-(--text-primary)"
                 : "border-transparent text-(--text-secondary) hover:text-(--text-primary)"
@@ -206,7 +208,7 @@ export function TasksCard({ page, place }: { page: AreaPageRead; place?: TaskPla
                 <PanelLink
                   stretched
                   target={row.target}
-                  className="flex-1 truncate text-[13px] text-(--text-primary)"
+                  className="flex-1 truncate type-body text-(--text-primary)"
                 >
                   {row.title}
                 </PanelLink>
@@ -221,14 +223,6 @@ export function TasksCard({ page, place }: { page: AreaPageRead; place?: TaskPla
         )}
       </div>
     </section>
-  );
-}
-
-function Counter({ count }: { count: number }) {
-  return (
-    <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-neutral-100 px-1.5 text-[11px] font-medium text-(--text-secondary)">
-      {count}
-    </span>
   );
 }
 
@@ -349,11 +343,9 @@ export function AgendaCard({ page, place }: { page: AreaPageRead; place?: TaskPl
                     }}
                     tinted
                     icon={
-                      <CalendarDays
-                        aria-hidden
-                        className="size-4 text-(--area-solid)"
-                        strokeWidth={2}
-                      />
+                      <span className="grid size-4 place-items-center rounded-[4px] bg-(--event-area-icon-bg-upcoming) text-(--event-icon)">
+                        <CalendarDays aria-hidden className="size-3" strokeWidth={2.5} />
+                      </span>
                     }
                     title={event.title}
                     note={note}
@@ -402,11 +394,11 @@ function DayGroup({
 }) {
   return (
     <div>
-      <h3 className="flex h-7 items-center gap-2 px-2 text-xs font-semibold tracking-[0.04em] text-(--text-tertiary) uppercase">
+      <h3 className="flex h-7 items-center gap-2 px-2 type-label text-(--text-tertiary)">
         {title}
         {count !== undefined && <Counter count={count} />}
       </h3>
-      <ul className="flex flex-col gap-0.5">{children}</ul>
+      <ul className="flex flex-col gap-1.5">{children}</ul>
     </div>
   );
 }
@@ -426,15 +418,12 @@ function TaskItem({
     <Item
       target={{ kind: "task", id: task.id }}
       icon={
-        // The label gives the 16 px box a 24 px hit area, above the row's stretched link.
-        <label className="relative z-10 -m-1 grid size-6 shrink-0 cursor-pointer place-items-center">
-          <input
-            type="checkbox"
-            aria-label={`Mark ${task.title} done`}
-            onChange={onDone}
-            className="size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border-2 border-(--area-solid) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
-          />
-        </label>
+        <EntityCheckbox
+          checked={false}
+          label={`Mark ${task.title} done`}
+          onChange={onDone}
+          className="z-10 -m-1"
+        />
       }
       title={task.title}
       note={
@@ -468,18 +457,24 @@ function Item({
 }) {
   return (
     <li
-      className={`relative flex gap-2.5 rounded-(--radius-6) px-2 py-1.5 ${tinted ? "bg-(--area-tint-active)" : "hover:bg-(--bg-hover)"}`}
+      className={`relative flex items-start gap-2 rounded-(--radius-8) px-3 py-2 ${
+        tinted
+          ? "bg-(--event-area-bg-upcoming) hover:brightness-[0.98]"
+          : "border border-(--border-default) bg-(--bg-surface) hover:border-(--border-strong)"
+      }`}
     >
       <span className="mt-0.5 grid size-4 shrink-0 place-items-center">{icon}</span>
       <span className="flex min-w-0 flex-col">
         <PanelLink
           stretched
           target={target}
-          className={`truncate text-[13px] ${tinted ? "text-(--area-ink)" : "text-(--text-primary)"}`}
+          className={`truncate text-sm font-medium ${tinted ? "text-(--event-title)" : "text-(--text-primary)"}`}
         >
           {title}
         </PanelLink>
-        <span className={`type-meta ${tinted ? "text-(--area-text)" : "text-(--text-tertiary)"}`}>
+        <span
+          className={`truncate type-meta ${tinted ? "text-(--event-meta)" : "text-(--text-tertiary)"}`}
+        >
           {note}
         </span>
       </span>

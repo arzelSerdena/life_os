@@ -19,6 +19,7 @@ import { DateChip } from "../pickers/DatePicker";
 import { dayDate } from "../pickers/dates";
 import { OwnerChip } from "../pickers/OwnerPicker";
 import { RepeatChip } from "../pickers/RepeatPicker";
+import { TimeRangeChip } from "../pickers/TimeRangeChip";
 import type { Priority } from "./board";
 import {
   createRequest,
@@ -109,6 +110,8 @@ export function NewTaskModal({
         : null,
       priority: spot.priority ?? "none",
       scheduledDate: spot.scheduledDate ?? null,
+      scheduledTime: spot.scheduledTime ?? null,
+      scheduledEndTime: spot.scheduledEndTime ?? null,
       dueDate: null,
       repeat: null,
       subtasks: [],
@@ -236,10 +239,30 @@ export function NewTaskModal({
                     value={values.scheduledDate}
                     today={today}
                     clearLabel="Unscheduled"
-                    onChange={(scheduledDate) => set({ scheduledDate })}
+                    onChange={(scheduledDate) =>
+                      set(
+                        scheduledDate
+                          ? { scheduledDate }
+                          : { scheduledDate, scheduledTime: null, scheduledEndTime: null },
+                      )
+                    }
                   >
                     {values.scheduledDate ? dayDate(values.scheduledDate) : "Scheduled"}
                   </DateChip>
+                  <TimeRangeChip
+                    label="Scheduled time"
+                    startTime={values.scheduledTime ?? null}
+                    endTime={values.scheduledEndTime ?? null}
+                    requireEndAfterStart
+                    onChange={({ startTime, endTime }) =>
+                      set({
+                        scheduledDate:
+                          startTime && !values.scheduledDate ? today : values.scheduledDate,
+                        scheduledTime: startTime,
+                        scheduledEndTime: endTime,
+                      })
+                    }
+                  />
                   <DateChip
                     icon={Clock3}
                     tone={overdue ? "danger" : values.dueDate ? "default" : "ghost"}
@@ -314,7 +337,7 @@ function SubtaskDrafts({
         <li
           // biome-ignore lint/suspicious/noArrayIndexKey: drafts have no ids and can repeat
           key={index}
-          className="group flex h-[30px] items-center gap-2 rounded-(--radius-6) px-2 text-[13px] text-(--text-primary) hover:bg-(--color-neutral-100)"
+          className="group flex h-[30px] items-center gap-2 rounded-(--radius-6) px-2 type-body text-(--text-primary) hover:bg-(--color-neutral-100)"
         >
           <span
             aria-hidden
@@ -336,7 +359,7 @@ function SubtaskDrafts({
           <button
             type="button"
             onClick={() => setDraft("")}
-            className="flex h-[30px] w-full items-center gap-2 rounded-(--radius-6) px-2 text-[13px] text-(--text-tertiary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            className="flex h-[30px] w-full items-center gap-2 rounded-(--radius-6) px-2 type-body text-(--text-tertiary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
           >
             <Plus aria-hidden className="size-3.5" strokeWidth={2} />
             Add subtask
@@ -374,7 +397,7 @@ function SubtaskDrafts({
                 add();
                 setDraft(null);
               }}
-              className="min-w-0 flex-1 bg-transparent text-[13px] text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
+              className="min-w-0 flex-1 bg-transparent type-body text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
             />
           </label>
         )}

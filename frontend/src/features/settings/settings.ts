@@ -21,6 +21,12 @@ export const TIME_FORMATS: { key: TimeFormat; label: string }[] = [
   { key: "24h", label: "24-hour" },
 ];
 
+export const THEMES: { key: SettingsRead["theme"]; label: string }[] = [
+  { key: "system", label: "System" },
+  { key: "light", label: "Light" },
+  { key: "dark", label: "Dark" },
+];
+
 export const DAY_ENDS_AT = [0, 1, 2, 3, 4] as const;
 export const KEEP_BACKUPS = [7, 14, 30] as const;
 

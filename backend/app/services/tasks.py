@@ -119,6 +119,23 @@ def update_task(session: Session, task_id: int, data: TaskUpdate) -> TaskChange:
     task = get_task(session, task_id)
     changes = data.model_dump(exclude_unset=True)
     # Check the result before touching the task, so a refused edit leaves nothing behind.
+    scheduled_date = changes.get("scheduled_date", task.scheduled_date)
+    if scheduled_date is None and "scheduled_time" not in changes:
+        changes["scheduled_time"] = None
+    scheduled_time = changes.get("scheduled_time", task.scheduled_time)
+    if scheduled_time is not None and scheduled_date is None:
+        raise UnprocessableError("A scheduled time needs a scheduled date.")
+    if scheduled_time is None and "scheduled_end_time" not in changes:
+        changes["scheduled_end_time"] = None
+    scheduled_end_time = changes.get("scheduled_end_time", task.scheduled_end_time)
+    if scheduled_end_time is not None and scheduled_time is None:
+        raise UnprocessableError("A scheduled end time needs a scheduled start time.")
+    if (
+        scheduled_end_time is not None
+        and scheduled_time is not None
+        and scheduled_end_time < scheduled_time
+    ):
+        raise UnprocessableError("Scheduled end time must be on or after scheduled start time.")
     due_date = changes.get("due_date", task.due_date)
     if changes.get("due_time", task.due_time) is not None and due_date is None:
         raise UnprocessableError("A due time needs a due date.")

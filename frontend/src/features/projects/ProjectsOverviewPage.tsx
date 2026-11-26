@@ -15,6 +15,7 @@ import type {
 import { PageHeader } from "../../components/PageHeader";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import type { Period } from "../../period";
 import { useNewTask } from "../../stores/newTaskStore";
@@ -84,11 +85,14 @@ export function ProjectsOverviewPage() {
           </>
         }
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+      <Scroll
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col gap-4 px-(--page-gutter) pt-4 pb-(--page-gutter)"
+      >
         {overview.isError && <QueryError error={overview.error} onRetry={overview.refetch} />}
         {isEmpty && <FirstProjectWelcome canCreate={canCreate} onCreate={() => openNewProject()} />}
         {data && !isEmpty && <OverviewBody overview={data} period={period} areas={areas} />}
-      </div>
+      </Scroll>
     </>
   );
 }
@@ -183,7 +187,7 @@ function TimelineLane({
         type="button"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-7 min-w-0 items-center gap-1.5 self-start rounded-(--radius-6) pr-2 text-[13px] font-semibold text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        className="flex h-7 min-w-0 items-center gap-1.5 self-start rounded-(--radius-6) pr-2 type-body font-semibold text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
       >
         <ChevronDown
           aria-hidden
@@ -325,7 +329,7 @@ function NextUpCard({
             >
               <h3 className="flex items-center gap-1.5 pb-1 type-label text-(--text-tertiary)">
                 {section.title}
-                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--color-neutral-100) px-1 text-[11px] font-medium tracking-normal text-(--text-secondary)">
+                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--counter-bg) px-1 type-tag font-medium tracking-normal text-(--text-secondary)">
                   {section.rows.length}
                 </span>
               </h3>
@@ -345,8 +349,8 @@ export function DueBadge({ due, today }: { due: string; today: string }) {
     <span
       className={`grid h-6 min-w-10 place-items-center rounded-(--radius-6) px-1.5 text-xs font-semibold tabular-nums ${
         badge.urgent
-          ? "bg-(--color-negative-50) text-(--color-negative-600)"
-          : "bg-(--color-neutral-100) text-(--text-primary)"
+          ? "bg-(--danger-bg) text-(--text-danger)"
+          : "bg-(--bg-hover) text-(--text-primary)"
       }`}
     >
       {badge.label}
@@ -395,7 +399,7 @@ export function NextUpRow({
   );
 }
 
-/** A 28 px solid accent button with an icon and a word: Plan task, Schedule, Add task. */
+/** A 28 px secondary button with an icon and a word: Plan task, Schedule, Add task. */
 export function QuickAction({
   icon: Icon,
   onPress,
@@ -406,7 +410,12 @@ export function QuickAction({
   children: string;
 }) {
   return (
-    <Button size="sm" onPress={onPress} className="h-7 shrink-0 gap-1.5 px-2.5 text-xs">
+    <Button
+      size="sm"
+      variant="secondary"
+      onPress={onPress}
+      className="h-7 shrink-0 gap-1.5 px-2.5 text-xs"
+    >
       <Icon aria-hidden className="size-3.5" strokeWidth={2} />
       {children}
     </Button>
@@ -486,7 +495,7 @@ function ProjectsBoard({
                   <span aria-hidden className="size-2.5 rounded-[2px] bg-(--area-solid)" />
                 )}
                 <span className="truncate">{column.title}</span>
-                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--color-neutral-100) px-1 text-[11px] font-medium text-(--text-secondary)">
+                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-(--counter-bg) px-1 type-tag font-medium text-(--text-secondary)">
                   {column.projects.length}
                 </span>
               </h3>
@@ -570,11 +579,11 @@ function FirstProjectWelcome({
     <div className="m-auto flex max-w-[420px] flex-col items-center gap-3 pb-20 text-center">
       <Folder aria-hidden className="size-10 text-(--color-brand-600)" strokeWidth={1.5} />
       <h2 className="mt-1.5 type-page-title text-(--text-primary)">Start your first project</h2>
-      <p className="text-[13px] leading-5 text-(--text-secondary)">
+      <p className="type-body leading-5 text-(--text-secondary)">
         A project is a piece of work with an end, like a portfolio or a room makeover. It lives in
         one life area and holds its own tasks, sections, events, routine steps and metrics.
       </p>
-      <Button onPress={onCreate} isDisabled={!canCreate} className="h-9 px-4 text-[13px]">
+      <Button onPress={onCreate} isDisabled={!canCreate} className="h-9 px-4 type-body">
         <Plus aria-hidden />
         New project
       </Button>

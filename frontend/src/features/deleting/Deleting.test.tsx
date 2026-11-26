@@ -187,6 +187,8 @@ beforeEach(() => {
           return json(standup);
         case "/api/events/occurrences":
           return json([{ ...standup, event_id: 3, occurrence_date: "2026-11-16" }]);
+        case "/api/events/3/occurrences/2026-11-16":
+          return json({ ...standup, event_id: 3, occurrence_date: "2026-11-16" });
         default:
           return json([]);
       }

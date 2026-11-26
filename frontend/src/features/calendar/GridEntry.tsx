@@ -1,14 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
-import { Check, ChevronDown, Folder, Repeat, X } from "lucide-react";
+import { ChevronDown, Folder, Repeat, X } from "lucide-react";
 import { useState } from "react";
 import { completeTaskMutation, reopenTaskMutation } from "../../client/@tanstack/react-query.gen";
 import type { OccurrenceRead, TaskRead } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { useDetailPanel } from "../../stores/detailPanelStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { PanelLink } from "../detail-panel/PanelLink";
 import { itemMenuProps } from "../item-menu/target";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
+import { useRoutineDragGuard } from "../routines/useRoutineDragGuard";
 import { formatTime, useTimeFormat } from "../tasks/format";
 import type { RoutineDay } from "../tasks/next7";
 import { ProgressRing } from "../tasks/RoutinesPage";
@@ -27,27 +30,42 @@ export type Segment = { isStart: boolean; isEnd: boolean; firstOfRange: boolean 
 export function GridEntry({
   entry,
   today,
+  timed = false,
   colorOf,
   segment,
   onRoutine,
+  onInspect,
 }: {
   entry: Entry;
   today: string;
+  timed?: boolean;
   colorOf: ColorOf;
   segment: Segment;
   onRoutine: (routine: RoutineDay, anchor: HTMLElement) => void;
+  onInspect?: (entry: Entry, anchor: HTMLElement) => void;
 }) {
+  const inspect = onInspect ? (anchor: HTMLElement) => onInspect(entry, anchor) : undefined;
   switch (entry.kind) {
     case "event":
       return (
         <EventEntry
           event={entry.event}
+          timed={timed}
           color={colorOf(entry.event.life_area_id)}
           segment={segment}
+          onInspect={inspect}
         />
       );
     case "routine":
-      return <RoutineEntry routine={entry.routine} past={entry.start < today} onOpen={onRoutine} />;
+      return (
+        <RoutineEntry
+          routine={entry.routine}
+          past={entry.start < today}
+          timed={timed}
+          colorOf={colorOf}
+          onOpen={onRoutine}
+        />
+      );
     case "project":
       return (
         <div
@@ -62,27 +80,39 @@ export function GridEntry({
           <PanelLink
             stretched
             target={{ kind: "project", id: entry.project.id }}
+            onInspect={inspect}
             className="min-w-0 flex-1 truncate font-medium text-(--text-primary)"
           >
             {entry.project.title}
           </PanelLink>
-          <span className="shrink-0 text-[11px] text-(--text-tertiary)">Due</span>
+          <span className="shrink-0 type-tag text-(--text-tertiary)">Due</span>
         </div>
       );
     case "task":
-      return <TaskEntry task={entry.task} color={colorOf(entry.task.life_area_id)} />;
+      return (
+        <TaskEntry
+          task={entry.task}
+          timed={timed}
+          color={colorOf(entry.task.life_area_id)}
+          onInspect={inspect}
+        />
+      );
   }
 }
 
 /** A timed event (time, title) or a bar (title, then when). Past events take the lighter tint. */
 function EventEntry({
   event,
+  timed,
   color,
   segment,
+  onInspect,
 }: {
   event: OccurrenceRead;
+  timed: boolean;
   color: string | null;
   segment: Segment;
+  onInspect?: (anchor: HTMLElement) => void;
 }) {
   const timeFormat = useTimeFormat();
   const time = (value: string) => formatTime(value, timeFormat);
@@ -103,9 +133,11 @@ function EventEntry({
   return (
     <div
       data-area={areaDataAttribute(color)}
-      className={`relative flex h-6 min-w-0 items-center gap-1.5 pr-1.5 text-xs ${
-        bar ? "font-semibold" : ""
-      } ${past ? "bg-(--event-area-bg-past)" : "bg-(--event-area-bg-upcoming)"} ${
+      className={`relative flex min-w-0 gap-1.5 pr-1.5 text-xs ${
+        timed ? "h-full items-start py-1" : "h-6 items-center"
+      } ${bar ? "font-semibold" : ""} ${
+        past ? "bg-(--event-area-bg-past)" : "bg-(--event-area-bg-upcoming)"
+      } ${
         edge
           ? `pl-[9px] ${past ? "shadow-[inset_3px_0_0_var(--area-border)]" : "shadow-[inset_3px_0_0_var(--area-solid)]"}`
           : "pl-2"
@@ -115,7 +147,7 @@ function EventEntry({
     >
       {!bar && event.start_time && (
         <span
-          className={`shrink-0 text-[11px] font-normal ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
+          className={`shrink-0 type-tag font-normal ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
         >
           {time(event.start_time)}
         </span>
@@ -127,13 +159,14 @@ function EventEntry({
           id: event.event_id,
           day: event.is_repeating ? event.occurrence_date : null,
         }}
+        onInspect={onInspect}
         className={`min-w-0 truncate ${bar ? "" : "flex-1 font-medium"} ${past ? "text-(--text-tertiary)" : "text-(--text-primary)"}`}
       >
         {event.title}
       </PanelLink>
       {meta && (
         <span
-          className={`min-w-0 shrink truncate text-[11px] font-normal ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
+          className={`min-w-0 shrink truncate type-tag font-normal ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
         >
           {meta}
         </span>
@@ -150,32 +183,57 @@ function EventEntry({
   );
 }
 
-/** A routine on a day: progress ring, name, done / total. It opens its steps. */
+/** A routine on a day: progress ring, name, done / total. Single-click opens steps, double-click opens side panel. */
 function RoutineEntry({
   routine,
   past,
+  timed,
+  colorOf,
   onOpen,
 }: {
   routine: RoutineDay;
   past: boolean;
+  timed: boolean;
+  colorOf: ColorOf;
   onOpen: (routine: RoutineDay, anchor: HTMLElement) => void;
 }) {
+  const openPanel = useDetailPanel((state) => state.open);
+  const timeFormat = useTimeFormat();
+  const { shakeClass, onPointerDown } = useRoutineDragGuard();
   return (
     <button
       type="button"
       aria-haspopup="dialog"
       {...itemMenuProps({ kind: "routine", id: routine.routineId })}
       aria-label={`${routine.title}, ${routine.done} of ${routine.steps.length} steps done`}
+      onPointerDown={onPointerDown}
       onClick={(event) => onOpen(routine, event.currentTarget)}
-      className="flex h-6 w-full min-w-0 items-center gap-1.5 rounded-[5px] border border-(--border-default) bg-(--bg-surface) px-1.5 text-left text-xs outline-none hover:bg-(--color-neutral-50) focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-3.5!"
+      onDoubleClick={() => openPanel({ kind: "routine", id: routine.routineId })}
+      className={`flex w-full min-w-0 gap-1.5 rounded-[5px] border border-(--border-default) bg-(--bg-surface) px-1.5 text-left text-xs outline-none hover:bg-(--color-neutral-50) focus-visible:ring-2 focus-visible:ring-(--focus-ring) [&_svg]:size-3.5! ${
+        timed ? "h-full items-start py-1" : "h-6 items-center"
+      } ${shakeClass}`}
     >
-      <ProgressRing done={routine.done} total={routine.steps.length} />
+      <ProgressRing
+        done={routine.done}
+        total={routine.steps.length}
+        segments={routine.steps.map((s) => ({
+          done: s.status === "done",
+          color: colorOf(s.life_area_id),
+        }))}
+      />
+      {routine.startTime && (
+        <span
+          className={`shrink-0 type-tag font-normal ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
+        >
+          {formatTime(routine.startTime, timeFormat)}
+        </span>
+      )}
       <span
         className={`min-w-0 flex-1 truncate font-medium ${past ? "text-(--text-tertiary)" : "text-(--text-primary)"}`}
       >
         {routine.title}
       </span>
-      <span className="shrink-0 text-[11px] text-(--text-tertiary) tabular-nums">
+      <span className="shrink-0 type-tag text-(--text-tertiary) tabular-nums">
         {routine.done}/{routine.steps.length}
       </span>
     </button>
@@ -183,7 +241,17 @@ function RoutineEntry({
 }
 
 /** A task: checkbox in the area colour, title, and the subtasks toggle (done / total). */
-function TaskEntry({ task, color }: { task: TaskRead; color: string | null }) {
+function TaskEntry({
+  task,
+  timed,
+  color,
+  onInspect,
+}: {
+  task: TaskRead;
+  timed: boolean;
+  color: string | null;
+  onInspect?: (anchor: HTMLElement) => void;
+}) {
   const [open, setOpen] = useState(false);
   const pending = usePendingDeletes((state) => state.pending);
   const showToast = useChangeToast((state) => state.show);
@@ -206,42 +274,31 @@ function TaskEntry({ task, color }: { task: TaskRead; color: string | null }) {
   return (
     <div
       data-area={areaDataAttribute(color)}
-      className={`flex min-w-0 flex-col rounded-[6px] border ${open ? "border-(--border-default) bg-(--bg-surface) pb-1" : "border-transparent"}`}
+      className={`flex min-w-0 flex-col rounded-[6px] border border-(--border-default) bg-(--bg-surface) ${timed ? "h-full" : ""} ${open ? "pb-1" : ""}`}
     >
       <div className="relative -m-px flex h-6 min-w-0 items-center gap-1.5 rounded-[5px] px-1.5 text-xs hover:bg-[rgb(17_24_39/0.05)]">
-        <label className="relative z-10 -m-1.5 grid size-6 shrink-0 cursor-pointer place-items-center">
-          <input
-            type="checkbox"
-            checked={done}
-            disabled={cancelled || complete.isPending || reopen.isPending}
-            aria-label={done ? `Mark ${task.title} not done` : `Mark ${task.title} done`}
-            onChange={toggle}
-            className={`size-[13px] cursor-pointer appearance-none rounded-[3px] border-[1.5px] outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-              done
-                ? "border-(--checkbox-area-done) bg-(--checkbox-area-done)"
-                : cancelled
-                  ? "border-(--color-neutral-400)"
-                  : "border-(--checkbox-area-todo)"
-            }`}
-          />
-          {done && (
-            <Check
-              aria-hidden
-              className="pointer-events-none absolute size-[9px] text-white"
-              strokeWidth={3.5}
-            />
-          )}
-          {cancelled && (
-            <X
-              aria-hidden
-              className="pointer-events-none absolute size-[9px] text-(--color-neutral-500)"
-              strokeWidth={3}
-            />
-          )}
-        </label>
+        <EntityCheckbox
+          size="xs"
+          checked={done}
+          disabled={cancelled || complete.isPending || reopen.isPending}
+          cancelled={cancelled}
+          label={done ? `Mark ${task.title} not done` : `Mark ${task.title} done`}
+          onChange={toggle}
+          overlay={
+            cancelled ? (
+              <X
+                aria-hidden
+                className="pointer-events-none absolute size-[9px] text-(--color-neutral-500)"
+                strokeWidth={3}
+              />
+            ) : undefined
+          }
+          className="z-10 -m-1.5"
+        />
         <PanelLink
           stretched
           target={{ kind: "task", id: task.id }}
+          onInspect={onInspect}
           className={`min-w-0 flex-1 truncate ${
             done || cancelled
               ? "text-(--text-disabled) line-through"
@@ -256,7 +313,7 @@ function TaskEntry({ task, color }: { task: TaskRead; color: string | null }) {
             aria-expanded={open}
             aria-label={`Subtasks, ${subtasksDone} of ${subtasks.length} done`}
             onClick={() => setOpen(!open)}
-            className="relative z-10 inline-flex h-4 shrink-0 items-center gap-px rounded-[4px] bg-(--color-neutral-100) pr-[3px] pl-[5px] text-[11px] font-medium text-(--text-secondary) outline-none hit-24 hover:bg-(--color-neutral-200) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+            className="relative z-10 inline-flex h-4 shrink-0 items-center gap-px rounded-[4px] bg-(--counter-bg) pr-[3px] pl-[5px] type-tag font-medium text-(--text-secondary) outline-none hit-24 hover:bg-(--bg-pressed) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
           >
             {subtasksDone}/{subtasks.length}
             <ChevronDown
@@ -275,7 +332,7 @@ function TaskEntry({ task, color }: { task: TaskRead; color: string | null }) {
         </ul>
       )}
       {(complete.isError || reopen.isError) && (
-        <p role="alert" className="px-1.5 text-[11px] text-(--text-danger)">
+        <p role="alert" className="px-1.5 type-tag text-(--text-danger)">
           Couldn't save. Try again.
         </p>
       )}

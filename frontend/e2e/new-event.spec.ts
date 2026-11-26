@@ -26,7 +26,7 @@ async function pickOwner(page: Page, title: string) {
   const modal = page.getByRole("dialog", { name: "New event" });
   await modal.getByRole("button", { name: "Owner" }).click();
   await page.getByRole("textbox", { name: "Search" }).fill(title);
-  await page.getByRole("button", { name: title }).click();
+  await page.getByRole("dialog", { name: "Owner" }).getByRole("button", { name: title }).click();
   await expect(page.getByRole("textbox", { name: "Search" })).toBeHidden();
 }
 

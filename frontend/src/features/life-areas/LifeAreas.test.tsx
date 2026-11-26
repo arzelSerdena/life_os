@@ -193,7 +193,7 @@ test("Edit area opens the area in the detail panel, where its fields save on the
   ]);
 });
 
-test("notes save on their own, also from the Markdown view", async () => {
+test("notes render in the detail panel without a View Markdown toggle", async () => {
   areas = [lifeArea({ title: "Health", notes: "Keep these" })];
   const user = userEvent.setup();
   renderApp("/areas/1");
@@ -201,20 +201,12 @@ test("notes save on their own, also from the Markdown view", async () => {
   await user.click(await screen.findByRole("button", { name: "More actions for Health" }));
   await user.click(await screen.findByRole("menuitem", { name: "Edit area" }));
   const panel = await screen.findByRole("complementary", { name: "Details" });
+  expect(within(panel).getByRole("textbox", { name: "Notes" })).toHaveTextContent("Keep these");
+
   await user.click(within(panel).getByRole("button", { name: "More actions" }));
-  await user.click(await screen.findByRole("menuitem", { name: "View Markdown" }));
-  const source = within(panel).getByRole("textbox", { name: "Notes in Markdown" });
-  expect(source).toHaveValue("Keep these");
+  expect(screen.queryByRole("menuitem", { name: "View Markdown" })).not.toBeInTheDocument();
 
-  await user.type(source, " **daily**");
-
-  await waitFor(() =>
-    expect(writes()).toEqual([
-      { method: "PATCH", path: "/api/life-areas/1", body: { notes: "Keep these **daily**" } },
-    ]),
-  );
-  expect(within(panel).getByRole("status")).toHaveTextContent("Saved");
-
+  await user.keyboard("{Escape}");
   await user.keyboard("{Escape}");
   expect(screen.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
 });
@@ -304,8 +296,8 @@ test("with areas but no data yet, each card says what will appear", async () => 
   renderApp();
 
   const outcomes = await screen.findByRole("region", { name: "Outcomes" });
-  expect(within(outcomes).getByRole("heading", { name: /Career/ })).toBeInTheDocument();
-  expect(within(outcomes).getAllByText("No metrics yet")).toHaveLength(1);
+  expect(within(outcomes).queryByRole("heading", { name: /Career/ })).not.toBeInTheDocument();
+  expect(outcomes).toHaveTextContent("No metrics yet.");
   expect(screen.getByRole("region", { name: "Projects" })).toHaveTextContent("No active projects.");
 });
 

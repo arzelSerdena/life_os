@@ -98,12 +98,12 @@
     "priority": {
       "high": {
         "$type": "color",
-        "$value": "{Primitives.color.negative.500}",
+        "$value": "{Primitives.color.negative.600}",
         "$description": "High priority: flag and column dot"
       },
       "medium": {
         "$type": "color",
-        "$value": "{Primitives.color.warning.500}",
+        "$value": "{Primitives.color.area.ochre.400}",
         "$description": "Medium priority: flag and column dot"
       },
       "none": {
@@ -113,8 +113,8 @@
       },
       "low": {
         "$type": "color",
-        "$value": "{Primitives.color.neutral.400}",
-        "$description": "Low priority: column dot; no flag on cards"
+        "$value": "{Primitives.color.area.blue.600}",
+        "$description": "Low priority: flag and column dot"
       }
     },
     "area": {
@@ -122,6 +122,11 @@
         "$type": "color",
         "$value": "{Primitives.color.area.blue.500}",
         "$description": "STAND-IN for the item's area color (code: area 500). Dots, checkboxes, progress fill, event icon"
+      },
+      "button-bg": {
+        "$type": "color",
+        "$value": "{Primitives.color.area.blue.700}",
+        "$description": "STAND-IN (code: area 700). Solid area action buttons with white text (WCAG AA)"
       },
       "tint-active": {
         "$type": "color",
@@ -176,6 +181,11 @@
         "$type": "color",
         "$value": "{Primitives.color.neutral.500}",
         "$description": "No-area items: dots, checkboxes, progress fill (neutral 500)"
+      },
+      "button-bg": {
+        "$type": "color",
+        "$value": "{Primitives.color.neutral.700}",
+        "$description": "No-area items: solid action button background (neutral 700)"
       },
       "done": {
         "$type": "color",

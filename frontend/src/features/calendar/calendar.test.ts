@@ -372,7 +372,7 @@ test("open tasks and events can be dragged; cancelled events and routines can't"
 
   expect([taskEntry, done, oneOff, repeating, cancelled, routine].map(canMove)).toEqual([
     true,
-    false,
+    true,
     true,
     true,
     false,

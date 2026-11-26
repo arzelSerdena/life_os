@@ -204,7 +204,7 @@ export function NewMetricModal({
                     <span className={`${FIELD} flex items-center`}>
                       <span
                         data-area={areaDataAttribute(lifeArea.color)}
-                        className="flex h-5 items-center gap-1 rounded-full bg-(--area-tint-active) px-2 text-[11px] font-medium text-(--area-text)"
+                        className="flex h-5 items-center gap-1 rounded-full bg-(--area-tint-active) px-2 type-tag font-medium text-(--area-text)"
                       >
                         {project ? (
                           <Folder
@@ -511,9 +511,9 @@ export function presetFor(metric: Formatted): Preset {
 
 export const FIELD_LABEL = "text-xs leading-4 font-semibold text-(--text-primary)";
 export const FIELD =
-  "h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-[13px] text-(--text-primary) outline-none focus-visible:border-brand-600 focus-visible:ring-2 focus-visible:ring-brand-200";
+  "h-8 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 type-body text-(--text-primary) outline-none focus-visible:border-brand-600 focus-visible:ring-2 focus-visible:ring-brand-200";
 const PICKER =
-  "h-8 w-full justify-start gap-2 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 text-[13px] font-normal text-(--text-primary)";
+  "h-8 w-full justify-start gap-2 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-2.5 type-body font-normal text-(--text-primary)";
 
 /** The "Measure as" picker: each preset's icon, name and a sample value. */
 export function MeasureAsMenu({

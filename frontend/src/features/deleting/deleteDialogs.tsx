@@ -190,7 +190,7 @@ function ScopeChoice({
           >
             {value === option.id && <span className="size-1.5 rounded-full bg-brand-700" />}
           </span>
-          <span className="min-w-0 flex-1 truncate text-[13px] text-(--text-primary)">
+          <span className="min-w-0 flex-1 truncate type-body text-(--text-primary)">
             {option.label}
           </span>
           <span className="text-xs whitespace-nowrap text-(--text-secondary)">{option.meta}</span>

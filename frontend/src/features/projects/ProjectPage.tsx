@@ -19,7 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   getProjectPageOptions,
   reopenProjectMutation,
@@ -28,6 +28,7 @@ import {
 import type { ProjectPageRead, ProjectRead, TaskRead } from "../../client/types.gen";
 import { PeriodSwitch } from "../../components/PeriodSwitch";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { SectionCard } from "../../components/SectionCard";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { useDetailPanel } from "../../stores/detailPanelStore";
@@ -167,7 +168,10 @@ export function ProjectPage() {
       {view === "board" ? (
         <ProjectBoard project={project} area={area} today={shown.today} canAdd={canAdd} />
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+        <Scroll
+          direction="both"
+          className="flex min-h-0 flex-1 flex-col gap-4 px-(--page-gutter) pt-4 pb-(--page-gutter)"
+        >
           {isArchived && (
             <p className="type-body text-(--text-tertiary)">
               This project is archived. Restore it to plan in it again.
@@ -181,7 +185,7 @@ export function ProjectPage() {
             onAddEvent={canAdd ? () => openNewEvent(owner, shown.today) : undefined}
             onAddTask={canAdd ? addTask : undefined}
           />
-        </div>
+        </Scroll>
       )}
       {adding === "metric" && (
         <NewMetricModal lifeArea={area} project={project} onClose={() => setAdding(null)} />
@@ -208,7 +212,7 @@ type PageView = "overview" | "board";
 const STATUS = { active: "Active", done: "Done", cancelled: "Cancelled" } as const;
 const PACE = { on_pace: "on pace", ahead: "ahead of pace", behind: "behind pace" } as const;
 const CHIP =
-  "inline-flex h-5 items-center gap-1 rounded-full px-2 text-[11px] font-medium whitespace-nowrap";
+  "inline-flex h-5 items-center gap-1 rounded-full px-2 type-tag font-medium whitespace-nowrap";
 
 /** The line under the name: area tag, status, dates, and progress against pace. */
 function HeaderFacts({ page }: { page: ProjectPageRead }) {
@@ -241,15 +245,18 @@ function HeaderFacts({ page }: { page: ProjectPageRead }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 pl-7 type-meta text-(--text-tertiary)">
-      <span className={`${CHIP} bg-(--area-tint-active) text-(--text-primary)`}>
+      <Link
+        to={`/areas/${area.id}`}
+        className={`${CHIP} bg-(--area-tint-active) text-(--text-primary) transition hover:brightness-95`}
+      >
         <span aria-hidden className="size-1.5 rounded-[2px] bg-(--area-solid)" />
         {area.title}
-      </span>
-      <span className={`${CHIP} bg-(--color-neutral-100) text-(--text-secondary)`}>
+      </Link>
+      <span className={`${CHIP} bg-(--bg-hover) text-(--text-secondary)`}>
         {STATUS[project.status]}
       </span>
       {project.archived_at && (
-        <span className={`${CHIP} bg-(--color-neutral-100) text-(--text-secondary)`}>
+        <span className={`${CHIP} bg-(--bg-hover) text-(--text-secondary)`}>
           <Archive aria-hidden className="size-[11px]" />
           Archived
         </span>
@@ -278,7 +285,7 @@ function HeaderFacts({ page }: { page: ProjectPageRead }) {
             {isActive && page.pace !== null && page.pace !== undefined && (
               <span
                 aria-hidden
-                className="absolute -top-1 h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-(--color-neutral-900)"
+                className="absolute -top-1 h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-(--text-primary)"
                 style={{ left: `${page.pace * 100}%` }}
               />
             )}
@@ -368,26 +375,10 @@ function ProjectCards({
   );
 }
 
-/** An empty card's one muted line, with its action when the project takes new items. */
-function EmptyLine({
-  text,
-  action,
-  onPress,
-}: {
-  text: string;
-  action: string;
-  onPress?: () => void;
-}) {
+/** An empty card's one muted line. */
+function EmptyLine({ text }: { text: string; action?: string; onPress?: () => void }) {
   return (
-    <div className="flex min-h-10 items-center gap-3 type-meta text-(--text-tertiary)">
-      {text}
-      {onPress && (
-        <Button size="sm" onPress={onPress} className="button--area">
-          <Plus aria-hidden />
-          {action}
-        </Button>
-      )}
-    </div>
+    <div className="flex min-h-10 items-center gap-3 type-meta text-(--text-tertiary)">{text}</div>
   );
 }
 
@@ -476,7 +467,7 @@ function ProjectMenu({
             <span className="flex flex-col py-1">
               <Label>Delete project</Label>
               {project.has_items && (
-                <span className="text-[11px] leading-[14px] text-(--text-tertiary)">
+                <span className="type-tag leading-[14px] text-(--text-tertiary)">
                   Only empty projects can be deleted. Archive it instead.
                 </span>
               )}

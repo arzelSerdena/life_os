@@ -1,6 +1,6 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Text, func, text
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Text, Time, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import AUTOINCREMENT, Base, BaseMixin
@@ -14,11 +14,17 @@ class Routine(BaseMixin, Base):
     __table_args__ = (
         CheckConstraint("length(title) BETWEEN 1 AND 200", name="title_length"),
         CheckConstraint("notes IS NULL OR length(notes) <= 50000", name="notes_length"),
+        CheckConstraint(
+            "end_time IS NULL OR start_time IS NOT NULL",
+            name="end_time_needs_start",
+        ),
         AUTOINCREMENT,
     )
 
     title: Mapped[str] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
+    start_time: Mapped[time | None] = mapped_column(Time)
+    end_time: Mapped[time | None] = mapped_column(Time)
     sort_order: Mapped[int] = mapped_column(default=0, server_default="0")
     archived_at: Mapped[datetime | None] = mapped_column(DateTime)
 

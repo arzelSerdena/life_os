@@ -28,6 +28,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { searchOptions } from "../../client/@tanstack/react-query.gen";
 import type { SearchHitRead } from "../../client/types.gen";
+import { Scroll } from "../../components/Scroll";
 import { useCommands } from "../../stores/commandStore";
 import { PANEL_OPENER, useDetailPanel } from "../../stores/detailPanelStore";
 import { useNewEvent } from "../../stores/newEventStore";
@@ -166,13 +167,13 @@ function CommandPalette() {
             />
             <Keys keys={["Esc"]} />
           </div>
-          <div
+          <Scroll
             ref={listRef}
             id={listId}
             role="listbox"
             aria-label="Results"
             aria-busy={isSearching}
-            className="flex max-h-[min(420px,60vh)] flex-col overflow-y-auto p-1.5"
+            className="flex max-h-[min(420px,60vh)] flex-col p-1.5"
           >
             {rows.map((row, index) => {
               const heading =
@@ -190,7 +191,7 @@ function CommandPalette() {
                 />
               );
             })}
-          </div>
+          </Scroll>
           {rows.length === 0 && !isSearching && (
             <p className="px-4 pt-1 pb-4 type-meta text-(--text-tertiary)">No matches.</p>
           )}
@@ -251,7 +252,7 @@ function PaletteOption({
           )}
         </span>
         <span
-          className={`min-w-0 shrink truncate text-[13px] leading-5 font-medium ${isFinished ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
+          className={`min-w-0 shrink truncate type-body leading-5 font-medium ${isFinished ? "text-(--text-tertiary) line-through" : "text-(--text-primary)"}`}
         >
           {title}
         </span>

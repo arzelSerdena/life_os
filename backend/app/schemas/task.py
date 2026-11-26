@@ -61,6 +61,8 @@ class TaskRead(BaseModel):
     status: TaskStatus
     priority: Priority
     scheduled_date: date | None
+    scheduled_time: time | None
+    scheduled_end_time: time | None
     due_date: date | None
     due_time: time | None
     completed_at: UtcDatetime | None
@@ -83,6 +85,8 @@ class TaskCreate(BaseModel):
     notes: Notes | None = None
     priority: Priority = "none"
     scheduled_date: date | None = None
+    scheduled_time: time | None = None
+    scheduled_end_time: time | None = None
     due_date: date | None = None
     due_time: time | None = None
     life_area_id: int | None = None
@@ -91,7 +95,17 @@ class TaskCreate(BaseModel):
     subtasks: Annotated[list[Title], Field(max_length=100)] = []
 
     @model_validator(mode="after")
-    def _due_time_needs_date(self) -> Self:
+    def _time_needs_date(self) -> Self:
+        if self.scheduled_time is not None and self.scheduled_date is None:
+            raise ValueError("A scheduled time needs a scheduled date.")
+        if self.scheduled_end_time is not None and self.scheduled_time is None:
+            raise ValueError("A scheduled end time needs a scheduled start time.")
+        if (
+            self.scheduled_end_time is not None
+            and self.scheduled_time is not None
+            and self.scheduled_end_time < self.scheduled_time
+        ):
+            raise ValueError("Scheduled end time must be on or after scheduled start time.")
         if self.due_time is not None and self.due_date is None:
             raise ValueError("A due time needs a due date.")
         return self
@@ -106,6 +120,8 @@ class TaskUpdate(BaseModel):
     notes: Notes | None = None
     priority: Priority | None = None
     scheduled_date: date | None = None
+    scheduled_time: time | None = None
+    scheduled_end_time: time | None = None
     due_date: date | None = None
     due_time: time | None = None
     sort_order: Annotated[int, Field(ge=0)] | None = None

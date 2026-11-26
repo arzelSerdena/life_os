@@ -16,6 +16,7 @@ import type {
   RoutineRead,
 } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import type { Period } from "../../period";
 import { usePeriodStore } from "../../stores/periodStore";
@@ -107,7 +108,10 @@ function RoutineView({
         onAddStep={() => setIsAddingStep(true)}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-(--page-gutter) pt-4 pb-(--page-gutter)">
+      <Scroll
+        direction="both"
+        className="flex min-h-0 flex-1 flex-col gap-4 px-(--page-gutter) pt-4 pb-(--page-gutter)"
+      >
         {hasSteps && <StatTiles tiles={tiles(page, period)} />}
         <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-4">
           <div className="flex min-w-0 flex-col gap-4">
@@ -149,6 +153,7 @@ function RoutineView({
                 page={page}
                 day={selected}
                 onToday={isArchived ? undefined : () => setSelected(page.today)}
+                onSelectDay={isArchived ? undefined : setSelected}
                 areas={areas}
                 projects={projects}
               />
@@ -160,7 +165,7 @@ function RoutineView({
             <RoutineNotes routine={routine} />
           </div>
         </div>
-      </div>
+      </Scroll>
       {square && (
         <SquarePopover target={square} today={page.today} onClose={() => setSquare(null)} />
       )}
@@ -251,7 +256,7 @@ function CompletionCard({
               className="grid min-h-8 grid-cols-[240px_minmax(0,1fr)_40px_64px] items-center gap-3"
             >
               <StepLabel row={row} project={projectOf(row.step.project_id)} />
-              <span className="h-2 overflow-hidden rounded-full bg-(--color-neutral-100)">
+              <span className="h-2 overflow-hidden rounded-full bg-(--bg-hover)">
                 {share !== null && (
                   <i
                     className="block h-full rounded-full bg-(--area-solid)"
@@ -265,9 +270,7 @@ function CompletionCard({
                 </span>
               ) : (
                 <>
-                  <span className="text-right text-[13px] font-semibold tabular-nums">
-                    {share}%
-                  </span>
+                  <span className="text-right type-body font-semibold tabular-nums">{share}%</span>
                   <span className="type-meta whitespace-nowrap text-(--text-tertiary)">
                     {row.done} of {counted}
                   </span>
@@ -290,7 +293,7 @@ function ScheduleCard({ history }: { history: ScheduleHistory }) {
             <div
               key={segment.key}
               title={segment.label}
-              className={`absolute top-0 ml-px flex h-6 items-center overflow-hidden rounded-[5px] bg-(--color-neutral-100) px-2 shadow-[inset_0_0_0_1px_var(--color-neutral-200)] ${segment.cutLeft ? "rounded-l-none" : ""} ${segment.openRight ? "rounded-r-none" : ""}`}
+              className={`absolute top-0 ml-px flex h-6 items-center overflow-hidden rounded-[5px] bg-(--bg-hover) px-2 shadow-[inset_0_0_0_1px_var(--border-default)] ${segment.cutLeft ? "rounded-l-none" : ""} ${segment.openRight ? "rounded-r-none" : ""}`}
               style={{ left: `${segment.left}%`, width: `calc(${segment.width}% - 2px)` }}
             >
               {segment.width >= 8 && (
@@ -307,7 +310,7 @@ function ScheduleCard({ history }: { history: ScheduleHistory }) {
               <div
                 key={segment.key}
                 title={segment.label}
-                className="absolute top-0 h-6 rounded-[5px] bg-[repeating-linear-gradient(135deg,var(--color-neutral-200)_0_2px,white_2px_5px)] shadow-[inset_0_0_0_1px_var(--color-neutral-200)]"
+                className="absolute top-0 h-6 rounded-[5px] bg-[repeating-linear-gradient(135deg,var(--border-default)_0_2px,var(--bg-surface)_2px_5px)] shadow-[inset_0_0_0_1px_var(--border-default)]"
                 style={{ left: `${segment.left}%`, width: `${segment.width}%` }}
               >
                 <span className="absolute left-[calc(100%+8px)] text-xs leading-6 font-medium whitespace-nowrap text-(--text-tertiary)">
@@ -325,7 +328,7 @@ function ScheduleCard({ history }: { history: ScheduleHistory }) {
 function Strip({ name, children }: { name: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[240px_minmax(0,1fr)] items-center gap-3">
-      <span className="text-[13px] leading-[18px] font-medium text-(--text-primary)">{name}</span>
+      <span className="type-body font-medium text-(--text-primary)">{name}</span>
       <div className="relative h-6">{children}</div>
     </div>
   );

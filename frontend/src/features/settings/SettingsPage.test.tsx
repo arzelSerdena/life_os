@@ -39,6 +39,7 @@ beforeEach(() => {
     auto_backup: true,
     keep_backups: 14,
     backup_folder: null,
+    theme: "system",
     updated_at: "2026-11-18T00:00:00Z",
   };
   backups = {
@@ -106,13 +107,16 @@ test("changes save at once", async () => {
 
   await user.click(await screen.findByRole("radio", { name: "Calendar" }));
   await user.click(screen.getByRole("radio", { name: "24-hour" }));
+  await user.click(screen.getByRole("radio", { name: "Dark" }));
 
   await waitFor(() =>
     expect(requests.map((request) => request.body)).toEqual([
       { open_on_start: "calendar" },
       { time_format: "24h" },
+      { theme: "dark" },
     ]),
   );
+  expect(document.documentElement.dataset.theme).toBe("dark");
   // Every time on the page follows the format.
   expect(
     await within(await row("Last backup")).findByText("Today, 03:00 · 2.4 MB"),

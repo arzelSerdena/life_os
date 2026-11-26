@@ -32,6 +32,7 @@ import { RepeatChip } from "../pickers/RepeatPicker";
 import { type RepeatRule, simpleRule, toRRule } from "../pickers/repeat";
 import { ProgressRing } from "../tasks/RoutinesPage";
 import { newRoutineMissing, type StepDraft } from "./newRoutine";
+import { RoutineTimeChip } from "./RoutineTimeChip";
 
 /**
  * The New routine pop-up (480 px, Approved: routine, "New routine"): Name, the Repeat chip
@@ -58,8 +59,10 @@ export function NewRoutineModal({
   const [title, setTitle] = useState(initialTitle);
   const [rule, setRule] = useState<RepeatRule>(() => simpleRule("daily", today));
   const [startsOn, setStartsOn] = useState(today);
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
   const [steps, setSteps] = useState<StepDraft[]>([]);
-  const snapshot = JSON.stringify([title, rule, startsOn, steps]);
+  const snapshot = JSON.stringify([title, rule, startsOn, startTime, endTime, steps]);
   const initialSnapshot = useRef(snapshot);
   const guard = useDiscardGuard(snapshot !== initialSnapshot.current, onClose);
   const create = useMutation(createRoutineMutation());
@@ -74,6 +77,8 @@ export function NewRoutineModal({
           title: title.trim(),
           rrule: toRRule(rule, startsOn),
           starts_on: startsOn,
+          start_time: startTime,
+          end_time: endTime,
           steps: steps.map((step) => ({
             title: step.title,
             ...(step.owner.projectId !== null
@@ -137,6 +142,14 @@ export function NewRoutineModal({
                   >
                     {startsOn === today ? "Starts today" : `Starts ${dayDate(startsOn)}`}
                   </DateChip>
+                  <RoutineTimeChip
+                    startTime={startTime}
+                    endTime={endTime}
+                    onChange={({ startTime: nextStart, endTime: nextEnd }) => {
+                      setStartTime(nextStart);
+                      setEndTime(nextEnd);
+                    }}
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -145,7 +158,7 @@ export function NewRoutineModal({
                       Steps
                     </span>
                     {steps.length > 0 && (
-                      <span className="rounded-full bg-(--color-neutral-100) px-1.5 text-[11px] leading-4 font-medium text-(--text-secondary)">
+                      <span className="rounded-full bg-(--counter-bg) px-1.5 type-tag font-medium text-(--text-secondary)">
                         {steps.length}
                       </span>
                     )}
@@ -277,7 +290,7 @@ function StepDrafts({
         <button
           type="button"
           onClick={() => setDraft("")}
-          className="flex h-8 w-full items-center gap-2 rounded-(--radius-6) px-1 text-[13px] text-(--text-tertiary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          className="flex h-8 w-full items-center gap-2 rounded-(--radius-6) px-1 type-body text-(--text-tertiary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         >
           <Plus aria-hidden className="size-3.5" strokeWidth={2} />
           Add step
@@ -311,7 +324,7 @@ function StepDrafts({
               add();
               setDraft(null);
             }}
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
+            className="min-w-0 flex-1 bg-transparent type-body text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
           />
         </label>
       )}
@@ -359,9 +372,7 @@ function SortableStep({
         data-area={areaDataAttribute(area?.color)}
         className={`size-3 shrink-0 rounded-full border-2 ${area ? "border-(--area-solid)" : "border-dashed border-(--color-neutral-400)"}`}
       />
-      <span className="min-w-0 flex-1 truncate text-[13px] text-(--text-primary)">
-        {step.title}
-      </span>
+      <span className="min-w-0 flex-1 truncate type-body text-(--text-primary)">{step.title}</span>
       <OwnerChip
         value={step.owner}
         lifeAreas={lifeAreas}

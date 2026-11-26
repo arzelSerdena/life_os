@@ -205,7 +205,7 @@ test("clicking a task opens it in the detail panel", async () => {
   expect(within(panel).getByText("Bring the PDF")).toBeInTheDocument();
 
   await user.click(within(panel).getByRole("checkbox", { name: "Fix formatting" }));
-  await user.click(within(panel).getByRole("button", { name: "Mark Update resume done" }));
+  await user.click(within(panel).getByRole("checkbox", { name: "Mark Update resume done" }));
 
   await waitFor(() =>
     expect(requests).toEqual(

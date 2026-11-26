@@ -5,7 +5,7 @@
 
 .calendar-table {
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: var(--radius-12);
   overflow: hidden;
   background: var(--bg-surface);
 }
@@ -15,10 +15,10 @@
  * and each week row its top border; the first ones come out. Cells keep no padding, so the
  * spacing lives on the content inside them.
  */
-.is-week .calendar-head {
+.calendar-head {
   border-bottom: 1px solid var(--border-default);
 }
-.is-week .calendar-day-header {
+.calendar-day-header {
   border-inline-start: 1px solid var(--border-default);
 }
 .calendar-week-head {
@@ -31,7 +31,8 @@
 .is-month .calendar-day-header > :last-child {
   display: flex;
   align-items: center;
-  height: 32px;
+  justify-content: center;
+  height: 36px;
   padding: 0 10px;
 }
 .calendar-weekday {
@@ -116,6 +117,7 @@
 /* A bar's end can be dragged to make it longer or shorter: an 8 px handle, a grip on hover. */
 .calendar-resizer {
   position: absolute;
+  z-index: 20;
   top: 0;
   bottom: 3px;
   right: 4px;
@@ -150,7 +152,7 @@
   color: var(--text-secondary);
 }
 .calendar-more:hover {
-  background: var(--color-neutral-100);
+  background: var(--bg-hover);
   color: var(--text-primary);
 }
 
@@ -167,7 +169,7 @@
   flex-direction: column;
   overflow-y: auto;
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: var(--radius-12);
   background: var(--bg-surface);
 }
 .linear-head {
@@ -193,6 +195,9 @@
   display: grid;
   border-top: 1px solid var(--border-default);
 }
+.linear-grid.is-year .linear-row {
+  flex: 1 0 auto;
+}
 .linear-month {
   grid-column: 1;
   grid-row: 1 / -1;
@@ -213,7 +218,7 @@
 .linear-more {
   border-radius: 5px;
   padding: 0 5px;
-  background: var(--color-neutral-100);
+  background: var(--bg-hover);
   font-size: 11px;
   line-height: 16px;
   font-weight: 500;
@@ -223,7 +228,7 @@
 }
 .linear-more:hover,
 .linear-more[aria-expanded="true"] {
-  background: var(--color-neutral-200);
+  background: var(--bg-pressed);
   color: var(--text-primary);
 }
 .linear-more:focus-visible,
@@ -241,7 +246,7 @@
   outline: none;
 }
 .linear-day:hover {
-  background: var(--color-neutral-50);
+  background: var(--bg-hover);
 }
 .linear-day.is-monday {
   box-shadow: inset 1px 0 0 var(--border-default);
@@ -254,11 +259,11 @@
 }
 .linear-day.is-strip,
 .linear-day.is-strip:hover {
-  background: var(--color-neutral-50);
+  background: var(--bg-app);
   cursor: default;
 }
 .linear-day.is-open {
-  background: var(--color-brand-100);
+  background: var(--accent-subtle);
 }
 .linear-num {
   grid-row: 1;
@@ -399,7 +404,7 @@
 .linear-marks-more {
   flex-basis: 100%;
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 12px;
   font-weight: 500;
   color: var(--text-tertiary);
@@ -410,7 +415,7 @@
   padding-top: 2px;
 }
 .is-year .linear-day .linear-num {
-  font-size: 10px;
+  font-size: 11px;
 }
 .is-year .linear-day .linear-num i {
   min-width: 16px;
@@ -421,7 +426,7 @@
   height: 14px;
   padding: 0 4px 0 6px;
   border-radius: 3px;
-  font-size: 10px;
+  font-size: 11px;
 }
 .is-year .linear-bar.is-project {
   padding-left: 4px;
@@ -449,8 +454,8 @@
 }
 .is-year .linear-marks-more {
   flex-basis: auto;
-  font-size: 9px;
-  line-height: 10px;
+  font-size: 11px;
+  line-height: 12px;
 }
 
 /*
@@ -511,14 +516,14 @@
 }
 .linear-day.is-in-range,
 .linear-day.is-in-range:hover {
-  background: var(--color-brand-100);
+  background: var(--accent-subtle);
 }
 .linear-day.is-drop,
 .linear-day.is-drop:hover {
   box-shadow: inset 0 0 0 2px var(--color-brand-600);
 }
 .linear-day.is-drop:not(.is-in-range) {
-  background: var(--color-brand-50);
+  background: var(--accent-subtle);
 }
 body.is-linear-dragging,
 body.is-linear-dragging * {
@@ -567,4 +572,83 @@ body.is-linear-dragging * {
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
+}
+
+/*
+ * Timed view (FullCalendar timeGrid for Days and Week): clean hour/half-hour gridlines,
+ * muted time-axis labels, all-day divider, and full-height timed event blocks.
+ */
+.calendar-allday-header {
+  width: 64px;
+  vertical-align: top;
+}
+.calendar-allday-label {
+  display: block;
+  width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 8px 8px 0;
+}
+.calendar-allday-divider {
+  height: 1px;
+  padding: 0;
+  border-top: 1px solid var(--border-default);
+  background: var(--border-default);
+}
+.calendar-slot-header {
+  width: 64px;
+  vertical-align: top;
+  border-top: 0;
+}
+.calendar-slot-label {
+  display: block;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-align: right;
+  padding: 3px 10px 0 6px;
+}
+.calendar-slot-lane.is-major {
+  border-top: 1px solid var(--border-default);
+}
+.calendar-slot-lane.is-minor {
+  border-top: 1px dashed color-mix(in oklab, var(--border-default) 55%, transparent);
+}
+.calendar-day-lane {
+  border-inline-start: 1px solid var(--border-default);
+}
+.calendar-entry.is-timed-entry {
+  height: 100%;
+  padding: 1px 3px;
+}
+.calendar-entry.is-timed-entry > :not(.calendar-resizer),
+.calendar-entry.is-timed-entry > :not(.calendar-resizer) > * {
+  height: 100%;
+}
+.is-timed .is-column-resizer {
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: 8px;
+  cursor: ns-resize;
+}
+.is-timed .is-column-resizer::after {
+  top: auto;
+  bottom: 2px;
+  left: 50%;
+  right: auto;
+  width: 24px;
+  height: 3px;
+  transform: translateX(-50%);
+}
+.calendar-now-line {
+  border-top: 2px solid var(--color-brand-600);
+}
+.calendar-now-dot {
+  border-color: var(--color-brand-600);
 }

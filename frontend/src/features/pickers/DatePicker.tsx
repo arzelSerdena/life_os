@@ -119,10 +119,10 @@ export function DatePanel({
               if (event.key === "Enter") {
                 event.preventDefault();
                 if (match) onPick(match);
-                else if (text.trim() === "" && value) onPick(null);
+                else if (clearLabel && text.trim() === "" && value) onPick(null);
               }
             }}
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
+            className="min-w-0 flex-1 bg-transparent type-body text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
           />
         </label>
       </div>
@@ -203,7 +203,7 @@ export function MonthGrid({
   return (
     <div className="px-1.5 pt-1 pb-0.5">
       <div className="flex h-7 items-center pr-0.5 pl-1">
-        <span className="text-[13px] font-semibold text-(--text-primary)">{monthTitle(month)}</span>
+        <span className="type-body font-semibold text-(--text-primary)">{monthTitle(month)}</span>
         <span className="ml-auto flex gap-0.5">
           <NavButton label="Previous month" onPress={() => onMonth(addMonths(month, -1))}>
             <ChevronLeft aria-hidden className="size-3.5" />
@@ -219,7 +219,7 @@ export function MonthGrid({
             <span
               // biome-ignore lint/suspicious/noArrayIndexKey: the letters repeat
               key={index}
-              className="grid h-7 place-items-center text-[11px] font-medium text-(--text-tertiary)"
+              className="grid h-7 place-items-center type-tag font-medium text-(--text-tertiary)"
             >
               {letter}
             </span>

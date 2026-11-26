@@ -88,6 +88,7 @@ function LogRow({ metric, color }: { metric: LogMetricRead; color: string | null
         <input
           inputMode="decimal"
           aria-label={`${metric.title} today`}
+          placeholder="0"
           value={text}
           disabled={log.isPending}
           onChange={(event) => {
@@ -97,7 +98,7 @@ function LogRow({ metric, color }: { metric: LogMetricRead; color: string | null
           onKeyDown={(event) => {
             if (event.key === "Enter") submit();
           }}
-          className="min-w-0 flex-1 bg-transparent text-right text-[13px] font-medium text-(--text-primary) tabular-nums outline-none"
+          className="min-w-0 flex-1 bg-transparent text-right type-body font-medium text-(--text-primary) tabular-nums outline-none placeholder:text-(--text-disabled)"
         />
         {suffix && <span className="text-xs text-(--text-tertiary)">{suffix}</span>}
       </label>

@@ -158,6 +158,10 @@ test("dragging a repeating event moves only that occurrence, and Undo puts it ba
   const from = await box(entry(page, event.title));
   const to = await box(cell(page, wednesday));
   await dragTo(page, { x: from.x + 40, y: from.y + 12 }, { x: to.x + to.width / 2, y: to.y + 200 });
+  await page
+    .getByRole("dialog", { name: "Edit recurring event" })
+    .getByRole("button", { name: "OK" })
+    .click();
 
   await expect(page.getByText(`Moved “${event.title}” · ${short(wednesday)}`)).toBeVisible();
   await expect(cell(page, wednesday).getByText(event.title)).toBeVisible();
@@ -236,7 +240,9 @@ test("clicking a day offers a new task on that day", async ({ page, request }) =
   await page.getByRole("button", { name: "Task", exact: true }).click();
 
   const modal = page.getByRole("dialog", { name: "New task" });
-  await expect(modal.getByRole("button", { name: "Scheduled" })).toContainText(short(tuesday));
+  await expect(modal.getByRole("button", { name: "Scheduled", exact: true })).toContainText(
+    short(tuesday),
+  );
 });
 
 test("Month: a full day ends with +n more, which opens the whole day", async ({

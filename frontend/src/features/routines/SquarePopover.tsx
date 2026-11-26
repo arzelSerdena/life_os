@@ -30,7 +30,7 @@ export function skippedMessage(title: string, day: string, today: string): strin
 }
 
 const ITEM =
-  "flex h-7 items-center gap-2 rounded-(--radius-6) px-2 text-left text-[13px] text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:pointer-events-none disabled:opacity-45";
+  "flex h-7 items-center gap-2 rounded-(--radius-6) px-2 text-left type-body text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:pointer-events-none disabled:opacity-45";
 
 /**
  * A step's square in the heatmap: set that day to Done, Skipped, or To do (Missed for a day
@@ -85,7 +85,7 @@ export function SquarePopover({
       onClose={onClose}
     >
       <div className="px-2 pt-1 pb-1.5 text-xs leading-4 text-(--text-tertiary)">
-        <b className="block truncate text-[13px] font-semibold text-(--text-primary)">{title}</b>
+        <b className="block truncate type-body font-semibold text-(--text-primary)">{title}</b>
         {weekdayDate(day)}
       </div>
       {items.map((item) => (

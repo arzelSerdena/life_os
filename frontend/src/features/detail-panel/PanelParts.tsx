@@ -1,5 +1,5 @@
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { Check, Code, Ellipsis, type LucideIcon } from "lucide-react";
+import { Ellipsis, type LucideIcon } from "lucide-react";
 import {
   createContext,
   Fragment,
@@ -9,7 +9,9 @@ import {
   useEffect,
   useState,
 } from "react";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { NotesEditor } from "./NotesEditor";
 
 /** The panel frame's bottom-centre slot, where the notes toolbar floats. */
@@ -50,6 +52,8 @@ type PanelViewProps = {
   /** Shown between the chips and the notes, such as a task's subtasks. */
   content?: ReactNode;
   notes: PanelNotes;
+  /** Optional quick action shown beside the ⋯ menu in the header. */
+  headerAction?: ReactNode;
   actions?: PanelAction[];
   error?: unknown;
 };
@@ -64,20 +68,11 @@ export function PanelView({
   chips,
   content,
   notes,
+  headerAction,
   actions = [],
   error,
 }: PanelViewProps) {
   const toolbar = useContext(ToolbarSlot);
-  const [showSource, setShowSource] = useState(false);
-  const menu: PanelAction[] = [
-    {
-      id: "markdown",
-      label: showSource ? "View formatted" : "View Markdown",
-      icon: Code,
-      onAction: () => setShowSource((value) => !value),
-    },
-    ...actions,
-  ];
   return (
     <>
       <header className="flex h-14 shrink-0 items-center gap-2 pt-3 pr-4 pl-6">
@@ -92,7 +87,7 @@ export function PanelView({
               key={index}
               className="flex min-w-0 items-center gap-1.5"
             >
-              {index > 0 && <span className="text-neutral-300">/</span>}
+              {index > 0 && <span className="text-(--border-strong)">/</span>}
               <span
                 className={`truncate ${index === crumbs.length - 1 ? "text-(--text-secondary)" : ""}`}
               >
@@ -102,9 +97,10 @@ export function PanelView({
           ))}
         </nav>
         <span className="flex-1" />
-        <PanelMenu actions={menu} />
+        {headerAction}
+        {actions.length > 0 && <PanelMenu actions={actions} />}
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-6 pt-3 pb-28">
+      <Scroll fade={false} className="flex min-h-0 flex-1 flex-col gap-3.5 px-6 pt-3 pb-28">
         <div className="flex items-start gap-2.5">
           {marker}
           <EditableTitle value={title} onSave={onRename} />
@@ -119,10 +115,10 @@ export function PanelView({
           onSave={notes.save}
           header={notes.header}
           readOnly={notes.readOnly}
-          showSource={showSource}
+          showSource={false}
           toolbarContainer={toolbar}
         />
-      </div>
+      </Scroll>
     </>
   );
 }
@@ -186,7 +182,7 @@ export function ActionMenuList({ actions, label }: { actions: PanelAction[]; lab
             {action.hint ? (
               <span className="flex flex-col py-1">
                 <Label>{action.label}</Label>
-                <span className="text-[11px] leading-[14px] text-(--text-tertiary)">
+                <span className="type-tag leading-[14px] text-(--text-tertiary)">
                   {action.hint}
                 </span>
               </span>
@@ -280,7 +276,7 @@ export function EditableLine({
       onChange={(event) => edit.setDraft(event.target.value)}
       onBlur={edit.commit}
       onKeyDown={(event) => edit.onKeyDown(event, true)}
-      className={`${INLINE_FIELD} -mx-1 -mt-1.5 px-1 text-[13px] leading-[19px] text-(--text-secondary) placeholder:text-(--text-disabled)`}
+      className={`${INLINE_FIELD} -mx-1 -mt-1.5 px-1 type-body leading-[19px] text-(--text-secondary) placeholder:text-(--text-disabled)`}
     />
   );
 }
@@ -306,7 +302,7 @@ export function Marker({ icon: Icon, solid }: { icon?: LucideIcon; solid?: boole
   );
 }
 
-/** A task's marker: a checkbox outline that marks the task done (or open again). */
+/** A task's marker: a normal checkbox like in item cards. */
 export function TaskMarker({
   done,
   title,
@@ -317,20 +313,13 @@ export function TaskMarker({
   onToggle: () => void;
 }) {
   return (
-    <button
-      type="button"
-      aria-label={done ? `Mark ${title} not done` : `Mark ${title} done`}
-      aria-pressed={done}
-      title={done ? "Mark not done" : "Mark done"}
-      onClick={onToggle}
-      className={`${MARKER} hit-24 relative cursor-pointer bg-(--area-tint-active) text-white outline-none hover:bg-(--area-border) focus-visible:ring-2 focus-visible:ring-(--focus-ring)`}
-    >
-      <span
-        className={`grid size-[11px] place-items-center rounded-[3px] border-[1.75px] border-(--area-solid) ${done ? "bg-(--area-solid)" : ""}`}
-      >
-        {done && <Check className="size-2!" strokeWidth={4} />}
-      </span>
-    </button>
+    <span className="mt-[2px] grid size-[22px] shrink-0 place-items-center">
+      <EntityCheckbox
+        checked={done}
+        label={done ? `Mark ${title} not done` : `Mark ${title} done`}
+        onChange={onToggle}
+      />
+    </span>
   );
 }
 

@@ -9,6 +9,7 @@ export type PanelTarget =
   | { kind: "task"; id: number }
   | { kind: "template"; id: number }
   | { kind: "event"; id: number; day: string | null }
+  | { kind: "routine"; id: number }
   | { kind: "metric"; id: number };
 
 export const PANEL_MIN_WIDTH = 360;

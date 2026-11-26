@@ -22,6 +22,8 @@ export type RoutineDay = {
   routineId: number;
   title: string;
   day: string;
+  startTime: string | null;
+  endTime: string | null;
   steps: RoutineStepDay[];
   done: number;
 };
@@ -86,7 +88,15 @@ export function routineDays(steps: readonly RoutineStepDay[], day: string): Rout
   for (const step of steps) {
     let routine = routines.get(step.routine_id);
     if (!routine) {
-      routine = { routineId: step.routine_id, title: step.routine_title, day, steps: [], done: 0 };
+      routine = {
+        routineId: step.routine_id,
+        title: step.routine_title,
+        day,
+        startTime: step.routine_start_time ?? null,
+        endTime: step.routine_end_time ?? null,
+        steps: [],
+        done: 0,
+      };
       routines.set(step.routine_id, routine);
     }
     routine.steps.push(step);

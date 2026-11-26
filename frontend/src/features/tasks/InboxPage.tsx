@@ -15,6 +15,7 @@ import { type CSSProperties, type KeyboardEvent, type ReactNode, useState } from
 import type { TaskRead } from "../../client/types.gen";
 import { IconButton } from "../../components/IconButton";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { useTaskBoard } from "../../stores/taskBoardStore";
 import { areaDataAttribute } from "../life-areas/palette";
@@ -75,11 +76,17 @@ export function InboxPage() {
 function Inbox({ data }: { data: TasksData }) {
   const { file, error } = useFileTask(data);
   const [dragged, setDragged] = useState<TaskRead | null>(null);
+  const [tab, setTab] = useState<"all" | "area" | "scheduled" | "due">("all");
   // A short move starts a drag, so a click still opens the card.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const filters = useViewFilters("inbox", "area");
   const clearFilters = useClearFilters("inbox");
-  const inbox = inboxList(data.tasks);
+  const inbox = inboxList(data.tasks).filter((task) => {
+    if (tab === "area") return task.life_area_id === null;
+    if (tab === "scheduled") return task.scheduled_date === null;
+    if (tab === "due") return task.due_date === null;
+    return true;
+  });
   const tasks = sortTasks(
     inbox.filter((task) => taskShown(filters, task)),
     filters.sort,
@@ -104,8 +111,19 @@ function Inbox({ data }: { data: TasksData }) {
       <div className="@container flex min-h-0 flex-1 gap-6 px-(--page-gutter) pt-[14px]">
         <section
           aria-label="Inbox tasks"
-          className="flex min-h-0 min-w-[260px] flex-[0_0_calc((100cqw_-_64px)/5)] flex-col"
+          className="flex min-h-0 min-w-[260px] flex-[0_0_calc((100cqw_-_64px)/5)] flex-col gap-2.5"
         >
+          <SegmentSwitch
+            label="Inbox filter"
+            value={tab}
+            options={[
+              { key: "all", label: "All" },
+              { key: "area", label: "No area" },
+              { key: "scheduled", label: "No scheduled" },
+              { key: "due", label: "No due" },
+            ]}
+            onChange={setTab}
+          />
           {error && (
             <p role="alert" className="mb-2 type-meta text-(--text-danger)">
               Couldn't file the task. Try again.
@@ -121,7 +139,7 @@ function Inbox({ data }: { data: TasksData }) {
               </Button>
             </div>
           ) : (
-            <ul className="flex min-h-0 flex-col gap-1.5 overflow-y-auto pb-6">
+            <Scroll as="ul" className="flex min-h-0 flex-col gap-1.5 pb-6">
               {tasks.map((task) => (
                 <InboxCard
                   key={task.id}
@@ -131,7 +149,7 @@ function Inbox({ data }: { data: TasksData }) {
                   dragging={dragged?.id === task.id}
                 />
               ))}
-            </ul>
+            </Scroll>
           )}
         </section>
         <DropContainer data={data} />
@@ -203,7 +221,9 @@ function InboxCard({
         ref: setNodeRef,
         ...listeners,
         onKeyDown,
-        className: dragging ? "opacity-40" : "",
+        className: dragging
+          ? "border-[1.5px] border-dashed border-(--color-brand-500) bg-(--bg-surface) [&>*]:invisible"
+          : "",
       }}
       actions={
         <div
@@ -240,7 +260,7 @@ function InboxCard({
 }
 
 const ACTION =
-  "h-6 min-w-0 gap-1 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-1.5 text-[11px] font-medium text-(--text-secondary) hover:bg-(--color-neutral-100) [&_svg]:size-3";
+  "h-6 min-w-0 gap-1 rounded-(--radius-6) border border-(--border-default) bg-(--bg-surface) px-1.5 type-tag font-medium text-(--text-secondary) hover:bg-(--color-neutral-100) [&_svg]:size-3";
 
 function ActionButton({
   label,
@@ -390,11 +410,11 @@ function DropContainer({ data }: { data: TasksData }) {
           onChange={setPanel}
         />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+      <Scroll className="min-h-0 flex-1 px-4 pb-4">
         {panel === "areas" && <AreasPanel data={data} counts={counts} />}
         {panel === "calendar" && <CalendarPanel today={data.today} counts={counts.dates} />}
         {panel === "priority" && <PriorityPanel counts={counts.priorities} />}
-      </div>
+      </Scroll>
     </section>
   );
 }
@@ -413,7 +433,7 @@ function TintCounter({ count, tint }: { count: number; tint?: string }) {
   return (
     <span
       style={tint ? ({ "--tint": tint } as CSSProperties) : undefined}
-      className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--tint,var(--color-neutral-400))_16%,white)] px-1.5 text-[11px] leading-4 font-medium text-(--text-secondary) tabular-nums"
+      className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--tint,var(--color-neutral-400))_16%,var(--bg-surface))] px-1.5 type-tag font-medium text-(--text-secondary) tabular-nums"
     >
       {count}
     </span>
@@ -471,8 +491,8 @@ function ProjectTarget({ id, title, count }: { id: number; title: string; count:
     <div
       ref={ref}
       data-drop-target={`project ${title}`}
-      className={`mb-0.5 flex h-[30px] items-center gap-2 rounded-(--radius-6) border-2 px-2 text-[13px] text-(--text-primary) ${
-        isOver ? over : "border-transparent bg-white/75"
+      className={`mb-0.5 flex h-[30px] items-center gap-2 rounded-(--radius-6) border-2 px-2 type-body text-(--text-primary) ${
+        isOver ? over : "border-transparent bg-(--bg-surface)/75"
       }`}
     >
       <Folder aria-hidden className="size-3.5 shrink-0 text-(--area-solid)" strokeWidth={2} />
@@ -550,7 +570,7 @@ function DayTarget({
       }`}
     >
       <span
-        className={`grid h-[22px] min-w-[22px] place-items-center rounded-(--radius-6) text-[13px] font-medium ${
+        className={`grid h-[22px] min-w-[22px] place-items-center rounded-(--radius-6) type-body font-medium ${
           isToday
             ? "bg-(--color-brand-700) px-1 text-white"
             : dim

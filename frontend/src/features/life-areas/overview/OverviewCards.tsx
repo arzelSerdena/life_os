@@ -32,14 +32,15 @@ export function OverviewCards() {
   const data = overview.data;
   const name = periodInSentence(data.period as Period, data.range.start);
   const isCurrent = data.today >= data.range.start && data.today <= data.range.end;
+  const hasWins = data.wins.length > 0;
   return (
     <>
-      <EffortCard overview={data} name={name} isCurrent={isCurrent} />
       <OutcomesCard overview={data} />
-      <div className="grid grid-cols-3 gap-4">
+      <EffortCard overview={data} name={name} isCurrent={isCurrent} />
+      <div className={`grid grid-cols-1 gap-4 ${hasWins ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
         <ProjectsCard overview={data} />
         <RoutinesCard overview={data} name={name} />
-        <WinsCard overview={data} name={name} isCurrent={isCurrent} />
+        {hasWins && <WinsCard overview={data} name={name} isCurrent={isCurrent} />}
       </div>
     </>
   );
@@ -110,10 +111,10 @@ function EffortCard({ overview, name, isCurrent }: CardProps) {
             style={{ flex: done }}
             className="flex min-w-0 flex-col px-2"
           >
-            <span className="truncate text-[13px] font-semibold text-(--text-primary)">
+            <span className="truncate type-body font-semibold text-(--text-primary)">
               {area.title}
             </span>
-            <span className="truncate text-[11px] text-(--text-tertiary)">
+            <span className="truncate type-tag text-(--text-tertiary)">
               {[plural(done, "task"), change].filter(Boolean).join(" · ")}
             </span>
           </div>
@@ -175,7 +176,7 @@ function ProjectsRow({ row, area }: { row: ProjectsAreaRead; area: LifeAreaRead 
         />
         {pace !== null && (
           <b
-            className="absolute -inset-y-1 -ml-px w-0.5 rounded-[1px] bg-(--color-neutral-900)"
+            className="absolute -inset-y-1 -ml-px w-0.5 rounded-[1px] bg-(--text-primary)"
             style={{ left: `${pace}%` }}
           />
         )}
@@ -183,7 +184,7 @@ function ProjectsRow({ row, area }: { row: ProjectsAreaRead; area: LifeAreaRead 
       <span className="flex flex-col items-end text-xs leading-4 font-semibold tabular-nums">
         {share}%
         <span
-          className={`text-[11px] leading-[14px] font-medium ${
+          className={`type-tag leading-[14px] font-medium ${
             note.good === null
               ? "text-(--text-tertiary)"
               : note.good
@@ -255,7 +256,7 @@ function RoutinesRow({
     >
       <AreaLabel area={area} />
       <span
-        className="grid gap-[3px]"
+        className={`grid ${row.weeks.length > 20 ? "gap-px" : "gap-[3px]"}`}
         style={{ gridTemplateColumns: `repeat(${row.weeks.length}, minmax(0, 1fr))` }}
       >
         {row.weeks.map((week) => {
@@ -274,18 +275,16 @@ function RoutinesRow({
               style={share === null ? undefined : { opacity: 0.2 + 0.8 * share }}
               className={`block h-[18px] rounded-[3px] ${
                 share === null
-                  ? "bg-white shadow-[inset_0_0_0_1px_var(--color-neutral-300)]"
+                  ? "bg-(--bg-surface) shadow-[inset_0_0_0_1px_var(--border-default)]"
                   : "bg-(--area-solid)"
-              } ${week.is_current && share !== null ? "shadow-[inset_0_0_0_1.5px_#fff,0_0_0_1.5px_var(--area-solid)]" : ""}`}
+              } ${week.is_current && share !== null ? "shadow-[inset_0_0_0_1.5px_var(--bg-surface),0_0_0_1.5px_var(--area-solid)]" : ""}`}
             />
           );
         })}
       </span>
       <span className="flex flex-col items-end text-xs leading-4 font-semibold tabular-nums">
         {value === null ? "–" : `${value}%`}
-        <span className="text-[11px] leading-[14px] font-normal text-(--text-tertiary)">
-          {when}
-        </span>
+        <span className="type-tag leading-[14px] font-normal text-(--text-tertiary)">{when}</span>
       </span>
     </div>
   );
@@ -325,7 +324,7 @@ function WinsCard({ overview, name, isCurrent }: CardProps) {
                 strokeWidth={2}
               />
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[13px] font-medium text-(--text-primary)">
+                <span className="truncate type-body font-medium text-(--text-primary)">
                   {win.title}
                 </span>
                 <span className="truncate type-meta text-(--text-tertiary)">{winNote(win)}</span>

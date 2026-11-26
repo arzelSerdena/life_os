@@ -53,7 +53,7 @@ export function DetailPanel() {
       ref={panel}
       aria-label="Details"
       style={{ width }}
-      className="fixed top-2 right-2 bottom-2 z-30 flex flex-col rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface) shadow-(--effect-overlay) min-[1600px]:static min-[1600px]:my-2 min-[1600px]:mr-2 min-[1600px]:h-[calc(100vh-16px)] min-[1600px]:shrink-0 min-[1600px]:shadow-none"
+      className="fixed top-2 right-2 bottom-2 z-30 flex flex-col rounded-(--radius-12) border border-(--border-default) bg-(--bg-surface) shadow-(--effect-overlay) min-[1600px]:relative min-[1600px]:top-auto min-[1600px]:right-auto min-[1600px]:bottom-auto min-[1600px]:my-2 min-[1600px]:mr-2 min-[1600px]:h-[calc(100vh-16px)] min-[1600px]:shrink-0 min-[1600px]:shadow-none"
     >
       <ResizeHandle />
       <ToolbarSlot.Provider value={toolbar}>

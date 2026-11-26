@@ -1,6 +1,15 @@
 import { Button } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChartLine, Check, CircleMinus, Folder, Minus, Play, X } from "lucide-react";
+import {
+  ChartLine,
+  ChevronLeft,
+  ChevronRight,
+  CircleMinus,
+  Folder,
+  Minus,
+  Play,
+  X,
+} from "lucide-react";
 import {
   clearRoutineStepDayMutation,
   listRoutineStepsForDayOptions,
@@ -9,12 +18,14 @@ import {
   skipRoutineDayMutation,
 } from "../../client/@tanstack/react-query.gen";
 import type { LifeAreaRead, ProjectRead, RoutinePageRead } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
 import { IconButton } from "../../components/IconButton";
 import { QueryError } from "../../components/QueryError";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { itemMenuProps } from "../item-menu/target";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
+import { addDays } from "../pickers/dates";
 import { ProgressRing } from "../tasks/RoutinesPage";
 import { type DayRow, dayCard, weekdayDate } from "./routine";
 import { skippedMessage } from "./SquarePopover";
@@ -28,6 +39,7 @@ export function DayCard({
   page,
   day,
   onToday,
+  onSelectDay,
   areas,
   projects,
 }: {
@@ -35,6 +47,8 @@ export function DayCard({
   day: string;
   /** Omitted for an archived routine: it opens on its archive day and stays there. */
   onToday?: () => void;
+  /** Omitted for an archived routine: steps to the previous or next day. */
+  onSelectDay?: (day: string) => void;
   areas: LifeAreaRead[];
   projects: ProjectRead[];
 }) {
@@ -61,6 +75,16 @@ export function DayCard({
         </h2>
         <span className="type-meta text-(--text-tertiary)">{isToday ? label : label.slice(5)}</span>
         <span className="ml-auto flex items-center gap-1.5">
+          {onSelectDay && (
+            <span className="flex items-center">
+              <IconButton label="Previous day" onPress={() => onSelectDay(addDays(day, -1))}>
+                <ChevronLeft />
+              </IconButton>
+              <IconButton label="Next day" onPress={() => onSelectDay(addDays(day, 1))}>
+                <ChevronRight />
+              </IconButton>
+            </span>
+          )}
           {!isToday && onToday && (
             <Button size="sm" variant="secondary" onPress={onToday}>
               Today
@@ -68,7 +92,14 @@ export function DayCard({
           )}
           {card?.kind === "steps" && card.total > 0 && (
             <>
-              <ProgressRing done={card.done} total={card.total} />
+              <ProgressRing
+                done={card.done}
+                total={card.total}
+                segments={card.rows.map((item) => ({
+                  done: item.state === "done",
+                  color: areas.find((a) => a.id === item.row.step.life_area_id)?.color ?? null,
+                }))}
+              />
               <span className="type-meta text-(--text-tertiary) tabular-nums">
                 {card.done}/{card.total}
               </span>
@@ -195,51 +226,40 @@ export function StepRow({
     <li
       {...(routineId === undefined ? {} : itemMenuProps({ kind: "step", id: step.id, routineId }))}
       data-area={areaDataAttribute(color)}
+      onPointerDown={(event) => event.stopPropagation()}
       className="group relative flex items-start gap-2.5 rounded-(--radius-6) px-2 py-[7px] hover:bg-(--bg-hover)"
     >
-      <label
-        className={`relative mt-0.5 grid size-4 shrink-0 place-items-center ${canCheck ? "cursor-pointer" : ""}`}
+      <EntityCheckbox
+        shape="round"
+        checked={isDone}
+        disabled={!canCheck || busy}
+        cancelled={muted || state === "upcoming"}
         title={state === "upcoming" ? "Can be checked on the day" : undefined}
-      >
-        <input
-          type="checkbox"
-          checked={isDone}
-          disabled={!canCheck || busy}
-          aria-label={isDone ? `Mark ${step.title} not done` : `Mark ${step.title} done`}
-          onChange={toggle}
-          className={`size-4 cursor-pointer appearance-none rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-            isDone
-              ? "border-(--area-border) bg-(--area-border)"
-              : muted || state === "upcoming"
-                ? "border-(--color-neutral-300)"
-                : "border-(--area-solid)"
-          }`}
-        />
-        {isDone && (
-          <Check
-            aria-hidden
-            className="pointer-events-none absolute size-[9px] text-white"
-            strokeWidth={3.5}
-          />
-        )}
-        {state === "skipped" && (
-          <Minus
-            aria-hidden
-            className="pointer-events-none absolute size-[9px] text-(--color-neutral-500)"
-            strokeWidth={3.5}
-          />
-        )}
-        {state === "missed" && (
-          <X
-            aria-hidden
-            className="pointer-events-none absolute size-[9px] text-(--color-neutral-500)"
-            strokeWidth={3.5}
-          />
-        )}
-      </label>
+        label={isDone ? `Mark ${step.title} not done` : `Mark ${step.title} done`}
+        onChange={toggle}
+        overlay={
+          state === "skipped" ? (
+            <Minus
+              aria-hidden
+              className="pointer-events-none absolute size-[9px] text-(--color-neutral-500)"
+              strokeWidth={3.5}
+            />
+          ) : state === "missed" ? (
+            <X
+              aria-hidden
+              className="pointer-events-none absolute size-[9px] text-(--color-neutral-500)"
+              strokeWidth={3.5}
+            />
+          ) : undefined
+        }
+        className="-m-1 mt-[-3px]"
+      />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span
-          className={`text-sm leading-5 ${
+        <button
+          type="button"
+          disabled={!canCheck || busy}
+          onClick={toggle}
+          className={`cursor-pointer text-left text-sm leading-5 outline-none disabled:cursor-default ${
             isDone
               ? "text-(--text-tertiary) line-through"
               : muted
@@ -248,7 +268,7 @@ export function StepRow({
           }`}
         >
           {step.title}
-        </span>
+        </button>
         {(project || metric || (isToday && step.streak > 1)) && (
           <span className="flex flex-wrap gap-2.5 text-xs leading-4 text-(--text-tertiary)">
             {project && (

@@ -788,8 +788,8 @@ export type EventRead = {
 /**
  * EventReschedule
  *
- * New dates for a one-off event, as when it is dragged or its bar resized on the
- * calendar. Its times stay; leave `end_date` out (or None) for a one-day event.
+ * New dates (and optionally times) for a one-off event, as when it is dragged or its bar
+ * resized on the calendar. Leave `end_date` out (or None) for a one-day event.
  */
 export type EventReschedule = {
     /**
@@ -800,6 +800,14 @@ export type EventReschedule = {
      * End Date
      */
     end_date?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
 };
 
 /**
@@ -2785,6 +2793,14 @@ export type RoutineCreate = {
      */
     notes?: string | null;
     /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
      * Rrule
      */
     rrule?: string;
@@ -2990,6 +3006,14 @@ export type RoutineRead = {
      */
     notes: string | null;
     /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
      * Sort Order
      */
     sort_order: number;
@@ -3088,6 +3112,14 @@ export type RoutineStepDay = {
      * Routine Title
      */
     routine_title: string;
+    /**
+     * Routine Start Time
+     */
+    routine_start_time?: string | null;
+    /**
+     * Routine End Time
+     */
+    routine_end_time?: string | null;
     /**
      * Title
      */
@@ -3271,6 +3303,14 @@ export type RoutineUpdate = {
      * Notes
      */
     notes?: string | null;
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
     /**
      * Sort Order
      */
@@ -3652,6 +3692,10 @@ export type SettingsRead = {
      */
     backup_folder: string | null;
     /**
+     * Theme
+     */
+    theme: 'system' | 'light' | 'dark';
+    /**
      * Updated At
      */
     updated_at: string;
@@ -3688,6 +3732,10 @@ export type SettingsUpdate = {
      * Backup Folder
      */
     backup_folder?: string | null;
+    /**
+     * Theme
+     */
+    theme?: 'system' | 'light' | 'dark' | null;
 };
 
 /**
@@ -3993,6 +4041,14 @@ export type TaskCreate = {
      */
     scheduled_date?: string | null;
     /**
+     * Scheduled Time
+     */
+    scheduled_time?: string | null;
+    /**
+     * Scheduled End Time
+     */
+    scheduled_end_time?: string | null;
+    /**
      * Due Date
      */
     due_date?: string | null;
@@ -4097,6 +4153,14 @@ export type TaskRead = {
      * Scheduled Date
      */
     scheduled_date: string | null;
+    /**
+     * Scheduled Time
+     */
+    scheduled_time: string | null;
+    /**
+     * Scheduled End Time
+     */
+    scheduled_end_time: string | null;
     /**
      * Due Date
      */
@@ -4385,6 +4449,14 @@ export type TaskUpdate = {
      * Scheduled Date
      */
     scheduled_date?: string | null;
+    /**
+     * Scheduled Time
+     */
+    scheduled_time?: string | null;
+    /**
+     * Scheduled End Time
+     */
+    scheduled_end_time?: string | null;
     /**
      * Due Date
      */
@@ -7918,6 +7990,82 @@ export type UnarchiveEventResponses = {
 
 export type UnarchiveEventResponse = UnarchiveEventResponses[keyof UnarchiveEventResponses];
 
+export type RestoreEventOccurrenceData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}';
+};
+
+export type RestoreEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RestoreEventOccurrenceError = RestoreEventOccurrenceErrors[keyof RestoreEventOccurrenceErrors];
+
+export type RestoreEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: EventRead;
+};
+
+export type RestoreEventOccurrenceResponse = RestoreEventOccurrenceResponses[keyof RestoreEventOccurrenceResponses];
+
+export type GetEventOccurrenceData = {
+    body?: never;
+    path: {
+        /**
+         * Event Id
+         */
+        event_id: number;
+        /**
+         * Day
+         */
+        day: string;
+    };
+    query?: never;
+    url: '/api/events/{event_id}/occurrences/{day}';
+};
+
+export type GetEventOccurrenceErrors = {
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEventOccurrenceError = GetEventOccurrenceErrors[keyof GetEventOccurrenceErrors];
+
+export type GetEventOccurrenceResponses = {
+    /**
+     * Successful Response
+     */
+    200: OccurrenceRead;
+};
+
+export type GetEventOccurrenceResponse = GetEventOccurrenceResponses[keyof GetEventOccurrenceResponses];
+
 export type EditEventOccurrenceData = {
     body: OccurrenceEdit;
     path: {
@@ -8039,44 +8187,6 @@ export type DeleteEventOccurrenceResponses = {
 };
 
 export type DeleteEventOccurrenceResponse = DeleteEventOccurrenceResponses[keyof DeleteEventOccurrenceResponses];
-
-export type RestoreEventOccurrenceData = {
-    body?: never;
-    path: {
-        /**
-         * Event Id
-         */
-        event_id: number;
-        /**
-         * Day
-         */
-        day: string;
-    };
-    query?: never;
-    url: '/api/events/{event_id}/occurrences/{day}';
-};
-
-export type RestoreEventOccurrenceErrors = {
-    /**
-     * Not Found
-     */
-    404: ErrorResponse;
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RestoreEventOccurrenceError = RestoreEventOccurrenceErrors[keyof RestoreEventOccurrenceErrors];
-
-export type RestoreEventOccurrenceResponses = {
-    /**
-     * Successful Response
-     */
-    200: EventRead;
-};
-
-export type RestoreEventOccurrenceResponse = RestoreEventOccurrenceResponses[keyof RestoreEventOccurrenceResponses];
 
 export type GetWeekData = {
     body?: never;

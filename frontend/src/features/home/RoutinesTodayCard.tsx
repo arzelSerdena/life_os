@@ -1,15 +1,19 @@
 import { useMutation } from "@tanstack/react-query";
-import { ChevronDown, CircleMinus } from "lucide-react";
+import { CheckCheck, ChevronDown, CircleMinus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
-import { skipRoutineDayMutation } from "../../client/@tanstack/react-query.gen";
+import {
+  setRoutineStepDayMutation,
+  skipRoutineDayMutation,
+} from "../../client/@tanstack/react-query.gen";
 import type { HomeRead, HomeRoutineRead, ProjectRead } from "../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../components/SectionCard";
 import { useChangeToast } from "../../stores/changeToastStore";
+import { PanelLink } from "../detail-panel/PanelLink";
 import { type PanelAction, PanelMenu } from "../detail-panel/PanelParts";
 import { useRowContextMenu } from "../item-menu/PointMenu";
 import { StepRow } from "../routines/DayCard";
 import { weekdayDate } from "../routines/routine";
+import { useRoutineDragGuard } from "../routines/useRoutineDragGuard";
 import { ProgressRing } from "../tasks/RoutinesPage";
 import { routineCount } from "./home";
 
@@ -74,12 +78,38 @@ function RoutineBlock({
   const [toggled, setToggled] = useState<boolean | null>(null);
   const isOpen = toggled ?? !allDone;
   const showToast = useChangeToast((state) => state.show);
+  const failToast = useChangeToast((state) => state.fail);
   const skipDay = useMutation({
     ...skipRoutineDayMutation(),
     onSuccess: (change) => showToast(`Skipped day · ${weekdayDate(today)}`, change.batch_id),
   });
-  const canSkipDay = routine.steps.some((step) => step.status === "todo");
+  const completeStep = useMutation(setRoutineStepDayMutation());
+  const remainingSteps = routine.steps.filter((step) => step.status === "todo");
+  const canSkipDay = remainingSteps.length > 0;
+  const completeRemaining = async () => {
+    const results = await Promise.allSettled(
+      remainingSteps.map((step) =>
+        completeStep.mutateAsync({
+          path: { step_id: step.step_id, day: today },
+          body: { status: "done" },
+        }),
+      ),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      failToast(`Couldn't complete ${failed} ${failed === 1 ? "step" : "steps"}`, null);
+    } else {
+      showToast(`Completed ${routine.title}`, null);
+    }
+  };
   const actions: PanelAction[] = [
+    {
+      id: "complete-remaining",
+      label: "Complete remaining",
+      icon: CheckCheck,
+      isDisabled: !canSkipDay || completeStep.isPending,
+      onAction: completeRemaining,
+    },
     {
       id: "skip",
       label: "Skip day",
@@ -90,15 +120,17 @@ function RoutineBlock({
   ];
   const menuLabel = `More for ${routine.title}`;
   const rowMenu = useRowContextMenu(actions, menuLabel);
+  const { shakeClass, onPointerDown } = useRoutineDragGuard();
 
   return (
     <section
       aria-label={routine.title}
-      className="group/routine border-(--color-neutral-100) not-first:mt-1.5 not-first:border-t not-first:pt-1.5"
+      className={`group/routine border-(--color-neutral-100) not-first:mt-1.5 not-first:border-t not-first:pt-1.5 ${shakeClass}`}
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: right-click opens the ⋯ menu, which the keyboard reaches by its button */}
       <div
         onContextMenu={rowMenu.onContextMenu}
+        onPointerDown={onPointerDown}
         className="flex h-9 items-center gap-2 rounded-(--radius-6) px-2 hover:bg-(--color-neutral-50)"
       >
         <button
@@ -113,13 +145,21 @@ function RoutineBlock({
             className={`size-3.5 transition-transform ${isOpen ? "" : "-rotate-90"}`}
           />
         </button>
-        <ProgressRing done={done} total={total} className="size-4" />
-        <Link
-          to={`/areas/routines/${routine.routine_id}`}
-          className="truncate rounded-(--radius-4) text-sm font-semibold text-(--text-primary) outline-none hover:underline hover:underline-offset-2 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        <ProgressRing
+          done={done}
+          total={total}
+          segments={routine.steps.map((s) => ({
+            done: s.status === "done",
+            color: colorOf(s.life_area_id),
+          }))}
+          className="size-4"
+        />
+        <PanelLink
+          target={{ kind: "routine", id: routine.routine_id }}
+          className="truncate text-sm font-semibold text-(--text-primary)"
         >
           {routine.title}
-        </Link>
+        </PanelLink>
         <span className="ml-auto type-meta text-(--text-tertiary) tabular-nums">
           {done}/{total}
         </span>
@@ -129,7 +169,7 @@ function RoutineBlock({
       </div>
       {rowMenu.menu}
       {isOpen && (
-        <ul aria-label={`Steps of ${routine.title}`} className="flex flex-col pl-5">
+        <ul aria-label={`Steps of ${routine.title}`} className="flex flex-col pl-6">
           {routine.steps.map((step) => (
             <StepRow
               key={step.step_id}

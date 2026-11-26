@@ -1,8 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
-import { CalendarDays, Check, ChevronDown, Flag, Folder } from "lucide-react";
+import { CalendarDays, ChevronDown, Flag, Folder, MapPin, Repeat } from "lucide-react";
 import { type ComponentPropsWithRef, type ReactNode, useState } from "react";
 import { completeTaskMutation, reopenTaskMutation } from "../../client/@tanstack/react-query.gen";
 import type { OccurrenceRead, ProjectRead, TaskRead } from "../../client/types.gen";
+import { EntityCheckbox } from "../../components/EntityCheckbox";
 import { useChangeToast } from "../../stores/changeToastStore";
 import { isPendingDelete, usePendingDeletes } from "../../stores/pendingDeleteStore";
 import { PanelLink } from "../detail-panel/PanelLink";
@@ -10,6 +11,7 @@ import { itemMenuProps } from "../item-menu/target";
 import { shortDate } from "../life-areas/overview/format";
 import { areaDataAttribute } from "../life-areas/palette";
 import { dayDate } from "../pickers/dates";
+import { useRoutineDragGuard } from "../routines/useRoutineDragGuard";
 import { isOverdue } from "../tasks/board";
 import { formatTime, useTimeFormat } from "../tasks/format";
 import type { RoutineDay } from "../tasks/next7";
@@ -31,11 +33,13 @@ export function EntryRow({
   entry,
   context,
   draggable = false,
+  onPointerDown,
 }: {
   entry: Entry;
   context: RowContext;
   /** Quarter and Year's day popover: the row can be dragged onto a day. */
   draggable?: boolean;
+  onPointerDown?: (event: React.PointerEvent) => void;
 }) {
   const past = entry.end < context.today;
   const grab = draggable ? "cursor-grab" : "";
@@ -46,35 +50,11 @@ export function EntryRow({
           event={entry.event}
           color={context.colorOf(entry.event.life_area_id)}
           className={grab}
+          onPointerDown={onPointerDown}
         />
       );
     case "routine": {
-      const { routine } = entry;
-      return (
-        <li
-          {...itemMenuProps({ kind: "routine", id: routine.routineId })}
-          className="relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--color-neutral-50)"
-        >
-          <span className="mt-0.5 grid size-4 shrink-0 place-items-center [&_svg]:size-4!">
-            <ProgressRing done={routine.done} total={routine.steps.length} />
-          </span>
-          <span className="flex min-w-0 flex-col">
-            <button
-              type="button"
-              aria-haspopup="dialog"
-              onClick={(event) =>
-                context.onRoutine(routine, event.currentTarget.closest("li") ?? event.currentTarget)
-              }
-              className={`min-w-0 truncate text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-[inherit] focus-visible:after:ring-2 focus-visible:after:ring-(--focus-ring) ${past ? "text-(--text-tertiary)" : "text-(--text-primary)"}`}
-            >
-              {routine.title}
-            </button>
-            <span className="type-meta text-(--text-tertiary)">
-              Routine · {routine.done}/{routine.steps.length}
-            </span>
-          </span>
-        </li>
-      );
+      return <RoutineAgendaRow routine={entry.routine} past={past} context={context} />;
     }
     case "project":
       return (
@@ -92,11 +72,66 @@ export function EntryRow({
           }
           meta="Project due"
           className={grab}
+          onPointerDown={onPointerDown}
         />
       );
     case "task":
-      return <TaskRow task={entry.task} context={context} containerProps={{ className: grab }} />;
+      return (
+        <TaskRow
+          task={entry.task}
+          context={context}
+          containerProps={{
+            className: grab,
+            ...(draggable
+              ? { "data-task-id": String(entry.task.id), "data-title": entry.task.title }
+              : {}),
+            onPointerDown,
+          }}
+        />
+      );
   }
+}
+
+function RoutineAgendaRow({
+  routine,
+  past,
+  context,
+}: {
+  routine: RoutineDay;
+  past: boolean;
+  context: RowContext;
+}) {
+  const { shakeClass, onPointerDown } = useRoutineDragGuard();
+  return (
+    <li
+      {...itemMenuProps({ kind: "routine", id: routine.routineId })}
+      onPointerDown={onPointerDown}
+      className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong) ${shakeClass}`}
+    >
+      <span className="mt-0.5 grid size-4 shrink-0 place-items-center [&_svg]:size-4!">
+        <ProgressRing
+          done={routine.done}
+          total={routine.steps.length}
+          segments={routine.steps.map((s) => ({
+            done: s.status === "done",
+            color: context.colorOf(s.life_area_id),
+          }))}
+        />
+      </span>
+      <span className="flex min-w-0 flex-col">
+        <PanelLink
+          stretched
+          target={{ kind: "routine", id: routine.routineId }}
+          className={`min-w-0 truncate text-left text-sm font-medium ${past ? "text-(--text-tertiary)" : "text-(--text-primary)"}`}
+        >
+          {routine.title}
+        </PanelLink>
+        <span className="type-meta text-(--text-tertiary)">
+          Routine · {routine.done}/{routine.steps.length}
+        </span>
+      </span>
+    </li>
+  );
 }
 
 /** An event: the area tint, a calendar badge, the title and when it happens. */
@@ -106,6 +141,7 @@ export function EventRow({
   className = "",
   when,
   past = event.is_past,
+  onPointerDown,
 }: {
   event: OccurrenceRead;
   color: string | null;
@@ -114,12 +150,14 @@ export function EventRow({
   when?: string;
   /** Home greys an event out once it is over at the current time. */
   past?: boolean;
+  onPointerDown?: (event: React.PointerEvent) => void;
 }) {
   const timeFormat = useTimeFormat();
   return (
     <li
       data-area={areaDataAttribute(color)}
-      className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) px-3 py-2 ${
+      onPointerDown={onPointerDown}
+      className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) px-3 py-2 hover:brightness-[0.98] ${
         past ? "bg-(--event-area-bg-past)" : "bg-(--event-area-bg-upcoming)"
       } ${className}`}
     >
@@ -128,7 +166,7 @@ export function EventRow({
           past ? "bg-(--area-border)" : "bg-(--event-area-icon-bg-upcoming)"
         }`}
       >
-        <CalendarDays aria-hidden className="size-[11px]" strokeWidth={2.25} />
+        <CalendarDays aria-hidden className="size-3" strokeWidth={2.5} />
       </span>
       <span className="flex min-w-0 flex-col">
         <PanelLink
@@ -138,16 +176,20 @@ export function EventRow({
             id: event.event_id,
             day: event.is_repeating ? event.occurrence_date : null,
           }}
-          className={`truncate text-sm font-medium ${past ? "text-(--text-tertiary)" : "text-(--text-primary)"} ${
+          className={`truncate text-sm font-medium ${past ? "text-(--text-tertiary)" : "text-(--event-title)"} ${
             event.is_cancelled ? "line-through" : ""
           }`}
         >
           {event.title}
         </PanelLink>
         <span
-          className={`type-meta ${past ? "text-(--text-tertiary)" : "text-(--text-secondary)"}`}
+          className={`flex min-w-0 items-center gap-1.5 type-meta [&_svg]:size-3 [&_svg]:shrink-0 ${past ? "text-(--text-tertiary)" : "text-(--event-meta)"}`}
         >
-          {when ?? eventSpan(event, (value) => formatTime(value, timeFormat))}
+          {event.is_repeating && <Repeat role="img" aria-label="Repeats" strokeWidth={2} />}
+          {event.location && <MapPin role="img" aria-label={event.location} strokeWidth={2} />}
+          <span className="truncate">
+            {when ?? eventSpan(event, (value) => formatTime(value, timeFormat))}
+          </span>
         </span>
       </span>
     </li>
@@ -189,22 +231,25 @@ function Row({
   title,
   meta,
   className = "",
+  onPointerDown,
 }: {
   color: string | null;
   icon: ReactNode;
   title: ReactNode;
   meta: ReactNode;
   className?: string;
+  onPointerDown?: (event: React.PointerEvent) => void;
 }) {
   return (
     <li
       data-area={areaDataAttribute(color)}
-      className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) px-3 py-2 hover:bg-(--color-neutral-50) ${className}`}
+      onPointerDown={onPointerDown}
+      className={`relative mb-1.5 flex items-start gap-2 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong) ${className}`}
     >
       <span className="mt-0.5 grid size-4 shrink-0 place-items-center">{icon}</span>
       <span className="flex min-w-0 flex-col">
         {title}
-        <span className="type-meta text-(--text-tertiary)">{meta}</span>
+        <span className="truncate type-meta text-(--text-tertiary)">{meta}</span>
       </span>
     </li>
   );
@@ -274,44 +319,29 @@ export function TaskRow({
     <li
       {...containerProps}
       data-area={areaDataAttribute(context.colorOf(task.life_area_id))}
-      className={`group/row relative mb-1.5 flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:bg-(--color-neutral-50) ${containerProps?.className ?? ""}`}
+      className={`group/row relative mb-1.5 flex flex-col rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 py-2 hover:border-(--border-strong) ${containerProps?.className ?? ""}`}
     >
       {actions && (
-        <div className="absolute top-1.5 right-1.5 z-20 hidden items-center gap-0.5 bg-(--color-neutral-50) pl-2 shadow-[-10px_0_8px_-2px_var(--color-neutral-50)] group-focus-within/row:flex group-hover/row:flex">
+        <div className="absolute top-1.5 right-1.5 z-20 hidden items-center gap-0.5 bg-(--bg-surface) pl-2 shadow-[-10px_0_8px_-2px_var(--bg-surface)] group-hover/row:flex has-[[aria-expanded=true]]:flex">
           {actions}
         </div>
       )}
       <div className="flex items-start gap-2">
-        <label className="relative z-10 -m-1 mt-px grid size-6 shrink-0 cursor-pointer place-items-center">
-          <input
-            type="checkbox"
-            checked={done}
-            disabled={cancelled || complete.isPending || reopen.isPending}
-            aria-label={done ? `Mark ${task.title} not done` : `Mark ${task.title} done`}
-            onChange={toggle}
-            className={`size-4 cursor-pointer appearance-none rounded-[4px] border-2 outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-default ${
-              done
-                ? "border-(--checkbox-area-done) bg-(--checkbox-area-done)"
-                : cancelled
-                  ? "border-(--color-neutral-300)"
-                  : "border-(--checkbox-area-todo)"
-            }`}
-          />
-          {done && (
-            <Check
-              aria-hidden
-              className="pointer-events-none absolute size-2.5 text-white"
-              strokeWidth={3.5}
-            />
-          )}
-        </label>
+        <EntityCheckbox
+          checked={done}
+          disabled={cancelled || complete.isPending || reopen.isPending}
+          cancelled={cancelled}
+          label={done ? `Mark ${task.title} not done` : `Mark ${task.title} done`}
+          onChange={toggle}
+          className="z-10 -m-1 mt-px"
+        />
         <span className="flex min-w-0 flex-1 flex-col">
           <PanelLink
             stretched
             target={{ kind: "task", id: task.id }}
             className={`truncate text-sm ${
               done || cancelled
-                ? "text-(--text-disabled) line-through"
+                ? "text-(--text-tertiary) line-through"
                 : "font-medium text-(--text-primary)"
             }`}
           >
@@ -343,7 +373,7 @@ export function TaskRow({
                   aria-expanded={open}
                   aria-label={`Subtasks, ${subtasksDone} of ${subtasks.length} done`}
                   onClick={() => setOpen(!open)}
-                  className="relative z-10 ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-[5px] bg-(--color-neutral-100) py-px pr-1 pl-1.5 text-[11px] font-medium text-(--text-secondary) outline-none hit-24 hover:bg-(--color-neutral-200) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                  className="relative z-10 ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-[5px] bg-(--counter-bg) py-px pr-1 pl-1.5 type-tag font-medium text-(--text-secondary) outline-none hit-24 hover:bg-(--bg-pressed) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
                 >
                   {subtasksDone}/{subtasks.length}
                   <ChevronDown

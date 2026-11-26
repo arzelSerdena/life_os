@@ -10,6 +10,8 @@ import { endsOn, type RepeatRule, toRRule } from "../pickers/repeat";
 /** What New event starts with: the day it was opened on and an owner, when known. */
 export type EventSpot = {
   day?: string;
+  startTime?: string;
+  endTime?: string;
   lifeAreaId?: number | null;
   projectId?: number | null;
 };
@@ -67,15 +69,23 @@ export function initialValues(
   const startDate = spot.day ?? today;
   const start = Math.min(now.hours + 1, 23) * 60;
   const end = moment(startDate, start + DEFAULT_LENGTH);
+  const startTime = spot.startTime ?? timeOf(start);
+  const endTime = spot.endTime ?? end.time;
+  const endDate =
+    spot.startTime && spot.endTime
+      ? endTime <= startTime
+        ? addDays(startDate, 1)
+        : startDate
+      : end.date;
   return {
     title: "",
     lifeAreaId: spot.lifeAreaId ?? null,
     projectId: spot.projectId ?? null,
     allDay: false,
     startDate,
-    startTime: timeOf(start),
-    endDate: end.date,
-    endTime: end.time,
+    startTime,
+    endDate,
+    endTime,
     repeat: null,
     location: "",
   };
@@ -128,6 +138,9 @@ export function endTimes(values: NewEventValues): { time: string; duration: stri
   const found: { time: string; duration: string | null }[] = [];
   for (let minutes = first; minutes < DAY; minutes += STEP) {
     found.push({ time: timeOf(minutes), duration: durationLabel(minutes - start) });
+  }
+  if (found.length === 0 && start < DAY - 1) {
+    found.push({ time: "23:59", duration: durationLabel(DAY - 1 - start) });
   }
   return found;
 }

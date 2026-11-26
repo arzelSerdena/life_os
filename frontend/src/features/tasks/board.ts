@@ -1,4 +1,10 @@
-import type { LifeAreaRead, ProjectRead, SectionRead, TaskRead } from "../../client/types.gen";
+import type {
+  LifeAreaRead,
+  OccurrenceRead,
+  ProjectRead,
+  SectionRead,
+  TaskRead,
+} from "../../client/types.gen";
 
 /**
  * The Tasks group's boards, as pure functions: which tasks a view lists and how they split
@@ -114,6 +120,7 @@ export type Column = {
   title: string;
   marker: Marker;
   count: number;
+  events?: OccurrenceRead[];
   /** Subgroups in order; a column without subgrouping has one unnamed subgroup. */
   subgroups: Subgroup[];
 };

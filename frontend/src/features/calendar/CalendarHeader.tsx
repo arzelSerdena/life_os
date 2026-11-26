@@ -1,12 +1,14 @@
 import { Popover, ToggleButton, ToggleButtonGroup } from "@heroui/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { useState } from "react";
 import { IconButton } from "../../components/IconButton";
 import { useCalendarStore } from "../../stores/calendarStore";
 import { MonthGrid } from "../pickers/DatePicker";
+import { daysFrom } from "../pickers/dates";
 import { type CalendarView, rangeLabel, showsToday, stepAnchor, viewRange } from "./calendar";
 
 const VIEWS: { key: CalendarView; label: string }[] = [
+  { key: "days", label: "Days" },
   { key: "week", label: "Week" },
   { key: "month", label: "Month" },
   { key: "quarter", label: "Quarter" },
@@ -23,13 +25,24 @@ export function yearPage(year: number): number {
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
- * Week / Month / Quarter / Year on the left, then ‹ the range › (the range opens the period
- * picker), and Today when today is out of view. No page title, no Add button.
+ * Days / Week / Month / Quarter / Year on the left, then ‹ the range › (the range opens
+ * the period picker), Today when today is out of view, and the side-panel toggle on the right.
  */
 export function CalendarHeader({ anchor, today }: { anchor: string; today: string }) {
-  const { view, setView, setAnchor } = useCalendarStore();
+  const {
+    view,
+    dayCount,
+    timed,
+    panel,
+    lastPanel,
+    setView,
+    setDayCount,
+    setTimed,
+    setAnchor,
+    setPanel,
+  } = useCalendarStore();
   return (
-    <header className="flex h-[72px] shrink-0 items-center gap-5 px-6">
+    <header className="flex h-[72px] shrink-0 items-center gap-4 px-6">
       <ToggleButtonGroup
         aria-label="View"
         selectionMode="single"
@@ -45,64 +58,114 @@ export function CalendarHeader({ anchor, today }: { anchor: string; today: strin
           <ToggleButton
             key={option.key}
             id={option.key}
-            className="h-7 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3.5 text-[13px] font-medium text-(--switch-default-text) hover:bg-white/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
+            className="h-7 min-w-0 rounded-(--switch-item-radius) bg-transparent px-3 type-body font-medium text-(--switch-default-text) hover:bg-(--bg-surface)/60 data-[selected=true]:bg-(--switch-active-bg) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-(--effect-raised)"
           >
-            {option.label}
+            {option.key === "days" ? `${dayCount} days` : option.label}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>
+      {(view === "days" || view === "week") && (
+        <button
+          type="button"
+          aria-pressed={timed}
+          onClick={() => setTimed(!timed)}
+          className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-(--radius-8) border px-2.5 type-body font-medium outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) ${
+            timed
+              ? "border-(--focus-ring) bg-(--accent-subtle) text-(--accent-text)"
+              : "border-(--border-default) bg-(--bg-surface) text-(--text-secondary) hover:bg-(--bg-hover)"
+          }`}
+        >
+          <Clock aria-hidden className="size-3.5" />
+          Timed
+        </button>
+      )}
       <div className="flex items-center gap-1">
         <IconButton
           label={`Previous ${view}`}
           size="md"
-          onPress={() => setAnchor(stepAnchor(view, anchor, -1))}
+          onPress={() => setAnchor(stepAnchor(view, anchor, -1, dayCount))}
         >
           <ChevronLeft />
         </IconButton>
-        <PeriodPicker view={view} anchor={anchor} today={today} onPick={setAnchor} />
+        <PeriodPicker
+          view={view}
+          dayCount={dayCount}
+          anchor={anchor}
+          today={today}
+          onPick={setAnchor}
+          onPickRange={(start, count) => {
+            setDayCount(count);
+            setAnchor(start);
+          }}
+        />
         <IconButton
           label={`Next ${view}`}
           size="md"
-          onPress={() => setAnchor(stepAnchor(view, anchor, 1))}
+          onPress={() => setAnchor(stepAnchor(view, anchor, 1, dayCount))}
         >
           <ChevronRight />
         </IconButton>
       </div>
-      {!showsToday(view, anchor, today) && (
+      {!showsToday(view, anchor, today, dayCount) && (
         <button
           type="button"
           onClick={() => setAnchor(null)}
-          className="h-8 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 text-[13px] font-medium text-(--text-primary) outline-none hover:bg-(--color-neutral-50) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+          className="h-8 rounded-(--radius-8) border border-(--border-default) bg-(--bg-surface) px-3 type-body font-medium text-(--text-primary) outline-none hover:bg-(--color-neutral-50) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
         >
           Today
         </button>
       )}
+      <span className="ml-auto">
+        <IconButton
+          label={panel ? "Hide panel" : "Show panel"}
+          size="md"
+          onPress={() => setPanel(panel ? null : lastPanel)}
+        >
+          {panel ? <PanelRightClose /> : <PanelRightOpen />}
+        </IconButton>
+      </span>
     </header>
   );
 }
 
 /**
- * The range's name, which opens the picker: a week in a month grid, a month or a quarter in
- * a year, or a year in 12 years.
+ * The range's name, which opens the picker: a custom date range in Days, a week in a month
+ * grid, a month or a quarter in a year, or a year in 12 years.
  */
 function PeriodPicker({
   view,
+  dayCount,
   anchor,
   today,
   onPick,
+  onPickRange,
 }: {
   view: CalendarView;
+  dayCount: number;
   anchor: string;
   today: string;
   onPick: (anchor: string) => void;
+  onPickRange: (start: string, count: number) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [month, setMonth] = useState(anchor.slice(0, 7));
   const [year, setYear] = useState(Number(anchor.slice(0, 4)));
-  const label = rangeLabel(view, anchor, today);
-  const week = viewRange("week", anchor);
+  const [rangeStart, setRangeStart] = useState<string | null>(null);
+  const label = rangeLabel(view, anchor, today, dayCount);
+  const shownRange = viewRange(view, anchor, dayCount);
   const pick = (day: string) => {
     onPick(day);
+    setIsOpen(false);
+  };
+  const pickDayInRange = (day: string) => {
+    if (!rangeStart) {
+      setRangeStart(day);
+      return;
+    }
+    const [start, end] = day >= rangeStart ? [rangeStart, day] : [day, rangeStart];
+    const count = Math.min(Math.max(daysFrom(start, end) + 1, 1), 14);
+    onPickRange(start, count);
+    setRangeStart(null);
     setIsOpen(false);
   };
 
@@ -113,6 +176,7 @@ function PeriodPicker({
         setIsOpen(open);
         if (open) {
           setMonth(anchor.slice(0, 7));
+          setRangeStart(null);
           setYear(
             view === "year" ? yearPage(Number(anchor.slice(0, 4))) : Number(anchor.slice(0, 4)),
           );
@@ -133,12 +197,41 @@ function PeriodPicker({
           aria-label={`Choose a ${view}`}
           className="flex flex-col p-1.5 outline-none"
         >
-          {view === "week" ? (
+          {view === "days" ? (
+            <>
+              <div className="flex items-center justify-between px-2 py-1">
+                <span className="type-meta text-(--text-tertiary)">
+                  {rangeStart ? "Pick end date (max 14d)" : "Pick start date"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPickRange(today, 3);
+                    setIsOpen(false);
+                  }}
+                  className="rounded-(--radius-4) px-1.5 py-0.5 text-xs font-medium text-brand-700 outline-none hover:bg-brand-50 focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                >
+                  Next 3d
+                </button>
+              </div>
+              <div className="-mx-1.5 my-1 h-px bg-(--border-default)" />
+              <MonthGrid
+                month={month}
+                today={today}
+                selected={rangeStart}
+                highlight={
+                  rangeStart ? undefined : { start: shownRange.start, end: shownRange.end }
+                }
+                onMonth={setMonth}
+                onPick={pickDayInRange}
+              />
+            </>
+          ) : view === "week" ? (
             <>
               <button
                 type="button"
                 onClick={() => pick(today)}
-                className="flex h-[30px] items-center gap-2 rounded-(--radius-6) px-2 text-left text-[13px] font-medium text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+                className="flex h-[30px] items-center gap-2 rounded-(--radius-6) px-2 text-left type-body font-medium text-(--text-primary) outline-none hover:bg-(--color-neutral-100) focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
               >
                 This week
                 <span className="ml-auto text-xs font-normal text-(--text-tertiary)">
@@ -150,7 +243,7 @@ function PeriodPicker({
                 month={month}
                 today={today}
                 selected={null}
-                highlight={{ start: week.start, end: week.end }}
+                highlight={{ start: shownRange.start, end: shownRange.end }}
                 onMonth={setMonth}
                 onPick={pick}
               />
@@ -158,7 +251,7 @@ function PeriodPicker({
           ) : (
             <>
               <div className="flex h-7 items-center pr-0.5 pb-1 pl-2">
-                <span className="text-[13px] font-semibold text-(--text-primary)">
+                <span className="type-body font-semibold text-(--text-primary)">
                   {view === "year" ? `${year} – ${year + 11}` : year}
                 </span>
                 <span className="ml-auto flex gap-0.5">
@@ -195,7 +288,7 @@ function PeriodPicker({
                         }`}
                       >
                         <span
-                          className={`text-[13px] font-semibold ${shown ? "text-brand-700" : "text-(--text-primary)"}`}
+                          className={`type-body font-semibold ${shown ? "text-brand-700" : "text-(--text-primary)"}`}
                         >
                           Q{index + 1}
                         </span>
@@ -229,7 +322,7 @@ function PeriodPicker({
                       aria-pressed={shown}
                       aria-current={current ? "date" : undefined}
                       onClick={() => pick(first)}
-                      className={`h-9 rounded-(--radius-8) border text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) ${
+                      className={`h-9 rounded-(--radius-8) border type-body font-medium outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) ${
                         shown
                           ? "border-brand-600 bg-brand-100 font-semibold text-brand-700"
                           : current

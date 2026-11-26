@@ -102,7 +102,7 @@ function Month({ row, columns, ...props }: LinearProps & { row: MonthRow; column
   const lanes = row.lanes > 0 ? `repeat(${row.lanes}, ${size.lane}px) ` : "";
   const style: CSSProperties = {
     gridTemplateColumns: columns,
-    gridTemplateRows: `${size.head}px ${lanes}minmax(0, 1fr)`,
+    gridTemplateRows: `${size.head}px ${lanes}${view === "year" ? "auto" : "minmax(0, 1fr)"}`,
     minHeight: size.head + row.lanes * size.lane + size.marks,
   };
   const name = MONTHS[Number(row.month.slice(5, 7)) - 1];

@@ -80,6 +80,8 @@ def _read(routine: Routine) -> RoutineRead:
         id=routine.id,
         title=routine.title,
         notes=routine.notes,
+        start_time=routine.start_time,
+        end_time=routine.end_time,
         sort_order=routine.sort_order,
         is_paused=service.is_paused(routine),
         archived_at=routine.archived_at,

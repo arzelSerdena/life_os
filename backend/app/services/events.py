@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import delete, select, update
@@ -22,7 +22,7 @@ from app.schemas.event import (
 from app.services.history import ChangeRecorder
 from app.services.ownership import ensure_owner_open, resolve_owner
 
-MAX_RANGE_DAYS = 366
+MAX_RANGE_DAYS = 371
 TIMING_FIELDS = {"rrule", "start_date", "end_date", "start_time", "end_time"}
 DATE_FIELDS = {"start_date", "end_date"}
 SERIES_ONLY_FIELDS = {"rrule", "repeat_ends_on"}
@@ -105,7 +105,7 @@ def list_occurrences(
     earlier and single occurrences moved into the range."""
     if last < first:
         raise UnprocessableError("The range ends before it starts.")
-    if (last - first).days >= MAX_RANGE_DAYS:
+    if (last - first).days + 1 > MAX_RANGE_DAYS:
         raise UnprocessableError(f"Ask for at most {MAX_RANGE_DAYS} days at a time.")
 
     query = select(Event).options(selectinload(Event.exceptions)).where(Event.archived_at.is_(None))
@@ -153,8 +153,14 @@ def update_event(session: Session, event_id: int, data: EventUpdate) -> Event:
     return _save(session, event)
 
 
+def get_occurrence(session: Session, event_id: int, day: date) -> Occurrence:
+    """Return one occurrence of a repeating event by its original date."""
+    event = _repeating_event(session, event_id, day)
+    return _build(event, day, _exception(event, day))
+
+
 def reschedule_event(session: Session, event_id: int, data: EventReschedule) -> EventChange:
-    """Give a one-off event new dates, keeping its times. Recorded, so it can be undone.
+    """Give a one-off event new dates (and optionally times). Recorded, so it can be undone.
 
     A repeating event's occurrences are moved one at a time (`edit_occurrence`), since moving
     the series would drop its one-off changes, which undo can't bring back."""
@@ -163,10 +169,15 @@ def reschedule_event(session: Session, event_id: int, data: EventReschedule) -> 
         raise UnprocessableError("A repeating event moves one occurrence at a time.")
     end_date = None if data.end_date == data.start_date else data.end_date
     current = {field: getattr(event, field) for field in (*TIMING_FIELDS, "repeat_ends_on")}
-    _check_timing(current | {"start_date": data.start_date, "end_date": end_date})
+    updated: dict[str, Any] = {"start_date": data.start_date, "end_date": end_date}
+    if "start_time" in data.model_fields_set:
+        updated["start_time"] = data.start_time
+    if "end_time" in data.model_fields_set:
+        updated["end_time"] = data.end_time
+    _check_timing(current | updated)
     history = ChangeRecorder(session)
-    history.set(event, "start_date", data.start_date)
-    history.set(event, "end_date", end_date)
+    for field, value in updated.items():
+        history.set(event, field, value)
     return EventChange(_save(session, event), history.batch_id)
 
 
@@ -283,15 +294,33 @@ def edit_occurrence(
         _change_one(event, day, changes, history)
         return EventChange(_save(session, event), history.batch_id)
 
-    if moved := DATE_FIELDS & changes.keys():
-        raise UnprocessableError(
-            f"{', '.join(sorted(moved))} can't change from an occurrence. "
-            "Edit one occurrence with scope 'this', or the event itself to move the series."
-        )
     if data.scope == "following" and day > event.start_date:
         target = _split(session, event, day)
+        if DATE_FIELDS & changes.keys():
+            if "start_date" in changes:
+                delta = changes["start_date"] - day
+                changes["start_date"] = target.start_date + delta
+            if (
+                "end_date" in changes
+                and changes["end_date"] is not None
+                and changes["end_date"] == changes.get("start_date", target.start_date)
+            ):
+                changes["end_date"] = None
         _change_series(target, changes)
         return EventChange(_save(session, target), None)
+    if DATE_FIELDS & changes.keys():
+        if "start_date" in changes:
+            delta = changes["start_date"] - day
+            new_start = event.start_date + delta
+            if "end_date" not in changes and event.end_date is not None:
+                changes["end_date"] = event.end_date + delta
+            changes["start_date"] = new_start
+        if (
+            "end_date" in changes
+            and changes["end_date"] is not None
+            and changes["end_date"] == changes.get("start_date", event.start_date)
+        ):
+            changes["end_date"] = None
     _change_series(event, changes)
     return EventChange(_save(session, event), None)
 
@@ -349,7 +378,13 @@ def _occurrences_near(event: Event, first: date, last: date) -> list[Occurrence]
         )
     )
     # A single occurrence moved into the range from a date outside it
-    days |= {day for day, exception in exceptions.items() if exception.start_date is not None}
+    days |= {
+        day
+        for day, exception in exceptions.items()
+        if exception.start_date is not None
+        and day >= event.start_date
+        and (event.repeat_ends_on is None or day <= event.repeat_ends_on)
+    }
     return [_build(event, day, exceptions.get(day)) for day in days]
 
 
@@ -360,7 +395,10 @@ def _build(event: Event, day: date, exception: EventException | None) -> Occurre
 
     start = exception.start_date if exception and exception.start_date else day
     end = exception.end_date if exception and exception.end_date else start + _length(event)
-    start_time, end_time = pick("start_time"), pick("end_time")
+    if exception is not None and exception.is_all_day:
+        start_time, end_time = None, None
+    else:
+        start_time, end_time = pick("start_time"), pick("end_time")
     return Occurrence(
         event=event,
         occurrence_date=day,
@@ -379,10 +417,9 @@ def _build(event: Event, day: date, exception: EventException | None) -> Occurre
 
 
 def _is_past(end_date: date, end_time: time | None) -> bool:
-    today = clock.today()
-    if end_date != today:
-        return end_date < today
-    return end_time is not None and end_time <= clock.now().time()
+    if end_time is not None:
+        return datetime.combine(end_date, end_time) <= clock.now()
+    return end_date < clock.today()
 
 
 def _length(event: Event) -> timedelta:
@@ -446,9 +483,19 @@ def _change_one(event: Event, day: date, changes: dict[str, Any], history: Chang
         "end_time": current.end_time,
     } | {field: value for field, value in changes.items() if field in TIMING_FIELDS}
     if "start_date" in changes and "end_date" not in changes:
-        effective["end_date"] = changes["start_date"] + _length(event)  # keep its length
-        if event.end_date is not None:
+        effective["end_date"] = changes["start_date"] + (current.end_date - current.start_date)
+        if (
+            current.end_date > current.start_date
+            or event.end_date is not None
+            or (exception is not None and exception.end_date is not None)
+        ):
             changes = {**changes, "end_date": effective["end_date"]}
+    if "start_time" in changes:
+        if changes["start_time"] is None:
+            changes = {**changes, "is_all_day": True, "end_time": None}
+            effective["end_time"] = None
+        else:
+            changes = {**changes, "is_all_day": False}
     _check_timing(effective)
 
     recorded = {field: value for field, value in changes.items() if field != "notes"}

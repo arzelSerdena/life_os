@@ -1,5 +1,6 @@
 import { Button } from "@heroui/react";
 import { Navigate, useParams } from "react-router";
+import type { OccurrenceRead } from "../../client/types.gen";
 import { QueryError } from "../../components/QueryError";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { useNewTask } from "../../stores/newTaskStore";
@@ -59,7 +60,7 @@ export function TasksPage() {
     : [];
   const tasks = finished ? listed : openFirst(sortTasks(listed, filters.sort));
   // Hidden priorities and areas take their columns with them.
-  const columns = data
+  const baseColumns = data
     ? buildColumns(view, group, tasks, data, filters.subgroup).filter((column) =>
         column.marker.kind === "priority"
           ? !filters.hiddenPriorities.includes(column.marker.priority)
@@ -71,6 +72,34 @@ export function TasksPage() {
             : true,
       )
     : [];
+
+  // Show events in non-priority views (Today and All).
+  const columns = (() => {
+    if (!data || group === "priority" || (view !== "today" && view !== "all")) return baseColumns;
+    const rawEvents: OccurrenceRead[] =
+      view === "today"
+        ? (data.days[0]?.events ?? [])
+        : Array.from(
+            new Map(
+              data.days
+                .flatMap((d) => d.events)
+                .map((ev) => [`${ev.event_id}-${ev.occurrence_date}`, ev]),
+            ).values(),
+          );
+    const visibleEvents = rawEvents.filter(
+      (ev) => !ev.is_past && areaShown(filters, ev.life_area_id),
+    );
+    if (visibleEvents.length === 0) return baseColumns;
+    return baseColumns.map((col) => {
+      const matched = visibleEvents.filter((ev) => {
+        if (group === "area") return col.key === `area-${ev.life_area_id}`;
+        return false;
+      });
+      return matched.length > 0
+        ? { ...col, events: matched, count: col.count + matched.length }
+        : col;
+    });
+  })();
   const showFlag = finished || (group !== "priority" && filters.subgroup !== "priority");
   const onAdd = (columnKey: string, subgroupKey: string | null) =>
     data && openNewTask(spotFor(columnKey, subgroupKey, data.projects, base), data.today);
@@ -110,6 +139,8 @@ export function TasksPage() {
           <Board
             view={view}
             group={group}
+            subgroupBy={filters.subgroup}
+            sort={filters.sort}
             columns={columns}
             context={data}
             showFlag={showFlag}

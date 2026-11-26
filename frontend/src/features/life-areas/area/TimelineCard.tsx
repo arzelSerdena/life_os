@@ -8,6 +8,7 @@ import type {
 } from "../../../client/types.gen";
 import { CardEmpty, SectionCard } from "../../../components/SectionCard";
 import { type Period, periodInSentence } from "../../../period";
+import { PanelLink } from "../../detail-panel/PanelLink";
 import { type ItemTarget, itemMenuProps } from "../../item-menu/target";
 import { formatValue } from "../../metrics/format";
 import { plural, shortDate } from "../overview/format";
@@ -50,42 +51,97 @@ export function TimelineCard({
         <Section title={onProjectPage ? "Project" : "Projects"} count={projects.length}>
           {projects.map((project) => (
             <Row key={project.id} label="" item={{ kind: "project", id: project.id }}>
+              <PanelLink stretched target={{ kind: "project", id: project.id }} className="sr-only">
+                {project.title}
+              </PanelLink>
               <ProjectBar project={project} range={page.range} />
             </Row>
           ))}
         </Section>
 
         <Section title="Events" count={events.length}>
-          {events.map((event) => {
-            const left = scale.at(event.start_date);
-            const multiDay = event.end_date > event.start_date;
+          {Array.from(
+            events
+              .reduce((map, ev) => {
+                const list = map.get(ev.event_id) ?? [];
+                list.push(ev);
+                map.set(ev.event_id, list);
+                return map;
+              }, new Map<number, typeof events>())
+              .values(),
+          ).map((occurrences) => {
+            const first = occurrences[0];
+            const labelEl = (
+              <PanelLink
+                target={{
+                  kind: "event",
+                  id: first.event_id,
+                  day: first.is_repeating ? first.occurrence_date : null,
+                }}
+                className="flex min-w-0 items-center gap-1.5 text-xs text-(--text-primary)"
+              >
+                <span className="grid size-4 shrink-0 place-items-center rounded-[4px] bg-(--area-solid) text-white">
+                  <CalendarDays aria-hidden className="size-3" strokeWidth={2.5} />
+                </span>
+                <span className="truncate">{first.title}</span>
+              </PanelLink>
+            );
             return (
               <Row
-                key={`${event.event_id}-${event.occurrence_date}`}
-                label=""
+                key={first.event_id}
+                label={occurrences.length > 1 ? labelEl : ""}
                 item={{
                   kind: "event",
-                  id: event.event_id,
-                  day: event.is_repeating ? event.occurrence_date : null,
+                  id: first.event_id,
+                  day: first.is_repeating ? first.occurrence_date : null,
                 }}
               >
-                {multiDay && (
-                  <span
-                    aria-hidden
-                    className="absolute top-2 h-4 rounded-(--radius-4) bg-(--area-tint-active)"
-                    style={{ left: `${left}%`, width: `${scale.after(event.end_date) - left}%` }}
-                  />
+                {occurrences.length > 1 ? (
+                  occurrences.map((ev) => {
+                    const left = scale.at(laterDate(ev.start_date, page.range.start));
+                    return (
+                      <PanelLink
+                        key={ev.occurrence_date}
+                        target={{
+                          kind: "event",
+                          id: ev.event_id,
+                          day: ev.is_repeating ? ev.occurrence_date : null,
+                        }}
+                        className="absolute top-2.5 size-2 -translate-x-1/2 rounded-[2px] bg-(--area-solid) hover:scale-125"
+                      >
+                        <span
+                          className="sr-only"
+                          style={{ left: `${left}%` }}
+                        >{`${ev.title}, ${shortDate(ev.start_date)}`}</span>
+                      </PanelLink>
+                    );
+                  })
+                ) : (
+                  <>
+                    {first.end_date > first.start_date && (
+                      <span
+                        aria-hidden
+                        className="absolute top-2 h-4 rounded-(--radius-4) bg-(--area-tint-active)"
+                        style={{
+                          left: `${scale.at(laterDate(first.start_date, page.range.start))}%`,
+                          width: `${
+                            scale.after(earlierDate(first.end_date, page.range.end)) -
+                            scale.at(laterDate(first.start_date, page.range.start))
+                          }%`,
+                        }}
+                      />
+                    )}
+                    <span
+                      className="absolute top-1.5"
+                      style={{
+                        left: `${scale.at(laterDate(first.start_date, page.range.start))}%`,
+                      }}
+                      title={`${first.title}, ${shortDate(first.start_date)}`}
+                    >
+                      {labelEl}
+                    </span>
+                  </>
                 )}
-                <span
-                  className="absolute top-1.5 flex items-center gap-1.5 text-xs whitespace-nowrap text-(--text-primary)"
-                  style={{ left: `${left}%` }}
-                  title={`${event.title}, ${shortDate(event.start_date)}`}
-                >
-                  <span className="grid size-4 place-items-center rounded-[4px] bg-(--area-solid) text-white">
-                    <CalendarDays aria-hidden className="size-3" strokeWidth={2} />
-                  </span>
-                  {event.title}
-                </span>
               </Row>
             );
           })}
@@ -97,14 +153,17 @@ export function TimelineCard({
               key={outcome.metric_id}
               item={{ kind: "metric", id: outcome.metric_id }}
               label={
-                <span className="flex min-w-0 items-center gap-1.5">
+                <PanelLink
+                  target={{ kind: "metric", id: outcome.metric_id }}
+                  className="flex min-w-0 items-center gap-1.5"
+                >
                   <ChartLine
                     aria-hidden
                     className="size-3.5 shrink-0 text-(--area-solid)"
                     strokeWidth={2}
                   />
                   <span className="truncate">{outcome.title}</span>
-                </span>
+                </PanelLink>
               }
             >
               <MetricLane outcome={outcome} page={page} />
@@ -160,10 +219,10 @@ export function TodayLine({ range, today }: { range: DateRangeRead; today: strin
       style={{ left: LABEL_WIDTH, right: 0 }}
     >
       <span
-        className="absolute top-0 bottom-0 w-px bg-(--color-neutral-900)"
+        className="absolute top-0 bottom-0 w-px bg-(--text-primary)"
         style={{ left: `${scale.at(today) + 50 / scale.total}%` }}
       >
-        <span className="absolute -top-0.5 -translate-x-1/2 rounded-[4px] bg-(--color-neutral-900) px-1.5 text-[11px] leading-4 font-semibold text-white">
+        <span className="absolute -top-0.5 -translate-x-1/2 rounded-[4px] bg-(--text-primary) px-1.5 type-tag font-semibold text-(--bg-surface)">
           Today
         </span>
       </span>
@@ -194,14 +253,16 @@ export function ProjectBar({ project, range }: { project: BarProject; range: Dat
     <div
       className={`absolute top-1 flex h-[22px] items-center overflow-hidden rounded-(--radius-4) px-2 text-xs ${
         done
-          ? "bg-neutral-200 text-(--text-secondary)"
+          ? "bg-(--bg-pressed) text-(--text-secondary)"
           : "bg-(--area-tint-active) text-(--area-ink)"
       }`}
       style={{
         left: `${left}%`,
         width: `${width}%`,
         maskImage:
-          project.due_date || done ? undefined : "linear-gradient(to right, #000 75%, transparent)",
+          project.due_date || done
+            ? undefined
+            : "linear-gradient(to right, black 75%, transparent)",
       }}
       title={`${project.title}: ${project.done} of ${project.total} tasks done${
         project.due_date ? `, due ${shortDate(project.due_date)}` : ""
@@ -239,7 +300,7 @@ function Section({
         type="button"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-7 items-center gap-1.5 rounded-(--radius-6) text-[13px] font-semibold text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+        className="flex h-7 items-center gap-1.5 rounded-(--radius-6) type-body font-semibold text-(--text-primary) outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
       >
         <ChevronDown
           aria-hidden
@@ -269,8 +330,8 @@ function Row({
       className="grid h-7 items-center"
       style={{ gridTemplateColumns: `${LABEL_WIDTH} 1fr` }}
     >
-      <span className="min-w-0 pr-2 text-[13px] text-(--text-primary)">{label}</span>
-      <div className="relative h-full">{children}</div>
+      <span className="min-w-0 overflow-hidden pr-2 type-body text-(--text-primary)">{label}</span>
+      <div className="relative h-full overflow-hidden">{children}</div>
     </div>
   );
 }
@@ -282,9 +343,9 @@ function MetricLane({ outcome, page }: { outcome: OutcomeRead; page: AreaPageRea
   const target = outcome.target;
   if (!target) {
     return (
-      <span className="absolute inset-x-0 top-1/2 flex items-center gap-2 text-[11px] text-(--text-tertiary)">
+      <span className="absolute inset-x-0 top-1/2 flex items-center gap-2 type-tag text-(--text-tertiary)">
         <span>No target</span>
-        <span className="flex-1 border-t border-dashed border-(--color-neutral-300)" />
+        <span className="flex-1 border-t border-dashed border-(--border-strong)" />
       </span>
     );
   }
@@ -305,7 +366,7 @@ function MetricLane({ outcome, page }: { outcome: OutcomeRead; page: AreaPageRea
         {target.end_date <= page.range.end && (
           <span
             aria-hidden
-            className="absolute top-2 size-2.5 -translate-x-1/2 rotate-45 border-[1.5px] border-(--color-neutral-600) bg-white"
+            className="absolute top-2 size-2.5 -translate-x-1/2 rotate-45 border-[1.5px] border-(--text-secondary) bg-(--bg-surface)"
             style={{ left: `${right}%` }}
           />
         )}
@@ -340,15 +401,16 @@ function MetricLane({ outcome, page }: { outcome: OutcomeRead; page: AreaPageRea
   return (
     <>
       {segments.map((segment) => {
-        const left = scale.at(segment.start);
-        const width = scale.after(earlierDate(segment.end, page.range.end)) - left;
+        const clampedStart = laterDate(segment.start, page.range.start);
+        const left = scale.at(clampedStart);
+        const width = Math.max(scale.after(earlierDate(segment.end, page.range.end)) - left, 0);
         return (
           <span
             key={segment.start}
             title={segment.label}
             className={`absolute top-1.5 h-4 overflow-hidden rounded-[3px] ${
               segment.upcoming
-                ? "bg-white shadow-[inset_0_0_0_1px_var(--color-neutral-300)]"
+                ? "bg-(--bg-surface) shadow-[inset_0_0_0_1px_var(--border-strong)]"
                 : "bg-(--area-tint-active)"
             }`}
             style={{ left: `calc(${left}% + 1px)`, width: `calc(${width}% - 2px)` }}

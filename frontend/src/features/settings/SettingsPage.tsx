@@ -6,6 +6,7 @@ import { getAboutOptions, getSettingsOptions } from "../../client/@tanstack/reac
 import type { SettingsRead } from "../../client/types.gen";
 import { PageHeader } from "../../components/PageHeader";
 import { QueryError } from "../../components/QueryError";
+import { Scroll } from "../../components/Scroll";
 import { SectionCard } from "../../components/SectionCard";
 import { SegmentSwitch } from "../../components/SegmentSwitch";
 import { SIDEBAR_ROW, SIDEBAR_ROW_ACTIVE, Sidebar } from "../../components/Sidebar";
@@ -28,6 +29,7 @@ import {
   OPEN_ON_START,
   SECTIONS,
   type SectionId,
+  THEMES,
   TIME_FORMATS,
 } from "./settings";
 
@@ -100,15 +102,16 @@ export function SettingsPage() {
       </Sidebar>
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
         <PageHeader title="Settings" />
-        <div
+        <Scroll
           ref={scroller}
+          direction="both"
           onScroll={onScroll}
-          className="min-h-0 flex-1 overflow-auto px-(--page-gutter) pt-4 pb-[120px]"
+          className="min-h-0 flex-1 px-(--page-gutter) pt-4 pb-[120px]"
         >
           {settings.isError ? (
             <QueryError error={settings.error} onRetry={settings.refetch} />
           ) : settings.data ? (
-            <div className="flex w-[720px] flex-col gap-4">
+            <div className="mx-auto flex w-full max-w-[720px] flex-col gap-4">
               <Section id="general" title="General">
                 <GeneralRows settings={settings.data} />
               </Section>
@@ -120,7 +123,7 @@ export function SettingsPage() {
               </Section>
             </div>
           ) : null}
-        </div>
+        </Scroll>
       </main>
     </>
   );
@@ -141,6 +144,14 @@ function GeneralRows({ settings }: { settings: SettingsRead }) {
   const format = settings.time_format;
   return (
     <>
+      <SettingRow label="Theme">
+        <SegmentSwitch
+          label="Theme"
+          value={settings.theme}
+          options={THEMES}
+          onChange={(theme) => save({ theme })}
+        />
+      </SettingRow>
       <SettingRow label="Open on start">
         <SegmentSwitch
           label="Open on start"
@@ -210,7 +221,7 @@ function AboutRows() {
   return (
     <>
       <SettingRow label="Version">
-        <span className="text-[13px] text-(--text-secondary) tabular-nums">
+        <span className="type-body text-(--text-secondary) tabular-nums">
           {about.data?.version}
         </span>
       </SettingRow>

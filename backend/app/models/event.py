@@ -78,6 +78,7 @@ class EventException(BaseMixin, Base):
     __tablename__ = "event_exceptions"
     __table_args__ = (
         CheckConstraint("is_cancelled IN (0, 1)", name="is_cancelled_values"),
+        CheckConstraint("is_all_day IN (0, 1)", name="is_all_day_values"),
         CheckConstraint("title IS NULL OR length(title) BETWEEN 1 AND 200", name="title_length"),
         CheckConstraint("notes IS NULL OR length(notes) <= 50000", name="notes_length"),
         CheckConstraint("location IS NULL OR length(location) <= 300", name="location_length"),
@@ -92,6 +93,7 @@ class EventException(BaseMixin, Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"))
     occurrence_date: Mapped[date] = mapped_column(Date)
     is_cancelled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    is_all_day: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     title: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     start_date: Mapped[date | None] = mapped_column(Date)
@@ -104,4 +106,4 @@ class EventException(BaseMixin, Base):
 
     @property
     def has_changes(self) -> bool:
-        return any(getattr(self, field) is not None for field in self.OVERRIDES)
+        return self.is_all_day or any(getattr(self, field) is not None for field in self.OVERRIDES)

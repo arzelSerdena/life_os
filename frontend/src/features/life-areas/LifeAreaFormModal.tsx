@@ -103,8 +103,8 @@ export function LifeAreaFormModal({
                   name="color"
                   render={({ field }) => (
                     <fieldset className="flex flex-col gap-1.5">
-                      <legend className={`${FIELD_LABEL} mb-1.5`}>Color</legend>
-                      <div className="grid grid-cols-6 gap-1.5">
+                      <legend className={`${FIELD_LABEL} mb-1`}>Color</legend>
+                      <div className="flex flex-wrap gap-2">
                         {AREA_PALETTES.map((palette) => {
                           const usedBy = lifeAreas
                             .filter((area) => area.color === palette.key)
@@ -115,11 +115,7 @@ export function LifeAreaFormModal({
                             <label
                               key={palette.key}
                               title={usedBy ? `${palette.name} · used by ${usedBy}` : palette.name}
-                              className={`flex cursor-pointer flex-col items-center gap-1 rounded-(--radius-8) py-1.5 text-[11px] leading-4 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring) hover:bg-(--bg-hover) ${
-                                isSelected
-                                  ? "bg-(--bg-hover) font-semibold text-(--text-primary)"
-                                  : "text-(--text-secondary)"
-                              }`}
+                              className="relative grid size-7 cursor-pointer place-items-center rounded-(--radius-6) has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--focus-ring)"
                             >
                               <input
                                 type="radio"
@@ -135,19 +131,14 @@ export function LifeAreaFormModal({
                               <span
                                 aria-hidden
                                 style={{ backgroundColor: palette.swatch }}
-                                className="grid size-6 place-items-center rounded-(--radius-6) text-white"
+                                className={`grid size-7 place-items-center rounded-(--radius-6) text-white transition-transform hover:scale-105 ${
+                                  isSelected
+                                    ? "ring-2 ring-(--text-primary) ring-offset-2 ring-offset-(--bg-surface)"
+                                    : ""
+                                }`}
                               >
-                                {isSelected && <Check className="size-3.5" strokeWidth={3} />}
+                                {isSelected && <Check className="size-3.5" strokeWidth={3.5} />}
                               </span>
-                              <span aria-hidden>{palette.name}</span>
-                              {usedBy && (
-                                <span
-                                  aria-hidden
-                                  className="-mt-0.5 max-w-full truncate px-1 text-[11px] leading-3 font-normal text-(--text-tertiary)"
-                                >
-                                  {usedBy}
-                                </span>
-                              )}
                             </label>
                           );
                         })}
